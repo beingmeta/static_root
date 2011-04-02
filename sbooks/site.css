@@ -1,0 +1,136 @@
+table.booklist { width: 95%;}
+table.booklist th, table.booklist td {
+    vertical-align: top; overflow: hidden;}
+table.booklist tbody.book {}
+tbody.book th.cover {
+    width: 75px; vertical-align: top; text-align: right;}
+tbody.book th.cover img { height: 75px;}
+tbody.book td.fields { }
+tbody.book td.fields div { overflow: hidden; white-space: wrap;}
+
+tbody.book span.source img { height: 40px;}
+tbody.book div.source { border-top: solid purple 1px; clear: both;}
+tbody.book div.source img { width: 40px;}
+tbody.book div.source span.name { float: right; font-weight: bold;}
+tbody.book div.source span.description { font-style: italic;}
+
+tbody.book td.fields div.identity {
+    font-size: 125%; font-weight: bold;}
+tbody.book td.fields .access,
+tbody.book td.fields .latest,
+tbody.book td.fields .editinfo {
+    padding-left: 5px; float: right; font-size: 80%;}
+
+tbody.book td.fields .editinfo { color: red;}
+tbody.book td.fields .latest { font-style: italic;}
+
+tbody.book td.fields div.source { font-style: italic; }
+tbody.book td.fields div.source span.author { font-weight: bold; }
+
+tbody.book td.fields div.links {}
+tbody.book td.fields div.links span.mycopy,
+tbody.book td.fields div.links span.formats,
+tbody.book td.fields div.links span.tabbar {
+    white-space: nowrap; }
+
+tbody.book td.fields div.links span.mycopy a.myhtmlcopy {
+    font-weight: bold; font-variant: small-caps;}
+
+tbody.book td.fields div.links span.tabbar .booktab {
+    color: blue; font-variant: small-caps; cursor: pointer;}
+tbody.book td.fields div.links span.tabbar .booktab:hover {
+    text-decoration: overline;}
+
+tbody.book td div.booktabs { height: 0px; overflow: hidden;}
+tbody.book[tab] td div.booktabs {
+    transition-property: height; transition-duration: 1s;
+    -o-transition-property: height; -o-transition-duration: 1s;
+    -moz-transition-property: height; -moz-transition-duration: 1s;
+    -webkit-transition-property: height; -webkit-transition-duration: 1s;
+    height: inherit;}
+tbody.book td div.booktabs > div {
+    transition-property: opacity, z-index; transition-duration: 1s;
+    -o-transition-property: opacity; -o-transition-duration: 1s;
+    -moz-transition-property: opacity; -moz-transition-duration: 1s;
+    -webkit-transition-property: opacity; -webkit-transition-duration: 1s;
+    margin-left: 50px; opacity: 0.0; display: none;}
+
+tbody.book[tab='description'] td div.booktabs > div.description,
+tbody.book[tab='subjects'] td div.booktabs > div.subjects,
+tbody.book[tab='circles'] td div.booktabs > div.circles,
+tbody.book[tab='overlays'] td div.booktabs >div.overlays,
+tbody.book[tab='friends'] td div.booktabs > div.friends {
+    opacity: 1.0; z-index: 100; display: block;}
+
+tbody.book[tab='description'] td.fields span.tabbar .booktab[tabid='description'],
+tbody.book[tab='subjects'] td.fields span.tabbar .booktab[tabid='subjects'],
+tbody.book[tab='circles'] td.fields span.tabbar .booktab[tabid='circles'],
+tbody.book[tab='overdocs'] td.fields span.tabbar .booktab[tabid='overdocs'],
+tbody.book[tab='friends'] td.fields span.tabbar .booktab[tabid='friends'] {
+    font-weight: bold;}
+
+div.book {
+    text-align: left;
+    margin-bottom: 6px; padding: 4px;
+    -khtml-border-radius: 4px; 
+    -webkit-border-radius: 4px; 
+    -moz-border-radius: 4px; 
+    border-radius: 4px;}
+div.book div.fields { float: right;}
+div.book div.tabs { clear:both;}
+div.book .coverpage {
+    width: 50px; float: left;}
+
+div.book.expanded { background-color: lightgray; }
+
+div.tabcontent#BOOKS[shown] div.book,
+div.tabcontent.fdjtshown#BOOKS div.book {
+    font-size: 80%; margin-bottom: 8px;}
+div.book span.price { float: right; color: green;}
+div.book span.glosscount { 
+  float: right; font-size: 70%; background-color: yellow;
+  padding: 2px; border: solid blue 1px;
+  margin: 0px; text-indent: 0px;
+  -khtml-border-radius: 4px; 
+  -webkit-border-radius: 4px; 
+  -moz-border-radius: 4px; 
+  border-radius: 4px;}
+div.book span.count { 
+  font-size: 70%; font-family: fixed; background-color: yellow;
+  padding-left: 4px; padding-right: 4px;
+  border: solid blue 1px; vertical-align: top;
+  margin: 0px; text-indent: 0px;
+  -khtml-border-radius: 4px; 
+  -webkit-border-radius: 4px; 
+  -moz-border-radius: 4px; 
+  border-radius: 4px;}
+div.book a { font-weight: normal;}
+div.book .alternates:before { content: " // "; margin-right: 6px;}
+div.book .alternates { margin-left: 6px; }
+div.book .alternates a { font-style: italic; }
+div.book .alternates .head { font-size: 80%; }
+div.book div.head {
+    font-size: 125%; font-weight: normal;
+    margin-left: 64px; text-indent: -64px;}
+div.book div.head span.title { font-weight: bold;}
+div.book div.head span.author { font-style: italic;}
+div.book div.head span.byline { font-style: italic;}
+div.book span.head { font-weight: bold; white-space: nowrap;}
+div.book div.block { margin-left: 2em;}
+div.book div.glossinfo { }
+div.book div.glossinfo span.sources { margin-right: 16px;}
+div.book div.glossinfo span.feed {
+    white-space: nowrap; padding-left: 4px; padding-right: 4px;}
+div.book div.glossinfo span.feed span.count {}
+div.book div.actions { text-align: right;}
+div.book a.action {
+    background-color: gray; color: gold; border: solid gray 2px;
+    font-weight: bold; font-size: 75%; font-variant: small-caps;
+    margin-left: 4px; margin-right: 4px; 
+    -khtml-border-radius: 4px; 
+    -webkit-border-radius: 4px; 
+    -moz-border-radius: 4px; 
+    border-radius: 4px;}
+div.book div.glossinfo { display: none;}
+div.book.expanded div.glossinfo { display: block;}
+
