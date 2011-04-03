@@ -152,8 +152,9 @@ fdjt/TAGS:
 
 diff:
 	git diff;
-	cd 
-	git diff; git diff fdjt; git diff
+	cd fdjt; git diff
+	cd knodules; git diff
+	cd codex; git diff
 update: fdjt codex knodules
 	cd fdjt; git pull
 	cd codex; git pull
