@@ -28,7 +28,7 @@ SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-SBOOKS_BUNDLE=${FDJT2_FILES} ${KNODULES_FILES} \
+SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_DERIVED_FILES}
 SBOOKS_CSS=${FDJT_CSS} ${LOGIN_CSS} ${CODEX_CSS}
 
@@ -59,9 +59,9 @@ clean:
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f sbooks/bundle.js sbooks/bundle.css
 
-fdjt/fdjt.js: $(FDJT2_FILES)
+fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
-fdjt/buildstamp.js: $(FDJT2_FILES)
+fdjt/buildstamp.js: $(FDJT_FILES)
 	cd fdjt; make all
 
 sbooks/buildstamp.js: $(SBOOKS_BUNDLE) fdjt/buildstamp.js
