@@ -4,12 +4,7 @@
 # have a built in version of echo which doesn't handle the -n argument
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
-FDJT1_FILES=fdjt/header.js fdjt/jsutils.js fdjt/oids.js \
-	   fdjt/json.js fdjt/domutils.js \
-	   fdjt/handlers.js fdjt/scrolling.js \
-           fdjt/richtips.js fdjt/completion.js \
-	   fdjt/json.js fdjt/ajaxcall.js
-FDJT2_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
+FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
 	    fdjt/kb.js fdjt/ui.js fdjt/state.js fdjt/ajax.js fdjt/json.js
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/html.js 
@@ -37,12 +32,11 @@ SBOOKS_BUNDLE=${FDJT2_FILES} ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_DERIVED_FILES}
 SBOOKS_CSS=${FDJT_CSS} ${LOGIN_CSS} ${CODEX_CSS}
 
-ALLFILES=$(FDJT1_FILES) ${FDJT2_FILES} $(KNODULES_FILES) $(CODEX_FILES)
+ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
 all: allcode alltags
 allcode: fdjt knodules codex \
-	fdjt/fdjt.js fdjt/v1.js fdjt/v2.js \
-	sbooks/bundle.js sbooks/bundle.css
+	fdjt/fdjt.js sbooks/bundle.js sbooks/bundle.css
 
 # GIT rules
 fdjt:
@@ -65,15 +59,20 @@ clean:
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f sbooks/bundle.js sbooks/bundle.css
 
-fdjt/fdjt.js fdjt/v1.js fdjt/v2.js: $(FDJT2_FILES)
+fdjt/fdjt.js: $(FDJT2_FILES)
+	cd fdjt; make all
+fdjt/buildstamp.js: $(FDJT2_FILES)
 	cd fdjt; make all
 
-sbooks/buildstamp.js: $(SBOOKS_BUNDLE)
-	$(ECHO) "var sbooks_revision='"`svnversion`"';" > sbooks/buildstamp.js
+sbooks/buildstamp.js: $(SBOOKS_BUNDLE) fdjt/buildstamp.js
+	cat fdjt/buildstamp.js > sbooks/buildstamp.js
 	$(ECHO) "var sbooks_buildhost='"`hostname`"';" >> sbooks/buildstamp.js
 	$(ECHO) "var sbooks_buildtime='"`date`"';" >> sbooks/buildstamp.js 
 sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE)
-	cat sbooks/amalgam.js sbooks/buildstamp.js $(SBOOKS_BUNDLE) > $@
+	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
+	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
+	cat sbooks/amalgam.js sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
+			codex/buildstamp.js knodules/buildstamp.js > $@
 sbooks/bundle.css: $(SBOOKS_CSS)
 	cat $(SBOOKS_CSS) > $@
 sbooks/bundle.js.gz: sbooks/bundle.js
@@ -142,27 +141,20 @@ codex/searchbox.js:  codex/searchbox.html makefile
 alltags: fdjt knodules codex \
 	 TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 
-TAGS: ${FDJT1_FILES} ${FDJT2_FILES} ${KNODULES_FILES} \
+TAGS: ${FDJT_FILES} ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
 	etags -o $@ $^
-XTAGS: ${FDJT2_FILES} ${KNODULES_FILES} \
-	${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
+APPTAGS: ${CODEX_FILES} ${CODEX_CSS} ${KNODULES_FILES} \
+	${CODEX_HTML_FILES} ${SBOOKS_FILES}
 	etags -o $@ $^
-CODEXTAGS: ${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
-	etags -o $@ $^
-SBOOKTAGS: ${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES} ${SBOOKS_FILES}
-	etags -o $@ $^
-FDTAGS: ${FDJT2_FILES}
-	etags -o $@ $^
-KNOTAGS: ${KNODULES_FILES} ${FDJT2_FILES}
-	etags -o $@ $^
-APPTAGS: ${CODEX_FILES} ${CODEX_CSS} ${KNODULES_FILES} ${CODEX_HTML_FILES} ${SBOOKS_FILES}
-	etags -o $@ $^
+fdjt/TAGS: 
+	cd fdjt; make TAGS
 
 diff:
-	svn diff sbooks graphics
+	git diff;
+	cd 
+	git diff; git diff fdjt; git diff
 update: fdjt codex knodules
-	svn update
 	cd fdjt; git pull
 	cd codex; git pull
 	cd knodules; git pull
