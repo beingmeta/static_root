@@ -211,12 +211,15 @@ div.flyhead {
     text-align: center;
     font-size: 150%; font-weight: bold;
     border-bottom: solid black 2px; margin-bottom: 7px;}
-div.flyhead div.appbar a { color: blue; text-decoration: none;}
+div.flyhead div.appbar a.elt { color: blue; text-decoration: none;}
 div.flyhead div.appbar { font-size: 80%; color: black;}
-div.flyhead div.appbar a:hover { text-decoration: underline;}
+div.flyhead div.appbar a.elt:hover { text-decoration: underline;}
 div.flyhead div.appbar a:visited { color: blue;}
 
-div.flyhead div.appbar span.elt { color: black;}
+div.flyhead div.appbar a.elt.selected { color: black; }
+div.flyhead div.appbar a.elt.selected:hover {
+    text-decoration: overline;}
+div.flyhead div.appbar a.elt.selected:visited { color: black; }
 
 table.fdjtform.sbookinvitation {
     width: 30em; margin-left: auto; margin-right: auto;}
