@@ -16,13 +16,11 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/autoload.js
 CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 	            codex/hudtext.js codex/flyleaftext.js  \
-	            codex/loginform.js codex/helptext.js   \
-	            codex/console.js codex/settingstext.js
+	            codex/helptext.js codex/console.js codex/settingstext.js
 
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
-	    codex/login.html codex/searchbox.html \
-	    codex/addgloss.html codex/settings.html
+	    codex/searchbox.html codex/addgloss.html codex/settings.html
 CODEX_CSS=codex/codex.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
@@ -110,13 +108,6 @@ codex/settingstext.js: codex/settings.html makefile
 	$(ECHO) "\";" >> codex/settingstext.js
 	$(ECHO) "" >> codex/settingstext.js
 
-codex/loginform.js: codex/login.html makefile
-	$(ECHO) -n "var sbook_loginform=\"" > codex/loginform.js
-	sed s/$$/\ \\\\/ codex/login.html | \
-          sed s/\\\"/\\\\\"/g >> codex/loginform.js
-	$(ECHO) "\";" >> codex/loginform.js
-	$(ECHO) "" >> codex/loginform.js
-
 codex/console.js:  codex/console.html makefile
 	$(ECHO) -n "var sbook_console=\"" > codex/console.js
 	sed s/$$/\ \\\\/ codex/console.html | \
@@ -138,8 +129,7 @@ codex/searchbox.js:  codex/searchbox.html makefile
 	$(ECHO) "\";" >> codex/searchbox.js
 	$(ECHO) "" >> codex/searchbox.js
 
-alltags: fdjt knodules codex \
-	 TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
+alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
 TAGS: ${FDJT_FILES} ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
