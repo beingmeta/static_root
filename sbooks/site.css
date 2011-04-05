@@ -10,8 +10,9 @@ tbody.book td.fields div { overflow: hidden; white-space: wrap;}
 
 tbody.book span.source img { height: 40px;}
 tbody.book div.source { border-top: solid purple 1px; clear: both;}
-tbody.book div.source img { width: 40px;}
-tbody.book div.source span.name { float: right; font-weight: bold;}
+tbody.book div.source img { float: left; width: 40px;}
+tbody.book div.source span.name {
+    padding-left: 8px; font-weight: bold;} /* float: right;  */
 tbody.book div.source span.description { font-style: italic;}
 
 tbody.book td.fields div.identity {
