@@ -151,4 +151,9 @@ update: fdjt codex knodules
 	cd codex; git pull
 	cd knodules; git pull
 
-
+fdiff:
+	cd fdjt; git diff
+kdiff:
+	cd knodules; git diff
+cdiff:	
+	cd codex; git diff
