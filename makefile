@@ -16,7 +16,8 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/autoload.js
 CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 	            codex/hudtext.js codex/flyleaftext.js  \
-	            codex/helptext.js codex/console.js codex/settingstext.js
+	            codex/helptext.js codex/console.js     \
+		    codex/settingstext.js
 
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
@@ -32,7 +33,7 @@ SBOOKS_CSS=${FDJT_CSS} ${LOGIN_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
-all: allcode alltags
+all: allcode alltags index.html
 allcode: fdjt knodules codex \
 	fdjt/fdjt.js sbooks/bundle.js sbooks/bundle.css
 
@@ -78,6 +79,16 @@ sbooks/bundle.js.gz: sbooks/bundle.js
 codex/bundle.css.gz: codex/bundle.css
 	gzip -c sbooks/bundle.css > $@
 
+# Generating the HTML
+
+index.html: index_head.html index_foot.html sbooks/bundle.js sbooks/bundle.css
+	cat index_head.html > index.html
+	echo "<p>Build host: " `hostname` "</p>" >> index.html
+	echo "<p>Build date: " `date` "</p>" >> index.html
+	cd fdjt; echo "<p>FDJT version: " `git describe` "</p>" >> ../index.html
+	cd codex; echo "<p>Codex version: " `git describe` "</p>" >> ../index.html
+	cat index_foot.html >> index.html
+
 # Generating javascript strings from HTML
 
 codex/hudtext.js: codex/hudtext.html makefile
@@ -103,7 +114,7 @@ codex/flyleaftext.js: codex/flyleaf.html makefile
 
 codex/settingstext.js: codex/settings.html makefile
 	$(ECHO) -n "var sbook_settingstext=\"" > codex/settingstext.js
-	sed s/$$/\ \\\\/ codex/setting.html | \
+	sed s/$$/\ \\\\/ codex/settings.html | \
           sed s/\\\"/\\\\\"/g >> codex/settingstext.js
 	$(ECHO) "\";" >> codex/settingstext.js
 	$(ECHO) "" >> codex/settingstext.js
