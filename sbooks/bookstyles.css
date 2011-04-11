@@ -34,13 +34,13 @@
 body.sbook {
   margin-left: auto; margin-right: auto;
   background-color: ivory;}
-body.sbook div#SBOOKCONTENT { margin-left: auto; margin-right: auto;}
+body.sbook div#CODEXCONTENT { margin-left: auto; margin-right: auto;}
 body.sbook a { text-decoration: none;}
 body.sbook a:hover { text-decoration: underline;}
 
-body.sbook.thirty div#SBOOKCONTENT {
+body.sbook.thirty div#CODEXCONTENT {
     width: 30em;}
-body.sbook.forty div#SBOOKCONTENT {
+body.sbook.forty div#CODEXCONTENT {
     width: 40em;}
 /*
 body.sbook.thirty p, body.sbook.thirty li, body.sbook.thirty blockquote {
@@ -249,9 +249,9 @@ img.blockimage { border: none; width: 100%;}
 
 /* Styles for raw sbooks (converted from text) */
 
-body.rawsbook div#SBOOKCONTENT {
+body.rawsbook div#CODEXCONTENT {
     margin-left: 50px; margin-right: 50px;}
-body.rawsbook div#SBOOKCONTENT p { 
+body.rawsbook div#CODEXCONTENT p { 
     max-width: 40em; margin-left: auto; margin-right: auto;
     line-height: 125%;}
 /*
