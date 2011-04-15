@@ -65,38 +65,50 @@ body.sbook hgroup h1 {
     page-break-before: auto;}
 body.sbook div.sbookfullpage h1 {
     page-break-before: avoid;}
-body.sbook .sbooktitlepage, body.sbook .titlepage {
+body.sbook .titlepage, body.sbook .sbooktitlepage,  body.sbook .coverpage {
   margin-left: 5%; margin-right: 5%;
   padding-top: 2em; padding-bottom: 2em;
   padding-left: 1em; padding-right: 1em;
   background-color: lightgray;
-  font-size: 32px; text-align: center;
+  text-align: center;
   page-break-inside: avoid;
   page-break-after: always;
   overflow: hidden;}
-body.sbook .sbooktitlepage .title {
-    text-align: center; font-weight: bold;
+body.sbook .titlepage img { clear: both;}
+body.sbook .titlepage > p, body.sbook .titlepage > blockquote > p {
+    width: 30em; max-width: 70%; clear: both;
+    font-size: 125%;
+    margin-left: auto; margin-right: auto;}
+
+body.sbook .titlepage .title {
+    text-align: center; font-weight: bold; font-size: 175%;
     clear: both;}
-body.sbook .sbooktitlepage .connector {
+body.sbook .titlepage .connector {
     font-size: 50%;}
-body.sbook .sbooktitlepage .title img {
+body.sbook .titlepage .title img {
     max-width: 80%;}
-body.sbook .sbooktitlepage div.subtitle {
-  clear: both; text-align: center;
+body.sbook .titlepage div.subtitle {
+  clear: both; text-align: center; font-size: 125%;
   font-style: normal; font-weight: normal;}
-body.sbook .sbooktitlepage .author { 
+body.sbook .titlepage .author { 
   clear: both; text-align: center;
-  font-style: italic;  font-size: 90%;
+  font-style: italic;  font-size: 150%;
   margin-top: 1em; margin-bottom: 1em;}
-body.sbook .sbooktitlepage .editor { 
-  clear: both; text-align: center;
-  font-style: normal; font-weight: normal; font-size: 90%;}
-body.sbook .sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
-  clear: both; text-align: left;
+body.sbook .titlepage .editor { 
+  clear: both; text-align: center; font-size: 125%;
+  font-style: italic; font-weight: normal; font-size: 90%;}
+body.sbook .titlepage .dedication, body.sbook .titlepage .epigraph { 
+  clear: both;
   font-style: italic; font-weight: normal;
   margin-left: auto; margin-right: auto;
-  max-width: 50%; font-size: 80%;}
-body.sbook .sbooktitlepage div.pubinfo { 
+  margin-top: 2em;
+  max-width: 50%;}
+body.sbook .titlepage .dedication p, body.sbook .titlepage .epigraph p {
+    margin: 0px; padding: 0px;}
+body.sbook .titlepage .dedication.leftalign p,
+body.sbook .titlepage .epigraph.leftalign p 
+    margin-left: 5em; text-indent: -5em;}
+body.sbook .titlepage .pubinfo { 
   clear: both; 
   font-variant: smallcaps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
@@ -105,6 +117,33 @@ body.sbook .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
 body.sbook .frontpiece div.poem div.stanza {
   margin: 0px;}
+
+body.sbook div.epigraphs p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    text-align: left;}
+body.sbook div.epigraphs p span.attribution {
+    font-style: italic; font-size: 115%;
+    float: right; clear: left;}
+
+/* Various */
+
+body.sbook .signature {
+    text-align: right; font-size: 125%;
+    page-break-before: avoid; clear: left;
+    font-style: italic;}
+body.sbook .signature .place {
+    font-style: normal; font-size: 100%;}
+body.sbook .signature .date {
+    font-style: normal; font-size: 90%; font-weight: normal;}
+
+body.sbook .dateline {
+    text-align: right; 
+    page-break-after: avoid; clear: left;
+    font-weight: bold;
+    margin-bottom: 0px;}
 
 /* Poetry */
 
@@ -115,14 +154,16 @@ div.part {
     padding-top: 0px; margin-top: 0px;
     page-break-before: always;}
 body.verse div.part h1[toclevel='1'] {
-    border-top: solid black 1em; padding-top: .3em;
+    border-top: solid black 1em; 
+    padding-top: .3em;
     page-break-before: auto;}
 
 /* These are part headings */
 body.verse h1 { text-align: center;}
 div.poem { 
   page-break-before: always;
-  margin: 2em; padding: 1em;
+  margin-left: 2em; margin-right: 1em;
+  padding: 1em;
   border-top: solid gray 3px;}
 
 body.sbookpagehorizontal div.poem {
@@ -254,6 +295,36 @@ body.rawsbook div#CODEXCONTENT {
 body.rawsbook div#CODEXCONTENT p { 
     max-width: 40em; margin-left: auto; margin-right: auto;
     line-height: 125%;}
+
+/* Kind of dead code */
+
+body.sbook .sbooktitlepage .title {
+    text-align: center; font-weight: bold;
+    clear: both;}
+body.sbook .sbooktitlepage .connector {
+    font-size: 50%;}
+body.sbook .sbooktitlepage .title img {
+    max-width: 80%;}
+body.sbook .sbooktitlepage div.subtitle {
+  clear: both; text-align: center;
+  font-style: normal; font-weight: normal;}
+body.sbook .sbooktitlepage .author { 
+  clear: both; text-align: center;
+  font-style: italic;  font-size: 90%;
+  margin-top: 1em; margin-bottom: 1em;}
+body.sbook .sbooktitlepage .editor { 
+  clear: both; text-align: center;
+  font-style: normal; font-weight: normal; font-size: 90%;}
+body.sbook .sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
+  clear: both; text-align: left;
+  font-style: italic; font-weight: normal;
+  margin-left: auto; margin-right: auto;
+  max-width: 50%; font-size: 80%;}
+body.sbook .sbooktitlepage div.pubinfo { 
+  clear: both; 
+  font-variant: smallcaps; font-size: 50%;
+  padding: 4px; margin-bottom: 7px; margin-top: 2em;}
+
 /*
 body.essay div.toplinks a {
     padding-left: 1em; padding-right: 1em;
