@@ -140,6 +140,16 @@ codex/searchbox.js:  codex/searchbox.html makefile
 	$(ECHO) "\";" >> codex/searchbox.js
 	$(ECHO) "" >> codex/searchbox.js
 
+ok/knoteform.js: ok/knoteform.html makefile
+	$(ECHO) -n "OK.knoteform_html=\"" > ok/knoteform.js
+	sed s/$$/\ \\\\/ ok/knoteform.html | \
+          sed s/\\\"/\\\\\"/g >> ok/knoteform.js
+	$(ECHO) "\";" >> ok/knoteform.js
+	$(ECHO) "" >> ok/knoteform.js
+
+ok/ok.js: ok/knote.js ok/knoteform.js ${FDJT_FILES}
+	cat ${FDJT_FILES} ok/knote.js ok/knoteform.js > ok/ok.js
+
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
 TAGS: ${FDJT_FILES} ${KNODULES_FILES} \
