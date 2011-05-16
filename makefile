@@ -5,7 +5,7 @@
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
-	    fdjt/kb.js fdjt/ui.js fdjt/state.js fdjt/ajax.js fdjt/json.js
+	    fdjt/kb.js fdjt/ui.js fdjt/state.js fdjt/ajax.js fdjt/json.js fdjt/hash.js
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/html.js 
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
