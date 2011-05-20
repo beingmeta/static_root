@@ -140,15 +140,15 @@ codex/searchbox.js:  codex/searchbox.html makefile
 	$(ECHO) "\";" >> codex/searchbox.js
 	$(ECHO) "" >> codex/searchbox.js
 
-ok/knoteform.js: ok/knoteform.html makefile
-	$(ECHO) -n "OK.knoteform_html=\"" > ok/knoteform.js
-	sed s/$$/\ \\\\/ ok/knoteform.html | \
-          sed s/\\\"/\\\\\"/g >> ok/knoteform.js
-	$(ECHO) "\";" >> ok/knoteform.js
-	$(ECHO) "" >> ok/knoteform.js
+knotes/knoteform.js: knotes/knoteform.html makefile
+	$(ECHO) -n "OK.knoteform_html=\"" > knotes/knoteform.js
+	sed s/$$/\ \\\\/ knotes/knoteform.html | \
+          sed s/\\\"/\\\\\"/g >> knotes/knoteform.js
+	$(ECHO) "\";" >> knotes/knoteform.js
+	$(ECHO) "" >> knotes/knoteform.js
 
-ok/ok.js: ok/knote.js ok/knoteform.js ${FDJT_FILES}
-	cat ${FDJT_FILES} ok/knote.js ok/knoteform.js > ok/ok.js
+knotes/ok.js: knotes/knote.js knotes/knoteform.js ${FDJT_FILES}
+	cat ${FDJT_FILES} knotes/knote.js knotes/knoteform.js > knotes/ok.js
 
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
@@ -169,8 +169,8 @@ diff:
 update: fdjt codex knodules
 	git pull
 	cd fdjt; git pull
-	cd codex; git pull
 	cd knodules; git pull
+	cd codex; git pull
 
 fdiff:
 	cd fdjt; git diff
