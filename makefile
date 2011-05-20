@@ -140,15 +140,15 @@ codex/searchbox.js:  codex/searchbox.html makefile
 	$(ECHO) "\";" >> codex/searchbox.js
 	$(ECHO) "" >> codex/searchbox.js
 
-knotes/knoteform.js: knotes/knoteform.html makefile
-	$(ECHO) -n "OK.knoteform=\"" > knotes/knoteform.js
-	sed s/$$/\ \\\\/ knotes/knoteform.html | \
-          sed s/\\\"/\\\\\"/g >> knotes/knoteform.js
-	$(ECHO) "\";" >> knotes/knoteform.js
-	$(ECHO) "" >> knotes/knoteform.js
+knotes/knotepad.js: knotes/knotepad.html makefile
+	$(ECHO) -n "OK.knotepad=\"" > knotes/knotepad.js
+	sed s/$$/\ \\\\/ knotes/knotepad.html | \
+          sed s/\\\"/\\\\\"/g >> knotes/knotepad.js
+	$(ECHO) "\";" >> knotes/knotepad.js
+	$(ECHO) "" >> knotes/knotepad.js
 
-knotes/ok.js: knotes/knote.js knotes/knoteform.js ${FDJT_FILES}
-	cat ${FDJT_FILES} knotes/knote.js knotes/knoteform.js > knotes/ok.js
+knotes/ok.js: knotes/knote.js knotes/knotepad.js ${FDJT_FILES}
+	cat ${FDJT_FILES} knotes/knote.js knotes/knotepad.js > knotes/ok.js
 
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 

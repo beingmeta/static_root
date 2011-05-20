@@ -139,6 +139,8 @@ if (typeof OK === 'undefined')
 		    getKnotes(refuris[i],servers[j++]);
 		i++;}
 	    
+	    window.onclick=add_knote_handler;
+
 	    startup_done=true;}
 	result.startup=startup;
 	
@@ -184,15 +186,19 @@ if (typeof OK === 'undefined')
 	    var target=evt.target||evt.fromElt;
 	    var knotes=getParent(target,"knotes");
 	    if (!(knotes)) return;
-	    else if (knotes.className.search(/\bexpanded\b/))
-		knotes.className=knotes.className.replace(/\bexpanded\b/,"").replace(/\s$/,"");
+	    else if (knotes.className.search(/\bexpanded\b/)>=0)
+		knotes.className=knotes.className.replace(
+			/\bexpanded\b/,"").replace(/\s$/,"");
 	    else knotes.className=knotes.className+" expanded";}
 	
 	function getKnotes4DOM(node){
 	    var knotesid="KNOTES4"+node.id;
 	    var elt=document.getElementById(knotesid);
 	    if (elt) return elt;
-	    var asterisk=newNode("img.asterisk"); asterisk.alt="*";
+	    var asterisk=newNode("img.asterisk");
+	    asterisk.src=
+		"http://static.beingmeta.com/graphics/Asterisk32x32.png";
+	    asterisk.alt="*";
 	    elt=newNode("div.knotes",asterisk);
 	    elt.id=knotesid;
 	    asterisk.onclick=toggle_knotes;
@@ -300,7 +306,7 @@ if (typeof OK === 'undefined')
 
 	function knoteDialog(knote){
 	    var dialog=fdjtDOM("div.knotepad.knotetext");
-	    dialog.innerHTML=OK.knoteform;
+	    dialog.innerHTML=OK.knotepad;
 	    var hidden=dialog.getElementsByClassName("hidden")[0];
 	    var form_elt=dialog.getElementsByTagName(dialog,"FORM")[0];
 	    var refuri_elt=getInput(dialog,"REFURI");
@@ -343,16 +349,19 @@ if (typeof OK === 'undefined')
 
 	var knotemodes=/(knotetext)|(knotetag)|(knotelink)/;
 
-	function toggleMode(evt){
+	function button(evt){
 	    evt=evt||event;
 	    var target=evt.target||evt.srcElement;
-	    var parent=getParent(target,"button");
 	    var form=getParent(target,"knotepad");
 	    if (!(form)) return;
-	    if (!(parent)) return;
-	    if (!(parent.alt)) return;
-	    fdjtDOM.swapClass(form,knotemodes,"knote"+parent.alt);}
-	result.toggleMode=toggleMode;
+	    var b=getParent(target,"button");
+	    if (!(b)) return;
+	    if (!(b.alt)) return;
+	    if (b.alt==='close') {
+		form.parentNode.removeChild(form);
+		return;}
+	    fdjtDOM.swapClass(form,knotemodes,"knote"+b.alt);}
+	result.button=button;
 
 	function add_knote_handler(evt){
 	    evt=evt||event;
@@ -379,7 +388,6 @@ if (typeof OK === 'undefined')
 	    var knote={_id: fdjtState.getUUID(), refuri: refuri,
 		       frag: passage.id};
 	    return knoteDialog(knote);}
-	window.onclick=add_knote_handler;
 
 	function assign_ids(){
 	    var idcounts={};

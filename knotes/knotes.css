@@ -1,16 +1,28 @@
-div.knotes { position: absolute; left: 0px; right: 0px;}
+div.knotes {
+    position: absolute; left: 100px; right: 0px; height: 0px;}
 div.knotes div.knote {
-    margin-left: 10%; margin-right: 10%;
+    border-top: solid purple 2px;
+    margin-right: 32px;
     display: none;}
-div.knotes.expanded div.knote { display: block;}
-div.knotes .asterisk {float: right; font-size: 200%;}
+div.knotes.expanded {
+    background-color: silver;
+    min-height: 32px; height: auto;}
+div.knotes.expanded div.knote {
+    min-height: 2ex; display: block;}
+div.knotes .asterisk {
+    width: 16px; height: 16px;
+    float: right; font-size: 200%;}
+div.knotes.expanded .asterisk {
+    background-color: silver;
+    width: 32px; height: 32px;
+    float: right; font-size: 200%;}
 
 div.knotepad {
     margin: 0px; padding: 0px; border: 0px; text-indent: 0px;
     margin-top: -30px; 
     position: absolute; left: 50px; right: 50px;
     background-color: silver; opacity: 0.8;}
-div.knotepad div.inputs { margin-right: 100px;}
+div.knotepad div.inputs { margin-right: 150px;}
 div.knotepad div.inputs input {
     margin: 0px; width: 98%; height: 28px;}
 div.knotepad span.buttons {
