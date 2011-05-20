@@ -1,0 +1,46 @@
+div.knotes { position: absolute; left: 0px; right: 0px;}
+div.knotes div.knote {
+    margin-left: 10%; margin-right: 10%;
+    display: none;}
+div.knotes.expanded div.knote { display: block;}
+div.knotes .asterisk {float: right; font-size: 200%;}
+
+div.knotepad {
+    margin: 0px; padding: 0px; border: 0px; text-indent: 0px;
+    margin-top: -30px; 
+    position: absolute; left: 50px; right: 50px;
+    background-color: silver; opacity: 0.8;}
+div.knotepad div.inputs { margin-right: 100px;}
+div.knotepad div.inputs input {
+    margin: 0px; width: 98%; height: 28px;}
+div.knotepad span.buttons {
+    float: right; text-align: right;}
+div.knotepad span.buttons img {
+    vertical-align: middle;
+    border: solid transparent 2px;}
+div.knotepad input { display: none;}
+div.knotepad input {
+    background-repeat: no-repeat;
+    background-position: right top;}
+div.knotepad input[NAME='NOTE'] {
+    background-image: url(http://static.beingmeta.com/graphics/codex/remarkballoon24x24.png);}
+div.knotepad input[NAME='TAG'] {
+    background-image: url(http://static.beingmeta.com/graphics/codex/TagIcon24x24.png);}
+div.knotepad input[NAME='URL'] {
+    background-image: url(http://static.beingmeta.com/graphics/outlink24x24.png);}
+div.knotepad.knotetext input[NAME='NOTE'],
+div.knotepad.knotelink input[NAME='URL'],
+div.knotepad.knotetag input[NAME='TAG'] {
+    display: block;}
+
+div.knotepad.knotetext img[alt='text'],
+div.knotepad.knotelink img[alt='link'],
+div.knotepad.knotetag img[alt='tag'] {
+    border-color: blue;}
+
+/* Emacs local variables
+;;;  Local variables: ***
+;;;  compile-command: "cd ..; make" ***
+;;;  End: ***
+*/
+

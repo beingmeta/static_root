@@ -35,7 +35,7 @@ ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
 all: allcode alltags index.html
 allcode: fdjt knodules codex \
-	fdjt/fdjt.js sbooks/bundle.js sbooks/bundle.css
+	fdjt/fdjt.js knotes/ok.js sbooks/bundle.js sbooks/bundle.css
 
 # GIT rules
 fdjt:
@@ -141,7 +141,7 @@ codex/searchbox.js:  codex/searchbox.html makefile
 	$(ECHO) "" >> codex/searchbox.js
 
 knotes/knoteform.js: knotes/knoteform.html makefile
-	$(ECHO) -n "OK.knoteform_html=\"" > knotes/knoteform.js
+	$(ECHO) -n "OK.knoteform=\"" > knotes/knoteform.js
 	sed s/$$/\ \\\\/ knotes/knoteform.html | \
           sed s/\\\"/\\\\\"/g >> knotes/knoteform.js
 	$(ECHO) "\";" >> knotes/knoteform.js
