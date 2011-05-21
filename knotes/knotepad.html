@@ -1,23 +1,25 @@
 <form>
   <div class="hidden">
     <input type="HIDDEN" name="REFURI" value=""/>
+    <input type="HIDDEN" name="UUID" value=""/>
     <input type="HIDDEN" name="FRAG" value=""/>
     <input type="HIDDEN" name="MAKER" value=""/>
   </div>
   <div class="topbox">
     <span class="buttons" onclick="OK.button(event);">
+      <img class="button" alt="OK"
+	   src="http://static.beingmeta.com/graphics/codex/sbgSaveButton50x50.png"/>
       <img class="button" alt="text"
 	   src="http://static.beingmeta.com/graphics/codex/remarkballoon32x32.png"/>
       <img class="button" alt="tag"
 	   src="http://static.beingmeta.com/graphics/codex/TagIcon32x32.png"/>
       <img class="button" alt="link"
-	   src="http://static.beingmeta.com/graphics/outlink32x32.png"/>
+	   src="http://static.beingmeta.com/graphics/DiagLink32x32.png"/>
       <img class="button" alt="close"
 	   src="http://static.beingmeta.com/graphics/redx32x32.png"/>
-
     </span>
     <div class="inputs">
-      <input type="TEXT" name="NOTE" value=""/>
+      <textarea name="NOTE"></textarea>
       <input type="TEXT" name="TAG" value=""/>
       <input type="TEXT" name="URL" value=""/>
       <input type="TEXT" name="SHARE" value=""/>

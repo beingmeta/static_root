@@ -1,12 +1,17 @@
+.knoted { background-color: yellow; }
 div.knotes {
-    position: absolute; left: 100px; right: 0px; height: 0px;}
+    position: absolute; right: 0px;
+    border-left: solid purple 2px;
+    height: 0px;
+    opacity: 0.9;}
 div.knotes div.knote {
+    clear: left;
     border-top: solid purple 2px;
     margin-right: 32px;
     display: none;}
 div.knotes.expanded {
     background-color: silver;
-    min-height: 32px; height: auto;}
+    min-height: 32px; height: auto; width: auto;}
 div.knotes.expanded div.knote {
     min-height: 2ex; display: block;}
 div.knotes .asterisk {
@@ -17,28 +22,37 @@ div.knotes.expanded .asterisk {
     width: 32px; height: 32px;
     float: right; font-size: 200%;}
 
+div.knote img.userpic { float: left; max-height: 40px;}
+div.knote span.maker { font-weight: bold;}
+
 div.knotepad {
     margin: 0px; padding: 0px; border: 0px; text-indent: 0px;
-    margin-top: -30px; 
-    position: absolute; left: 50px; right: 50px;
+    margin-top: -30px; min-height: 40px;
+    padding-top: 2px; padding-bottom: 2px;
+    position: absolute; left: 100px; right: 50px; 
     background-color: silver; opacity: 0.8;}
 div.knotepad div.inputs { margin-right: 150px;}
 div.knotepad div.inputs input {
     margin: 0px; width: 98%; height: 28px;}
+div.knotepad div.inputs textarea {
+    margin: 0px; width: 98%; min-height: 28px;}
 div.knotepad span.buttons {
     float: right; text-align: right;}
 div.knotepad span.buttons img {
-    vertical-align: middle;
+    vertical-align: middle; width: 24px;
     border: solid transparent 2px;}
 div.knotepad input { display: none;}
 div.knotepad input {
     background-repeat: no-repeat;
     background-position: right top;}
 div.knotepad input[NAME='NOTE'] {
+    font-family: serif; font-size: 16px;
     background-image: url(http://static.beingmeta.com/graphics/codex/remarkballoon24x24.png);}
 div.knotepad input[NAME='TAG'] {
+    font-family: sans,sans-serif; font-size: 16px;
     background-image: url(http://static.beingmeta.com/graphics/codex/TagIcon24x24.png);}
 div.knotepad input[NAME='URL'] {
+    font-family: fixed; font-size: 10px;
     background-image: url(http://static.beingmeta.com/graphics/outlink24x24.png);}
 div.knotepad.knotetext input[NAME='NOTE'],
 div.knotepad.knotelink input[NAME='URL'],

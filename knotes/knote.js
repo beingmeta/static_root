@@ -36,6 +36,7 @@ if (typeof OK === 'undefined')
 	
 	function getinfo(ref){
 	    if (knotes[ref]) return knotes[ref];}
+	result.ref=getinfo;
 
 	function newNode(spec){
 	    var dot=spec.indexOf('.');
@@ -88,6 +89,13 @@ if (typeof OK === 'undefined')
 
 	function getInput(node,name,results){
 	    var inputs=node.getElementsByTagName('INPUT');
+	    var i=0; var lim=inputs.length;
+	    while (i<lim) {
+		if (inputs[i].name===name) {
+ 		    if (results) results.push(inputs[i++]);
+		    else return inputs[i];}
+		else i++;}
+	    var inputs=node.getElementsByTagName('TEXTAREA');
 	    var i=0; var lim=inputs.length;
 	    while (i<lim) {
 		if (inputs[i].name===name) {
@@ -160,7 +168,9 @@ if (typeof OK === 'undefined')
 	    else frags2knotes[frag]=[id];
 	    if ((knote.maker)&&(typeof knote.maker !== 'string')&&
 		(knote.maker._id)) {
-		var id=knote.maker._id; knotes[id]=knote; knotes.maker=id;}
+		var id=knote.maker._id;
+		knotes[id]=knote.maker;
+		knote.maker=id;}
 	    if (knote.tags) {
 		var tags=knote.tags;
 		if (typeof tags === 'string') tags=[tags];
@@ -191,15 +201,29 @@ if (typeof OK === 'undefined')
 	function getNode4Knote(knote){
 	    return document.getElementById(knote.frag);}
 	
+	var open=false; var knoted=false;
+
 	function toggle_knotes(evt){
 	    evt=evt||event;
 	    var target=evt.target||evt.fromElt;
 	    var knotes=getParent(target,"knotes");
 	    if (!(knotes)) return;
-	    else if (knotes.className.search(/\bexpanded\b/)>=0)
+	    else if (knotes.className.search(/\bexpanded\b/)>=0) {
 		knotes.className=knotes.className.replace(
 			/\bexpanded\b/,"").replace(/\s$/,"");
-	    else knotes.className=knotes.className+" expanded";}
+		if (open) fdjtDOM.dropClass(open,"expanded");
+		if (knoted) fdjtDOM.dropClass(knoted,"knoted");
+		knoted=false;
+		open=false;}
+	    else {
+		knotes.className=knotes.className+" expanded";
+		if (open) fdjtDOM.dropClass(open,"expanded");
+		if (knoted) fdjtDOM.dropClass(knoted,"knoted");
+		var knotesid=knotes.id;
+		var elt=document.getElementById(knotesid.slice(7));
+		if (elt) fdjtDOM.addClass(elt,"knoted");
+		knoted=elt;
+		open=knotes;}}
 	
 	function getKnotes4DOM(node){
 	    var knotesid="KNOTES4"+node.id;
@@ -217,11 +241,11 @@ if (typeof OK === 'undefined')
 
 	function Knote2DOM(knote,spec,server){
 	    var elt=newNode(spec);
-	    var maker=knotes[spec.maker];
+	    var maker=knotes[knote.maker];
 	    return newNode(
-		spec,," ",
+		spec," ",
 		((maker)&&(maker.pic)&&(newImage(maker.pic,"userpic"))),
-		newNode("span.maker",((maker)?(maker.name):(spec.maker)))
+		newNode("span.maker",((maker)?(maker.name):(knote.maker)))," ",
 		((knote.note)&&(newNode("span.knote",knote.note)))," ",
 		((knote.tags)&&tagspan(knote.tags))," ",
 		((knote.links)&&linkspan(knote.links)));}
@@ -319,31 +343,37 @@ if (typeof OK === 'undefined')
 	function knoteDialog(knote){
 	    var dialog=fdjtDOM("div.knotepad.knotetext");
 	    dialog.innerHTML=OK.knotepad;
+	    if (!(knote._stored)) dialog.id='NEWKNOTE4'+knote.frag;
 	    var hidden=dialog.getElementsByClassName("hidden")[0];
-	    var form_elt=dialog.getElementsByTagName(dialog,"FORM")[0];
+	    var form_elt=dialog.getElementsByTagName("FORM")[0];
 	    var refuri_elt=getInput(dialog,"REFURI");
+	    var uuid_elt=getInput(dialog,"UUID");
 	    var frag_elt=getInput(dialog,"FRAG");
 	    var maker_elt=getInput(dialog,"MAKER");
 	    var note_elt=getInput(dialog,"NOTE");
+	    form_elt.action=OK.servers[0];
+	    uuid_elt.value=knote._id;
 	    refuri_elt.value=knote.refuri;
 	    frag_elt.value=knote.frag;
 	    maker_elt.value=OK.maker;
 	    if (knote.note) note_elt.value=knote.note;
 	    var altfrags=[];
 	    var node=getNode4Knote(knote);
+	    if (!(node)) return;
 	    var children=node.childNodes;
-	    var i=0; var lim=children.length;
-	    while (i<lim) {
-		var child=children[i++]; var id=false;
-		if (child.nodeType!==1) continue;
-		else if ((child.tagName==='A')&&(child.name)) {
-		    if (fdjtDOM.isempty(child)) id=child.name;}
-		else if (child.id) {
-		    if (fdjtDOM.isempty(child)) id=child.id;}
-		else {}
-		if (!(id)) continue;
-		var input=fdjtDOM.Input("ALT",id);
-		fdjtDOM(hidden,input);}
+	    if (children) {
+		var i=0; var lim=children.length;
+		while (i<lim) {
+		    var child=children[i++]; var id=false;
+		    if (child.nodeType!==1) continue;
+		    else if ((child.tagName==='A')&&(child.name)) {
+			if (fdjtDOM.isEmpty(child)) id=child.name;}
+		    else if (child.id) {
+			if (fdjtDOM.isEmpty(child)) id=child.id;}
+		    else {}
+		    if (!(id)) continue;
+		    var input=fdjtDOM.Input("ALT",id);
+		    fdjtDOM(hidden,input);}}
 	    if (knote.tags) {
 		var tagspans=knote.getElementsByClassName("tags");
 		var tags=knote.tags; if (typeof tags === 'string') tags=[tags];
@@ -364,16 +394,34 @@ if (typeof OK === 'undefined')
 	function button(evt){
 	    evt=evt||event;
 	    var target=evt.target||evt.srcElement;
-	    var form=getParent(target,"knotepad");
+	    var knotepad=getParent(target,"knotepad");
+	    if (!(knotepad)) return;
+	    var form=target;
+	    while (form) {
+		if (form.nodeType!==1) form=form.parentNode;
+		else if (form.tagName==='FORM') break;
+		else if (form===knotepad) return;
+		else form=form.parentNode;}
 	    if (!(form)) return;
 	    var b=getParent(target,"button");
 	    if (!(b)) return;
 	    if (!(b.alt)) return;
-	    if (b.alt==='close') {
-		form.parentNode.removeChild(form);
-		return;}
-	    fdjtDOM.swapClass(form,knotemodes,"knote"+b.alt);}
+	    if (b.alt==='OK') {
+		fdjtDOM.swapClass(form,knotemodes,"knotesaving");
+		fdjtAjax.formSubmit(
+		    form,function(req){
+			knotepad.parentNode.removeChild(knotepad);
+			addKnote(JSON.parse(req.responseText));});
+		b=false; form=false; target=false;}
+	    else if (b.alt==='close') 
+		knotepad.parentNode.removeChild(knotepad);
+	    else fdjtDOM.swapClass(form,knotemodes,"knote"+b.alt);}
 	result.button=button;
+
+	var uiclasses=/(knotepad)|(knote)|(knotes)/;
+
+	var topmost=false;
+	var opened=[];
 
 	function add_knote_handler(evt){
 	    evt=evt||event;
@@ -383,6 +431,9 @@ if (typeof OK === 'undefined')
 		if (scan.nodeType!==1) scan=scan.parentNode;
 		else if ((scan.tagName==='A')||(scan.tagName==='INPUT')||
 			 (scan.tagName==='TEXTAREA'))
+		    return false;
+		else if ((scan.className)&&
+			 (scan.className.search(uiclasses)>=0))
 		    return false;
 		else if (scan.onclick) return false;
 		else scan=scan.parentNode;}
@@ -397,9 +448,13 @@ if (typeof OK === 'undefined')
 		else prefix=false;}
 	    else prefix=rootid;
 	    var passage=find_passage(target,prefix,scope);
-	    var knote={_id: fdjtState.getUUID(), refuri: refuri,
-		       frag: passage.id};
-	    return knoteDialog(knote);}
+	    if ((!(passage))||(!(passage.id))) return false;
+	    var dialog=document.getElementById('NEWKNOTE4'+passage.id);
+	    if (!(dialog)) {
+		var knote={_id: fdjtState.getUUID(), refuri: refuri,
+			   frag: passage.id};
+		dialog=knoteDialog(knote);}
+	    return dialog;}
 
 	function assign_ids(){
 	    var idcounts={};
