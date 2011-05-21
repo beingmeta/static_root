@@ -11,7 +11,6 @@ if (typeof OK === 'undefined')
 	var refuris=[];
 	
 	var knotes={};
-	var sources={};
 	var tags2knotes={};
 	var frags2knotes={};
 	var knote_servers=[];
@@ -35,6 +34,9 @@ if (typeof OK === 'undefined')
 		else i++;}
 	    return false;}
 	
+	function getinfo(ref){
+	    if (knotes[ref]) return knotes[ref];}
+
 	function newNode(spec){
 	    var dot=spec.indexOf('.');
 	    var hash=spec.indexOf('#');
@@ -57,6 +59,11 @@ if (typeof OK === 'undefined')
 			elt.appendChild(arg);
 		    else elt.appendChild(document.createTextNode
 					 (arg.toString()));}}
+	    return elt;}
+	function newImage(src,classname){
+	    var elt=document.createElement("IMG");
+	    if (classname) elt.className=classname;
+	    elt.src=src;
 	    return elt;}
 
 	function getLink(name,results){
@@ -151,6 +158,9 @@ if (typeof OK === 'undefined')
 	    if (frags2knotes[frag])
 		frags2knotes[frag].push(id);
 	    else frags2knotes[frag]=[id];
+	    if ((knote.maker)&&(typeof knote.maker !== 'string')&&
+		(knote.maker._id)) {
+		var id=knote.maker._id; knotes[id]=knote; knotes.maker=id;}
 	    if (knote.tags) {
 		var tags=knote.tags;
 		if (typeof tags === 'string') tags=[tags];
@@ -207,9 +217,11 @@ if (typeof OK === 'undefined')
 
 	function Knote2DOM(knote,spec,server){
 	    var elt=newNode(spec);
-	    var maker=spec.maker;
+	    var maker=knotes[spec.maker];
 	    return newNode(
-		spec,newNode("span.maker",maker)," ",
+		spec,," ",
+		((maker)&&(maker.pic)&&(newImage(maker.pic,"userpic"))),
+		newNode("span.maker",((maker)?(maker.name):(spec.maker)))
 		((knote.note)&&(newNode("span.knote",knote.note)))," ",
 		((knote.tags)&&tagspan(knote.tags))," ",
 		((knote.links)&&linkspan(knote.links)));}
