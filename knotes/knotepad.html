@@ -19,9 +19,11 @@
 	   src="http://static.beingmeta.com/graphics/redx32x32.png"/>
     </span>
     <div class="inputs">
-      <textarea name="NOTE"></textarea>
-      <input type="TEXT" name="TAG" value=""/>
-      <input type="TEXT" name="URL" value=""/>
+      <textarea name="NOTE" onkeypress="OK.note_keypress(event);" autofocus></textarea>
+      <input type="TEXT" name="TAG" value=""
+	     onkeypress="OK.tag_keypress(event);"/>
+      <input type="TEXT" name="LINK" value=""
+	     onkeypress="OK.link_keypress(event);"/>
       <input type="TEXT" name="SHARE" value=""/>
     </div>
   </div>

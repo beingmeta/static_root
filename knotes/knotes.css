@@ -1,4 +1,8 @@
 .knoted { background-color: yellow; }
+div.knote .tag, div.knotepad .tag {
+    padding-right: 2px; padding-left: 4px;
+    -webkit-border-radius: 6px;
+    color: blue; background-color: yellow;}
 div.knotes {
     position: absolute; right: 0px;
     border-left: solid purple 2px;
@@ -40,23 +44,23 @@ div.knotepad span.buttons {
     float: right; text-align: right;}
 div.knotepad span.buttons img {
     vertical-align: middle; width: 24px;
-    border: solid transparent 2px;}
-div.knotepad input { display: none;}
-div.knotepad input {
+    border-top: solid transparent 2px;}
+div.knotepad input[TYPE='TEXT'], div.knotepad textarea {
     background-repeat: no-repeat;
-    background-position: right top;}
-div.knotepad input[NAME='NOTE'] {
+    background-position: right top;
+    display: none;}
+div.knotepad textarea[NAME='NOTE'] {
     font-family: serif; font-size: 16px;
     background-image: url(http://static.beingmeta.com/graphics/codex/remarkballoon24x24.png);}
-div.knotepad input[NAME='TAG'] {
+div.knotepad input[TYPE='TEXT'][NAME='TAG'] {
     font-family: sans,sans-serif; font-size: 16px;
     background-image: url(http://static.beingmeta.com/graphics/codex/TagIcon24x24.png);}
-div.knotepad input[NAME='URL'] {
+div.knotepad input[TYPE='TEXT'][NAME='LINK'] {
     font-family: fixed; font-size: 10px;
     background-image: url(http://static.beingmeta.com/graphics/outlink24x24.png);}
-div.knotepad.knotetext input[NAME='NOTE'],
-div.knotepad.knotelink input[NAME='URL'],
-div.knotepad.knotetag input[NAME='TAG'] {
+div.knotepad.knotetext textarea[NAME='NOTE'],
+div.knotepad.knotelink input[TYPE='TEXT'][NAME='LINK'],
+div.knotepad.knotetag input[TYPE='TEXT'][NAME='TAG'] {
     display: block;}
 
 div.knotepad.knotetext img[alt='text'],

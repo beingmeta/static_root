@@ -110,7 +110,13 @@ if (typeof OK === 'undefined')
 		if ((node.className)&&(node.className.search(classpat)>=0))
 		    return node;
 		else node=node.parentNode;}}
-
+	function getForm(node){
+	    while (node) {
+		if ((node.tagName)&&(node.tagName==='FORM'))
+		    return node;
+		else node=node.parentNode;}
+	    return false;}
+	
 	/* Startup */
 
 	var startup_done=false;
@@ -247,31 +253,32 @@ if (typeof OK === 'undefined')
 		((maker)&&(maker.pic)&&(newImage(maker.pic,"userpic"))),
 		newNode("span.maker",((maker)?(maker.name):(knote.maker)))," ",
 		((knote.note)&&(newNode("span.knote",knote.note)))," ",
-		((knote.tags)&&tagspan(knote.tags))," ",
-		((knote.links)&&linkspan(knote.links)));}
+		((knote.tags)&&(tagspan(knote.tags)))," ",
+		((knote.links)&&(linkspan(knote.links))));}
 
 	function tagspan(tags){
 	    if (!(tags)) return false;
-	    var tags=newNode("span.tags");
+	    var span=newNode("span.tags");
 	    var i=0; var lim=tags.length;
 	    while (i<lim) {
-		tags.appendChild(newNode("span.tag",tags[i++]));
-		tags.appendChild(document.createTextNode(" "));}
-	    return tags;}
+		span.appendChild(newNode("span.tag",tags[i++]));
+		span.appendChild(document.createTextNode(" "));}
+	    return span;}
 
 	function linkspan(links){
 	    if (!(links)) return false;
-	    var linkspan=newNode("span.links");
+	    var span=newNode("span.links");
 	    for (url in links) {
 		var title=links[url];
 		var anchor=newNode("A",title);
 		anchor.href=url; anchor.title=url;
-		linkspan.appendChild(anchor);
-		linkspan.appendChild(document.createTextNode(' '));}
-	    return links;}
+		anchor.target='_blank';
+		span.appendChild(anchor);
+		span.appendChild(document.createTextNode(' '));}
+	    return span;}
 
 	function getKnotes(refuri,server){
-	    fdjtLog("Getting notes for %s from %s",refuri,server);
+	    fdjtLog("Getting knotes for %s from %s",refuri,server);
 	    var uri=server+"?REFURI="+encodeURIComponent(refuri);
 	    var req=new XMLHttpRequest();
 	    var ok=req.open('GET',server+"?REFURI="+encodeURIComponent(refuri));
@@ -280,7 +287,8 @@ if (typeof OK === 'undefined')
 		if ((req.readyState === 4) && (req.status>=200) && (req.status<300)) {
 		    var knotes=JSON.parse(req.responseText);
 		    var i=0; var lim=knotes.length;
-		    fdjtLog("Got %d knotes",lim);
+		    fdjtLog("Got %d knotes from %s for %s",
+			    lim,server,refuri);
 		    while (i<lim) addKnote(knotes[i++],server);}};
 	    req.send();}
 	
@@ -319,7 +327,8 @@ if (typeof OK === 'undefined')
 	function tagcheckspan(tag){
 	    var span=newNode("span.checkspan");
 	    var input=newNode('input');
-	    input.type='CHECKBOX'; input.name='TAG'; input.value=tag;
+	    input.type='CHECKBOX'; input.name='TAGS';
+	    input.value=tag; input.checked=true;
 	    var barpos=tag.indexOf('|');
 	    var textspan=newNode("span.tag");
 	    if (barpos>0) textspan.title=tag;
@@ -328,17 +337,15 @@ if (typeof OK === 'undefined')
 	    return span;}
 	
 	function linkcheckspan(link){
-	    var span=newNode("span.checkspan");
 	    var input=newNode('input');
-	    input.type='CHECKBOX'; input.name='LINK'; input.value=link;
+	    input.type='CHECKBOX'; input.name='LINKS';
+	    input.value=link; input.checked=true;
 	    var space=link.indexOf(' ');
-	    var anchor=newNode("A");
-	    var url=((space>0)?(link.slice(0,space)):(link));
+	    var href=((space>0)?(link.slice(0,space)):(link));
 	    var title=((space>0)?(link.slice(space+1)):(link));
-	    anchor.href=href; if (spacepos>0) anchor.title=title;
-	    anchor.appendChild(document.createTextNode((spacepos>0)?(link.slice(spacepos+1)):(link)));
-	    span.appendChild(input); span.appendChild(input); span.appendChild(textspan);
-	    return span;}
+	    var anchor=newNode("A",title);
+	    anchor.href=href; if (space>0) anchor.title=href;
+	    return newNode("span.checkspan",input,anchor);}
 
 	function knoteDialog(knote){
 	    var dialog=fdjtDOM("div.knotepad.knotetext");
@@ -384,39 +391,89 @@ if (typeof OK === 'undefined')
 		var links=knote.links;
 		if (typeof links === 'string') links=[links];
 		var i=0; var lim=tags.length;
-		while (i<lim) linkspans.appendChild(linkcheckspan(tags[i++]));}
+		while (i<lim) linkspans.appendChild(linkcheckspan(links[i++]));}
 	    var node=document.getElementById(knote.frag);
 	    node.insertBefore(dialog,node.firstChild);
 	    return dialog;}
 
 	var knotemodes=/(knotetext)|(knotetag)|(knotelink)/;
 
+	var modefocus={"text": "NOTE","tag": "TAG","link": "LINK"};
+
 	function button(evt){
 	    evt=evt||event;
 	    var target=evt.target||evt.srcElement;
-	    var knotepad=getParent(target,"knotepad");
-	    if (!(knotepad)) return;
-	    var form=target;
-	    while (form) {
-		if (form.nodeType!==1) form=form.parentNode;
-		else if (form.tagName==='FORM') break;
-		else if (form===knotepad) return;
-		else form=form.parentNode;}
+	    var form=getForm(target);
 	    if (!(form)) return;
+	    var knotepad=form.parentNode;
 	    var b=getParent(target,"button");
 	    if (!(b)) return;
 	    if (!(b.alt)) return;
+	    fdjtUI.cancel(evt);
 	    if (b.alt==='OK') {
-		fdjtDOM.swapClass(form,knotemodes,"knotesaving");
-		fdjtAjax.formSubmit(
-		    form,function(req){
-			knotepad.parentNode.removeChild(knotepad);
-			addKnote(JSON.parse(req.responseText));});
+		save_knote(form);
 		b=false; form=false; target=false;}
 	    else if (b.alt==='close') 
 		knotepad.parentNode.removeChild(knotepad);
-	    else fdjtDOM.swapClass(form,knotemodes,"knote"+b.alt);}
+	    else {
+		if (modefocus[b.alt]) {
+		    var input=getInput(form,modefocus[b.alt]);
+		    if (input)
+			setTimeout(function(){input.focus();},100);}
+		fdjtDOM.swapClass(knotepad,knotemodes,"knote"+b.alt);}}
 	result.button=button;
+
+	function save_knote(target){
+	    var form=getForm(target);
+	    if (!(form)) return;
+	    var knotepad=form.parentNode;
+	    fdjtDOM.swapClass(knotepad,knotemodes,"knotesaving");
+	    fdjtAjax.formSubmit(
+		form,function(req){
+		    knotepad.parentNode.removeChild(knotepad);
+		    addKnote(JSON.parse(req.responseText));});}
+
+	function note_keypress(evt){
+	    evt=evt||event;
+	    var kc=evt.charCode;
+	    var target=evt.target||evt.sourceElt;
+	    if (kc===13) {
+		save_knote(target);
+		fdjtUI.cancel(evt);
+		return false;}}
+	result.note_keypress=note_keypress;
+	
+	function tag_keypress(evt){
+	    evt=evt||event;
+	    var kc=evt.charCode;
+	    var target=evt.target||evt.sourceElt;
+	    if (kc===13) {
+		var form=getForm(target);
+		var tagspans=form.getElementsByClassName("tags")[0];
+		var tag=target.value; target.value="";
+		fdjtUI.cancel(evt);
+		if (tag.length===0) {
+		    save_knote(target);
+		    return false;}
+		tagspans.appendChild(tagcheckspan(tag));
+		return false;}}
+	result.tag_keypress=tag_keypress;
+
+	function link_keypress(evt){
+	    evt=evt||event;
+	    var kc=evt.charCode;
+	    var target=evt.target||evt.sourceElt;
+	    if (kc===13) {
+		var form=getForm(target);
+		var linkspans=form.getElementsByClassName("links")[0];
+		var link=target.value; target.value="";
+		fdjtUI.cancel(evt);
+		if (link.length===0) {
+		    save_knote(target);
+		    return;}
+		linkspans.appendChild(linkcheckspan(link));
+		return false;}}
+	result.link_keypress=link_keypress;
 
 	var uiclasses=/(knotepad)|(knote)|(knotes)/;
 
@@ -431,11 +488,11 @@ if (typeof OK === 'undefined')
 		if (scan.nodeType!==1) scan=scan.parentNode;
 		else if ((scan.tagName==='A')||(scan.tagName==='INPUT')||
 			 (scan.tagName==='TEXTAREA'))
-		    return false;
+		    return;
 		else if ((scan.className)&&
 			 (scan.className.search(uiclasses)>=0))
-		    return false;
-		else if (scan.onclick) return false;
+		    return;
+		else if (scan.onclick) return;
 		else scan=scan.parentNode;}
 	    var scope=find_scope(target), prefix=false;
 	    var refuri=rooturi;
