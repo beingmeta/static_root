@@ -216,6 +216,9 @@ div.flyhead {
     text-align: center;
     font-size: 150%; font-weight: bold;
     border-bottom: solid black 2px; margin-bottom: 7px;}
+div.flyhead img.pagelogo {
+    position: absolute; top: 0px; right: 0px;
+    max-height: 50px; z-index: -50;}
 div.flyhead div.appbar a.elt { color: blue; text-decoration: none;}
 div.flyhead div.appbar { font-size: 80%; color: black;}
 div.flyhead div.appbar a.elt:hover { text-decoration: underline;}
