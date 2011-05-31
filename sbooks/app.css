@@ -231,8 +231,8 @@ div.flyhead div.appbar a.elt.selected:visited { color: black; }
 
 div.flyhead img.overpic {
     position: absolute;
-    top: 0px; right: 0px; max-height: 50px; z-
-    index: -50;}
+    top: 0px; right: 0px; max-height: 50px;
+    z-index: -50;}
 
 table.fdjtform.sbookinvitation {
     width: 30em; margin-left: auto; margin-right: auto;}
