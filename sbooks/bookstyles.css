@@ -106,11 +106,11 @@ body.sbook .titlepage .dedication, body.sbook .titlepage .epigraph {
 body.sbook .titlepage .dedication p, body.sbook .titlepage .epigraph p {
     margin: 0px; padding: 0px;}
 body.sbook .titlepage .dedication.leftalign p,
-body.sbook .titlepage .epigraph.leftalign p 
+body.sbook .titlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
 body.sbook .titlepage .pubinfo { 
   clear: both; 
-  font-variant: smallcaps; font-size: 50%;
+  font-variant: small-caps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
 
 body.sbook .frontpiece div.poem {
@@ -146,9 +146,6 @@ body.sbook .dateline {
     margin-bottom: 0px;}
 
 /* Poetry */
-
-body.verse {
-  margin-left: auto; margin-right: auto;}
 
 div.part {
     padding-top: 0px; margin-top: 0px;
@@ -322,7 +319,7 @@ body.sbook .sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph {
   max-width: 50%; font-size: 80%;}
 body.sbook .sbooktitlepage div.pubinfo { 
   clear: both; 
-  font-variant: smallcaps; font-size: 50%;
+  font-variant: small-caps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
 
 /*
