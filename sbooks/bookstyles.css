@@ -180,7 +180,7 @@ div.poem p.sig {
 
 /* These are poem titles */
 body.verse h2 { 
-  margin-left: 10%; text-align: left;}
+  text-align: left;}
 body.verse div.stanza { 
   page-break-inside: avoid;
   margin-left: 3em; margin-right: 2em;
