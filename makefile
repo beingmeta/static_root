@@ -35,7 +35,10 @@ ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
 all: allcode alltags index.html
 allcode: fdjt knodules codex \
-	fdjt/fdjt.js knotes/ok.js sbooks/bundle.js sbooks/bundle.css
+	fdjt/fdjt.js knotes/ok.js \
+	sbooks/bundle.js sbooks/bundle.css sbooks/bundle.css.gz \
+	sbooks/bundle.js sbooks/bundle.js.gz \
+	sbooks/bundle.min.js sbooks/bundle.min.js.gz
 
 # GIT rules
 fdjt:
@@ -74,9 +77,13 @@ sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE)
 			codex/buildstamp.js knodules/buildstamp.js > $@
 sbooks/bundle.css: $(SBOOKS_CSS)
 	cat $(SBOOKS_CSS) > $@
+sbooks/bundle.min.js: sbooks/bundle.js jsmin/jsmin
+	jsmin/jsmin < sbooks/bundle.js > sbooks/bundle.min.js
+sbooks/bundle.min.js.gz: sbooks/bundle.min.js
+	gzip sbooks/bundle.min.js -c > sbooks/bundle.min.js.gz
 sbooks/bundle.js.gz: sbooks/bundle.js
 	gzip -c sbooks/bundle.js > $@
-codex/bundle.css.gz: codex/bundle.css
+sbooks/bundle.css.gz: sbooks/bundle.css
 	gzip -c sbooks/bundle.css > $@
 
 # Generating the HTML
@@ -160,6 +167,9 @@ APPTAGS: ${CODEX_FILES} ${CODEX_CSS} ${KNODULES_FILES} \
 	etags -o $@ $^
 fdjt/TAGS: 
 	cd fdjt; make TAGS
+
+jsmin/jsmin: jsmin/jsmin.c
+	${CC} -o jsmin/jsmin jsmin/jsmin.c
 
 diff:
 	git diff;
