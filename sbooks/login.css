@@ -47,7 +47,7 @@ table.login td.oneclick a.login[value='facebook'] {
   background-color: inherit;}
 table.login a.button { padding: 1px;}
 table.login td a.button { padding: 1px; }
-table.login td.oneclick button { }
+table.login td.oneclick button { height: 40px; vertical-align: top;}
 table.login .registering input[TYPE='SUBMIT'][VALUE='Login'],
 table.login input[TYPE='SUBMIT'][VALUE='Register'] {
     display: none;}

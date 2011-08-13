@@ -92,15 +92,21 @@ body.sbookapp div.pagehead div.message {font-size: 14px;}
 table.preferences { margin-left: auto; margin-right: auto;}
 table.preferences th { 
   text-align: right; vertical-align: top;}
+table.preferences tr th:first-child { width: 75px;} 
 table.preferences td { 
   text-align: left; vertical-align: top;}
+table.preferences th img.twisty { float: left; vertical-align: bottom;}
 table.preferences td input[TYPE='text'] { 
   width: 100%;}
+table.preferences td input[TYPE='text'][NAME='MAKEUSERID'] { 
+  width: 50%;}
+table.preferences td input[TYPE='password'] { 
+  width: 50%;}
 table.preferences td textarea { 
   width: 100%; height: 60px;}
 table.preferences td textarea:focus { 
   width: 100%; height: 120px;}
-table.preferences img#MYPIC { height: 50px;}
+table.preferences img#MYPIC, table.preferences img.userpic { height: 50px;}
 table.preferences input[TYPE='TEXT'][NAME='OPENIDS'] {
   background-image: url(http://static.beingmeta.com/graphics/openid-login-bg.gif);
   background-position-x: right;
