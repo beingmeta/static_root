@@ -281,3 +281,39 @@ div.sbooksourcepic {
     font-size: 32px;}
 
 table.sourcetable th { width: 50px;}
+
+table.glossform { width: 100%;}
+table.glossform td span.label {
+    font-weight: bold; font-variant: small-caps; font-size: 110%;}
+table.glossform td input[type='TEXT'] { width: 100%;}
+table.glossform td textarea { width: 100%;}
+table.glossform td select { width: 100%;}
+table.glossform th { width: 7em; text-align: left; vertical-align: top;}
+table.glossform th > span { padding-left: 0.5em;}
+table.glossform th > span > button {
+    text-align: left;
+    width: 100%;}
+table.glossform span.checkspan input[type='CHECKBOX'] { width: 1em;}
+
+table.glossform td.tagcloud span.checkspan { font-size: 150%;}
+
+table.glossform .sep {
+    font-weight: bold; font-size: 120%;
+    padding-right: 0.5em; padding-left: 0.5em;}
+
+.glosspoint h2 {
+    text-align: right;
+    border-bottom: solid purple 1px;}
+.glosspoint div.glosses { margin-top: 1.5em; }
+.glosspoint div.glosses h2 {
+    border-top: solid purple 4px;}
+
+div.gloss { width: 100%; clear: both;}
+div.gloss .created { float: right; font-size: 80%;}
+div.gloss .maker {
+    font-weight: bold; padding-right: 5px;
+    font-variant: small-caps; font-size: 90%;}
+div.gloss .note { font-style: italic;}
+div.gloss img.source { max-width: 50px;}
+div.gloss img.maker { float: left; max-width: 50px;}
+div.gloss span.label { font-weight: bold; font-size: 80%;}
