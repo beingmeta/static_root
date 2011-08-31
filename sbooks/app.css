@@ -283,6 +283,10 @@ div.sbooksourcepic {
 table.sourcetable th { width: 50px;}
 
 table.glossform { width: 100%;}
+table.glossform .tablelabel {
+    font-weight: bold; font-variant: small-caps; font-size: 130%;
+    white-space: nowrap;
+    color: purple; padding-left: 0.5em; text-align: right;}
 table.glossform td span.label {
     font-weight: bold; font-variant: small-caps; font-size: 110%;}
 table.glossform td input[type='TEXT'] { width: 100%;}
@@ -295,12 +299,29 @@ table.glossform th > span > button {
     width: 100%;}
 table.glossform span.checkspan input[type='CHECKBOX'] { width: 1em;}
 
+table.glossform td.tagcloud { text-align: center;}
+table.glossform td.tagcloud span.label {
+    float: left; color: purple; font-size: 130%;
+    font-variant: small-caps;}
 table.glossform td.tagcloud span.checkspan { font-size: 150%;}
 
 table.glossform .sep {
     font-weight: bold; font-size: 120%;
     padding-right: 0.5em; padding-left: 0.5em;}
 
+body.sbookapp.glosspoint h1 {
+    text-align: left;
+    margin-left: 0px; margin-right: 0px;
+    padding-left: 0px; padding-right: 0px;
+    border-bottom: solid purple 1px;}
+body.sbookapp.glosspoint h1 a.title {
+    font-family: serif;}
+.glosspoint h1 .intent {
+    float: right; font-size: 70%; font-variant: small-caps;
+    color: purple;}
+.glosspoint h1 .byline {
+    font-size: 70%; font-style: italic;}
+.glosspoint h1 .byline:before { content: " by ";}
 .glosspoint h2 {
     text-align: right;
     border-bottom: solid purple 1px;}
