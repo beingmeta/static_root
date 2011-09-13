@@ -135,3 +135,8 @@ div.book a.action {
 div.book div.glossinfo { display: none;}
 div.book.expanded div.glossinfo { display: block;}
 
+span.noaccess { font-weight: bold; font-style: italic; color: red;}
+p.whylogin {
+  font-size: 120%; margin-left: 5%; margin-right: 25%;
+  color: purple;}
+
