@@ -150,10 +150,13 @@ body.sbook .dateline {
 div.part {
     padding-top: 0px; margin-top: 0px;
     page-break-before: always;}
-body.verse div.part h1[toclevel='1'] {
+body.verse div.part h1 {
     border-top: solid black 1em; 
     padding-top: .3em;
     page-break-before: auto;}
+body.verse div.curpage div.part h1 img {
+    display: block; margin-left: auto; margin-right: auto;
+    max-height: 75%; max-width: 100%;}
 
 /* These are part headings */
 body.verse h1 { text-align: center;}
