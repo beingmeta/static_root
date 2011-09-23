@@ -152,14 +152,19 @@ div.part {
     page-break-before: always;}
 body.verse div.part h1 {
     border-top: solid black 1em; 
-    padding-top: .3em;
-    page-break-before: auto;}
+    padding-top: .3em;}
+body.verse div.part > h1 {
+    page-break-before: auto;
+    page-break-inside: avoid;}
 body.verse div.curpage div.part h1 img {
     display: block; margin-left: auto; margin-right: auto;
     max-height: 75%; max-width: 100%;}
 
 /* These are part headings */
 body.verse h1 { text-align: center;}
+
+/* Poems break pages */
+
 div.poem { 
   page-break-before: always;
   margin-left: 2em; margin-right: 1em;
@@ -167,6 +172,7 @@ div.poem {
      the poem fits exactly. */
   padding: 1em; padding-bottom: 0em;
   border-top: solid gray 3px;}
+div.poem.codexdup, div.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 
 body.sbookpagehorizontal div.poem {
     margin-top: 0px;
