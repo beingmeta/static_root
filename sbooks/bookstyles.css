@@ -108,10 +108,15 @@ body.sbook .titlepage .dedication p, body.sbook .titlepage .epigraph p {
 body.sbook .titlepage .dedication.leftalign p,
 body.sbook .titlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
-body.sbook .titlepage .pubinfo { 
-  clear: both; 
-  font-variant: small-caps; font-size: 50%;
+body.sbook .titlepage .sbookbibinfo { 
+  clear: both; text-align: left; font-size: 80%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
+body.sbook .titlepage .sbookbibinfo p {
+    width: 80%; margin-left: 10%; margin-right: 10%;
+    text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
+body.sbook .titlepage .sbookbibinfo p span.bibdate {
+    padding-left: 1em;
+    float: right;}
 
 body.sbook .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
