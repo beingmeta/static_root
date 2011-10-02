@@ -38,19 +38,12 @@ body.sbook div#CODEXCONTENT { margin-left: auto; margin-right: auto;}
 body.sbook a { text-decoration: none;}
 body.sbook a:hover { text-decoration: underline;}
 
-body.sbook.thirty div#CODEXCONTENT {
-    width: 30em;}
-body.sbook.forty div#CODEXCONTENT {
-    width: 40em;}
-/*
-body.sbook.thirty p, body.sbook.thirty li, body.sbook.thirty blockquote {
-    max-width: 30em;}
-body.sbook.forty p, body.sbook.forty li, body.sbook.forty blockquote {
-    max-width: 40em;}
-*/
+body.sbook #CODEXPAGE p, body.sbook #CODEXPAGE li {max-width: 40em;}
+body.sbook #CODEXCONTENT p, body.sbook #CODEXCONTENT li {max-width: 40em;}
 
-body.sbook.forty div#SBOOKBODY {
-    max-width: 40em; margin-left: auto; margin-right: auto;}
+body.sbook.fifty div#CODEXPAGE { max-width: 50em;}
+body.sbook.forty div#CODEXPAGE { max-width: 40em;}
+body.sbook.thirty div#CODEXPAGE { max-width: 30em;}
 
 body.sbook.novel h1, body.sbook.novel .chapter, body.sbook.novel .sbook1 {
     text-align: center; margin-left: 5%; margin-right: 5%;}
@@ -79,9 +72,13 @@ body.sbook .titlepage > p, body.sbook .titlepage > blockquote > p {
     width: 30em; max-width: 70%; clear: both;
     font-size: 125%;
     margin-left: auto; margin-right: auto;}
+body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
+    margin-top: 0.1em; margin-bottom: 0.1em;}
+
 
 body.sbook .titlepage .title {
-    text-align: center; font-weight: bold; font-size: 175%;
+    text-align: center; font-weight: bold;
+    font-size: 125%;
     clear: both;}
 body.sbook .titlepage .connector {
     font-size: 50%;}
@@ -92,10 +89,10 @@ body.sbook .titlepage div.subtitle {
   font-style: normal; font-weight: normal;}
 body.sbook .titlepage .author { 
   clear: both; text-align: center;
-  font-style: italic;  font-size: 150%;
+  font-style: italic;  font-size: 120%;
   margin-top: 1em; margin-bottom: 1em;}
 body.sbook .titlepage .editor { 
-  clear: both; text-align: center; font-size: 125%;
+  clear: both; text-align: center; font-size: 120%;
   font-style: italic; font-weight: normal; font-size: 90%;}
 body.sbook .titlepage .dedication, body.sbook .titlepage .epigraph { 
   clear: both;
