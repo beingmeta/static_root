@@ -8,6 +8,7 @@ FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
 	    fdjt/kb.js fdjt/ui.js fdjt/state.js fdjt/ajax.js fdjt/json.js fdjt/hash.js
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/html.js 
+KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/interaction.js                     \
 	codex/toc.js codex/slices.js codex/social.js          \
@@ -29,7 +30,7 @@ LOGIN_CSS=sbooks/login.css
 
 SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_DERIVED_FILES}
-SBOOKS_CSS=${FDJT_CSS} ${LOGIN_CSS} ${CODEX_CSS}
+SBOOKS_CSS=${FDJT_CSS} ${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
