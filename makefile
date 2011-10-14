@@ -23,14 +23,14 @@ CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
-CODEX_CSS=codex/codex.css
+CODEX_CSS=codex/webpress.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
+SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codex.js \
 	${CODEX_FILES} ${CODEX_DERIVED_FILES}
-SBOOKS_CSS=${FDJT_CSS} ${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
+SBOOKS_CSS=${FDJT_CSS} fdjt/codex.css ${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
