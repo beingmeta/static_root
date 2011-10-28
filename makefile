@@ -24,7 +24,7 @@ CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
-CODEX_CSS=codex/webpress.css
+CODEX_CSS=codex/webreader.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
