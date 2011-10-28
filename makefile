@@ -183,6 +183,11 @@ update: fdjt codex knodules
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+push: fdjt codex knodules
+	git push
+	cd fdjt; git push
+	cd knodules; git push
+	cd codex; git push
 
 fdiff:
 	cd fdjt; git diff
