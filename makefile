@@ -188,6 +188,14 @@ push: fdjt codex knodules
 	cd fdjt; git push
 	cd knodules; git push
 	cd codex; git push
+publish:
+	make update
+	s3commit
+	make publish-bundle
+
+publish-bundle:
+	s3cmd put --encoding=utf-8 -M sbooks/bundle.* s3://static.beingmeta.com/
+	s3cmd put --encoding=utf-8 -M sbooks/bundle.* s3://beingmeta/static/
 
 fdiff:
 	cd fdjt; git diff
