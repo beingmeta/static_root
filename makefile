@@ -7,7 +7,7 @@ CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
 	fdjt/kb.js fdjt/state.js fdjt/ajax.js fdjt/json.js \
 	fdjt/hash.js fdjt/wsn.js \
-	fdjt/ui.js fdjt/taphold.js fdjt/syze.js
+	fdjt/ui.js fdjt/taphold.js fdjt/completions.js fdjt/syze.js
 
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/html.js 
