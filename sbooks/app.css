@@ -259,6 +259,8 @@ table.overlays td.buttons a {display: block;}
 table.overlays td.action {text-align: right; font-size: 75%;}
 table.overlays td.action a {display: block;}
 
+table.overlays img.overlay { max-height: 50px; max-width: 50px;}
+
 body.sbookflyleaf div.smaller {
     font-style: normal; font-weight: bold; font-size: 70%;}
 
