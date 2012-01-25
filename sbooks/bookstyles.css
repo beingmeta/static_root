@@ -67,6 +67,7 @@ body.sbook .titlepage, body.sbook .sbooktitlepage,  body.sbook .coverpage {
   page-break-inside: avoid;
   page-break-after: always;
   overflow: hidden;}
+body.sbook h1 img { display: block; clear: both;}
 body.sbook .titlepage img { clear: both;}
 body.sbook .titlepage > p, body.sbook .titlepage > blockquote > p {
     width: 30em; max-width: 70%; clear: both;
@@ -149,16 +150,16 @@ body.sbook .dateline {
 
 /* Poetry */
 
-div.part {
+div.part, section.part {
     padding-top: 0px; margin-top: 0px;
     page-break-before: always;}
-body.verse div.part h1 {
+body.verse div.part h1, body.verse section.part h1 {
     border-top: solid black 1em; 
     padding-top: .3em;}
-body.verse div.part > h1 {
+body.verse div.part > h1, body.verse section.part > h1 {
     page-break-before: auto;
     page-break-inside: avoid;}
-body.verse div.curpage div.part h1 img {
+body.verse div.curpage div.part h1 img, body.verse div.curpage section.part h1 img {
     display: block; margin-left: auto; margin-right: auto;
     max-height: 75%; max-width: 100%;}
 
@@ -167,7 +168,7 @@ body.verse h1 { text-align: center;}
 
 /* Poems break pages */
 
-div.poem { 
+div.poem, section.poem { 
   page-break-before: always;
   margin-left: 2em; margin-right: 1em;
   /* Setting padding-bottom sometimes avoids blank pages when
@@ -175,17 +176,18 @@ div.poem {
   padding: 1em; padding-bottom: 0em;
   border-top: solid gray 3px;}
 div.poem.codexdup, div.poem.codexdupend { border-top: 0px; padding-top: 1em;}
+section.poem.codexdup, section.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 
-body.sbookpagehorizontal div.poem {
+body.sbookpagehorizontal div.poem, body.sbookpagehorizontal section.poem {
     margin-top: 0px;
     margin-bottom: 0px; padding-bottom: 0px;}
 
 /* For glossmarks, we push the margin right to get them out of
    the body */
-body.sbookpagehorizontal div.poem .codexglossmark {
+body.sbookpagehorizontal div.poem .codexglossmark, body.sbookpagehorizontal section.poem .codexglossmark {
     margin-right: -3em;}
 
-div.poem p.sig {
+div.poem p.sig, section.poem p.sig {
   text-align: right; font-weight: normal; font-style: italic;
   margin-top: 8px;}
 
@@ -227,7 +229,6 @@ body.prose p {
 p.bcv {}
 body.bcv p {}
 .bcv span.v { padding-right: 2em;}
-
 
 /* Bibles */
 

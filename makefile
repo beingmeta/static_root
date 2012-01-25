@@ -5,8 +5,10 @@
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
-	    fdjt/kb.js fdjt/ui.js fdjt/state.js fdjt/ajax.js fdjt/json.js \
-	    fdjt/hash.js fdjt/wsn.js
+	fdjt/kb.js fdjt/state.js fdjt/ajax.js fdjt/json.js \
+	fdjt/hash.js fdjt/wsn.js \
+	fdjt/ui.js fdjt/taphold.js fdjt/completions.js fdjt/syze.js
+
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/html.js 
 KNODULES_CSS=knodules/knodules.css
@@ -24,7 +26,7 @@ CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
-CODEX_CSS=codex/webpress.css
+CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css codex/webreader.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
@@ -183,6 +185,19 @@ update: fdjt codex knodules
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+push: fdjt codex knodules
+	git push
+	cd fdjt; git push
+	cd knodules; git push
+	cd codex; git push
+publish:
+	make update
+	s3commit
+	make publish-bundle
+
+publish-bundle:
+	s3cmd put --encoding=utf-8 -M sbooks/bundle.* s3://static.beingmeta.com/
+	s3cmd put --encoding=utf-8 -M sbooks/bundle.* s3://beingmeta/static/
 
 fdiff:
 	cd fdjt; git diff
