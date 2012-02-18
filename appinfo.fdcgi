@@ -1,0 +1,22 @@
+;;; -*- Mode: Scheme; -*-
+
+(use-module '{fdweb xhtml texttools xhtml/tableout})
+
+(define (main (name #f))
+  (title! "Get connection info")
+  (stylesheet! "fdjt/fdjt.css")
+  (h2 "appVersion")
+  (div ((id "APPVERSION")))
+  (h2 "userAgent")
+  (div ((id "USERAGENT")))
+  (h2 "Args")
+  (p "NAME is " name " or also " (req/call showname))
+  (h2 "REQDATA")
+  (tableout (req/data))
+  (xmlblock "SCRIPT" ((language "javascript"))
+    "\n"
+    (xhtml "document.getElementById('APPVERSION').innerText=navigator.appVersion;\n")
+    (xhtml "document.getElementById('USERAGENT').innerText=navigator.userAgent;\n")))
+
+(define (showname (name #f))
+  (span ((class "showname")) name))
