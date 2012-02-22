@@ -61,6 +61,7 @@ table.login td input[TYPE='TEXT'] { }
 table.login td input[TYPE='TEXT'][NAME='USERNAME'] { width: 90%;}
 table.login td input[TYPE='TEXT'][NAME='NAME'] { width: 90%;}
 table.login td input[TYPE='TEXT'][NAME='USERID'] { width: 90%;}
+table.login td input[TYPE='TEXT'][NAME='REMOTENAME'] { width: 90%;}
 table.login td input[TYPE='PASSWORD'] { 
   width: 50%; min-width: 20em;}
 table.login td input[TYPE='TEXT'][NAME='OPENID'] {
@@ -73,7 +74,8 @@ table.login td.icon img.helpicon {
   margin-top: 3px; margin-left: 3px;
   display: none;}
 table.login tr td { }
-table.login tr th { }
+table.login tr th { width: 8em;}
+table.login tr td.icon, table.login tr td.button { width: 5em;}
 table.login tr.nospace td { border-bottom: 0px;}
 table.login tr.nospace th { border-bottom: 0px;}
 table.login a img { border: none;}
