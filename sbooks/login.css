@@ -1,6 +1,6 @@
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2011 beingmeta, inc.
+/* Copyright (C) 2009-2012 beingmeta, inc.
    This file implements a Javascript/DHTML UI for reading
     large structured documents (sBooks).
 
@@ -58,13 +58,13 @@ table.login input[TYPE='SUBMIT'][VALUE='Register'] {
 table.login .registering input[TYPE='SUBMIT'][VALUE='Register'] {
     display: inline;}
 table.login td input[TYPE='TEXT'] { }
-table.login td input[TYPE='TEXT'][NAME='USERNAME'] { width: 100%;}
-table.login td input[TYPE='TEXT'][NAME='NAME'] { width: 100%;}
-table.login td input[TYPE='TEXT'][NAME='USERID'] { width: 100%;}
+table.login td input[TYPE='TEXT'][NAME='USERNAME'] { width: 90%;}
+table.login td input[TYPE='TEXT'][NAME='NAME'] { width: 90%;}
+table.login td input[TYPE='TEXT'][NAME='USERID'] { width: 90%;}
 table.login td input[TYPE='PASSWORD'] { 
   width: 50%; min-width: 20em;}
 table.login td input[TYPE='TEXT'][NAME='OPENID'] {
-  width: 100%;}
+  width: 90%;}
 table.login td div.doc {
     display: none; font-style: italic; color: purple;}
 table.login td.icon { vertical-align: top;}
