@@ -35,7 +35,10 @@
 
 table.login {}
 table.login tbody { padding-bottom: 24px;}
-table.login th {text-align: right; vertical-align: top; font-size: 125%;}
+table.login th {
+    text-align: right; vertical-align: top; font-size: 125%;
+    width: 8em;}
+table.login td.button { width: 5em;}
 table.login th.or {font-size: 150%; color: gold;}
 table.login td {text-align: left; vertical-align: top;}
 table.login td.oneclick a { float: left; margin-right: 3px;}
@@ -61,6 +64,7 @@ table.login td input[TYPE='TEXT'] { }
 table.login td input[TYPE='TEXT'][NAME='USERNAME'] { width: 90%;}
 table.login td input[TYPE='TEXT'][NAME='NAME'] { width: 90%;}
 table.login td input[TYPE='TEXT'][NAME='USERID'] { width: 90%;}
+table.login td input[TYPE='TEXT'][NAME='REMOTENAME'] { width: 90%;}
 table.login td input[TYPE='PASSWORD'] { 
   width: 50%; min-width: 20em;}
 table.login td input[TYPE='TEXT'][NAME='OPENID'] {
