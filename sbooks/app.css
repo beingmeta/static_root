@@ -13,6 +13,8 @@ form.sbookflyleafcancel button {
     -moz-border-radius: 50%; -khtml-border-radius: 50%;
     -webkit-border-radius: 50%;}
 
+body.sbookflyleaf div.dropform {text-align: center;}
+
 body.sbookflyleaf p.unexpected {
     font-size: 125%; color: red; font-weight: bold;}
 
@@ -95,7 +97,7 @@ body.sbookapp div.pagehead div.message {font-size: 14px;}
 table.preferences { margin-left: auto; margin-right: auto;}
 table.preferences th { 
   text-align: right; vertical-align: top;}
-table.preferences tr th:first-child { width: 75px;} 
+table.preferences tr th:first-child { width: 100px;} 
 table.preferences td { 
   text-align: left; vertical-align: top;}
 table.preferences th img.twisty { float: left; vertical-align: bottom;}
