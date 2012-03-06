@@ -2,21 +2,24 @@
 
 (use-module '{fdweb xhtml texttools xhtml/tableout})
 
-(define (main (name #f))
+(define (main (name))
   (title! "Get connection info")
   (stylesheet! "fdjt/fdjt.css")
-  (h2 "appVersion")
+  (h2 "appVersion (from DOM/JS)")
   (div ((id "APPVERSION")))
-  (h2 "userAgent")
+  (h2 "userAgent (from DOM/JS)")
   (div ((id "USERAGENT")))
   (h2 "Args")
-  (p "NAME is " name " or also " (req/call showname))
+  (if (bound? name)
+      (p "NAME is " name " or also " (req/call showname))
+      (p "The NAME argument was not passed, so REQ/GET delivers "
+	(req/get 'name) "."))
   (h2 "REQDATA")
   (tableout (req/data))
   (xmlblock "SCRIPT" ((language "javascript"))
     "\n"
-    (xhtml "document.getElementById('APPVERSION').innerText=navigator.appVersion;\n")
-    (xhtml "document.getElementById('USERAGENT').innerText=navigator.userAgent;\n")))
+    (xhtml "document.getElementById('APPVERSION').innerHTML=navigator.appVersion;\n")
+    (xhtml "document.getElementById('USERAGENT').innerHTML=navigator.userAgent;\n")))
 
 (define (showname (name #f))
   (span ((class "showname")) name))
