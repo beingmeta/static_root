@@ -22,7 +22,7 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 	            codex/hudtext.js codex/flyleaftext.js  \
 	            codex/helptext.js codex/console.js     \
-		    codex/settingstext.js
+		    codex/settingstext.js codex/messages.js
 
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
@@ -130,6 +130,13 @@ codex/settingstext.js: codex/settings.html makefile
           sed s/\\\"/\\\\\"/g >> codex/settingstext.js
 	$(ECHO) "\";" >> codex/settingstext.js
 	$(ECHO) "" >> codex/settingstext.js
+
+codex/messages.js: codex/messages.html makefile
+	$(ECHO) -n "var sbook_messagestext=\"" > codex/messages.js
+	sed s/$$/\ \\\\/ codex/messages.html | \
+          sed s/\\\"/\\\\\"/g >> codex/messages.js
+	$(ECHO) "\";" >> codex/messages.js
+	$(ECHO) "" >> codex/messages.js
 
 codex/console.js:  codex/console.html makefile
 	$(ECHO) -n "var sbook_console=\"" > codex/console.js
