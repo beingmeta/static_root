@@ -27,7 +27,8 @@ CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
 	    codex/help.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
-CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css codex/webreader.css
+CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css
+	codex/codexhelp.css codex/webreader.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
@@ -110,9 +111,9 @@ codex/hudtext.js: codex/hudtext.html makefile
 	$(ECHO) "\";" >> codex/hudtext.js
 	$(ECHO) "" >> codex/hudtext.js
 
-codex/helptext.js: codex/help.html makefile
+codex/helptext.js: codex/helptext.html makefile
 	$(ECHO) -n "var sbook_helptext=\"" > codex/helptext.js
-	sed s/$$/\ \\\\/ codex/help.html | \
+	sed s/$$/\ \\\\/ codex/helptext.html | \
           sed s/\\\"/\\\\\"/g >> codex/helptext.js
 	$(ECHO) "\";" >> codex/helptext.js
 	$(ECHO) "" >> codex/helptext.js
