@@ -14,20 +14,21 @@ KNODULES_FILES=knodules/knodules.js knodules/query.js \
 	knodules/html.js knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
-	codex/hud.js codex/interaction.js                     \
-	codex/toc.js codex/slices.js codex/social.js          \
-	codex/search.js codex/glosses.js                      \
-	codex/layout.js codex/iscroll.js                  \
+	codex/hud.js codex/interaction.js                   \
+	codex/toc.js codex/slices.js codex/social.js        \
+	codex/search.js codex/glosses.js                    \
+	codex/layout.js codex/iscroll.js                    \
 	codex/autoload.js
 CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 	            codex/hudtext.js codex/flyleaftext.js  \
-	            codex/helptext.js codex/console.js     \
-		    codex/settingstext.js codex/messages.js
+	            codex/helptext.js codex/hudhelp.js     \
+		    codex/console.js codex/messages.js     \
+		    codex/settingstext.js 
 
 CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
-	    codex/help.html codex/console.html \
+	    codex/helptext.html codex/hudhelp.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
-CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css
+CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
 	codex/codexhelp.css codex/webreader.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
@@ -62,7 +63,8 @@ clean:
 	cd fdjt; make clean;
 	cd codex; \
 	rm -f codex/hudtext.js codex/flyleaftext.js codex/helptext.js \
-	      codex/loginform.js codex/console.js \
+	      codex/hudhelp.js codex/messages.js codex/loginform.js \
+	       codex/console.js \
 	      codex/addgloss.js codex/searchbox.js
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f sbooks/bundle.js sbooks/bundle.css
@@ -117,6 +119,13 @@ codex/helptext.js: codex/helptext.html makefile
           sed s/\\\"/\\\\\"/g >> codex/helptext.js
 	$(ECHO) "\";" >> codex/helptext.js
 	$(ECHO) "" >> codex/helptext.js
+
+codex/hudhelp.js: codex/hudhelp.html makefile
+	$(ECHO) -n "var sbook_hudhelp=\"" > codex/hudhelp.js
+	sed s/$$/\ \\\\/ codex/hudhelp.html | \
+          sed s/\\\"/\\\\\"/g >> codex/hudhelp.js
+	$(ECHO) "\";" >> codex/hudhelp.js
+	$(ECHO) "" >> codex/hudhelp.js
 
 codex/flyleaftext.js: codex/flyleaf.html makefile
 	$(ECHO) -n "var sbook_flyleaftext=\"" > codex/flyleaftext.js
