@@ -1,6 +1,6 @@
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009 beingmeta, inc.
+/* Copyright (C) 2009-2012 beingmeta, inc.
    This file was created from several component files, some of
       which have different restrictions.
 

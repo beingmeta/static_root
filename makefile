@@ -78,11 +78,14 @@ sbooks/buildstamp.js: $(SBOOKS_BUNDLE) fdjt/buildstamp.js
 	cat fdjt/buildstamp.js > sbooks/buildstamp.js
 	$(ECHO) "var sbooks_buildhost='"`hostname`"';" >> sbooks/buildstamp.js
 	$(ECHO) "var sbooks_buildtime='"`date`"';" >> sbooks/buildstamp.js 
-sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE)
+sbooks/tieoff.js:
+	touch sbooks/tieoff.js
+sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) sbooks/tieoff.js
 	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
 	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
-	cat sbooks/amalgam.js sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
-			codex/buildstamp.js knodules/buildstamp.js > $@
+	cat sbooks/amalgam.js sbooks/buildstamp.js \
+		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
+		codex/buildstamp.js knodules/buildstamp.js > $@
 sbooks/bundle.css: $(SBOOKS_CSS)
 	cat $(SBOOKS_CSS) > $@
 sbooks/bundle.min.js: sbooks/bundle.js jsmin/jsmin

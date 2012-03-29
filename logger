@@ -1,0 +1,36 @@
+;;; -*- Mode: Scheme; -*-
+
+(use-module '{fdweb xhtml texttools xhtml/tableout})
+(use-module '{logger logctl})
+
+(define %loglevel %debug!)
+
+(define-init logfile
+  (extend-output-file (get-component (CONFIG 'LOGFILE "fdjt.log")) "utf-8"))
+
+(defslambda (dolog arg)
+  (when arg
+    (fileout logfile
+      "[" (get (timestamp 'seconds) 'iso) "] "
+      (lineout
+	(if (string? arg) arg
+	    (if (packet? arg)  (packet->string arg)
+		arg)))))
+  (printout "{}"))
+
+(define (main (request_method #f)
+	      (origin (cgiget 'http_origin #f))
+	      (post_data #f))
+  ;; (cgiset! 'auth_domain "sbooks.net")
+  (debug%watch "SBOOKS/LOGGER" request_method origin post_data)
+  (if (eq? request_method 'OPTIONS)
+      (begin (req/set! 'doctype #f)
+	(httpheader "Access-Control-Allow-Origin: " origin)
+	(httpheader "Access-Control-Allow-Methods: GET,POST,PUT,OPTIONS")
+	(httpheader
+	 "Access-Control-Allow-Headers: Content-type, Allow, Accept, Origin, User-Agent, Referer"))
+      (begin (req/set! 'status 200)
+	(dolog post_data))))
+
+
+
