@@ -15,7 +15,8 @@
       (lineout
 	(if (string? arg) arg
 	    (if (packet? arg)  (packet->string arg)
-		arg)))))
+		arg))))
+    (flush-output logfile))
   (printout "{}"))
 
 (define (main (request_method #f)
@@ -30,6 +31,10 @@
 	(httpheader
 	 "Access-Control-Allow-Headers: Content-type, Allow, Accept, Origin, User-Agent, Referer"))
       (begin (req/set! 'status 200)
+	(httpheader "Access-Control-Allow-Origin: " origin)
+	(httpheader "Access-Control-Allow-Methods: GET,POST,PUT,OPTIONS")
+	(httpheader
+	 "Access-Control-Allow-Headers: Content-type, Allow, Accept, Origin, User-Agent, Referer")
 	(dolog post_data))))
 
 
