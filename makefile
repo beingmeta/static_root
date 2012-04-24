@@ -11,7 +11,7 @@ FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js fdjt/time.js fdjt/dom.js \
 
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js \
-	knodules/html.js knodules/clouds.js 
+	knodules/html.js # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/interaction.js                   \
