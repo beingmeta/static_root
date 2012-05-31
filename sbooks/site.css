@@ -19,8 +19,8 @@ p.whylogin {
   font-size: 120%; margin-left: 5%; margin-right: 25%;
   color: purple;}
 
-table.booklist, table.overlays { width: 95%;}
-table.booklist span.label , table.overlays span.label {
+table.booklist { width: 95%;}
+table.booklist span.label, table.overlays span.label {
     font-weight: bold; font-variant: small-caps;}
 table.booklist th, table.booklist td {
     vertical-align: top; overflow: hidden;}

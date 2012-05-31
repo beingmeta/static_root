@@ -28,11 +28,6 @@ form.sbookflyleafcancel button {
     -moz-border-radius: 50%; -khtml-border-radius: 50%;
     -webkit-border-radius: 50%;}
 
-body.sbookflyleaf div.dropform {text-align: center;}
-
-body.sbookflyleaf p.unexpected {
-    font-size: 125%; color: red; font-weight: bold;}
-
 h2 { text-align: right;}
 div.appblock { clear: both; margin-bottom: 4px;}
 div.appblock input[TYPE='TEXT'] { padding-left: 5px;}
@@ -227,15 +222,6 @@ div.righthead div.subtitle {
     font-weight: normal; font-style: italic;
     font-size: 75%; text-align: right;}
 
-body.sbookflyleaf {
-    font-family: sans,sans-serif;}
-body.sbookflyleaf p.about {
-    font-size: 125%; text-align: left;
-    max-width: 30em; margin-left: auto; margin-right: auto;}
-body.sbookflyleaf span.email { font-family: fixed; font-size: 90%;}
-body.sbookflyleaf div.invitelink {
-    margin-left: 3em;}
-
 tr.overlay.writable td.buttons { background-color: lightgreen;}
 tr.overlay.hidden > td, tr.overlay.hidden > th { opacity: 0.5;}
 tr.overlay.hidden > td.action { opacity: 0.9;}
@@ -282,22 +268,6 @@ table.overlays td.action a {display: block; text-decoration: none; color: blue;}
 table.overlays td.action a:hover {text-decoration: underline; color: purple;}
 
 table.overlays img.overlay { max-height: 50px; max-width: 50px;}
-
-body.sbookflyleaf div.smaller {
-    font-style: normal; font-weight: bold; font-size: 70%;}
-
-body.sbookflyleaf table.sbookadmin tr th:first-child { width: 8em;}
-body.sbookflyleaf table.sbookinvite tr th:first-child { width: 8em;}
-
-body.sbookflyleaf p {
-    max-width: 30em;
-    margin-left: auto; margin-right: auto;}
-body.sbookflyleaf div.inviteurl {
-    font-family: fixed; font-size: 80%;
-    text-align: center;}
-
-body.sbookflyleaf div.overlaytitle { font-style: italic;}
-body.sbookflyleaf div.booktitle { font-weight: bold;}
 
 form[action="manage"] + form[action="invite"] {
     border-top: solid purple 4px; margin-top: 12px; padding-top: 8px;}

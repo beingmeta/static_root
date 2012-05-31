@@ -15,7 +15,36 @@
 
 */
 
-p.message {
-    font-size: 125%; color: red;
+body.sbookflyleaf p.message {
+    font-size: 125%; color: purple; font-weight: bold;
     margin-left: 5em; margin-right: 10em;}
+body.sbookflyleaf p.unexpected {
+    font-size: 150%; color: red; font-weight: bold;
+    margin-left: 5em; margin-right: 10em;}
+
+body.sbookflyleaf div.dropform {text-align: center;}
+
+body.sbookflyleaf {
+    font-family: sans,sans-serif;}
+body.sbookflyleaf p.about {
+    font-size: 125%; text-align: left;
+    max-width: 30em; margin-left: auto; margin-right: auto;}
+body.sbookflyleaf span.email { font-family: fixed; font-size: 90%;}
+body.sbookflyleaf div.invitelink {
+    margin-left: 3em;}
+body.sbookflyleaf div.smaller {
+    font-style: normal; font-weight: bold; font-size: 70%;}
+
+body.sbookflyleaf table.sbookadmin tr th:first-child { width: 8em;}
+body.sbookflyleaf table.sbookinvite tr th:first-child { width: 8em;}
+
+body.sbookflyleaf p {
+    max-width: 30em;
+    margin-left: auto; margin-right: auto;}
+body.sbookflyleaf div.inviteurl {
+    font-family: fixed; font-size: 80%;
+    text-align: center;}
+
+body.sbookflyleaf div.overlaytitle { font-style: italic;}
+body.sbookflyleaf div.booktitle { font-weight: bold;}
 
