@@ -1,0 +1,21 @@
+/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2012 beingmeta, inc.
+   This file provides style rules for parts of the
+    sBooks site and applications.  It especially provides for
+    rendering the 'flyleaf' embedded in digital sBooks.
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   All rights reserved.
+
+*/
+
+p.message {
+    font-size: 125%; color: red;
+    margin-left: 5em; margin-right: 10em;}
+

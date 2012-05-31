@@ -1,6 +1,30 @@
-table.booklist { width: 95%;}
+/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2012 beingmeta, inc.
+   This file provides style rules for parts of the
+    sBooks site and applications.
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   All rights reserved.
+
+*/
+
+span.noaccess { font-weight: bold; font-style: italic; color: red;}
+p.whylogin {
+  font-size: 120%; margin-left: 5%; margin-right: 25%;
+  color: purple;}
+
+table.booklist, table.overlays { width: 95%;}
+table.booklist span.label , table.overlays span.label {
+    font-weight: bold; font-variant: small-caps;}
 table.booklist th, table.booklist td {
     vertical-align: top; overflow: hidden;}
+
 table.booklist tbody.book {}
 tbody.book th.cover {
     width: 75px; vertical-align: top; text-align: right;}
@@ -19,8 +43,13 @@ tbody.book td.fields div.identity {
     font-size: 125%; font-weight: bold;}
 tbody.book td.fields .access,
 tbody.book td.fields .latest,
+tbody.book td.fields .starred,
 tbody.book td.fields .editinfo {
     padding-left: 5px; float: right; font-size: 80%;}
+
+tbody.book td.fields .starred { color: gray;}
+tbody.book td.fields .starred.checked {
+    font-weight: bold; color: black;}
 
 tbody.book td.fields .editinfo { color: red;}
 tbody.book td.fields .latest { font-style: italic;}
@@ -70,6 +99,7 @@ tbody.book[tab='overdocs'] td.fields span.tabbar .booktab[tabid='overdocs'],
 tbody.book[tab='friends'] td.fields span.tabbar .booktab[tabid='friends'] {
     font-weight: bold;}
 
+/*
 div.book {
     text-align: left;
     margin-bottom: 6px; padding: 4px;
@@ -135,8 +165,6 @@ div.book a.action {
 div.book div.glossinfo { display: none;}
 div.book.expanded div.glossinfo { display: block;}
 
-span.noaccess { font-weight: bold; font-style: italic; color: red;}
-p.whylogin {
-  font-size: 120%; margin-left: 5%; margin-right: 25%;
-  color: purple;}
+*/
+
 

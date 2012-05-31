@@ -1,3 +1,19 @@
+/* -*- Mode: Javascript; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2012 beingmeta, inc.
+   This file implements interaction logic for parts of the
+    sBooks site.
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   All rights reserved.
+
+*/
+
 function updateForm(form){
   var checks=fdjtDOM.getInputs(form,"ACCESS");
   var isopen=false; var i=0; var lim=checks.length;
