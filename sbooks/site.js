@@ -16,13 +16,35 @@
 
 function bookTabToggle(evt)
 {
-    var target=fdjtUI.T(evt);
-    var tabid=fdjtDOM.findAttrib(target,'tabid');
-    if (!(tabid)) return;
-    var tbody=fdjtDOM.getParent(target,'tbody');
-    var curtab=tbody.getAttribute('tab');
-    if ((curtab)&&(curtab===tabid)) tbody.removeAttribute('tab');
-    else tbody.setAttribute('tab',tabid);
-    tbody.className=tbody.className;
+  evt=evt||event;
+  var target=fdjtUI.T(evt);
+  var tabid=fdjtDOM.findAttrib(target,'tabid');
+  if (!(tabid)) return;
+  var tbody=fdjtDOM.getParent(target,'tbody');
+  var curtab=tbody.getAttribute('tab');
+  if ((curtab)&&(curtab===tabid)) tbody.removeAttribute('tab');
+  else tbody.setAttribute('tab',tabid);
+  tbody.className=tbody.className;
 }
+
+function favoritesToggle(evt,refuri)
+{
+  evt=evt||event;
+  var target=fdjtUI.T(evt);
+  if (!(fdjtDOM.hasClass(target,"starred")))
+    target=fdjtDOM.getParent(target,".starred");
+  if (!(target)) return;
+  var book=fdjtDOM.getParent(target,"tbody.book");
+  if (!(book)) return;
+  var refuri=book.getAttribute('data-uri');
+  var favored=fdjtDOM.hasClass(target,'favorite');
+  fdjtAjax.jsonCall(function(newval){
+      if (newval==true) fdjtDOM.addClass(target,'favorite');
+      else if (!(newval))
+	fdjtDOM.dropClass(target,'favorite');
+      else fdjtLog.warn("Odd result from favorites API call");},
+    "https://auth.sbooks.net/admin/favorites",
+    ((favored)?("drop"):("add")),refuri);
+}
+
 

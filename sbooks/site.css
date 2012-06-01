@@ -47,9 +47,12 @@ tbody.book td.fields .starred,
 tbody.book td.fields .editinfo {
     padding-left: 5px; float: right; font-size: 80%;}
 
-tbody.book td.fields .starred { font-size: 150%; color: gray;}
-tbody.book td.fields .starred.favorite {
-    font-weight: bold; color: gold;}
+tbody.book td.fields .starred {
+    cursor: pointer; color: gray; vertical-align: top;}
+tbody.book td.fields .starred img[alt="*"] { display: none;}
+tbody.book td.fields .starred.favorite img[alt="*"] { display: inline;}
+tbody.book td.fields .starred.favorite img[alt="()"] { display: none;}
+tbody.book td.fields .starred.favorite {font-weight: bold; color: gold;}
 
 tbody.book td.fields .editinfo { color: red;}
 tbody.book td.fields .latest { font-style: italic;}
