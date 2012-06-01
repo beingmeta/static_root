@@ -30,7 +30,7 @@ CODEX_HTML_FILES=codex/hudtext.html codex/hudheart.html \
 	    codex/helptext.html codex/hudhelp.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
 CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
-	codex/codexhelp.css codex/webreader.css
+	codex/glossform.css codex/codexhelp.css codex/webreader.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
