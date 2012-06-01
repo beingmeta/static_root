@@ -21,12 +21,12 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/layout.js codex/iscroll.js                    \
 	codex/autoload.js
 CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
-	            codex/hudtext.js codex/flyleaftext.js  \
+	            codex/hudtext.js codex/hudheart.js  \
 	            codex/helptext.js codex/hudhelp.js     \
 		    codex/console.js codex/messages.js     \
 		    codex/settingstext.js 
 
-CODEX_HTML_FILES=codex/hudtext.html codex/flyleaf.html \
+CODEX_HTML_FILES=codex/hudtext.html codex/hudheart.html \
 	    codex/helptext.html codex/hudhelp.html codex/console.html \
 	    codex/searchbox.html codex/addgloss.html codex/settings.html
 CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
@@ -130,6 +130,13 @@ codex/hudhelp.js: codex/hudhelp.html makefile
           sed s/\\\"/\\\\\"/g >> codex/hudhelp.js
 	$(ECHO) "\";" >> codex/hudhelp.js
 	$(ECHO) "" >> codex/hudhelp.js
+
+codex/hudheart.js: codex/hudheart.html makefile
+	$(ECHO) -n "var sbook_hudheart=\"" > $@
+	sed s/$$/\ \\\\/ codex/hudheart.html | \
+          sed s/\\\"/\\\\\"/g >> $@
+	$(ECHO) "\";" >> $@
+	$(ECHO) "" >> $@
 
 codex/flyleaftext.js: codex/flyleaf.html makefile
 	$(ECHO) -n "var sbook_flyleaftext=\"" > codex/flyleaftext.js
