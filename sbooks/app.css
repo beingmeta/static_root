@@ -261,6 +261,10 @@ table.overlays th, table.overlays td div.name {
     font-weight: bold;}
 table.overlays th, table.overlays td div.about {
     font-size: 90%;}
+table.overlays td div.about {
+    margin-left: 1em; margin-right: 0.5em;
+    background-color: lightblue; padding: 3px;}
+
 table.overlays td.buttons {text-align: left; font-size: 75%;}
 table.overlays td.buttons a {display: block;}
 table.overlays td.action {text-align: right; font-size: 75%;}

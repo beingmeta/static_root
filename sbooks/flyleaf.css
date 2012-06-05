@@ -16,11 +16,12 @@
 */
 
 body.sbookflyleaf p.message {
-    font-size: 125%; color: purple; font-weight: bold;
-    margin-left: 5em; margin-right: 10em;}
+    font-size: 125%; color: purple; font-weight: normal;
+    margin-left: 5em; margin-right: 5em; max-width: inherit;}
 body.sbookflyleaf p.unexpected {
     font-size: 150%; color: red; font-weight: bold;
-    margin-left: 5em; margin-right: 10em;}
+    margin-left: 5em; margin-right: 10em;
+    max-width: 40em;}
 
 body.sbookflyleaf div.dropform {text-align: center;}
 
@@ -37,6 +38,8 @@ body.sbookflyleaf div.smaller {
 
 body.sbookflyleaf table.sbookadmin tr th:first-child { width: 8em;}
 body.sbookflyleaf table.sbookinvite tr th:first-child { width: 8em;}
+
+table.sbookadmin th.picture img { max-height: 75px;}
 
 body.sbookflyleaf p {
     max-width: 30em;

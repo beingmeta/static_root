@@ -92,7 +92,7 @@ tbody.book td div.booktabs > div {
 tbody.book[tab='description'] td div.booktabs > div.description,
 tbody.book[tab='subjects'] td div.booktabs > div.subjects,
 tbody.book[tab='circles'] td div.booktabs > div.circles,
-tbody.book[tab='overlays'] td div.booktabs >div.overlays,
+tbody.book[tab='overlays'] td div.booktabs > div.overlays,
 tbody.book[tab='friends'] td div.booktabs > div.friends {
     opacity: 1.0; z-index: 100; display: block;
     background-color: silver; margin-bottom: 1em;}
