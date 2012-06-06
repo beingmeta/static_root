@@ -228,6 +228,10 @@ tr.overlay.hidden > td.action { opacity: 0.9;}
 tr.overlay.hidden > td.action a.unhideaction {
     color: red; background-color: pink;}
 
+tr.overlay td div.summary span.sep { font-weight: bold; font-size: 80%;}
+tr.overlay td div.summary span.writable {
+    color: green; font-weight: bold; font-size: 80%;}
+
 div.flyhead {
     text-align: center;
     font-size: 150%; font-weight: bold;
