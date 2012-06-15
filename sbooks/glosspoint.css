@@ -1,0 +1,29 @@
+div.tocpath {
+    margin-left: 5em; text-indent: -5em;}
+div.tocpath a.book { font-weight: bold; float: none;}
+div.tocpath a.tocelt {white-space: nowrap;}
+
+.tocpath { font-style: italic;}
+div.tocpath { clear: both;}
+.tocpath .book {
+    font-weight: bold; font-style: normal; font-size: 150%;
+    float: right;}
+.tocpath .book .byline {
+    font-size: 80%; font-style: italic;}
+.tocpath .tocelt {
+    padding-right: 1em;}
+form#GLOSSEDITOR {
+    border-top: solid purple 2px; margin-top: 2em;}
+
+h1 .intent {
+    float: right; font-size: 70%; font-variant: small-caps;
+    color: purple;}
+h1 .byline {
+    font-size: 70%; font-style: italic;}
+h1 .byline:before { content: " by ";}
+h2 {
+    text-align: right;
+    border-bottom: solid purple 1px;}
+div.glosses { margin-top: 1.5em; }
+div.glosses h2 {
+    border-top: solid purple 4px;}

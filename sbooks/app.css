@@ -297,7 +297,8 @@ table.glossform td span.label {
 table.glossform td input[type='TEXT'] { width: 100%;}
 table.glossform td textarea { width: 100%;}
 table.glossform td select { width: 100%;}
-table.glossform th { width: 7em; text-align: left; vertical-align: top;}
+table.glossform td { vertical-align: top; padding-left: 2px;}
+table.glossform th { width: 7em; text-align: right; vertical-align: top;}
 table.glossform th > span { padding-left: 0.5em;}
 table.glossform th > span > button {
     text-align: left;
@@ -321,47 +322,20 @@ body.sbookapp.glosspoint h1 {
     border-bottom: solid purple 1px;}
 body.sbookapp.glosspoint h1 a.title {
     font-family: serif;}
-.glosspoint .tocpath { font-style: italic;}
-.glosspoint div.tocpath { clear: both;}
-.glosspoint .tocpath .book {
-    font-weight: bold; font-style: normal; font-size: 150%;
-    float: right;}
-.glosspoint .tocpath .book .byline {
-    font-size: 80%; font-style: italic;}
-.glosspoint .tocpath .tocelt {
-    padding-right: 1em;}
-.glosspoint div.content {
-    clear: both; width: 85%;
-    margin-bottom: 1em; margin-top: 1.5em;
-    border: solid purple 1px; padding: 1ex;
-    margin-left: 5%; margin-right: 10%;
-    border-radius: 1em; padding 1em;
-    box-shadow: 1em 1em 1em #cccccc;
-    -webkit-box-shadow: 1em 1em 1em #cccccc;
-    -moz-box-shadow: 1em 1em 1em #cccccc;
-    -o-box-shadow: 1em 1em 1em #cccccc;}
-.glosspoint form#GLOSSEDITOR {
-    border-top: solid purple 2px; margin-top: 2em;}
-
-.glosspoint h1 .intent {
-    float: right; font-size: 70%; font-variant: small-caps;
-    color: purple;}
-.glosspoint h1 .byline {
-    font-size: 70%; font-style: italic;}
-.glosspoint h1 .byline:before { content: " by ";}
-.glosspoint h2 {
-    text-align: right;
-    border-bottom: solid purple 1px;}
-.glosspoint div.glosses { margin-top: 1.5em; }
-.glosspoint div.glosses h2 {
-    border-top: solid purple 4px;}
 
 div.gloss { width: 100%; clear: both;}
 div.gloss .created { float: right; font-size: 80%;}
 div.gloss .maker {
     font-weight: bold; padding-right: 5px;
     font-variant: small-caps; font-size: 90%;}
-div.gloss .note { font-style: italic;}
+div.gloss .note { font-style: italic; padding-right: 2em;}
 div.gloss img.source { max-width: 50px;}
 div.gloss img.maker { float: left; max-width: 50px;}
 div.gloss span.label { font-weight: bold; font-size: 80%;}
+
+div.gloss span.excerpt { background-color: yellow;}
+/*
+  div.gloss span.excerpt:before {content: "“";}
+  div.gloss span.excerpt:after {content: "”";}
+  */
+
