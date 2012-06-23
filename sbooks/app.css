@@ -114,6 +114,9 @@ table td .checkspan {
   padding-right: 1em;}
 table td .checkspan input[type='CHECKBOX'] { padding-right: 0.5em;}
 table td .checkspan input[type='RADIO'] { padding-right: 0.5em;}
+table td .checkspan input[name='PRICE'] { width: 4em; display: inline;}
+table.fdjtform td input[type='TEXT'][name='PRICE'] {
+    width: 4em; display: inline;}
 table.preferences th img.twisty { float: left; vertical-align: bottom;}
 table.preferences td input[TYPE='text'] { 
   width: 100%;}
