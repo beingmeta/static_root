@@ -52,15 +52,20 @@ body.sbookflyleaf div.overlaytitle { font-style: italic;}
 body.sbookflyleaf div.booktitle { font-weight: bold;}
 
 body.sbookflyleaf div.flyhead {
-    text-align: center; font-size: 120%;}
+    text-align: center; font-size: 120%; margin-top: 18px;}
 body.sbookflyleaf div.flyhead div.overlaykind {
     font-size: 80%; font-style: italic;}
 body.sbookflyleaf div.flyhead div.overlay {
     font-weight: bold;}
 
 body.sbookflyleaf div.flyhead div.serverid {
+    position: absolute;
+    top: 0px; left: 0px; right: 0px; height: 12px;
     text-align: center; font-size: 12px;
     padding-top: 3px; padding-bottom: 3px;
     padding-right: 4px; padding-left: 4px;
     background-color: yellow; color: red;}
 
+table.sbookadmin tbody span.whenpaid { display: none;}
+table.sbookadmin tbody.ispaid span.whenpaid { display: inline;}
+table.sbookadmin tbody.ispaid span.whenfree { display: none;}

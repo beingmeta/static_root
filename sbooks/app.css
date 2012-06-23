@@ -110,6 +110,10 @@ table.preferences th {
 table.preferences tr th:first-child { width: 100px;} 
 table.preferences td { 
   text-align: left; vertical-align: top;}
+table td .checkspan { 
+  padding-right: 1em;}
+table td .checkspan input[type='CHECKBOX'] { padding-right: 0.5em;}
+table td .checkspan input[type='RADIO'] { padding-right: 0.5em;}
 table.preferences th img.twisty { float: left; vertical-align: bottom;}
 table.preferences td input[TYPE='text'] { 
   width: 100%;}
