@@ -7,6 +7,8 @@ function changePricing(evt)
     return;
 }
 
+var precString=fdjtString.precString;
+
 function changePrice(evt)
 {
     var price_input=fdjtID("BASEPRICE");
@@ -18,8 +20,9 @@ function changePrice(evt)
 	var giftprice=fdjtID("GIFTPRICE");
 	var purchaseprice=fdjtID("PURCHASEPRICE");
 	if (giftprice)
-	    giftprice.innerHTML=fdjtString(baseprice+giftdelta);
+	    giftprice.innerHTML=precString(baseprice+giftdelta,2);
 	if (purchaseprice)
-	    purchaseprice.innerHTML=fdjtString(baseprice+pricedelta);}
+	    purchaseprice.innerHTML=precString(baseprice+pricedelta,2);}
     return;
 }
+
