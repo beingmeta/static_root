@@ -183,6 +183,10 @@ h1 div.grouptitle { font-style: italic;}
 h1 div.title { font-size: 75%;}
 h1 div.refuri { font-size: 75%;}
 
+span.buynow { float: right; margin-left: 1em;}
+span.buynow button {
+    background-color: transparent; border: none;}
+
 .mustpay {
     font-size: 125%; text-align: center;}
 .mustpay .paybutton {
