@@ -66,8 +66,10 @@ body.sbook .titlepage, body.sbook .sbooktitlepage,  body.sbook .coverpage {
   page-break-inside: avoid;
   page-break-after: always;
   overflow: hidden;}
-body.sbook h1 img { display: block; clear: both;}
-body.sbook .titlepage img { clear: both;}
+body.sbook h1 img, body.sbook .titlepage img {
+    display: block; clear: both;
+    margin-left: auto; margin-right: auto;
+    margin-top: 1em; margin-bottom: 1em;}
 body.sbook .titlepage > p, body.sbook .titlepage > blockquote > p {
     width: 30em; max-width: 70%; clear: both;
     font-size: 125%;
