@@ -67,6 +67,8 @@ body.sbookflyleaf div.flyhead div.serverid {
     background-color: yellow; color: red;}
 
 table.sbookadmin tbody span.whenpaid { display: none;}
+table.sbookadmin tbody tr.pricing { display: none;}
+table.sbookadmin tbody.ispaid tr.pricing { display: table-row;}
 table.sbookadmin tbody.ispaid span.whenpaid { display: inline;}
 table.sbookadmin tbody.ispaid span.whenfree { display: none;}
 
