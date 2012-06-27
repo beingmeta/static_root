@@ -245,6 +245,10 @@ tr.overlay td div.summary span.name { font-weight: bold; font-size: 120%;}
 tr.overlay td div.summary span.sep { font-weight: bold; font-size: 80%;}
 tr.overlay td div.summary span.writable {
     color: green; font-weight: bold; font-size: 80%;}
+tr.overlay td div.summary span.hidden {
+    color: red; font-weight: bold; font-size: 80%;}
+tr.overlay td div.summary span.admin {
+    color: darkgreen; font-weight: bold; font-size: 80%;}
 
 div.flyhead {
     text-align: center;
@@ -277,7 +281,7 @@ table.fdjtform.sbookinvitation {
 
 table.overlays {
     margin-top: 1.5em;
-    width: 90%; margin-right: 10%; margin-left: 10%;}
+    width: 96%; margin-right: 2%; margin-left: 2%;}
 table.overlays th, table.overlays td { vertical-align: top;}
 table.overlays th, table.overlays td div.name {
     font-weight: bold;}

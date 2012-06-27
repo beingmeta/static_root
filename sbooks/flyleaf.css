@@ -72,3 +72,5 @@ table.sbookadmin tbody.ispaid tr.pricing { display: table-row;}
 table.sbookadmin tbody.ispaid span.whenpaid { display: inline;}
 table.sbookadmin tbody.ispaid span.whenfree { display: none;}
 
+table.fdjtform.sbookadmin td span.checkspan {
+    white-space: normal;}
