@@ -9,6 +9,9 @@ FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js \
 	fdjt/kb.js fdjt/state.js fdjt/ajax.js fdjt/json.js \
 	fdjt/hash.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/taphold.js fdjt/completions.js fdjt/syze.js
+BUILDUUID:=`uuidgen`
+BUILDTIME:=`date`
+BUILDHOST:=`hostname`
 
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js \
@@ -56,10 +59,6 @@ knodules:
 codex:
 	git clone git@github.com:beingmeta/codex.git
 
-buildstamp.js: $(ALLFILES)
-	$(ECHO) "var sbooks_buildhost='"`hostname`"';" > buildstamp.js
-	$(ECHO) "var sbooks_buildtime='"`date`"';" >> buildstamp.js 
-
 clean:
 	cd fdjt; make clean;
 	cd codex; \
@@ -75,16 +74,23 @@ fdjt/fdjt.js: $(FDJT_FILES)
 fdjt/buildstamp.js: $(FDJT_FILES)
 	cd fdjt; make all
 
-sbooks/buildstamp.js: $(SBOOKS_BUNDLE) fdjt/buildstamp.js
-	cat fdjt/buildstamp.js > sbooks/buildstamp.js
-	$(ECHO) "var sbooks_buildhost='"`hostname`"';" >> sbooks/buildstamp.js
-	$(ECHO) "var sbooks_buildtime='"`date`"';" >> sbooks/buildstamp.js 
+sbooks/buildstamp.js: $(SBOOKS_BUNDLE)
+	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
+	@$(ECHO) "var sbooks_buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
+	@$(ECHO) "var sbooks_buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
+	@$(ECHO) "var sbooks_buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
+	@$(ECHO) >> sbooks/buildstamp.js
+	@echo "Created buildstamp.js"
+codex/buildstamp.js:
+	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
+knodules/buildstamp.js:
+	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
+
 sbooks/tieoff.js:
 	touch sbooks/tieoff.js
-sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) sbooks/tieoff.js
-	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
-	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
-	cat sbooks/amalgam.js sbooks/buildstamp.js \
+sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
+	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
+	cat sbooks/amalgam.js fdjt/buildstamp.js sbooks/buildstamp.js \
 		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js > $@
 sbooks/bundle.css: $(SBOOKS_CSS)
