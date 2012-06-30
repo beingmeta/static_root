@@ -65,6 +65,7 @@ body.sbookflyleaf div.flyhead div.serverid {
     padding-top: 3px; padding-bottom: 3px;
     padding-right: 4px; padding-left: 4px;
     background-color: yellow; color: red;}
+body.sbookflyleaf div.flyhead img { z-index: 50;}
 
 table.sbookadmin tbody span.whenpaid { display: none;}
 table.sbookadmin tbody tr.pricing { display: none;}

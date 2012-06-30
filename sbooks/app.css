@@ -248,7 +248,7 @@ tr.overlay td div.summary span.writable {
 tr.overlay td div.summary span.hidden {
     color: red; font-weight: bold; font-size: 80%;}
 tr.overlay td div.summary span.admin {
-    color: darkgreen; font-weight: bold; font-size: 80%;}
+    color: purple; font-weight: bold; font-size: 80%;}
 
 div.flyhead {
     text-align: center;
