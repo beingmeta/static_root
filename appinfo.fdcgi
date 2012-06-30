@@ -5,6 +5,7 @@
 (define (main (name))
   (title! "Get connection info")
   (stylesheet! "/static/fdjt/fdjt.css")
+  (req/set! 'syshost (gethostname))
   (h2 "appVersion (from DOM/JS)")
   (div ((id "APPVERSION")))
   (h2 "userAgent (from DOM/JS)")
