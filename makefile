@@ -230,7 +230,6 @@ convert:
 publish:
 	make update
 	make
-	cd codex/graphics; ./convertall
 	s3commit
 	make publish-bundle
 
