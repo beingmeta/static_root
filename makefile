@@ -225,6 +225,8 @@ push: fdjt codex knodules
 	cd fdjt; git push
 	cd knodules; git push
 	cd codex; git push
+convert:
+	cd codex/graphics; ./convertall
 publish:
 	make update
 	make
