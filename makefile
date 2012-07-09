@@ -236,7 +236,7 @@ publish:
 	cd codex/graphics; s3commit
 	cd knodules; s3commit
 	cd sbooks; s3commit
-	make publish-bundle
+#	make publish-bundle
 
 publish-bundle:
 	s3cmd put --encoding=utf-8 -M sbooks/bundle.* s3://static.beingmeta.com/
