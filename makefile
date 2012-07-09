@@ -231,6 +231,7 @@ convert:
 publish:
 	make update
 	make
+	s3commit
 	cd fdjt; s3commit
 	cd codex/graphics; s3commit
 	cd knodules; s3commit
