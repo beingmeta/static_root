@@ -106,13 +106,14 @@ sbooks/bundle.css.gz: sbooks/bundle.css
 
 # Generating the HTML
 
-index.html: index_head.html index_foot.html sbooks/bundle.js sbooks/bundle.css
-	cat index_head.html > index.html
+index.html: etc/index_head.html etc/index_foot.html \
+	sbooks/bundle.js sbooks/bundle.css
+	cat etc/index_head.html > index.html
 	echo "<p>Build host: " `hostname` "</p>" >> index.html
 	echo "<p>Build date: " `date` "</p>" >> index.html
 	cd fdjt; echo "<p>FDJT version: " `git describe` "</p>" >> ../index.html
 	cd codex; echo "<p>Codex version: " `git describe` "</p>" >> ../index.html
-	cat index_foot.html >> index.html
+	cat etc/index_foot.html >> index.html
 
 # Generating javascript strings from HTML
 
@@ -230,7 +231,10 @@ convert:
 publish:
 	make update
 	make
-	s3commit
+	cd fdjt; s3commit
+	cd codex/graphics; s3commit
+	cd knodules; s3commit
+	cd sbooks; s3commit
 	make publish-bundle
 
 publish-bundle:
