@@ -35,7 +35,7 @@ CODEX_HTML_FILES=codex/hudtext.html codex/hudheart.html \
 CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
 	codex/codexsearch.css codex/glossform.css codex/codexhelp.css \
 	codex/codexflyleaf.css codex/codexhud.css codex/codexfoot.css \
-	codex/codexpreview.css codex/webreader.css
+	codex/codexpreview.css codex/webreader.css codex/media.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
