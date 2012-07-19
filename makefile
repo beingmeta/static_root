@@ -201,7 +201,7 @@ knotes/ok.js: knotes/knote.js knotes/knotepad.js ${FDJT_FILES}
 
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
-TAGS: ${FDJT_FILES} ${KNODULES_FILES} \
+TAGS: ${FDJT_FILES} fdjt/codex.js ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
 	etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS} ${KNODULES_FILES} \
