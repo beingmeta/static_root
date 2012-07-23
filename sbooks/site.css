@@ -34,7 +34,7 @@ tbody.book td.fields div { overflow: hidden; white-space: wrap;}
 
 tbody.book span.source img { height: 40px;}
 tbody.book div.source { border-top: solid purple 1px; clear: both;}
-tbody.book div.source img { float: left; width: 40px;}
+/* tbody.book div.source img { float: left; width: 40px;} */
 tbody.book div.source span.name {
     padding-left: 8px; font-weight: bold;} /* float: right;  */
 tbody.book div.source span.description { font-style: italic;}
@@ -105,3 +105,25 @@ tbody.book[tab='friends'] td.fields span.tabbar .booktab[tabid='friends'] {
     background-color: silver;
     font-weight: bold;}
 
+/* Book search clouds */
+
+div.bookcloud.completions { text-align: center; }
+div.bookcloud.completions div.noinputmsg { text-align: left; }
+div.bookcloud.completions .completion {
+    white-space: nowrap;}
+div.bookcloud.completions .completion img {
+    height: 1em;}
+div.bookcloud.completions span.sep {
+    padding-left: 6px; padding-right: 3px;
+    font-size: 150%; color: purple;
+    font-weight: bold; vertical-align: middle;}
+div.bookcloud.completions a.author {
+    font-weight: normal; font-style: italic; 
+    color: green;}
+div.bookcloud.completions a.subject {
+    color: silver;}
+div.bookcloud.completions a.title {
+    color: blue;}
+
+div.bookcloud.completions .completion.title .variation {
+    color: green; font-size: 80%; font-style: italic;}
