@@ -60,6 +60,8 @@ knodules:
 	git clone git@github.com:beingmeta/knodules_js.git knodules
 codex:
 	git clone git@github.com:beingmeta/codex.git
+g:
+	svn checkout https://dev.beingmeta.com/src/graphics/targets g
 
 clean:
 	cd fdjt; make clean;
@@ -218,11 +220,12 @@ diff:
 	cd fdjt; git diff
 	cd knodules; git diff
 	cd codex; git diff
-update: fdjt codex knodules
+update: fdjt codex knodules g
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+	cd g/codex; make GRAPHICS=/src/graphics
 push: fdjt codex knodules
 	git push
 	cd fdjt; git push
