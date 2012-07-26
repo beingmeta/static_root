@@ -220,12 +220,21 @@ diff:
 	cd fdjt; git diff
 	cd knodules; git diff
 	cd codex; git diff
+	cd g; svn diff
+status:
+	git status -uno
+	cd fdjt; git status -uno
+	cd knodules; git status -uno
+	cd codex; git status -uno
+	cd g; svn status -q
 update: fdjt codex knodules g
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+	cd g; svn update
 	cd g/codex; make GRAPHICS=/src/graphics
+	cd g/sbooks; make GRAPHICS=/src/graphics
 push: fdjt codex knodules
 	git push
 	cd fdjt; git push
