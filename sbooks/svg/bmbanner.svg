@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1160.2539"
+   height="193.26172"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.1 r9760"
+   sodipodi:docname="bmbanner.svg">
+  <defs
+     id="defs4">
+    <clipPath
+       id="clipPath3018"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path3020"
+         d="M 0,75 275,75 275,0 0,0 0,75 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       id="clipPath3135"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path3137"
+         d="M 0,256 256,256 256,0 0,0 0,256 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       id="clipPath3195"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path3197"
+         d="M 0,256 256,256 256,0 0,0 0,256 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="505.6529"
+     inkscape:cy="50.020033"
+     inkscape:document-units="px"
+     inkscape:current-layer="g3014"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1087"
+     inkscape:window-height="766"
+     inkscape:window-x="263"
+     inkscape:window-y="13"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-232.34583,-389.12048)">
+    <g
+       transform="matrix(1.25,0,0,-1.25,203.757,577.45868)"
+       inkscape:label="bmbanner"
+       id="g3012">
+      <g
+         id="g3014"
+         transform="translate(123.42857,11.428571)">
+        <text
+           xml:space="preserve"
+           style="font-size:160px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
+           x="-113.83875"
+           y="-17.679487"
+           id="text4176"
+           sodipodi:linespacing="125%"
+           transform="scale(1,-1)"><tspan
+             sodipodi:role="line"
+             id="tspan4178"
+             x="-113.83875"
+             y="-17.679487"
+             style="font-weight:bold;-inkscape-font-specification:Verdana Bold">being<tspan
+   style="fill:#ff0000"
+   id="tspan4180">m</tspan><tspan
+   style="fill:#e46411;fill-opacity:1"
+   id="tspan4182">e</tspan><tspan
+   style="fill:#008000"
+   id="tspan4184">t</tspan><tspan
+   style="fill:#0000ff"
+   id="tspan4186">a</tspan></tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>

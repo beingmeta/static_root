@@ -47,4 +47,10 @@ function favoritesToggle(evt,refuri)
     ((favored)?("drop"):("add")),refuri);
 }
 
+function passwordToggle(evt)
+{
+    var target=fdjtUI.T(evt=(evt||event));
+    var loginbox=fdjtDOM.getParent(target,".loginbox");
+    fdjtDOM.toggleClass(loginbox,"showpass");
+}
 
