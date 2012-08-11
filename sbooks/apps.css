@@ -14,7 +14,7 @@
 
 */
 
-body {font-family: verdana,sans,sans-serif;}
+body.sbooksapp {font-family: sans,sans-serif;}
 
 a.disabled, a[disabled] {
     text-decoration: line-through; opacity: 0.75; color: red;}
