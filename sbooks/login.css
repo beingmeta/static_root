@@ -55,9 +55,6 @@ table.login td.oneclick button {
     border-radius: 5px; -o-border-radius: 5px;
     -moz-border-radius: 5px; -webkit-border-radius: 5px;
     vertical-align: top;}
-table.login .registering input[TYPE='SUBMIT'][VALUE='Login'],
-table.login input[TYPE='SUBMIT'][VALUE='Register'] {
-    display: none;}
 table.login .registering input[TYPE='SUBMIT'][VALUE='Register'] {
     display: inline;}
 table.login td input[TYPE='TEXT'] { }
@@ -66,7 +63,7 @@ table.login td input[TYPE='TEXT'][NAME='NAME'] { width: 90%;}
 table.login td input[TYPE='TEXT'][NAME='USERID'] { width: 90%;}
 table.login td input[TYPE='TEXT'][NAME='REMOTENAME'] { width: 90%;}
 table.login td input[TYPE='PASSWORD'] { 
-  width: 50%; min-width: 20em;}
+  width: 90%; min-width: 20em;}
 table.login td input[TYPE='TEXT'][NAME='OPENID'] {
   width: 90%;}
 table.login td div.doc {
@@ -96,6 +93,19 @@ table.login tr.blockstart th {
 table.login tr.blockbreak th {
     border-top: solid transparent 12px;
     border-bottom: solid silver 7px;}
+
+div.loginform form tr.password, div.loginform form tr.logincode {
+    display: none;}
+div.loginform form tbody.registration { display: none; }
+div.loginform form.password tr.password { display: table-row;}
+div.loginform form.onetime tr.logincode { display: table-row;}
+div.loginform form.register tbody.registration { display: table-row-group;}
+
+div.loginform form tr.loginoptions a {display: none;}
+div.loginform form.password tr.loginoptions a#SBOOK_LOST_PASSWORD {
+    display: inline;}
+div.loginform form.onetime tr.loginoptions a#SBOOK_SET_PASSWORD {
+    display: inline;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
