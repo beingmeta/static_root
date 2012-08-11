@@ -1,0 +1,480 @@
+/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2012 beingmeta, inc.
+   This file provides style rules for parts of the
+    sBooks site and applications.
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   All rights reserved.
+
+*/
+
+body {font-family: verdana,sans,sans-serif;}
+
+a.disabled, a[disabled] {
+    text-decoration: line-through; opacity: 0.75; color: red;}
+
+form.sbookflyleafcancel {
+    position: absolute; top: 0px; right: 0px;
+    opacity: 0.5; color: red;}
+form.sbookflyleafcancel button {
+    color: red; font-weight: bold; font-size: 150%;
+    border-radius: 50%; -o-border-radius: 50%;
+    -moz-border-radius: 50%; -khtml-border-radius: 50%;
+    -webkit-border-radius: 50%;}
+
+h2 { text-align: right;}
+div.appblock { clear: both; margin-bottom: 4px;}
+div.appblock input[TYPE='TEXT'] { padding-left: 5px;}
+div.appblock input[NAME='EMAIL'] { width: 30em;}
+div.appblock div.label { 
+  float: left; width: 7em; text-align: right; vertical-align: top;
+  font-weight: bold;}
+div.appblock div.content {
+    margin-left: 7em; margin-right: 1em;
+    padding-left: 1em; padding-right: 1em;}
+div.appblock div.content input.fullwidth[TYPE='TEXT'] { width: 100%;}
+div.appblock div.content div.details { display: none;}
+div.appblock.expanded { margin-bottom: 18px;}
+div.appblock.expanded div.content div.details { display: block;}
+div.appblock div.content div.details textarea { 
+  width: 100%; min-height: 100px;}
+
+div.appblock div.checkspan {clear: left;}
+div.appblock div.checkspan input[TYPE='TEXT'] {display: none;}
+div.appblock div.checkspan input.fullfield[TYPE='TEXT'] {display: none;}
+div.appblock div.checkspan.ischecked input[TYPE='TEXT'] {display: inline;}
+
+div.appblock span.checkspan { }
+div.appblock .checkspan span.note { font-weight: bold; font-size: 80%;}
+
+div.appblock div.content .price {float: right;}
+div.appblock div.content .price input[type='text'] { width: inherit;}
+div.appblock span.kind {
+    font-style: italic; font-weight: bold; 
+    font-size: 75%; float: right;}
+
+div.appblock#INVITEBLOCK div.inputs { margin-left: 10em;}
+div.appblock#INVITEBLOCK input[TYPE='TEXT'] { width: 100%;}
+div.appblock#INVITEBLOCK SELECT { width: 100%;}
+
+div.appblock.create {}
+div.appblock.create div.form { 
+  position: absolute; left: 10em; right: 1em;}
+
+div.appblock div.details input.fullfield {
+    clear: both; display: block;
+    margin-left: 5%; margin-right: 5%; width: 90%;}
+
+
+div.appblock.buttons { text-align: center;}
+div.appblock.buttons form { display: inline; clear: none;}
+
+body.sbookapp {
+    margin-left: 5%; margin-right: 5%; max-width: inherit;
+    background-color: ivory;}
+body.sbookapp h1 {
+  text-align: center; padding-left: 50px; padding-right: 50px;}
+body.sbookapp h1 img { border: 0px;}
+body.sbookapp h1 .floatright { float: right;}
+body.sbookapp h1 .floatleft { float: left;}
+
+body.sbookapp.embedded { 
+    color: #4682b4; background-color: ivory;}
+body.sbookapp.embedded a { 
+    color: lightblue;}
+body.sbookapp.embedded h2 {  text-align: left;}
+
+.floatleft img { margin-right: 4px;}
+img.floatleft { margin-right: 4px;}
+.floatright img { margin-left: 4px;}
+img.floatright { margin-left: 4px;}
+
+body.sbookapp div.pagehead {
+  font-size: 150%; min-height: 70px; text-align: center;
+  padding-left: 50px; padding-right: 50px;}
+
+body.sbookapp div.pagehead .message {color: red;}
+body.sbookapp div.pagehead div.message {font-size: 14px;}
+
+/* The preferences table */
+
+table.preferences { margin-left: auto; margin-right: auto;}
+table.preferences th { 
+  text-align: right; vertical-align: top;}
+table.preferences tr th:first-child { width: 100px;} 
+table.preferences td { 
+  text-align: left; vertical-align: top;}
+table td .checkspan { padding-right: 0.5ex; }
+table td .checkspan input[type='CHECKBOX'] { padding-right: 0.5ex;}
+table td .checkspan input[type='RADIO'] { padding-right: 0.5ex;}
+table td .checkspan input[name='PRICE'] { width: 4em; display: inline;}
+table td .checkspan input[name='HOST'] { width: 8em; display: inline;}
+table.fdjtform td input[type='TEXT'][name='PRICE'] {
+    width: 4em; display: inline;}
+table.fdjtform td input[type='TEXT'][name='HOST'] {
+    width: 12em; font-size: 80%; display: inline;}
+table.preferences th img.twisty { float: left; vertical-align: bottom;}
+table.preferences td input[TYPE='text'] { 
+  width: 100%;}
+table.preferences td input[TYPE='text'][NAME='MAKEUSERID'] { 
+  width: 50%;}
+table.preferences td input[TYPE='password'] { 
+  width: 50%;}
+table.preferences td textarea { 
+  width: 100%; height: 60px;}
+table.preferences td textarea:focus { 
+  width: 100%; height: 120px;}
+table.preferences img#MYPIC, table.preferences img.userpic { height: 50px;}
+table.preferences input[TYPE='TEXT'][NAME='NEWOPENID'] {
+  background-image: url(http://static.beingmeta.com/graphics/logos/openid-login-bg.gif);
+  background-position: right;
+  background-repeat: no-repeat;}
+table.preferences img[ALT='OpenID'] {
+  height: 50px;}
+
+div.appblock#IDENTITYBLOCK form#IDFORM { display: none;}
+div.appblock#IDENTITYBLOCK div.message {
+    display: block; font-style: italic;}
+div.appblock#IDENTITYBLOCK.expanded form#IDFORM { display: block;}
+div.appblock#IDENTITYBLOCK.expanded div.message { display: none;}
+div.appblock#IDENTITYBLOCK button { border: outset;}
+div.appblock#IDENTITYBLOCK.expanded button { border: inset;}
+
+h2 { margin: 3px; clear: both;}
+
+div.item { clear: both; margin-right: 30px; }
+div.item span.action {
+    float: left; width: 100px; text-align: right;}
+div.item input.fullwidth[TYPE='TEXT'], div.item input.fullwidth[TYPE='PASSWORD'] {
+    clear: both; width: 100%; vertical-align: top;}
+div.item TEXTAREA { width: 100%; min-height: 9ex;}
+div.item span.refuri { white-space: nowrap;}
+div.item a.invite {
+    float: right; font-size: 70%; color: green;
+    padding-left: 4px;}
+div.item a.admin {
+    float: right; font-size: 70%; color: red;
+    padding-left: 4px;}
+div.item span.title { font-size: 12px;}
+div.item span.refuri { font-size: 10px; font-family: fixed;}
+div.item span.isfree {
+    float: right; font-size: 50%; font-weight: bold; color: black;
+    border: solid yellow 2px; background-color: ivory; padding: 3px;
+    border-radius: 6px;}
+
+
+div.item div.content {
+    margin-left: 110px; font-size: 125%;}
+div.item div.content div.checkspan {
+    margin-left: 1em; text-indent: -1em;}
+
+#TOPBLOCK div.item { font-size: 115%;}
+#TOPBLOCK div.item .action input[TYPE='SUBMIT'] { }
+
+img[alt='free'], .free { color: gold; float: right;}
+span.price { color: gold;}
+span.price:before { content: "$";}
+h1 div.spacer { font-size: 50%;}
+h1 div.grouptitle { font-style: italic;}
+h1 div.title { font-size: 75%;}
+h1 div.refuri { font-size: 75%;}
+
+span.buynow { float: right; margin-left: 1em;}
+span.buynow button {
+    background-color: transparent; border: none;}
+
+.mustpay {
+    font-size: 125%; text-align: center;}
+.mustpay .paybutton {
+    float: right;}
+
+.isfree {
+    background-image: url(/static/graphics/FreeIcon28x21.png);
+    background-position: right top;
+    background-position-x: right; background-position-y: top;
+    background-repeat: no-repeat;}
+h1.isfree {
+    background-image: url(/static/graphics/FreeIcon60x45.png);}
+
+div.invitation {
+    font-size: 125%; text-align: center;
+    margin-left: 15%; margin-right: 15%;}
+div.invitation div.host { font-weight: normal; font-style: normal;}
+div.invitation div.smalltext { font-size: 75%;}
+div.invitation div.name {
+    font-family: sans,sans-serif;
+    font-style: normal;}
+div.invitation div.title {
+    font-size: 125%; font-style: italic;}
+div.invitation div.refuri {
+    font-size: 75%; font-family: fixed;
+    font-weight: bold; font-style: normal;}
+
+div#ACTIONBLOCK {margin-bottom: 1.5em;}
+form.groupform { padding: 1em; border: solid black 3px;}
+form.groupform div#INVITEBLOCK { margin-top: 3ex;}
+form.groupform.isopen .checkspan.prepay { display: none;}
+form.groupform.isopen .checkspan.passphrase { display: none;}
+
+div.item.feed span.name { font-weight: bold; color: black; font-size: 125%;}
+div.item.feed span.nmembers { font-style: italic; color: silver;}
+div.item.feed span.user { color: blue;}
+div.item.feed div.description { margin-left: 2em; font-family: times,serif;}
+
+
+div.righthead {
+    font-weight: bold; font-size: 150%; text-align: right;
+    border-bottom: solid black 2px;}
+div.righthead div.subtitle {
+    font-weight: normal; font-style: italic;
+    font-size: 75%; text-align: right;}
+
+tr.overlay.writable td.buttons { background-color: lightgreen;}
+tr.overlay.hidden > td, tr.overlay.hidden > th { opacity: 0.5;}
+tr.overlay.hidden > td.action { opacity: 0.9;}
+tr.overlay.hidden > td.action a.unhideaction {
+    color: red; background-color: pink;}
+
+tr.overlay td div.summary span.name { font-weight: bold; font-size: 120%;}
+tr.overlay td div.summary span.sep { font-weight: bold; font-size: 80%;}
+tr.overlay td div.summary span.writable {
+    color: green; font-weight: bold; font-size: 80%;}
+tr.overlay td div.summary span.hidden {
+    color: red; font-weight: bold; font-size: 80%;}
+tr.overlay td div.summary span.admin {
+    color: purple; font-weight: bold; font-size: 80%;}
+
+div.flyhead {
+    text-align: center;
+    font-size: 150%; font-weight: bold;
+    border-bottom: solid black 2px; margin-bottom: 7px;}
+div.flyhead img.pagelogo {
+    position: absolute; top: 0px; right: 0px;
+    max-height: 50px; z-index: -50;}
+div.flyhead div.appbar a.elt { color: blue; text-decoration: none;}
+div.flyhead div.appbar { font-size: 80%; color: black;}
+div.flyhead div.appbar a.elt:hover { text-decoration: underline;}
+div.flyhead div.appbar a:visited { color: blue;}
+
+div.flyhead div.appbar a.elt.selected { color: black; }
+div.flyhead div.appbar a.elt.selected:hover {
+    text-decoration: overline;}
+div.flyhead div.appbar a.elt.selected:visited { color: black; }
+
+div.flyhead img.overpic {
+    position: absolute;
+    top: 0px; right: 0px; max-width: 50px;
+    z-index: -50;}
+div.flyhead img.hostpic {
+    position: absolute;
+    top: 0px; left: 0px; max-width: 50px;
+    z-index: -50;}
+
+table.fdjtform.sbookinvitation {
+    width: 30em; margin-left: auto; margin-right: auto;}
+
+table.overlays {
+    margin-top: 1.5em;
+    width: 96%; margin-right: 2%; margin-left: 2%;}
+table.overlays th, table.overlays td { vertical-align: top;}
+table.overlays th, table.overlays td div.name {
+    font-weight: bold;}
+table.overlays th, table.overlays td div.about {
+    font-size: 90%;}
+table.overlays td div.about {
+    margin-left: 1em; margin-right: 0.5em;
+    background-color: lightblue; padding: 3px;}
+
+table.overlays td.buttons {text-align: left; font-size: 75%;}
+table.overlays td.buttons a {display: block;}
+table.overlays td.action {text-align: right; font-size: 75%;}
+table.overlays td.action a {display: block; text-decoration: none; color: blue;}
+table.overlays td.action a:hover {text-decoration: underline; color: purple;}
+
+table.overlays img.overlay { max-height: 50px; max-width: 50px;}
+
+form[action="manage"] + form[action="invite"] {
+    border-top: solid purple 4px; margin-top: 12px; padding-top: 8px;}
+
+img.sbooksourcepic { width: 50px;}
+div.sbooksourcepic {
+    height: 50px; width: 50px; clear: none;
+    font-size: 32px;}
+
+table.sourcetable th { width: 50px;}
+
+table.glossform { width: 100%;}
+table.glossform .tablelabel {
+    font-weight: bold; font-variant: small-caps; font-size: 130%;
+    white-space: nowrap;
+    color: purple; padding-left: 0.5em; text-align: right;}
+table.glossform td span.label {
+    font-weight: bold; font-variant: small-caps; font-size: 110%;}
+table.glossform td input[type='TEXT'] { width: 100%;}
+table.glossform td textarea { width: 100%;}
+table.glossform td select { width: 100%;}
+table.glossform td { vertical-align: top; padding-left: 2px;}
+table.glossform th { width: 7em; text-align: right; vertical-align: top;}
+table.glossform th > span { padding-left: 0.5em;}
+table.glossform th > span > button {
+    text-align: left;
+    width: 100%;}
+table.glossform span.checkspan input[type='CHECKBOX'] { width: 1em;}
+
+table.glossform td.tagcloud { text-align: center;}
+table.glossform td.tagcloud span.label {
+    float: left; color: purple; font-size: 130%;
+    font-variant: small-caps;}
+table.glossform td.tagcloud span.checkspan { font-size: 150%;}
+
+table.glossform .sep {
+    font-weight: bold; font-size: 120%;
+    padding-right: 0.5em; padding-left: 0.5em;}
+
+body.sbookapp.glosspoint h1 {
+    text-align: left;
+    margin-left: 0px; margin-right: 0px;
+    padding-left: 0px; padding-right: 0px;
+    border-bottom: solid purple 1px;}
+body.sbookapp.glosspoint h1 a.title {
+    font-family: serif;}
+
+div.gloss { width: 100%; clear: both;}
+div.gloss .created { float: right; font-size: 80%;}
+div.gloss .maker {
+    font-weight: bold; padding-right: 5px;
+    font-variant: small-caps; font-size: 90%;}
+div.gloss .note { font-style: italic; padding-right: 2em;}
+div.gloss img.source { max-width: 50px;}
+div.gloss img.maker { float: left; max-width: 50px;}
+div.gloss span.label { font-weight: bold; font-size: 80%;}
+
+div.gloss span.excerpt { background-color: yellow;}
+
+span.noaccess { font-weight: bold; font-style: italic; color: red;}
+p.whylogin {
+  font-size: 120%; margin-left: 5%; margin-right: 25%;
+  color: purple;}
+
+table.booklist { width: 95%;}
+table.booklist span.label, table.overlays span.label {
+    font-weight: bold; font-variant: small-caps;}
+table.booklist th, table.booklist td {
+    vertical-align: top; overflow: hidden;}
+
+table.booklist tbody.book {}
+tbody.book th.cover {
+    width: 75px; vertical-align: top; text-align: right;}
+tbody.book th.cover img { height: 75px;}
+tbody.book td.fields { }
+tbody.book td.fields div { overflow: hidden; white-space: wrap;}
+
+tbody.book span.source img { height: 40px;}
+tbody.book div.source { border-top: solid purple 1px; clear: both;}
+/* tbody.book div.source img { float: left; width: 40px;} */
+tbody.book div.source span.name {
+    padding-left: 8px; font-weight: bold;} /* float: right;  */
+tbody.book div.source span.description { font-style: italic;}
+
+tbody.book td.fields div.identity {
+    font-size: 125%; font-weight: bold;}
+tbody.book td.fields .access,
+tbody.book td.fields .latest,
+tbody.book td.fields .starred,
+tbody.book td.fields .editinfo {
+    padding-left: 5px; float: right; font-size: 80%;}
+
+tbody.book td.fields .starred {
+    cursor: pointer; color: gray; vertical-align: top;}
+tbody.book td.fields .starred img[alt="*"] { display: none;}
+tbody.book td.fields .starred.favorite img[alt="*"] { display: inline;}
+tbody.book td.fields .starred.favorite img[alt="()"] { display: none;}
+tbody.book td.fields .starred.favorite {font-weight: bold; color: gold;}
+
+tbody.book td.fields .editinfo { color: red;}
+tbody.book td.fields .latest { font-style: italic;}
+
+tbody.book td.fields div.source { font-style: italic; }
+tbody.book td.fields div.source span.author { font-weight: bold; }
+
+tbody.book td.fields div.links {}
+tbody.book td.fields div.links span.mycopy,
+tbody.book td.fields div.links span.formats,
+tbody.book td.fields div.links span.tabbar {
+    white-space: nowrap; }
+
+tbody.book td.fields div.links span.mycopy a.myhtmlcopy {
+    font-weight: bold; font-variant: small-caps;}
+
+tbody.book td.fields div.links span.tabbar .booktab {
+    color: blue; font-variant: small-caps; cursor: pointer;
+    padding: 3px;}
+tbody.book td.fields div.links span.tabbar .booktab:hover {
+    text-decoration: overline;}
+
+tbody.book td div.booktabs { height: 0px; overflow: hidden;}
+tbody.book[tab] td div.booktabs {
+    transition-property: height; transition-duration: 1s;
+    -o-transition-property: height; -o-transition-duration: 1s;
+    -moz-transition-property: height; -moz-transition-duration: 1s;
+    -webkit-transition-property: height; -webkit-transition-duration: 1s;
+    height: inherit;}
+tbody.book td div.booktabs > div {
+    transition-property: opacity, z-index; transition-duration: 1s;
+    -o-transition-property: opacity; -o-transition-duration: 1s;
+    -moz-transition-property: opacity; -moz-transition-duration: 1s;
+    -webkit-transition-property: opacity; -webkit-transition-duration: 1s;
+    opacity: 0.0; padding: 1em; display: none;} /* margin-left: 50px;  */
+
+tbody.book[tab='description'] td div.booktabs > div.description,
+tbody.book[tab='subjects'] td div.booktabs > div.subjects,
+tbody.book[tab='circles'] td div.booktabs > div.circles,
+tbody.book[tab='overlays'] td div.booktabs > div.overlays,
+tbody.book[tab='friends'] td div.booktabs > div.friends {
+    opacity: 1.0; z-index: 100; display: block;
+    background-color: silver; margin-bottom: 1em;}
+
+tbody.book[tab='description'] td.fields span.tabbar .booktab[tabid='description'],
+tbody.book[tab='subjects'] td.fields span.tabbar .booktab[tabid='subjects'],
+tbody.book[tab='circles'] td.fields span.tabbar .booktab[tabid='circles'],
+tbody.book[tab='overdocs'] td.fields span.tabbar .booktab[tabid='overdocs'],
+tbody.book[tab='friends'] td.fields span.tabbar .booktab[tabid='friends'] {
+    background-color: silver;
+    font-weight: bold;}
+
+/* Completion over booklists */
+
+table.completions.booklist .completion a.variation { display: inline;}
+table.completions.booklist .completion a.variation.displayed,
+table.completions.booklist .completion a.variation[displayed] {
+    background-color: yellow;}
+
+/* Book search clouds */
+
+div.bookcloud.completions { text-align: center; }
+div.bookcloud.completions div.noinputmsg { text-align: left; }
+div.bookcloud.completions .completion {
+    white-space: nowrap;}
+div.bookcloud.completions .completion img {
+    height: 1em;}
+div.bookcloud.completions span.sep {
+    padding-left: 6px; padding-right: 3px;
+    font-size: 150%; color: purple;
+    font-weight: bold; vertical-align: middle;}
+div.bookcloud.completions a.author {
+    font-weight: normal; font-style: italic; 
+    color: green;}
+div.bookcloud.completions a.subject {
+    color: silver;}
+div.bookcloud.completions a.title {
+    color: blue;}
+
+div.bookcloud.completions .completion.title .variation {
+    color: green; font-size: 80%; font-style: italic;}
+
