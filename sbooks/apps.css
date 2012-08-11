@@ -478,3 +478,5 @@ div.bookcloud.completions a.title {
 div.bookcloud.completions .completion.title .variation {
     color: green; font-size: 80%; font-style: italic;}
 
+span.sreader span.s {
+    color: darkblue; font-style: italic; font-weight: bold;}
