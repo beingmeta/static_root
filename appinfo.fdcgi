@@ -3,6 +3,7 @@
 (use-module '{fdweb xhtml texttools xhtml/tableout})
 
 (define (main (name))
+  ;; (+ 2 "two")
   (title! "Get connection info")
   (stylesheet! "/static/fdjt/fdjt.css")
   (req/set! 'syshost (gethostname))
