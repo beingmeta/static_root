@@ -108,4 +108,12 @@ function invite_keypress(evt){
     fdjtDOM(fdjtID("INVITATIONS")," ",
 	    fdjtDOM("span.checkspan",checkbox,email));}}
 
+function showMessage(){
+    var message=fdjtState.getCookie("SBOOKSMESSAGE");
+    if (message) {
+	alert(message);
+	fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}
+}
+
+fdjtDOM.addListener(window,"load",showMessage);
 
