@@ -234,7 +234,6 @@ update: fdjt codex knodules g
 	cd codex; git pull
 	cd g; svn update
 	make update-graphics
-	cp g/beingmeta/favicon.ico .
 update-graphics:
 	cd g/codex; make GRAPHICS=/src/graphics
 	cd g/sbooks; make GRAPHICS=/src/graphics
