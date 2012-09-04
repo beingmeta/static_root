@@ -100,7 +100,19 @@ div.loginform form tbody.registration { display: none; }
 div.loginform form.password tr.password { display: table-row;}
 div.loginform form.onetime tr.logincode { display: table-row;}
 div.loginform form.register tbody.registration { display: table-row-group;}
+div.loginform form.register tr.logincode { display: table-row;}
+div.loginform form
+   input[type="SUBMIT"][name="ACTION"][value="Register"] {
+       display: none;}
+div.loginform form.register
+   input[type="SUBMIT"][name="ACTION"][value="Register"] {
+       display: inline;}
+div.loginform form.register
+   input[type="SUBMIT"][name="ACTION"][value="Login"] {
+       display: none;}
 
+div.loginform form td.message {
+    font-weight: bold; font-size: 130%; color: red;}
 div.loginform form tr.loginoptions a {display: none;}
 div.loginform form.password tr.loginoptions a#SBOOK_LOST_PASSWORD {
     display: inline;}
