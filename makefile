@@ -249,7 +249,8 @@ publish:
 	make update
 	make
 	s3commit
-	cd g; s3commit
+	cd g; s3commit --exclude="*.svgz"
+	cd g; s3commit --exclude="*.(png|gif)" --add-header=Content-encoding:gzip
 	cd fdjt; s3commit
 	cd knodules; s3commit
 	cd sbooks; s3commit
