@@ -458,7 +458,7 @@ table.completions.booklist .completion a.variation[displayed] {
 /* Book search clouds */
 
 div.bookcloud.completions { text-align: center; }
-div.bookcloud.completions div.noinputmsg { text-align: left; }
+div.bookcloud.completions div.noinputmsg { text-align: center; }
 div.bookcloud.completions .completion {
     white-space: nowrap;}
 div.bookcloud.completions .completion img {
