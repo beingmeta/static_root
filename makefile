@@ -236,9 +236,9 @@ update: fdjt codex knodules g
 	cd g; svn update
 	make update-graphics
 update-graphics:
-	cd g/codex; make GRAPHICS=/src/graphics
-	cd g/sbooks; make GRAPHICS=/src/graphics
-	cd g/beingmeta; make GRAPHICS=/src/graphics
+	cd g/codex; rm -f *.sqr *.bnr; make GRAPHICS=/src/graphics
+	cd g/sbooks; rm -f *.sqr *.bnr; make GRAPHICS=/src/graphics
+	cd g/beingmeta; rm -f *.sqr *.bnr; make GRAPHICS=/src/graphics
 push: fdjt codex knodules
 	git push
 	cd fdjt; git push
