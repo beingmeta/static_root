@@ -480,3 +480,11 @@ div.bookcloud.completions .completion.title .variation {
 
 span.sreader span.s {
     color: darkblue; font-style: italic; font-weight: bold;}
+
+.debugfield { display: none ! important; }
+
+body.sbookdebug div.debugfield, body.sbookdebug p.debugfield,
+body.sbookdebug blockquote.debugfield { display: block; }
+body.sbookdebug li.debugfield { display: list-item; }
+body.sbookdebug tr.debugfield { display: display-row; }
+body.sbookdebug tbody.debugfield { display: table-row-group; }
