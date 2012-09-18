@@ -132,7 +132,7 @@ table.preferences td textarea:focus {
   width: 100%; height: 120px;}
 table.preferences img#MYPIC, table.preferences img.userpic { height: 50px;}
 table.preferences input[TYPE='TEXT'][NAME='NEWOPENID'] {
-  background-image: url(http://static.beingmeta.com/graphics/logos/openid-login-bg.gif);
+  background-image: url(http://static.beingmeta.com/g/sbooks/openidlogo16x16.gif);
   background-position: right;
   background-repeat: no-repeat;}
 table.preferences img[ALT='OpenID'] {
