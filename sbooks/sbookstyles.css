@@ -43,6 +43,39 @@ body.sbook.fifty div#CODEXPAGE { max-width: 50em;}
 body.sbook.forty div#CODEXPAGE { max-width: 40em;}
 body.sbook.thirty div#CODEXPAGE { max-width: 30em;}
 
+/* Layout classes */
+
+h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
+
+.forcebreakbefore { page-break-before: always;}
+.forcebreakafter { page-break-after: always;}
+.avoidbreakbefore { page-break-before: avoid;}
+.avoidbreakafter { page-break-after: avoid;}
+.avoidbreakinside { page-break-inside: avoid;}
+
+.backmatter {
+    page-break-before: always;
+    -o-page-break-before: always;
+    -moz-page-break-before: always;
+    -webkit-page-break-before: always;}
+.frontmatter {
+    page-break-after: always;
+    -o-page-break-after: always;
+    -moz-page-break-after: always;
+    -webkit-page-break-after: always;}
+
+.sbookfullpage, .sbookcover, .sbooktitlepage, .titlepage, .sbookpage {
+    margin-left: auto; margin-right: auto;
+    page-break-before: always;
+    page-break-after: always;
+    page-break-inside: avoid;}
+
+.sbooktitlepage {
+    text-align: center;
+    font-size: 250%;}
+
+/* Handy classes */
+
 body.sbook.novel h1, body.sbook.novel .chapter, body.sbook.novel .sbook1 {
     text-align: center; margin-left: 5%; margin-right: 5%;}
 hr.divider { 
@@ -336,6 +369,13 @@ body.sbook .sbooktitlepage div.pubinfo {
   clear: both; 
   font-variant: small-caps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
+
+/* Some useful formatting classes */
+
+div.sbooktight {margin-after: 0.5em;}
+div.sbooktight div, div.sbooktight p {
+    margin-top: 2px; margin-bottom: 2px;
+    border: 0px; padding: 1px;}
 
 /*
 body.essay div.toplinks a {
