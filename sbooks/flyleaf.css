@@ -17,7 +17,12 @@
 
 body.sbookflyleaf p.message {
     font-size: 125%; color: purple; font-weight: normal;
-    margin-left: 5em; margin-right: 5em; max-width: inherit;}
+    max-width: inherit;}
+body.sbookflyleaf div.message > p {
+    color: purple; font-weight: normal;
+    margin-top: 0px; margin-bottom: 0px;                                    
+    max-width: inherit;}
+body.sbookflyleaf div.message > p:first-child { font-weight: bold;} 
 body.sbookflyleaf p.unexpected {
     font-size: 150%; color: red; font-weight: bold;
     margin-left: 5em; margin-right: 10em;
@@ -33,8 +38,13 @@ body.sbookflyleaf p.about {
 body.sbookflyleaf span.email { font-family: fixed; font-size: 90%;}
 body.sbookflyleaf div.invitelink {
     margin-left: 3em;}
-body.sbookflyleaf div.smaller {
-    font-style: normal; font-weight: bold; font-size: 70%;}
+
+body.sbookflyleaf div.flyhead div.smaller {
+    font-style: normal; font-weight: normal; font-size: 70%;}
+body.sbookflyleaf div.flyhead div.title {
+    font-style: normal; font-weight: normal;}
+body.sbookflyleaf div.flyhead div.byline {
+    font-style: italic; font-weight: normal;}
 
 body.sbookflyleaf table.sbookadmin tr th:first-child { width: 8em;}
 body.sbookflyleaf table.sbookinvite tr th:first-child { width: 8em;}
@@ -42,7 +52,7 @@ body.sbookflyleaf table.sbookinvite tr th:first-child { width: 8em;}
 table.sbookadmin th.picture img { max-height: 75px;}
 
 body.sbookflyleaf p {
-    max-width: 30em;
+    max-width: 40em;
     margin-left: auto; margin-right: auto;}
 body.sbookflyleaf div.inviteurl {
     font-family: fixed; font-size: 80%;
@@ -75,3 +85,32 @@ table.sbookadmin tbody.ispaid span.whenfree { display: none;}
 
 table.fdjtform.sbookadmin td span.checkspan {
     white-space: normal;}
+
+div.loginoptions {
+  text-align: left;
+  margin-top: 1em; margin-bottom: 1em;
+  font-size: 80%;}
+div.loginoptions > div {
+  margin-left: 2em; margin-right: 2em;}
+div.loginoptions > p:first-child { 
+  text-align: left; font-weight: bold; }
+
+div.checkblock {  text-align: left; margin-top: 0.5em;}
+div.checkblock > p {
+   margin-left: 5em; text-indent: -3em;
+   text-align: left; line-height: normal;
+   margin-top: 0px; margin-bottom: 0px; font-size: 80%;
+   display: none;}
+div.checkblock > p:first-child {
+   margin-left: 3em; text-indent: -3em; display: block;}
+.checkblock.checkspan.ischecked > p { font-weight: normal; }
+.checkblock.checkspan.ischecked > p:first-child {
+   font-weight: bold; }
+div.checkblock.ischecked > p { display: block; }
+
+/*
+table.sbookadmin tbody.inviteblock tr { display: none; }
+table.sbookadmin tbody.inviteblock tr:first-child { display: table-row; }
+table.sbookadmin tbody.inviteblock.fdjtfocus tr { display: table-row; }
+*/
+
