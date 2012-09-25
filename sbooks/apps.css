@@ -481,8 +481,12 @@ div.bookcloud.completions a.title {
 div.bookcloud.completions .completion.title .variation {
     color: green; font-size: 80%; font-style: italic;}
 
+a.sbooks, span.sbooks { color: black; font-family: times,serif; }
 span.sreader span.s {
     color: darkblue; font-style: italic; font-weight: bold;}
+span.sbooks span.s, a.sbooks span.s {
+    color: darkblue; font-family: verdana,helvetica,sans;
+    font-style: italic; font-weight: bold;}
 
 .debugfield { display: none ! important; }
 
@@ -491,3 +495,4 @@ body.sbookdebug blockquote.debugfield { display: block; }
 body.sbookdebug li.debugfield { display: list-item; }
 body.sbookdebug tr.debugfield { display: display-row; }
 body.sbookdebug tbody.debugfield { display: table-row-group; }
+
