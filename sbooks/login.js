@@ -37,5 +37,17 @@ function checkLogin(evt){
 	if (passin.value!==xpassin.value) {
 	    alert("Passwords don't match!");
 	    return fdjtUI.cancel(evt);}}}
+
+function sendLoginCode(evt) {
+    evt=evt||event;
+    var target=fdjtUI.T(evt);
+    var form=fdjtDOM.getParent(target,'form');
+    var email=fdjtDOM.getInput(form,'USERNAME');
+    fdjtAjax(function(req){
+	if (req.text) alert(req.responseText);},
+	     "https://auth.sbooks.net/admin/sendlogin",
+	     {email: email, expires: expires, sig: sig});}
+
+
 if ((fdjtID)&&(fdjtID("REGISTERCHECKSPAN"))) loginStartup();
 else fdjtDOM.addListener(window,"load",loginStartup);
