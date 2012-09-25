@@ -16,10 +16,10 @@
 */
 
 body.sbookflyleaf p.message {
-    font-size: 125%; color: purple; font-weight: normal;
-    max-width: inherit;}
+    font-size: 125%; color: red; font-weight: normal;
+    max-width: 45em; margin-left: 15%; margin-right: 15%;}
 body.sbookflyleaf div.message > p {
-    color: purple; font-weight: normal;
+    color: red; font-weight: normal;
     margin-top: 0px; margin-bottom: 0px;                                    
     max-width: inherit;}
 body.sbookflyleaf div.message > p:first-child { font-weight: bold;} 
@@ -99,10 +99,9 @@ div.checkblock {  text-align: left; margin-top: 0.5em;}
 div.checkblock > p {
    margin-left: 5em; text-indent: -3em;
    text-align: left; line-height: normal;
-   margin-top: 0px; margin-bottom: 0px; font-size: 80%;
-   display: none;}
+   margin-top: 0px; margin-bottom: 0px; font-size: 80%;}
 div.checkblock > p:first-child {
-   margin-left: 3em; text-indent: -3em; display: block;}
+   margin-left: 3em; text-indent: -3em;}
 .checkblock.checkspan.ischecked > p { font-weight: normal; }
 .checkblock.checkspan.ischecked > p:first-child {
    font-weight: bold; }

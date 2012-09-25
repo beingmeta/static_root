@@ -111,13 +111,23 @@ div.loginform form.register
    input[type="SUBMIT"][name="ACTION"][value="Login"] {
        display: none;}
 
+div.loginform .message {
+    font-size: 125%; color: red; font-weight: normal;
+    max-width: 45em; margin-left: 15%; margin-right: 15%;}
 div.loginform form td.message {
     font-weight: bold; font-size: 130%; color: red;}
 div.loginform form tr.loginoptions a {display: none;}
-div.loginform form.password tr.loginoptions a#SBOOK_LOST_PASSWORD {
+div.loginform form.password tr.loginoptions a#SBOOKLOSTPASSWORD {
     display: inline;}
-div.loginform form.onetime tr.loginoptions a#SBOOK_SET_PASSWORD {
-    display: inline;}
+
+div.loginform form tr.loginoptions div#SBOOKSETPASSWORD { display: none; }
+div.loginform form.onetime tr.loginoptions div#SBOOKSETPASSWORD {
+    display: block;}
+
+div.loginform span.sendlogincode {
+  font-size: 0.5em; color: blue; margin-top: 0px; cursor: pointer;
+  display: none;}
+div.loginform form.onetime span.sendlogincode { display: inline;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
