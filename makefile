@@ -262,6 +262,7 @@ publish:
 #	make publish-bundle
 
 publish-bundle:
+	bash ./publish-bundle.bash
 	for r in `cat ./.s3root`; do \
 	   echo "Copying to " $r; \
 	   s3cmd put --encoding=utf-8 --mime-type=text/javascript \
