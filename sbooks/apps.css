@@ -16,6 +16,8 @@
 
 body.sbooksapp {font-family: sans,sans-serif;}
 
+.paycontrol { display: none; }
+
 a.disabled, a[disabled] {
     text-decoration: line-through; opacity: 0.75; color: red;}
 
@@ -203,15 +205,22 @@ h1.isfree {
     background-image: url(/static/graphics/FreeIcon60x45.png);}
 
 div.invitation {
+    font-weight: normal;
     font-size: 125%; text-align: center;
     margin-left: 15%; margin-right: 15%;}
+div.invitation div.from span.from { font-weight: bold;}
 div.invitation div.host { font-weight: normal; font-style: normal;}
-div.invitation div.smalltext { font-size: 75%;}
+div.invitation div.smalltext { font-size: 70%;}
+div.invitation div.smalltext span.email { font-family: fixed;}
+div.invitation div.smalltext span.email:before { content: '(';}
+div.invitation div.smalltext span.email:after { content: ')';}
 div.invitation div.name {
     font-family: sans,sans-serif;
     font-style: normal;}
 div.invitation div.title {
     font-size: 125%; font-style: italic;}
+div.invitation div.title .name:before { content: "“";}
+div.invitation div.title .name:after { content: "”";}
 div.invitation div.refuri {
     font-size: 75%; font-family: fixed;
     font-weight: bold; font-style: normal;}
@@ -283,9 +292,10 @@ table.fdjtform.sbookinvitation {
     width: 30em; margin-left: auto; margin-right: auto;}
 
 table.overlays {
-    margin-top: 1.5em;
+    border-collapse: collapse; border-spacing: 0px;
     width: 96%; margin-right: 2%; margin-left: 2%;}
-table.overlays th, table.overlays td { vertical-align: top;}
+table.overlays th, table.overlays td { 
+  padding-top: 3px; vertical-align: top; padding-bottom: 1em;}
 table.overlays th, table.overlays td div.name {
     font-weight: bold;}
 table.overlays th, table.overlays td div.about {
@@ -296,11 +306,18 @@ table.overlays td div.about {
 
 table.overlays td.buttons {text-align: left; font-size: 75%;}
 table.overlays td.buttons a {display: block;}
-table.overlays td.action {text-align: right; font-size: 75%;}
+table.overlays td.action {
+  text-align: right; font-size: 75%; padding-top: 0px;}
+table.overlays td.action > div {
+  padding-left: 2px; margin-top: 0px; padding-top: 3px;
+  border-left: solid blue 1px; margin-bottom: 3px;}
 table.overlays td.action a {display: block; text-decoration: none; color: blue;}
 table.overlays td.action a:hover {text-decoration: underline; color: purple;}
 
 table.overlays img.overlay { max-height: 50px; max-width: 50px;}
+
+tr.overlay > th, tr.overlay > td { border-top: solid blue 1px; }
+tr.overlay > td.actions { border-top: none; }
 
 form[action="manage"] + form[action="invite"] {
     border-top: solid purple 4px; margin-top: 12px; padding-top: 8px;}
@@ -483,10 +500,12 @@ div.bookcloud.completions .completion.title .variation {
 
 a.sbooks, span.sbooks { color: black; font-family: times,serif; }
 span.sreader span.s {
-    color: darkblue; font-style: italic; font-weight: bold;}
+    color: blue; font-style: italic; font-weight: bold;}
 span.sbooks span.s, a.sbooks span.s {
-    color: darkblue; font-family: verdana,helvetica,sans;
-    font-style: italic; font-weight: bold;}
+    color: blue !important;
+    font-family: verdana,helvetica,sans !important;
+    font-style: italic !important;
+    font-weight: bold;}
 
 .debugfield { display: none ! important; }
 
