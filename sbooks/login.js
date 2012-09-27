@@ -13,30 +13,20 @@
 
 */
 
-function updateLogin(){
-    if (fdjtID("SBOOKREGISTER").checked) {
-	fdjtDOM.addClass(fdjtID("SBOOKNATIVELOGIN"),"registering");
-	fdjtDOM.addClass(fdjtID("SBOOKNATIVELOGIN"),"expanded");}
-    else {
-	fdjtDOM.dropClass(fdjtID("SBOOKNATIVELOGIN"),"registering");
-	fdjtDOM.dropClass(fdjtID("SBOOKNATIVELOGIN"),"expanded");}}
-function loginStartup(){
-    var message=fdjtState.getQuery("MESSAGE");
-    if (message) {
-	var elt=fdjtID("LOGINMESSAGE"); if (elt) elt.innerHTML=message;}
-    if (fdjtState.getQuery("STARTUP")==="register") {
-	fdjtUI.CheckSpan.set("REGISTERCHECKSPAN",true);
-	fdjtDOM.addClass(fdjtID("SBOOKNATIVELOGIN"),"registering");
-	fdjtDOM.addClass(fdjtID("SBOOKNATIVELOGIN"),"expanded");}
-    else fdjtID("SBOOKREGISTER").checked=false;}
 function checkLogin(evt){
-    if (fdjtID("SBOOKREGISTER").checked) {
-	var tbody=fdjtID("SBOOKNATIVELOGIN");
-	var passin=fdjtDOM.getInput(tbody,"PASSWD");
-	var xpassin=fdjtDOM.getInput(tbody,"XPASSWD");
+    evt=evt||event;
+    var form=fdjtID("SBOOKLOGINFORM");
+    if (fdjtID("SBOOKSETPASS").checked) {
+	var passin=fdjtDOM.getInput(form,"PASS1");
+	var xpassin=fdjtDOM.getInput(form,"PASS2");
 	if (passin.value!==xpassin.value) {
 	    alert("Passwords don't match!");
-	    return fdjtUI.cancel(evt);}}}
+	    fdjtUI.cancel(evt);}}
+    if (fdjtDOM.hasClass(form,"register")) {
+	var termsok=fdjtID("SBOOKTERMSOK");
+	if (!(termsok.checked)) {
+	    alert("You need to agree to the terms and conditions!");
+	    fdjtUI.cancel(evt);}}}
 
 function sendLoginCode(evt) {
     evt=evt||event;
@@ -47,7 +37,3 @@ function sendLoginCode(evt) {
 	if (req.responseText) alert(req.responseText);},
 	     "https://auth.sbooks.net/admin/sendlogin",
 	     {email: emails[0]});}
-
-
-if ((fdjtID)&&(fdjtID("REGISTERCHECKSPAN"))) loginStartup();
-else fdjtDOM.addListener(window,"load",loginStartup);
