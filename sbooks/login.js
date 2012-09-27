@@ -42,11 +42,11 @@ function sendLoginCode(evt) {
     evt=evt||event;
     var target=fdjtUI.T(evt);
     var form=fdjtDOM.getParent(target,'form');
-    var email=fdjtDOM.getInput(form,'USERNAME');
+    var emails=fdjtDOM.getInputValues(form,'USERNAME');
     fdjtAjax(function(req){
-	if (req.text) alert(req.responseText);},
+	if (req.responseText) alert(req.responseText);},
 	     "https://auth.sbooks.net/admin/sendlogin",
-	     {email: email, expires: expires, sig: sig});}
+	     ["email",emails[0]]);}
 
 
 if ((fdjtID)&&(fdjtID("REGISTERCHECKSPAN"))) loginStartup();
