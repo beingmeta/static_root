@@ -46,7 +46,7 @@ function sendLoginCode(evt) {
     fdjtAjax(function(req){
 	if (req.responseText) alert(req.responseText);},
 	     "https://auth.sbooks.net/admin/sendlogin",
-	     ["email",emails[0]]);}
+	     {email: emails[0]});}
 
 
 if ((fdjtID)&&(fdjtID("REGISTERCHECKSPAN"))) loginStartup();
