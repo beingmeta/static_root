@@ -5,16 +5,14 @@ for r in `cat ./.s3root`; do
 	   s3cmd put --encoding=utf-8 --mime-type=text/css \
 		sbooks/bundle.css ${r}sbooks/debug.css;
 	   s3cmd put --encoding=utf-8 --mime-type=text/javascript \
-		sbooks/bundle.min.js ${r}sbooks/bundle.min.js;
-	   s3cmd put --encoding=utf-8 --mime-type=text/javascript \
 		     --add-header "Content-Encoding: gzip" \
-		sbooks/bundle.min.js.gz ${r}sbooks/bundle.min.js.gz;
+		sbooks/bundle.js.gz ${r}sbooks/bundle.js.gz;
 	   s3cmd put --encoding=utf-8 --mime-type=text/css \
 		     --add-header "Content-Encoding: gzip" \
 		sbooks/bundle.css.gz ${r}sbooks/bundle.css.gz;
 	   s3cmd put --encoding=utf-8 --mime-type=text/javascript \
 		     --add-header "Content-Encoding: gzip" \
-		sbooks/bundle.min.js.gz ${r}sbooks/bundle.js;
+		sbooks/bundle.js.gz ${r}sbooks/bundle.js;
 	   s3cmd put --encoding=utf-8 --mime-type=text/css \
 		     --add-header "Content-Encoding: gzip" \
 		sbooks/bundle.css.gz ${r}sbooks/bundle.css;

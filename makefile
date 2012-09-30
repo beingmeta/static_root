@@ -235,6 +235,11 @@ update: fdjt codex knodules g
 	cd codex; git pull
 	cd g; svn update
 	make update-graphics
+update-code: fdjt codex knodules
+	git pull
+	cd fdjt; git pull
+	cd knodules; git pull
+	cd codex; git pull
 update-graphics:
 	cd g/codex; rm -f *.sqr *.bnr *.rect; make GRAPHICS=/src/graphics
 	cd g/sbooks; rm -f *.sqr *.bnr *.rect; make GRAPHICS=/src/graphics
@@ -263,18 +268,6 @@ publish:
 
 publish-bundle:
 	bash ./publish-bundle.bash
-	for r in `cat ./.s3root`; do \
-	   echo "Copying to " $r; \
-	   s3cmd put --encoding=utf-8 --mime-type=text/javascript \
-		sbooks/bundle.js \${r}sbooks/bundle.js;     \
-	   s3cmd put --encoding=utf-8 --mime-type=text/css \
-		sbooks/bundle.css \${r}sbooks/bundle.css;     \
-	   s3cmd put --encoding=utf-8 --mime-type=text/javascript \
-		sbooks/bundle.min.js \${r}sbooks/bundle.min.js;   \
-	   s3cmd put --encoding=utf-8 --mime-type=text/css \
-		     --add-header=Content-Encoding:gzip \
-		sbooks/bundle.css.gz \${r}sbooks/bundle.css.gz; \
-	done;
 
 fdiff:
 	cd fdjt; git diff
