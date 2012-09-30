@@ -111,42 +111,41 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 0.1em; margin-bottom: 0.1em;}
 
 
-body.sbook .titlepage .title {
-    text-align: center; font-weight: bold;
-    font-size: 125%;
+.sbooktitlepage .title {
+    text-align: center; font-weight: bold; 
+    margin-top: 1em; margin-bottom: 1em;
     clear: both;}
-body.sbook .titlepage .connector {
+.sbooktitlepage .connector {
     font-size: 50%;}
-body.sbook .titlepage .title img {
-    max-width: 80%;}
-body.sbook .titlepage div.subtitle {
-  clear: both; text-align: center; font-size: 125%;
+.sbooktitlepage .title img {max-width: 80%;}
+.sbooktitlepage div.subtitle {
+  clear: both; text-align: center; font-size: 75%;
   font-style: normal; font-weight: normal;}
-body.sbook .titlepage .author { 
+.sbooktitlepage .author { 
   clear: both; text-align: center;
-  font-style: italic;  font-size: 120%;
+  font-style: italic;  font-size: 75%;
   margin-top: 1em; margin-bottom: 1em;}
-body.sbook .titlepage .editor { 
-  clear: both; text-align: center; font-size: 120%;
-  font-style: italic; font-weight: normal; font-size: 90%;}
-body.sbook .titlepage .dedication, body.sbook .titlepage .epigraph { 
-  clear: both;
+.sbooktitlepage .editor { 
+  clear: both; text-align: center; font-size: 50%;
+  font-style: italic; font-weight: normal;}
+.sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
+  clear: both; font-size: 25%;
   font-style: italic; font-weight: normal;
   margin-left: auto; margin-right: auto;
   margin-top: 2em;
   max-width: 50%;}
-body.sbook .titlepage .dedication p, body.sbook .titlepage .epigraph p {
+.sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
     margin: 0px; padding: 0px;}
-body.sbook .titlepage .dedication.leftalign p,
-body.sbook .titlepage .epigraph.leftalign p {
+.sbooktitlepage .dedication.leftalign p,
+.sbooktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
-body.sbook .titlepage .sbookbibinfo { 
+.sbooktitlepage .sbookbibinfo { 
   clear: both; text-align: left; font-size: 80%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
-body.sbook .titlepage .sbookbibinfo p {
+.sbooktitlepage .sbookbibinfo p {
     width: 80%; margin-left: 10%; margin-right: 10%;
     text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
-body.sbook .titlepage .sbookbibinfo p span.bibdate {
+.sbooktitlepage .sbookbibinfo p span.bibdate {
     padding-left: 1em;
     float: right;}
 
