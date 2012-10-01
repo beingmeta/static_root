@@ -21,7 +21,7 @@ body.sbooksapp {font-family: sans,sans-serif;}
 a.disabled, a[disabled] {
     text-decoration: line-through; color: red;
     opacity: 0.75;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)"
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
     filter: alpha(opacity=75);
     -webkit-opacity: 0.75;
     -khtml-opacity: 0.75;
@@ -31,7 +31,7 @@ a.disabled, a[disabled] {
 form.sbookflyleafcancel {
     position: absolute; top: 0px; right: 0px; color: red;
     opacity: 0.50;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     filter: alpha(opacity=50);
     -webkit-opacity: 0.50;
     -khtml-opacity: 0.50;
@@ -260,7 +260,7 @@ div.righthead div.subtitle {
 tr.overlay.writable td.buttons { background-color: lightgreen;}
 tr.overlay.hidden > td, tr.overlay.hidden > th {
     opacity: 0.50;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     filter: alpha(opacity=50);
     -webkit-opacity: 0.50;
     -khtml-opacity: 0.50;
@@ -268,7 +268,7 @@ tr.overlay.hidden > td, tr.overlay.hidden > th {
     -o-opacity: 0.50;}
 tr.overlay.hidden > td.action {
     opacity: 0.90;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)"
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     filter: alpha(opacity=90);
     -webkit-opacity: 0.90;
     -khtml-opacity: 0.90;
@@ -480,7 +480,7 @@ tbody.book td div.booktabs > div {
     -webkit-transition-property: opacity; -webkit-transition-duration: 1s;
     padding: 1em; display: none;
     opacity: 0.00;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
     filter: alpha(opacity=0);
     -webkit-opacity: 0.00;
     -khtml-opacity: 0.00;
@@ -495,7 +495,7 @@ tbody.book[tab='friends'] td div.booktabs > div.friends {
     z-index: 100; display: block;
     background-color: silver; margin-bottom: 1em;
     opacity: 0.90;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)"
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     filter: alpha(opacity=90);
     -webkit-opacity: 0.90;
     -khtml-opacity: 0.90;
