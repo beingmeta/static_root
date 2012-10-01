@@ -64,11 +64,14 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
     -moz-page-break-after: always;
     -webkit-page-break-after: always;}
 
-.sbookfullpage, .sbookcover, .sbooktitlepage, .titlepage, .sbookpage {
+.sbookfullpage {
     margin-left: auto; margin-right: auto;
     page-break-before: always;
     page-break-after: always;
     page-break-inside: avoid;}
+.sbookfullpage > * {
+    page-break-before: avoid;
+    page-break-after: avoid;}
 
 .sbooktitlepage {
     text-align: center;
@@ -90,15 +93,6 @@ body.sbook hgroup h1 {
     page-break-before: auto;}
 body.sbook div.sbookfullpage h1 {
     page-break-before: avoid;}
-body.sbook .titlepage, body.sbook .sbooktitlepage,  body.sbook .coverpage {
-  margin-left: 5%; margin-right: 5%;
-  padding-top: 2em; padding-bottom: 2em;
-  padding-left: 1em; padding-right: 1em;
-  background-color: lightgray;
-  text-align: center;
-  page-break-inside: avoid;
-  page-break-after: always;
-  overflow: hidden;}
 body.sbook h1 img, body.sbook .titlepage img {
     display: block; clear: both;
     margin-left: auto; margin-right: auto;
@@ -110,6 +104,19 @@ body.sbook .titlepage > p, body.sbook .titlepage > blockquote > p {
 body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 0.1em; margin-bottom: 0.1em;}
 
+
+.sbooktitlepage {
+  padding: 1em; 
+  background-color: lightgray;
+  text-align: center;
+  page-break-inside: avoid;
+  page-break-before: always;
+  page-break-after: always;
+  overflow: hidden;}
+.sbooktitlepage > * 
+  page-break-inside: avoid;
+  page-break-before: avoid;
+  page-break-after: avoid;}
 
 .sbooktitlepage .title {
     text-align: center; font-weight: bold; 
