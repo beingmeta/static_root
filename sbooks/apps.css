@@ -557,3 +557,8 @@ body.sbookdebug li.debugfield { display: list-item; }
 body.sbookdebug tr.debugfield { display: display-row; }
 body.sbookdebug tbody.debugfield { display: table-row-group; }
 
+p.attention, div.attention { color: red; }
+p.attention a, div.attention a {
+  text-decoration: underline;
+  color: deeppink;}
+p.attention a:visited, div.attention a:visited { color: red; }
