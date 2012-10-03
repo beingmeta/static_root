@@ -35,6 +35,7 @@ body.sbookflyleaf.invitation blockquote.about {
   margin-left: auto; margin-right: auto; max-width: 30em;}
 
 body.sbookflyleaf {
+    margin: 0px;                    
     font-family: sans,sans-serif;}
 body.sbookflyleaf p.about {
     font-size: 125%; text-align: left;
@@ -43,11 +44,11 @@ body.sbookflyleaf span.email { font-family: fixed; font-size: 90%;}
 body.sbookflyleaf div.invitelink {
     margin-left: 3em;}
 
-body.sbookflyleaf div.flyhead div.smaller {
+div.flyhead div.smaller {
     font-style: normal; font-weight: normal; font-size: 70%;}
-body.sbookflyleaf div.flyhead div.title {
+div.flyhead div.title {
     font-style: normal; font-weight: normal;}
-body.sbookflyleaf div.flyhead div.byline {
+div.flyhead div.byline {
     font-style: italic; font-weight: normal;}
 
 body.sbookflyleaf table.sbookadmin tr th:first-child { width: 8em;}
@@ -67,21 +68,60 @@ body.sbookflyleaf table.overlays { margin-top: 1.5em; }
 body.sbookflyleaf div.overlaytitle { font-style: italic;}
 body.sbookflyleaf div.booktitle { font-weight: bold;}
 
-body.sbookflyleaf div.flyhead {
-    text-align: center; font-size: 120%; margin-top: 18px;}
-body.sbookflyleaf div.flyhead div.overlaykind {
+div.flyhead {
+    text-align: center; font-size: 150%; font-weight: bold;
+    border-bottom: solid black 2px;
+    margin-top: 18px; margin-bottom: 7px;}
+div.flyhead div.overlaykind {
     font-size: 80%; font-style: italic;}
-body.sbookflyleaf div.flyhead div.overlay {
+div.flyhead div.overlay {
     font-weight: bold;}
 
-body.sbookflyleaf div.flyhead div.serverid {
+div.flyhead div.serverid {
     position: absolute;
     top: 0px; left: 0px; right: 0px; height: 12px;
     text-align: center; font-size: 12px;
     padding-top: 3px; padding-bottom: 3px;
     padding-right: 4px; padding-left: 4px;
     background-color: yellow; color: red;}
-body.sbookflyleaf div.flyhead img { z-index: 50;}
+div.flyhead img { z-index: 50;}
+
+div.flyhead img.pagelogo {
+    position: absolute; top: 0px; right: 0px;
+    max-height: 50px; z-index: -50;}
+div.flyhead div.appbar a.elt { color: blue; text-decoration: none;}
+div.flyhead div.appbar {
+  font-size: 80%; color: black; 
+  background-color: silver; padding-top: 2px;
+  margin-top: 0.4em;}
+div.flyhead div.appbar a.elt:hover { text-decoration: underline;}
+div.flyhead div.appbar a:visited { color: blue;}
+
+div.flyhead div.appbar a.elt.selected { color: black; }
+div.flyhead div.appbar a.elt.selected:hover {
+    text-decoration: overline;}
+div.flyhead div.appbar a.elt.selected:visited { color: black; }
+
+div.flyhead div.content { min-height: 50px; clear: none;}
+
+div.flyhead img.overpic {
+    position: absolute;
+    top: 0px; right: 0px; max-width: 50px;
+    border-top-left-radius: 1ex;
+    -o-border-top-left-radius: 1ex;
+    -moz-border-top-left-radius: 1ex;
+    -khtml-border-top-left-radius: 1ex;
+    -webkit-border-top-left-radius: 1ex;
+    z-index: -50;}
+div.flyhead img.hostpic {
+    position: absolute; 
+    top: 0px; left: 0px; max-width: 50px;
+    border-top-left-radius: 1ex;
+    -o-border-top-left-radius: 1ex;
+    -moz-border-top-left-radius: 1ex;
+    -khtml-border-top-left-radius: 1ex;
+    -webkit-border-top-left-radius: 1ex;
+    z-index: -50;}
 
 table.sbookadmin tbody span.whenpaid { display: none;}
 table.sbookadmin tbody tr.pricing { display: none;}

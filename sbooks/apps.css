@@ -286,35 +286,6 @@ tr.overlay td div.summary span.hidden {
 tr.overlay td div.summary span.admin {
     color: purple; font-weight: bold; font-size: 80%;}
 
-div.flyhead {
-    text-align: center;
-    font-size: 150%; font-weight: bold;
-    border-bottom: solid black 2px; margin-bottom: 7px;}
-div.flyhead img.pagelogo {
-    position: absolute; top: 0px; right: 0px;
-    max-height: 50px; z-index: -50;}
-div.flyhead div.appbar a.elt { color: blue; text-decoration: none;}
-div.flyhead div.appbar {
-  font-size: 80%; color: black; 
-  background-color: silver; padding-top: 2px;
-  margin-top: 0.4em;}
-div.flyhead div.appbar a.elt:hover { text-decoration: underline;}
-div.flyhead div.appbar a:visited { color: blue;}
-
-div.flyhead div.appbar a.elt.selected { color: black; }
-div.flyhead div.appbar a.elt.selected:hover {
-    text-decoration: overline;}
-div.flyhead div.appbar a.elt.selected:visited { color: black; }
-
-div.flyhead img.overpic {
-    position: absolute;
-    top: 0px; right: 0px; max-width: 50px;
-    z-index: -50;}
-div.flyhead img.hostpic {
-    position: absolute;
-    top: 0px; left: 0px; max-width: 50px;
-    z-index: -50;}
-
 table.fdjtform.sbookinvitation {
     width: 30em; margin-left: auto; margin-right: auto;}
 
