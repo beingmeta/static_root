@@ -41,7 +41,7 @@ SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codex.js \
+SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
 	${CODEX_FILES} ${CODEX_DERIVED_FILES}
 SBOOKS_CSS=${FDJT_CSS} fdjt/codex.css ${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
@@ -204,7 +204,7 @@ knotes/ok.js: knotes/knote.js knotes/knotepad.js ${FDJT_FILES}
 
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
-TAGS: ${FDJT_FILES} fdjt/codex.js ${KNODULES_FILES} \
+TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} \
 	${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
 	etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS} ${KNODULES_FILES} \
