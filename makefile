@@ -241,9 +241,12 @@ update-code: fdjt codex knodules
 	cd knodules; git pull
 	cd codex; git pull
 update-graphics:
-	cd g/codex; rm -f *.sqr *.bnr *.rect; make GRAPHICS=/src/graphics
-	cd g/sbooks; rm -f *.sqr *.bnr *.rect; make GRAPHICS=/src/graphics
-	cd g/beingmeta; rm -f *.sqr *.bnr *.rect; make GRAPHICS=/src/graphics
+	cd g/codex; rm -f *.square *.sqr *.bnr *.rect; \
+		make GRAPHICS=/src/graphics
+	cd g/sbooks; rm -f *.square *.sqr *.bnr *.rect; \
+		make GRAPHICS=/src/graphics
+	cd g/beingmeta; rm -f *.square *.sqr *.bnr *.rect; \
+		make GRAPHICS=/src/graphics
 push: fdjt codex knodules
 	git push
 	cd fdjt; git push
