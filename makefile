@@ -28,11 +28,12 @@ CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
 	            codex/hudtext.js codex/hudheart.js  \
 	            codex/helptext.js codex/hudhelp.js     \
 		    codex/console.js codex/messages.js     \
-		    codex/settingstext.js 
+		    codex/settingstext.js codex/splashtext.js
 
 CODEX_HTML_FILES=codex/hudtext.html codex/hudheart.html \
 	    codex/helptext.html codex/hudhelp.html codex/console.html \
-	    codex/searchbox.html codex/addgloss.html codex/settings.html
+	    codex/searchbox.html codex/addgloss.html codex/settings.html \
+	    codex/splashtext.html
 CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
 	codex/codexsearch.css codex/glossform.css codex/codexhelp.css \
 	codex/codexflyleaf.css codex/codexhud.css codex/codexfoot.css \
@@ -69,7 +70,7 @@ clean:
 	cd codex; \
 	rm -f codex/hudtext.js codex/flyleaftext.js codex/helptext.js \
 	      codex/hudhelp.js codex/messages.js codex/loginform.js \
-	       codex/console.js \
+	       codex/console.js codex/splashtext.js \
 	      codex/addgloss.js codex/searchbox.js
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f sbooks/bundle.js sbooks/bundle.css
@@ -135,6 +136,13 @@ codex/helptext.js: codex/helptext.html makefile
           sed s/\\\"/\\\\\"/g >> codex/helptext.js
 	$(ECHO) "\";" >> codex/helptext.js
 	$(ECHO) "" >> codex/helptext.js
+
+codex/splashtext.js: codex/splashtext.html makefile
+	$(ECHO) -n "var sbook_splashtext=\"" > codex/splashtext.js
+	sed s/$$/\ \\\\/ codex/splashtext.html | \
+          sed s/\\\"/\\\\\"/g >> codex/splashtext.js
+	$(ECHO) "\";" >> codex/splashtext.js
+	$(ECHO) "" >> codex/splashtext.js
 
 codex/hudhelp.js: codex/hudhelp.html makefile
 	$(ECHO) -n "var sbook_hudhelp=\"" > codex/hudhelp.js
