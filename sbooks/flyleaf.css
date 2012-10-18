@@ -104,24 +104,10 @@ div.flyhead div.appbar a.elt.selected:visited { color: black; }
 
 div.flyhead div.content { min-height: 50px; clear: none;}
 
-div.flyhead img.overpic {
-    position: absolute;
-    top: 0px; right: 0px; max-width: 50px;
-    border-top-left-radius: 1ex;
-    -o-border-top-left-radius: 1ex;
-    -moz-border-top-left-radius: 1ex;
-    -khtml-border-top-left-radius: 1ex;
-    -webkit-border-top-left-radius: 1ex;
-    z-index: -50;}
-div.flyhead img.hostpic {
-    position: absolute; 
-    top: 0px; left: 0px; max-width: 50px;
-    border-top-left-radius: 1ex;
-    -o-border-top-left-radius: 1ex;
-    -moz-border-top-left-radius: 1ex;
-    -khtml-border-top-left-radius: 1ex;
-    -webkit-border-top-left-radius: 1ex;
-    z-index: -50;}
+div.flyhead img.overpic, div.flyhead img.hostpic {
+    position: absolute; top: 0px; max-width: 50px; z-index: -50;}
+div.flyhead img.overpic { right: 0px;}
+div.flyhead img.hostpic { left: 0px; }
 
 table.sbookadmin tbody span.whenpaid { display: none;}
 table.sbookadmin tbody tr.pricing { display: none;}
