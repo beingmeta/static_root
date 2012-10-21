@@ -103,7 +103,7 @@ div.loginform form.register tbody.registration { display: table-row-group;}
 div.loginform form.register tr.logincode { display: table-row;}
 div.loginform form
    input[type="SUBMIT"][name="ACTION"][value="Register"] {
-       display: none;}
+  display: none;}
 div.loginform form.register
    input[type="SUBMIT"][name="ACTION"][value="Register"] {
        display: inline;}
