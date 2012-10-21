@@ -2,14 +2,17 @@
 
 (use-module '{fdweb xhtml texttools xhtml/tableout})
 
-(define (main (name) (cookiename #f) (cookieval "set") (dropcookie {}) (filedata #f))
+(define (main (name) (cookiename #f) (cookieval "set")
+	      (dropcookie {}) (filedata #f))
   ;; (+ 2 "two")
   (when (and cookiename (not (empty-string? cookiename)))
     (req/add! 'cookiedata
       (vector (string->symbol (upcase cookiename)) cookieval))
     (set-cookie! cookiename cookieval))
-  (when (exists? dropcookie) (do-choices dropcookie (clear-cookie! dropcookie)))
+  (when (exists? dropcookie)
+    (do-choices dropcookie (clear-cookie! dropcookie)))
   (title! "Get connection info")
+  (javascript! "/static/fdjt/fdjt.js")
   (stylesheet! "/static/fdjt/fdjt.css")
   (req/set! 'syshost (gethostname))
   (h2 "appVersion (from DOM/JS)")
@@ -34,7 +37,8 @@
       (input TYPE "TEXT" NAME "COOKIEVAL" VALUE "")
       (input TYPE "SUBMIT" NAME "ACTION" VALUE "Submit"))
     (do-choices (cookie (req/get 'cookiedata #{}))
-      (p "Drop " (input TYPE "CHECKBOX" NAME "DROPCOOKIE" VALUE (first cookie))
+      (p "Drop "
+	(input TYPE "CHECKBOX" NAME "DROPCOOKIE" VALUE (first cookie))
 	" " (first cookie) "=" (second cookie))))
   (h2 "FILEDATA")
   (when filedata)
@@ -78,7 +82,7 @@
 	   (length val)
 	   (if (packet? val)  " bytes of data" " characters of text")))
 	((packet? val) val)
-	((string? val) (write val))
+	((string? val) (xmlout val))
 	((pair? val) val)
 	((table? val)
 	 (let ((s (stringout val)))
