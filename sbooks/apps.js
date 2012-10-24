@@ -111,7 +111,7 @@ function invite_keypress(evt){
 function showMessage(){
     var message=fdjtState.getCookie("SBOOKSMESSAGE");
     if (message) {
-	fdjtUI.alert(message);
+	fdjtUI.alertFor(20,message);
 	fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}}
 
 fdjtDOM.addListener(window,"load",showMessage);
