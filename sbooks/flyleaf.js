@@ -3,33 +3,38 @@
 /* Copyright (C) 2011-2012 beingmeta, inc.
    This implements the interaction logic used by the sBooks flyleaf.  */
 
-function changePricing(evt)
+function changeAccess(evt)
 {
-  evt=evt||event;
-  var target=fdjtUI.T(evt);
-  var input=fdjtDOM.getParent(target,'input');
-  var tbody=fdjtDOM.getParent(target,'tbody');
-  if (tbody) fdjtDOM.setClass(tbody,'ispaid',input.checked);
-  return;
+    evt=evt||event;
+    var target=fdjtUI.T(evt);
+    var tbody=fdjtDOM.getParent(target,"TBODY");
+    var form=fdjtDOM.getParent(target,"FORM");
+    setTimeout(function(){
+	var access=fdjtDOM.getInputValues(form,"ACCESS");
+	if (access[0]!==":OPEN") {
+	    fdjtDOM.addClass(tbody,"ispaid");
+	    fdjtID("SETPRICE").focus();
+	    return;}
+	else fdjtDOM.dropClass(tbody,"ispaid");},
+	       100);
 }
 
 var precString=fdjtString.precString;
 
 function changePrice(evt)
 {
-  var price_input=fdjtID("BASEPRICE");
-  var baseprice=((price_input)&&(parseFloat(price_input.value)));
-  if ((typeof baseprice === 'number')&&
-      (baseprice>0)&&(baseprice<100)) {
-    var giftdelta=Math.floor(Math.max(baseprice*0.15,1.00))-0.01;
-    var pricedelta=Math.floor(Math.max(baseprice*0.30,2.00))-0.01;
-    var giftprice=fdjtID("GIFTPRICE");
-    var purchaseprice=fdjtID("PURCHASEPRICE");
-    if (giftprice)
-      giftprice.innerHTML=precString(baseprice+giftdelta,2);
-    if (purchaseprice)
-      purchaseprice.innerHTML=precString(baseprice+pricedelta,2);}
-  return;
+    var price_input=fdjtID("SETPRICE");
+    var setprice=((price_input)&&(parseFloat(price_input.value)));
+    if ((typeof setprice === 'number')&&
+	(setprice>0)&&(setprice<100)) {
+	var giftprice=Math.max(setprice*0.2,1.00)+setprice-0.01;
+	var buyprice=Math.max(setprice*0.4,2.00)+setprice-0.01;
+	var giftelt=fdjtID("GIFTPRICE");
+	var buyelt=fdjtID("BUYPRICE");
+	if (giftelt) giftelt.innerHTML=precString(giftprice,2);
+	if (buyelt) buyelt.innerHTML=precString(buyprice,2);}
+    return;
 }
+
 
 

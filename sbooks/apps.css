@@ -193,7 +193,7 @@ div.item div.content div.checkspan {
 #TOPBLOCK div.item .action input[TYPE='SUBMIT'] { }
 
 img[alt='free'], .free { color: gold; float: right;}
-span.price { color: gold;}
+span.price { color: green;}
 span.price:before { content: "$";}
 h1 div.spacer { font-size: 50%;}
 h1 div.grouptitle { font-style: italic;}
@@ -277,6 +277,7 @@ tr.overlay.hidden > td.action {
 tr.overlay.hidden > td.action a.unhideaction {
     color: red; background-color: pink;}
 
+tr.overlay td div.summary .price { float: right;}
 tr.overlay td div.summary span.name { font-weight: bold; font-size: 120%;}
 tr.overlay td div.summary span.sep { font-weight: bold; font-size: 80%;}
 tr.overlay td div.summary span.writable {
