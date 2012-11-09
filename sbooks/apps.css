@@ -194,6 +194,10 @@ div.item div.content div.checkspan {
 
 img[alt='free'], .free { color: gold; float: right;}
 span.price { color: green;}
+span.price.paid:after {
+    content: "(paid)"; color: red;
+    font-size: 70%; vertical-align: top;
+    font-style: italic;}
 span.price:before { content: "$";}
 h1 div.spacer { font-size: 50%;}
 h1 div.grouptitle { font-style: italic;}

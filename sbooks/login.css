@@ -112,7 +112,7 @@ div.loginform form.register
        display: none;}
 
 div.loginform .message {
-    font-size: 125%; color: red; font-weight: normal;
+    color: red; font-weight: normal;
     max-width: 45em; margin-left: 15%; margin-right: 15%;}
 div.loginform form td.message {
     font-weight: bold; font-size: 130%; color: red;}

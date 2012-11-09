@@ -16,7 +16,7 @@
 */
 
 body.sbookflyleaf p.message {
-    font-size: 125%; color: red; font-weight: normal;
+    color: red; font-weight: normal;
     max-width: 45em; margin-left: 15%; margin-right: 15%;}
 body.sbookflyleaf div.message > p {
     color: red; font-weight: normal;
