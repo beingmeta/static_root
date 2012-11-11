@@ -24,16 +24,16 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/search.js codex/glosses.js                    \
 	codex/layout.js codex/iscroll.js                    \
 	codex/autoload.js
-CODEX_DERIVED_FILES=codex/searchbox.js codex/addgloss.js   \
-	            codex/hudtext.js codex/hudheart.js  \
-	            codex/helptext.js codex/hudhelp.js     \
-		    codex/console.js codex/messages.js     \
-		    codex/settingstext.js codex/splashtext.js
+CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
+	            codex/text/hud.js codex/text/hudheart.js  \
+	            codex/text/help.js codex/text/hudhelp.js     \
+		    codex/text/console.js codex/text/messages.js     \
+		    codex/text/settings.js codex/text/splash.js
 
-CODEX_HTML_FILES=codex/hudtext.html codex/hudheart.html \
-	    codex/helptext.html codex/hudhelp.html codex/console.html \
-	    codex/searchbox.html codex/addgloss.html codex/settings.html \
-	    codex/splashtext.html
+CODEX_HTML_FILES=codex/text/hud.html codex/text/hudheart.html \
+	    codex/text/help.html codex/text/hudhelp.html codex/text/console.html \
+	    codex/text/searchbox.html codex/text/addgloss.html codex/text/settings.html \
+	    codex/text/splash.html
 CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
 	codex/codexsearch.css codex/glossform.css codex/codexhelp.css \
 	codex/codexflyleaf.css codex/codexhud.css codex/codexfoot.css \
@@ -48,11 +48,13 @@ SBOOKS_CSS=${FDJT_CSS} fdjt/codex.css ${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
+codex/text/%.js: codex/text/%.html makefile
+	./text2js Codex.HTML.`basename $@ .js` $< $@
+
 all: allcode alltags index.html
 allcode: fdjt knodules codex \
 	fdjt/fdjt.js knotes/ok.js \
 	sbooks/bundle.js sbooks/bundle.css sbooks/bundle.css.gz \
-	# sbooks/bundle.min.js sbooks/bundle.min.js.gz \
 	sbooks/bundle.js sbooks/bundle.js.gz
 
 # GIT rules
@@ -122,93 +124,6 @@ index.html: etc/index_head.html etc/index_foot.html \
 	cat etc/index_foot.html >> index.html
 
 # Generating javascript strings from HTML
-
-codex/hudtext.js: codex/hudtext.html makefile
-	$(ECHO) -n "var sbook_hudtext=\"" > codex/hudtext.js
-	sed s/$$/\ \\\\/ codex/hudtext.html | \
-          sed s/\\\"/\\\\\"/g >> codex/hudtext.js
-	$(ECHO) "\";" >> codex/hudtext.js
-	$(ECHO) "" >> codex/hudtext.js
-
-codex/helptext.js: codex/helptext.html makefile
-	$(ECHO) -n "var sbook_helptext=\"" > codex/helptext.js
-	sed s/$$/\ \\\\/ codex/helptext.html | \
-          sed s/\\\"/\\\\\"/g >> codex/helptext.js
-	$(ECHO) "\";" >> codex/helptext.js
-	$(ECHO) "" >> codex/helptext.js
-
-codex/splashtext.js: codex/splashtext.html makefile
-	$(ECHO) -n "var sbook_splashtext=\"" > codex/splashtext.js
-	sed s/$$/\ \\\\/ codex/splashtext.html | \
-          sed s/\\\"/\\\\\"/g >> codex/splashtext.js
-	$(ECHO) "\";" >> codex/splashtext.js
-	$(ECHO) "" >> codex/splashtext.js
-
-codex/hudhelp.js: codex/hudhelp.html makefile
-	$(ECHO) -n "var sbook_hudhelp=\"" > codex/hudhelp.js
-	sed s/$$/\ \\\\/ codex/hudhelp.html | \
-          sed s/\\\"/\\\\\"/g >> codex/hudhelp.js
-	$(ECHO) "\";" >> codex/hudhelp.js
-	$(ECHO) "" >> codex/hudhelp.js
-
-codex/hudheart.js: codex/hudheart.html makefile
-	$(ECHO) -n "var sbook_hudheart=\"" > $@
-	sed s/$$/\ \\\\/ codex/hudheart.html | \
-          sed s/\\\"/\\\\\"/g >> $@
-	$(ECHO) "\";" >> $@
-	$(ECHO) "" >> $@
-
-codex/flyleaftext.js: codex/flyleaf.html makefile
-	$(ECHO) -n "var sbook_flyleaftext=\"" > codex/flyleaftext.js
-	sed s/$$/\ \\\\/ codex/flyleaf.html | \
-          sed s/\\\"/\\\\\"/g >> codex/flyleaftext.js
-	$(ECHO) "\";" >> codex/flyleaftext.js
-	$(ECHO) "" >> codex/flyleaftext.js
-
-codex/settingstext.js: codex/settings.html makefile
-	$(ECHO) -n "var sbook_settingstext=\"" > codex/settingstext.js
-	sed s/$$/\ \\\\/ codex/settings.html | \
-          sed s/\\\"/\\\\\"/g >> codex/settingstext.js
-	$(ECHO) "\";" >> codex/settingstext.js
-	$(ECHO) "" >> codex/settingstext.js
-
-codex/messages.js: codex/messages.html makefile
-	$(ECHO) -n "var sbook_messagestext=\"" > codex/messages.js
-	sed s/$$/\ \\\\/ codex/messages.html | \
-          sed s/\\\"/\\\\\"/g >> codex/messages.js
-	$(ECHO) "\";" >> codex/messages.js
-	$(ECHO) "" >> codex/messages.js
-
-codex/console.js:  codex/console.html makefile
-	$(ECHO) -n "var sbook_console=\"" > codex/console.js
-	sed s/$$/\ \\\\/ codex/console.html | \
-          sed s/\\\"/\\\\\"/g >> codex/console.js
-	$(ECHO) "\";" >> codex/console.js
-	$(ECHO) "" >> codex/console.js
-
-codex/addgloss.js:  codex/addgloss.html makefile
-	$(ECHO) -n "var sbook_addgloss=\"" > codex/addgloss.js
-	sed s/$$/\ \\\\/ codex/addgloss.html | \
-          sed s/\\\"/\\\\\"/g >> codex/addgloss.js
-	$(ECHO) "\";" >> codex/addgloss.js
-	$(ECHO) "" >> codex/addgloss.js
-
-codex/searchbox.js:  codex/searchbox.html makefile
-	$(ECHO) -n "var sbook_searchbox=\"" > codex/searchbox.js
-	sed s/$$/\ \\\\/ codex/searchbox.html | \
-          sed s/\\\"/\\\\\"/g >> codex/searchbox.js
-	$(ECHO) "\";" >> codex/searchbox.js
-	$(ECHO) "" >> codex/searchbox.js
-
-knotes/knotepad.js: knotes/knotepad.html makefile
-	$(ECHO) -n "OK.knotepad=\"" > knotes/knotepad.js
-	sed s/$$/\ \\\\/ knotes/knotepad.html | \
-          sed s/\\\"/\\\\\"/g >> knotes/knotepad.js
-	$(ECHO) "\";" >> knotes/knotepad.js
-	$(ECHO) "" >> knotes/knotepad.js
-
-knotes/ok.js: knotes/knote.js knotes/knotepad.js ${FDJT_FILES}
-	cat ${FDJT_FILES} knotes/knote.js knotes/knotepad.js > knotes/ok.js
 
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
