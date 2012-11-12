@@ -84,9 +84,9 @@ fdjt/buildstamp.js: $(FDJT_FILES)
 
 sbooks/buildstamp.js: $(SBOOKS_BUNDLE)
 	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
-	@$(ECHO) "var sbooks_buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
-	@$(ECHO) "var sbooks_buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
-	@$(ECHO) "var sbooks_buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
+	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
+	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
+	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
 	@$(ECHO) >> sbooks/buildstamp.js
 	@echo "Created buildstamp.js"
 codex/buildstamp.js:
@@ -98,9 +98,9 @@ sbooks/tieoff.js:
 	touch sbooks/tieoff.js
 sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
-	cat sbooks/amalgam.js fdjt/buildstamp.js sbooks/buildstamp.js \
+	cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
-		codex/buildstamp.js knodules/buildstamp.js > $@
+		codex/buildstamp.js knodules/buildstamp.js sbooks/buildstamp.js > $@
 sbooks/bundle.css: $(SBOOKS_CSS)
 	cat $(SBOOKS_CSS) > $@
 #sbooks/bundle.min.js: sbooks/bundle.js jsmin/jsmin
