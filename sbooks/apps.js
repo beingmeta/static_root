@@ -41,7 +41,7 @@ function favoritesToggle(evt,refuri)
   fdjtAjax.jsonCall(function(newval){
       if (newval==true) fdjtDOM.addClass(target,'favorite');
       else if (!(newval))
-	fdjtDOM.dropClass(target,'favorite');
+        fdjtDOM.dropClass(target,'favorite');
       else fdjtLog.warn("Odd result from favorites API call");},
     "https://auth.sbooks.net/admin/favorites",
     ((favored)?("drop"):("add")),refuri);
@@ -62,7 +62,7 @@ function textHideToggle(evt,id)
     var elt=fdjtID(id);
     if ((!(elt))||(!(elt.type))) return;
     if (!((elt.type==="text")||(elt.type==="password")))
-	return;
+        return;
     if (target.checked) elt.type="password";
     else elt.type="text";
 }
@@ -106,13 +106,18 @@ function invite_keypress(evt){
     var checkbox=fdjtDOM.Checkbox("INVITE",email);
     checkbox.checked=true;
     fdjtDOM(fdjtID("INVITATIONS")," ",
-	    fdjtDOM("span.checkspan",checkbox,email));}}
+            fdjtDOM("span.checkspan",checkbox,email));}}
 
 function showMessage(){
     var message=fdjtState.getCookie("SBOOKSMESSAGE");
     if (message) {
-	fdjtUI.alertFor(20,message);
-	fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}}
+        fdjtUI.alertFor(20,message);
+        fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}}
 
 fdjtDOM.addListener(window,"load",showMessage);
 
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/

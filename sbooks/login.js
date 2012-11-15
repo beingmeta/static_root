@@ -17,16 +17,16 @@ function checkLogin(evt){
     evt=evt||event;
     var form=fdjtID("SBOOKLOGINFORM");
     if (fdjtID("SBOOKSETPASS").checked) {
-	var passin=fdjtDOM.getInput(form,"PASS1");
-	var xpassin=fdjtDOM.getInput(form,"PASS2");
-	if (passin.value!==xpassin.value) {
-	    alert("Passwords don't match!");
-	    fdjtUI.cancel(evt);}}
+        var passin=fdjtDOM.getInput(form,"PASS1");
+        var xpassin=fdjtDOM.getInput(form,"PASS2");
+        if (passin.value!==xpassin.value) {
+            alert("Passwords don't match!");
+            fdjtUI.cancel(evt);}}
     if (fdjtDOM.hasClass(form,"register")) {
-	var termsok=fdjtID("SBOOKTERMSOK");
-	if (!(termsok.checked)) {
-	    alert("You need to agree to the terms and conditions!");
-	    fdjtUI.cancel(evt);}}}
+        var termsok=fdjtID("SBOOKTERMSOK");
+        if (!(termsok.checked)) {
+            alert("You need to agree to the terms and conditions!");
+            fdjtUI.cancel(evt);}}}
 
 function sendLoginCode(evt) {
     evt=evt||event;
@@ -34,6 +34,12 @@ function sendLoginCode(evt) {
     var form=fdjtDOM.getParent(target,'form');
     var emails=fdjtDOM.getInputValues(form,'USERNAME');
     fdjtAjax(function(req){
-	if (req.responseText) alert(req.responseText);},
-	     "https://auth.sbooks.net/admin/sendlogin",
-	     {email: emails[0]});}
+        if (req.responseText) alert(req.responseText);},
+             "https://auth.sbooks.net/admin/sendlogin",
+             {email: emails[0]});}
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/

@@ -538,3 +538,9 @@ p.attention a, div.attention a {
   text-decoration: underline;
   color: deeppink;}
 p.attention a:visited, div.attention a:visited { color: red; }
+
+/* Emacs local variables
+;;;  Local variables: ***
+;;;  indent-tabs-mode: nil ***
+;;;  End: ***
+*/

@@ -140,6 +140,7 @@ div.loginoptions {
   -o-border-radius: 5px;
   margin-top: 1em; margin-bottom: 1em;
   font-size: 80%;}
+div.loginoptions button { float: right;}
 div.loginoptions > div {
   margin-left: 2em; margin-right: 2em;}
 div.loginoptions > p:first-child { 
@@ -164,3 +165,8 @@ table.sbookadmin tbody.inviteblock tr:first-child { display: table-row; }
 table.sbookadmin tbody.inviteblock.fdjtfocus tr { display: table-row; }
 */
 
+/* Emacs local variables
+;;;  Local variables: ***
+;;;  indent-tabs-mode: nil ***
+;;;  End: ***
+*/
