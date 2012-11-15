@@ -31,20 +31,24 @@ CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 		    codex/text/settings.js codex/text/splash.js
 
 CODEX_HTML_FILES=codex/text/hud.html codex/text/hudheart.html \
-	    codex/text/help.html codex/text/hudhelp.html codex/text/console.html \
-	    codex/text/searchbox.html codex/text/addgloss.html codex/text/settings.html \
-	    codex/text/splash.html
-CODEX_CSS=codex/codextoc.css codex/codexslices.css codex/codexcard.css \
-	codex/codexsearch.css codex/glossform.css codex/codexhelp.css \
-	codex/codexflyleaf.css codex/codexhud.css codex/codexfoot.css \
-	codex/codexpreview.css codex/webreader.css codex/media.css
+	codex/text/help.html codex/text/hudhelp.html \
+	codex/text/console.html codex/text/searchbox.html \
+	codex/text/addgloss.html codex/text/settings.html \
+	codex/text/splash.html
+CODEX_CSS=codex/css/codextoc.css codex/css/codexslices.css \
+	codex/css/codexcard.css codex/css/codexsearch.css  \
+	codex/css/glossform.css codex/css/codexhelp.css    \
+	codex/css/codexflyleaf.css codex/css/codexhud.css  \
+	codex/css/codexfoot.css codex/css/codexpreview.css \
+	codex/css/webreader.css codex/css/media.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
 SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
 	${CODEX_FILES} ${CODEX_DERIVED_FILES}
-SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css ${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
+SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css \
+	${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
@@ -54,8 +58,8 @@ codex/text/%.js: codex/text/%.html makefile
 all: allcode alltags index.html
 allcode: fdjt knodules codex \
 	fdjt/fdjt.js knotes/ok.js \
-	sbooks/bundle.js sbooks/bundle.css sbooks/bundle.css.gz \
-	sbooks/bundle.js sbooks/bundle.js.gz
+	sbooks/bundle.js sbooks/bundle.css \
+	sbooks/bundle.js.gz sbooks/bundle.css.gz
 
 # GIT rules
 fdjt:
@@ -70,12 +74,9 @@ g:
 clean:
 	cd fdjt; make clean;
 	cd codex; \
-	rm -f codex/hudtext.js codex/flyleaftext.js codex/helptext.js \
-	      codex/hudhelp.js codex/messages.js codex/loginform.js \
-	       codex/console.js codex/splashtext.js \
-	      codex/addgloss.js codex/searchbox.js
-	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
-	rm -f sbooks/bundle.js sbooks/bundle.css
+		rm -f ${CODEX_DERIVED_FILES}
+		rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
+		rm -f sbooks/bundle.js sbooks/bundle.css
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
