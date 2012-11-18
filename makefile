@@ -35,12 +35,12 @@ CODEX_HTML_FILES=codex/text/hud.html codex/text/hudheart.html \
 	codex/text/console.html codex/text/searchbox.html \
 	codex/text/addgloss.html codex/text/settings.html \
 	codex/text/splash.html
-CODEX_CSS=codex/css/codextoc.css codex/css/codexslices.css \
-	codex/css/codexcard.css codex/css/codexsearch.css  \
-	codex/css/glossform.css codex/css/codexhelp.css    \
-	codex/css/codexflyleaf.css codex/css/codexhud.css  \
-	codex/css/codexfoot.css codex/css/codexpreview.css \
-	codex/css/webreader.css codex/css/media.css
+CODEX_CSS=codex/css/toc.css codex/css/slices.css \
+	codex/css/card.css codex/css/search.css  \
+	codex/css/addgloss.css codex/css/help.css    \
+	codex/css/flyleaf.css codex/css/hud.css  \
+	codex/css/pagefoot.css codex/css/preview.css \
+	codex/css/app.css codex/css/media.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
