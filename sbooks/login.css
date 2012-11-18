@@ -112,8 +112,10 @@ div.loginform form.register
        display: none;}
 
 div.loginform .message {
-    color: red; font-weight: normal;
-    max-width: 45em; margin-left: 15%; margin-right: 15%;}
+    color: black; font-weight: normal;}
+div.loginform p.message {
+    max-width: 45em;
+    margin-left: 15%; text-indent: -5%; margin-right: 15%;}
 div.loginform form td.message {
     font-weight: bold; font-size: 130%; color: red;}
 div.loginform form tr.loginoptions a {display: none;}

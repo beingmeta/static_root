@@ -15,18 +15,37 @@
 
 */
 
-body.sbookflyleaf p.message {
-    color: red; font-weight: normal;
-    max-width: 45em; margin-left: 15%; margin-right: 15%;}
-body.sbookflyleaf div.message > p {
-    color: red; font-weight: normal;
-    margin-top: 0px; margin-bottom: 0px;                                    
-    max-width: inherit;}
+body.sbookflyleaf .message {
+    font-weight: normal; max-width: 35em;
+    margin-left: auto; margin-right: auto;}
+body.sbookflyleaf .message > p {
+    margin-top: 0px; margin-bottom: 0px;
+    margin-left: 0px; margin-right: 0px; }
+body.sbookflyleaf p.message { text-align: center;}
+body.sbookflyleaf div.message > p { text-align: left;}
 body.sbookflyleaf div.message > p:first-child { font-weight: bold;} 
 body.sbookflyleaf p.unexpected {
     font-size: 150%; color: red; font-weight: bold;
     margin-left: 5em; margin-right: 10em;
     max-width: 40em;}
+body.sbookflyleaf div.loginform p.message {
+    text-align: left;}
+
+body.sbookflyleaf div.invitations, body.sbookflyleaf div.messages {
+    }
+
+body.sbookflyleaf div.messages > p {
+    margin-top: 3px; margin-bottom: 3px;}
+
+body.sbookflyleaf p.paymessage {
+    color: red; font-weight: normal; max-width: 45em;
+    margin-left: 3em; margin-right: 0px;}
+body.sbookflyleaf p.paymessage button {
+    float: left; border: 0px; background-color: transparent;}
+
+body.sbookflyleaf td[colspan] p.message,
+body.sbookflyleaf td[colspan] div.message p {
+    margin-left: 3em;}
 
 body.sbookflyleaf div.dropform {text-align: center;}
 
