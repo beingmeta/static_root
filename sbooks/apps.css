@@ -524,6 +524,7 @@ span.sbooks span.s, a.sbooks span.s {
     font-family: verdana,helvetica,sans !important;
     font-style: italic !important;
     font-weight: bold;}
+.s4sbooks { color: blue !important; font-style: italic !important;}
 
 .debugfield { display: none ! important; }
 
