@@ -17,10 +17,10 @@
 function bookTabToggle(evt)
 {
   evt=evt||event;
-  var target=fdjtUI.T(evt);
-  var tabid=fdjtDOM.findAttrib(target,'tabid');
+  var target=fdjt.UI.T(evt);
+  var tabid=fdjt.DOM.findAttrib(target,'tabid');
   if (!(tabid)) return;
-  var tbody=fdjtDOM.getParent(target,'tbody');
+  var tbody=fdjt.DOM.getParent(target,'tbody');
   var curtab=tbody.getAttribute('tab');
   if ((curtab)&&(curtab===tabid)) tbody.removeAttribute('tab');
   else tbody.setAttribute('tab',tabid);
@@ -30,36 +30,36 @@ function bookTabToggle(evt)
 function favoritesToggle(evt,refuri)
 {
   evt=evt||event;
-  var target=fdjtUI.T(evt);
-  if (!(fdjtDOM.hasClass(target,"starred")))
-    target=fdjtDOM.getParent(target,".starred");
+  var target=fdjt.UI.T(evt);
+  if (!(fdjt.DOM.hasClass(target,"starred")))
+    target=fdjt.DOM.getParent(target,".starred");
   if (!(target)) return;
-  var book=fdjtDOM.getParent(target,"tbody.book");
+  var book=fdjt.DOM.getParent(target,"tbody.book");
   if (!(book)) return;
   var refuri=book.getAttribute('data-uri');
-  var favored=fdjtDOM.hasClass(target,'favorite');
-  fdjtAjax.jsonCall(function(newval){
-      if (newval==true) fdjtDOM.addClass(target,'favorite');
+  var favored=fdjt.DOM.hasClass(target,'favorite');
+  fdjt.Ajax.jsonCall(function(newval){
+      if (newval==true) fdjt.DOM.addClass(target,'favorite');
       else if (!(newval))
-        fdjtDOM.dropClass(target,'favorite');
-      else fdjtLog.warn("Odd result from favorites API call");},
+        fdjt.DOM.dropClass(target,'favorite');
+      else fdjt.Log.warn("Odd result from favorites API call");},
     "https://auth.sbooks.net/admin/favorites",
     ((favored)?("drop"):("add")),refuri);
 }
 
 function passwordToggle(evt)
 {
-    var target=fdjtUI.T(evt=(evt||event));
-    var loginbox=fdjtDOM.getParent(target,".loginbox");
-    fdjtDOM.toggleClass(loginbox,"showpass");
+    var target=fdjt.UI.T(evt=(evt||event));
+    var loginbox=fdjt.DOM.getParent(target,".loginbox");
+    fdjt.DOM.toggleClass(loginbox,"showpass");
 }
 
 function textHideToggle(evt,id)
 {
-    var target=fdjtUI.T(evt=evt||event);
+    var target=fdjt.UI.T(evt=evt||event);
     if (!(id)) id=target.getAttribute('FIELD');
     if (!(id)) return;
-    var elt=fdjtID(id);
+    var elt=fdjt.ID(id);
     if ((!(elt))||(!(elt.type))) return;
     if (!((elt.type==="text")||(elt.type==="password")))
         return;
@@ -68,53 +68,53 @@ function textHideToggle(evt,id)
 }
 
 function updateForm(form){
-  var checks=fdjtDOM.getInputs(form,"ACCESS");
+  var checks=fdjt.DOM.getInputs(form,"ACCESS");
   var isopen=false; var i=0; var lim=checks.length;
   while (i<lim)
     if (checks[i].value===':OPEN') {
       isopen=checks[i].checked; break;}
     else i++;
-  if (isopen) fdjtDOM.addClass(form,"isopen");
-  else fdjtDOM.dropClass(form,"isopen");}
+  if (isopen) fdjt.DOM.addClass(form,"isopen");
+  else fdjt.DOM.dropClass(form,"isopen");}
 function formChanged(evt){
   evt=evt||event;
-  var form=fdjtDOM.getParent(target,"form");
+  var form=fdjt.DOM.getParent(target,"form");
   setTimeout(function(){updateForm(form);},100);}
 
 function updatePrice(){
-    var include_self=fdjtID("INCLUDEME").checked;
-    var invites=fdjtDOM.getInputs(fdjtID("INVITATIONS"),"INVITE");
+    var include_self=fdjt.ID("INCLUDEME").checked;
+    var invites=fdjt.DOM.getInputs(fdjt.ID("INVITATIONS"),"INVITE");
     var discount=((include_self)?(1):(0));
     var i=0; var lim=invites.length; var n_invited=0;
     while (i<lim) if (invites[i++].checked) n_invited++;
-    var priceinput=fdjtID("PRICEINPUT");
+    var priceinput=fdjt.ID("PRICEINPUT");
     priceinput.value=(n_invited-discount)+".00";
-    fdjtID("PRICE").innerHTML=(n_invited-discount)+".00";
-    fdjtID("DISCOUNT").innerHTML=(discount)+".00";
-    fdjtID("TOTALPRICE").innerHTML=(n_invited)+".00";}
+    fdjt.ID("PRICE").innerHTML=(n_invited-discount)+".00";
+    fdjt.ID("DISCOUNT").innerHTML=(discount)+".00";
+    fdjt.ID("TOTALPRICE").innerHTML=(n_invited)+".00";}
 
 function invite_keypress(evt){
-  var target=fdjtUI.T(evt);
+  var target=fdjt.UI.T(evt);
   var ch=evt.charCode||evt.keyCode;
   if (ch!==13) return;
-  fdjtUI.cancel(evt);
+  fdjt.UI.cancel(evt);
   var string=target.value; target.value="";
   var emails=string.split(",");
   var i=0; var lim=emails.length;
   while (i<lim) {
     var email=emails[i++];
-    var checkbox=fdjtDOM.Checkbox("INVITE",email);
+    var checkbox=fdjt.DOM.Checkbox("INVITE",email);
     checkbox.checked=true;
-    fdjtDOM(fdjtID("INVITATIONS")," ",
-            fdjtDOM("span.checkspan",checkbox,email));}}
+    fdjt.DOM(fdjt.ID("INVITATIONS")," ",
+            fdjt.DOM("span.checkspan",checkbox,email));}}
 
 function showMessage(){
-    var message=fdjtState.getCookie("SBOOKSMESSAGE");
+    var message=fdjt.State.getCookie("SBOOKSMESSAGE");
     if (message) {
-        fdjtUI.alertFor(20,message);
-        fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}}
+        fdjt.UI.alertFor(20,message);
+        fdjt.State.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}}
 
-fdjtDOM.addListener(window,"load",showMessage);
+fdjt.DOM.addListener(window,"load",showMessage);
 
 /* Emacs local variables
    ;;;  Local variables: ***

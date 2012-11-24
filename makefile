@@ -1,15 +1,16 @@
 # This generates various compound files automatically
 
 # We define this because some versions of make (like on OSX) seem to
-# have a built in version of echo which doesn't handle the -n argument
+# have a built-in version of echo which doesn't handle the -n argument
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
-FDJT_FILES=fdjt/header.js fdjt/log.js fdjt/string.js \
-	fdjt/time.js fdjt/state.js  fdjt/dom.js fdjt/selecting.js \
-	fdjt/kb.js fdjt/state.js fdjt/ajax.js fdjt/json.js \
-	fdjt/hash.js fdjt/wsn.js fdjt/adjustfont.js \
-	fdjt/ui.js fdjt/taphold.js fdjt/scrollever.js \
-	fdjt/completions.js fdjt/syze.js
+FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/log.js \
+	fdjt/time.js fdjt/state.js  fdjt/dom.js \
+	fdjt/kb.js fdjt/state.js fdjt/ajax.js \
+	fdjt/json.js fdjt/hash.js fdjt/wsn.js \
+	fdjt/ui.js fdjt/taphold.js fdjt/selecting.js \
+	fdjt/scrollever.js fdjt/adjustfont.js \
+	fdjt/completions.js fdjt/syze.js fdjt/globals.js
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`

@@ -6,31 +6,31 @@
 function changeAccess(evt)
 {
     evt=evt||event;
-    var target=fdjtUI.T(evt);
-    var tbody=fdjtDOM.getParent(target,"TBODY");
-    var form=fdjtDOM.getParent(target,"FORM");
+    var target=fdjt.UI.T(evt);
+    var tbody=fdjt.DOM.getParent(target,"TBODY");
+    var form=fdjt.DOM.getParent(target,"FORM");
     setTimeout(function(){
-        var access=fdjtDOM.getInputValues(form,"ACCESS");
+        var access=fdjt.DOM.getInputValues(form,"ACCESS");
         if (access[0]!==":OPEN") {
-            fdjtDOM.addClass(tbody,"ispaid");
-            fdjtID("SETPRICE").focus();
+            fdjt.DOM.addClass(tbody,"ispaid");
+            fdjt.ID("SETPRICE").focus();
             return;}
-        else fdjtDOM.dropClass(tbody,"ispaid");},
+        else fdjt.DOM.dropClass(tbody,"ispaid");},
                100);
 }
 
-var precString=fdjtString.precString;
+var precString=fdjt.String.precString;
 
 function changePrice(evt)
 {
-    var price_input=fdjtID("SETPRICE");
+    var price_input=fdjt.ID("SETPRICE");
     var setprice=((price_input)&&(parseFloat(price_input.value)));
     if ((typeof setprice === 'number')&&
         (setprice>0)&&(setprice<100)) {
         var giftprice=Math.max(setprice*0.2,1.00)+setprice-0.01;
         var buyprice=Math.max(setprice*0.4,2.00)+setprice-0.01;
-        var giftelt=fdjtID("GIFTPRICE");
-        var buyelt=fdjtID("BUYPRICE");
+        var giftelt=fdjt.ID("GIFTPRICE");
+        var buyelt=fdjt.ID("BUYPRICE");
         if (giftelt) giftelt.innerHTML=precString(giftprice,2);
         if (buyelt) buyelt.innerHTML=precString(buyprice,2);}
     return;
