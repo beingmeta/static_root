@@ -294,6 +294,12 @@ tr.overlay td div.summary span.admin {
 table.fdjtform.sbookinvitation {
     width: 30em; margin-left: auto; margin-right: auto;}
 
+table.fdjtform tr.mainbuttons button,
+table.fdjtform tr.mainbuttons input[TYPE="SUBMIT"] {
+    border-radius: 1ex; -webkit-border-radius: 1ex;
+    -moz-border-radius: 1ex;  -khtml-border-radius: 1ex;
+    -o-border-radius: 1ex;}
+
 table.overlays {
     border-collapse: collapse; border-spacing: 0px;
     width: 96%; margin-right: 2%; margin-left: 2%;}
