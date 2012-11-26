@@ -4,8 +4,8 @@
 # have a built-in version of echo which doesn't handle the -n argument
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
-FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/log.js \
-	fdjt/time.js fdjt/state.js  fdjt/dom.js \
+FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
+	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/kb.js fdjt/state.js fdjt/ajax.js \
 	fdjt/json.js fdjt/hash.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/taphold.js fdjt/selecting.js \
