@@ -10,7 +10,8 @@ FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
 	fdjt/json.js fdjt/hash.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/taphold.js fdjt/selecting.js \
 	fdjt/scrollever.js fdjt/adjustfont.js \
-	fdjt/completions.js fdjt/syze.js fdjt/globals.js
+	fdjt/completions.js fdjt/syze.js fdjt/iscroll.js \
+	fdjt/globals.js
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
@@ -23,8 +24,7 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/interaction.js                   \
 	codex/toc.js codex/slices.js codex/social.js        \
 	codex/search.js codex/glosses.js                    \
-	codex/layout.js codex/iscroll.js                    \
-	codex/autoload.js
+	codex/layout.js codex/autoload.js
 CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 	            codex/text/hud.js codex/text/hudheart.js  \
 	            codex/text/help.js codex/text/hudhelp.js     \
