@@ -396,6 +396,12 @@ div.sbooktight div, div.sbooktight p {
     margin-top: 2px; margin-bottom: 2px;
     border: 0px; padding: 1px;}
 
+/* Classes to support hidden sbook values */
+
+.sbooktag { display: none;}
+.sbooktags { display: none;}
+.codexscaling { display: none;}
+
 /*
 body.essay div.toplinks a {
     padding-left: 1em; padding-right: 1em;
