@@ -58,11 +58,13 @@ body.sbook.thirty #CODEXCONTENT p, body.sbook.thirty #CODEXCONTENT li {
 
 h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 
-.forcebreakbefore { page-break-before: always;}
-.forcebreakafter { page-break-after: always;}
+.alwaysbreakbefore { page-break-before: always;}
+.alwaysbreakafter { page-break-after: always;}
 .avoidbreakbefore { page-break-before: avoid;}
 .avoidbreakafter { page-break-after: avoid;}
 .avoidbreakinside { page-break-inside: avoid;}
+.forcebreakbefore { page-break-before: always;}
+.forcebreakafter { page-break-after: always;}
 
 .backmatter {
     page-break-before: always;
@@ -401,7 +403,7 @@ div.sbooktight div, div.sbooktight p {
 
 .sbooktag { display: none;}
 .sbooktags { display: none;}
-.codexscaling { display: none;}
+.xdatapagescale { display: none;}
 
 /*
 body.essay div.toplinks a {
