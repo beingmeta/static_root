@@ -29,16 +29,16 @@ function formChanged(evt){
   setTimeout(function(){updateForm(form);},100);}
 
 function updatePrice(){
-    var include_self=fdjtID("INCLUDEME").checked;
-    var invites=fdjtDOM.getInputs(fdjtID("INVITATIONS"),"INVITE");
+    var include_self=fdjt.ID("INCLUDEME").checked;
+    var invites=fdjtDOM.getInputs(fdjt.ID("INVITATIONS"),"INVITE");
     var discount=((include_self)?(1):(0));
     var i=0; var lim=invites.length; var n_invited=0;
     while (i<lim) if (invites[i++].checked) n_invited++;
-    var priceinput=fdjtID("PRICEINPUT");
+    var priceinput=fdjt.ID("PRICEINPUT");
     priceinput.value=(n_invited-discount)+".00";
-    fdjtID("PRICE").innerHTML=(n_invited-discount)+".00";
-    fdjtID("DISCOUNT").innerHTML=(discount)+".00";
-    fdjtID("TOTALPRICE").innerHTML=(n_invited)+".00";}
+    fdjt.ID("PRICE").innerHTML=(n_invited-discount)+".00";
+    fdjt.ID("DISCOUNT").innerHTML=(discount)+".00";
+    fdjt.ID("TOTALPRICE").innerHTML=(n_invited)+".00";}
 
 function invite_keypress(evt){
   var target=fdjtUI.T(evt);
@@ -52,7 +52,7 @@ function invite_keypress(evt){
     var email=emails[i++];
     var checkbox=fdjtDOM.Checkbox("INVITE",email);
     checkbox.checked=true;
-    fdjtDOM(fdjtID("INVITATIONS")," ",
-	    fdjtDOM("span.checkspan",checkbox,email));}}
+    fdjtDOM(fdjt.ID("INVITATIONS")," ",
+	    fdjt.DOM("span.checkspan",checkbox,email));}}
 
 
