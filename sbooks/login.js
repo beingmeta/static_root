@@ -38,6 +38,17 @@ function sendLoginCode(evt) {
              "https://auth.sbooks.net/admin/sendlogin",
              {email: emails[0]});}
 
+function updateResetLink() {
+    var resetlink=fdjt.ID("SBOOKLOSTPASSWORD");
+    var username=fdjt.ID("SBOOKUSERNAME");
+    if ((resetlink)&&(username)&&(username.value)&&
+        (!(fdjt.String.isEmpty(username.value)))) {
+        resetlink.href=resetlink.href+"?EMAIL="+
+            encodeURIComponent(username.value);}}
+
+fdjt.addInit(updateResetLink,"updateresetlink");
+        
+
 /* Emacs local variables
    ;;;  Local variables: ***
    ;;;  indent-tabs-mode: nil ***
