@@ -60,7 +60,8 @@ all: allcode alltags index.html
 allcode: fdjt knodules codex \
 	fdjt/fdjt.js knotes/ok.js \
 	sbooks/bundle.js sbooks/bundle.css \
-	sbooks/bundle.js.gz sbooks/bundle.css.gz
+	sbooks/bundle.js.gz sbooks/bundle.css.gz \
+	sbooks/bundle.min.js.gz
 
 # GIT rules
 fdjt:
@@ -105,10 +106,10 @@ sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
 		codex/buildstamp.js knodules/buildstamp.js sbooks/buildstamp.js > $@
 sbooks/bundle.css: $(SBOOKS_CSS)
 	cat $(SBOOKS_CSS) > $@
-#sbooks/bundle.min.js: sbooks/bundle.js jsmin/jsmin
-#	jsmin/jsmin < sbooks/bundle.js > sbooks/bundle.min.js
-#sbooks/bundle.min.js.gz: sbooks/bundle.min.js
-#	gzip sbooks/bundle.min.js -c > sbooks/bundle.min.js.gz
+sbooks/bundle.min.js: sbooks/bundle.js jsmin/jsmin
+	jsmin/jsmin < sbooks/bundle.js > sbooks/bundle.min.js
+sbooks/bundle.min.js.gz: sbooks/bundle.min.js
+	gzip sbooks/bundle.min.js -c > sbooks/bundle.min.js.gz
 sbooks/bundle.js.gz: sbooks/bundle.js
 	gzip -c sbooks/bundle.js > $@
 sbooks/bundle.css.gz: sbooks/bundle.css
