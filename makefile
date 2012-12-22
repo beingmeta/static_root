@@ -59,9 +59,9 @@ codex/text/%.js: codex/text/%.html makefile
 all: allcode alltags index.html
 allcode: fdjt knodules codex \
 	fdjt/fdjt.js knotes/ok.js \
-	sbooks/bundle.js sbooks/bundle.css \
-	sbooks/bundle.js.gz sbooks/bundle.css.gz \
-	sbooks/bundle.min.js.gz
+	sbooks/codex.js sbooks/codex.css \
+	sbooks/codex.js.gz sbooks/codex.css.gz \
+	sbooks/codex.min.js.gz
 
 # GIT rules
 fdjt:
@@ -78,7 +78,7 @@ clean:
 	cd codex; \
 		rm -f ${CODEX_DERIVED_FILES}
 		rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
-		rm -f sbooks/bundle.js sbooks/bundle.css
+		rm -f sbooks/codex.js sbooks/codex.css
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
@@ -99,26 +99,26 @@ knodules/buildstamp.js:
 
 sbooks/tieoff.js:
 	touch sbooks/tieoff.js
-sbooks/bundle.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
+sbooks/codex.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
 	cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js sbooks/buildstamp.js > $@
-sbooks/bundle.css: $(SBOOKS_CSS)
+sbooks/codex.css: $(SBOOKS_CSS)
 	cat $(SBOOKS_CSS) > $@
-sbooks/bundle.min.js: sbooks/bundle.js jsmin/jsmin
-	jsmin/jsmin < sbooks/bundle.js > sbooks/bundle.min.js
-sbooks/bundle.min.js.gz: sbooks/bundle.min.js
-	gzip sbooks/bundle.min.js -c > sbooks/bundle.min.js.gz
-sbooks/bundle.js.gz: sbooks/bundle.js
-	gzip -c sbooks/bundle.js > $@
-sbooks/bundle.css.gz: sbooks/bundle.css
-	gzip -c sbooks/bundle.css > $@
+sbooks/codex.min.js: sbooks/codex.js jsmin/jsmin
+	jsmin/jsmin < sbooks/codex.js > sbooks/codex.min.js
+sbooks/codex.min.js.gz: sbooks/codex.min.js
+	gzip sbooks/codex.min.js -c > sbooks/codex.min.js.gz
+sbooks/codex.js.gz: sbooks/codex.js
+	gzip -c sbooks/codex.js > $@
+sbooks/codex.css.gz: sbooks/codex.css
+	gzip -c sbooks/codex.css > $@
 
 # Generating the HTML
 
 index.html: etc/index_head.html etc/index_foot.html \
-	sbooks/bundle.js sbooks/bundle.css
+	sbooks/codex.js sbooks/codex.css
 	cat etc/index_head.html > index.html
 	echo "<p>Build host: " `hostname` "</p>" >> index.html
 	echo "<p>Build date: " `date` "</p>" >> index.html
