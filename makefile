@@ -40,7 +40,7 @@ CODEX_CSS=codex/css/toc.css codex/css/slices.css \
 	codex/css/card.css codex/css/search.css  \
 	codex/css/addgloss.css codex/css/help.css    \
 	codex/css/flyleaf.css codex/css/hud.css  \
-	codex/css/pagefoot.css codex/css/preview.css \
+	codex/css/foot.css codex/css/preview.css \
 	codex/css/app.css codex/css/media.css
 SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
