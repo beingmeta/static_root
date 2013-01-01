@@ -418,6 +418,11 @@ tbody.book td.fields .latest,
 tbody.book td.fields .starred,
 tbody.book td.fields .editinfo {
     padding-left: 5px; float: right; font-size: 80%;}
+tbody.book td.fields .access img,
+tbody.book td.fields .latest img,
+tbody.book td.fields .starred img,
+tbody.book td.fields .editinfo img {
+  height: 24px; width: auto;}
 
 tbody.book td.fields .starred {
     cursor: pointer; color: gray; vertical-align: top;}
