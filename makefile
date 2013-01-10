@@ -189,11 +189,12 @@ publish:
 	cd fdjt; s3commit
 	cd knodules; s3commit
 	cd sbooks; s3commit
+	make publish-bundle
 #	cd codex/svg; s3commit
 #	cd codex/img; s3commit
 #	cd codex/logos; s3commit
 #	cd codex/screenshots; s3commit
-#	make publish-bundle
+
 
 publish-bundle:
 	bash ./publish-bundle.bash
