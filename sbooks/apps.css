@@ -419,6 +419,8 @@ tbody.book td.fields .starred,
 tbody.book td.fields .editinfo {
     padding-left: 5px; float: right; font-size: 80%;}
 
+tbody.book td.fields .starred img, tbody.book td.fields .access img {
+    height: 1.5em; width: auto;}
 tbody.book td.fields .starred {
     cursor: pointer; color: gray; vertical-align: top;}
 tbody.book td.fields .starred img[alt="*"] { display: none;}
