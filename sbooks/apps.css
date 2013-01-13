@@ -424,6 +424,8 @@ tbody.book td.fields .starred img,
 tbody.book td.fields .editinfo img {
   height: 24px; width: auto;}
 
+tbody.book td.fields .starred img, tbody.book td.fields .access img {
+    height: 1.5em; width: auto;}
 tbody.book td.fields .starred {
     cursor: pointer; color: gray; vertical-align: top;}
 tbody.book td.fields .starred img[alt="*"] { display: none;}
