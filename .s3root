@@ -1,1 +1,2 @@
-s3://static.beingmeta.com/ s3://beingmeta/static/
+s3://static.beingmeta.com/ s3://beingmeta/static/ s3://sbooks/static/
+
