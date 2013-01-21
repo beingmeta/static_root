@@ -82,19 +82,19 @@ clean:
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
-fdjt/buildstamp.js: $(FDJT_FILES)
+fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 	cd fdjt; make all
 
-sbooks/buildstamp.js: $(SBOOKS_BUNDLE)
+sbooks/buildstamp.js: $(SBOOKS_BUNDLE) $(SBOOKS_CSS)
 	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
 	@$(ECHO) >> sbooks/buildstamp.js
 	@echo "Created buildstamp.js"
-codex/buildstamp.js:
+codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS) $(CODEX_HTML)
 	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
-knodules/buildstamp.js:
+knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 
 sbooks/tieoff.js:
