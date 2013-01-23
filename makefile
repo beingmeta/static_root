@@ -26,12 +26,12 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/search.js codex/glosses.js                    \
 	codex/layout.js codex/autoload.js
 CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
-	            codex/text/hud.js codex/text/hudheart.js  \
+	            codex/text/hud.js codex/text/heart.js  \
 	            codex/text/help.js codex/text/hudhelp.js     \
 		    codex/text/console.js codex/text/messages.js     \
 		    codex/text/settings.js codex/text/splash.js
 
-CODEX_HTML_FILES=codex/text/hud.html codex/text/hudheart.html \
+CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
 	codex/text/console.html codex/text/searchbox.html \
 	codex/text/addgloss.html codex/text/settings.html \
@@ -82,19 +82,19 @@ clean:
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
-fdjt/buildstamp.js: $(FDJT_FILES)
+fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 	cd fdjt; make all
 
-sbooks/buildstamp.js: $(SBOOKS_BUNDLE)
+sbooks/buildstamp.js: $(SBOOKS_BUNDLE) $(SBOOKS_CSS)
 	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
 	@$(ECHO) >> sbooks/buildstamp.js
 	@echo "Created buildstamp.js"
-codex/buildstamp.js:
+codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS) $(CODEX_HTML)
 	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
-knodules/buildstamp.js:
+knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 
 sbooks/tieoff.js:
@@ -189,18 +189,6 @@ publish:
 	cd fdjt; s3commit
 	cd knodules; s3commit
 	cd sbooks; s3commit
-	s3cmd put --encoding=utf-8 --mime-type=text/javascript \
-	      --add-header "Content-Encoding: gzip"            \
-	      sbooks/codex.min.js.gz ${r}sbooks/bundle.js;
-	s3cmd put --encoding=utf-8 --mime-type=text/css        \
-	      --add-header "Content-Encoding: gzip"            \
-	      sbooks/codex.css.gz ${r}sbooks/bundle.css;
-	s3cmd put --encoding=utf-8 --mime-type=text/javascript \
-	      --add-header "Content-Encoding: gzip"            \
-	      sbooks/codex.min.js.gz ${r}codexapp.js;
-	s3cmd put --encoding=utf-8 --mime-type=text/css        \
-	      --add-header "Content-Encoding: gzip"            \
-	      sbooks/codex.css.gz ${r}codexapp.css;
 	make publish-bundle
 #	cd codex/svg; s3commit
 #	cd codex/img; s3commit

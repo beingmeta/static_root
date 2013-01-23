@@ -1,15 +1,15 @@
  for r in `cat ./.s3root`; do
     echo "Copying to " $r;
-    for x in fdjt/fdjt.js fdjt/fdjt.css; \
-	do s3cmd copy s3:static.beingmeta.com:${x} ${r}${x}; done
-    for x in g/beingmeta/*.png g/beingmeta/*.ico g/beingmeta/*.svgz; \
-	do s3cmd copy s3:static.beingmeta.com:${x} ${r}${x}; done
-    for x in g/sbooks/*.png g/beingmeta/*.ico g/sbooks/*.svgz; \
-	do s3cmd copy s3:static.beingmeta.com:${x} ${r}${x}; done
-    for x in g/codex/*.png g/beingmeta/*.ico g/codex/*.svgz; \
-	do s3cmd copy s3:static.beingmeta.com:${x} ${r}${x}; done
-    for x in sbooks/*.js g/sbooks/*.css; \
-	do s3cmd copy s3:static.beingmeta.com:${x} ${r}${x}; done
-    s3cmd copy s3:static.beingmeta.com:codexapp.css ${r}codexapp.css;
-    s3cmd copy s3:static.beingmeta.com:codexapp.js ${r}codexapp.js;
+    s3cmd put --encoding=utf-8 --mime-type=text/javascript \
+	      --add-header "Content-Encoding: gzip"            \
+	      sbooks/codex.min.js.gz ${r}sbooks/bundle.js;
+    s3cmd put --encoding=utf-8 --mime-type=text/css        \
+	      --add-header "Content-Encoding: gzip"            \
+	      sbooks/codex.css.gz ${r}sbooks/bundle.css;
+    s3cmd put --encoding=utf-8 --mime-type=text/javascript \
+	      --add-header "Content-Encoding: gzip"            \
+	      sbooks/codex.min.js.gz ${r}codexapp.js;
+    s3cmd put --encoding=utf-8 --mime-type=text/css        \
+	      --add-header "Content-Encoding: gzip"            \
+	      sbooks/codex.css.gz ${r}codexapp.css;
 done;
