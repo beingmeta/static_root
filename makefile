@@ -26,12 +26,12 @@ CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/search.js codex/glosses.js                    \
 	codex/layout.js codex/autoload.js
 CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
-	            codex/text/hud.js codex/text/hudheart.js  \
+	            codex/text/hud.js codex/text/heart.js  \
 	            codex/text/help.js codex/text/hudhelp.js     \
 		    codex/text/console.js codex/text/messages.js     \
 		    codex/text/settings.js codex/text/splash.js
 
-CODEX_HTML_FILES=codex/text/hud.html codex/text/hudheart.html \
+CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
 	codex/text/console.html codex/text/searchbox.html \
 	codex/text/addgloss.html codex/text/settings.html \
