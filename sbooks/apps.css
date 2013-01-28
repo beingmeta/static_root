@@ -126,14 +126,14 @@ table.preferences th img { height: 40px; width: auto;}
 table.preferences tr th:first-child { width: 100px;} 
 table.preferences td { 
   text-align: left; vertical-align: top;}
-table td .checkspan { padding-right: 0.5ex; }
-table td .checkspan input[type='CHECKBOX'] { padding-right: 0.5ex;}
-table td .checkspan input[type='RADIO'] { padding-right: 0.5ex;}
-table td .checkspan input[name='PRICE'] { width: 4em; display: inline;}
-table td .checkspan input[name='HOST'] { width: 8em; display: inline;}
-table.fdjtform td input[type='TEXT'][name='PRICE'] {
+table.preferences td .checkspan { padding-right: 0.5ex; }
+table.preferences td .checkspan input[type='CHECKBOX'] { padding-right: 0.5ex;}
+table.preferences td .checkspan input[type='RADIO'] { padding-right: 0.5ex;}
+table.preferences td .checkspan input[name='PRICE'] { width: 4em; display: inline;}
+table.preferences td .checkspan input[name='HOST'] { width: 8em; display: inline;}
+table.fdjtform.metadata td input[type='TEXT'][name='PRICE'] {
     width: 4em; display: inline;}
-table.fdjtform td input[type='TEXT'][name='HOST'] {
+table.fdjtform.metadata td input[type='TEXT'][name='HOST'] {
     width: 12em; font-size: 80%; display: inline;}
 table.preferences th img.twisty { float: left; vertical-align: bottom;}
 table.preferences td input[TYPE='text'] { 
