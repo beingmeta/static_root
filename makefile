@@ -6,7 +6,7 @@ ECHO=/bin/echo
 CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
-	fdjt/kb.js fdjt/json.js fdjt/hash.js fdjt/wsn.js \
+	fdjt/refdb.js fdjt/kb.js fdjt/json.js fdjt/hash.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/taphold.js fdjt/selecting.js \
 	fdjt/scrollever.js fdjt/adjustfont.js \
 	fdjt/completions.js fdjt/syze.js fdjt/iscroll.js \
