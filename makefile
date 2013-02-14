@@ -15,6 +15,7 @@ FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
+BRANCH=master
 
 FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/query.js \
@@ -143,6 +144,9 @@ fdjt/TAGS:
 
 jsmin/jsmin: jsmin/jsmin.c
 	${CC} -o jsmin/jsmin jsmin/jsmin.c
+
+checkout:
+	git checkout ${BRANCH}; cd fdjt; git checkout ${BRANCH}; cd ../codex; git checkout ${BRANCH}; cd ../knodules; git checkout ${BRANCH}
 
 diff:
 	git diff;
