@@ -145,10 +145,10 @@ jsmin/jsmin: jsmin/jsmin.c
 	${CC} -o jsmin/jsmin jsmin/jsmin.c
 
 checkout:
-	git checkout $BRANCH;
-	cd fdjt; git checkout $BRANCH
-	cd codex; git checkout $BRANCH
-	cd knodules; git checkout $BRANCH
+	git checkout ${BRANCH};
+	cd fdjt; git checkout ${BRANCH};
+	cd codex; git checkout ${BRANCH};
+	cd knodules; git checkout ${BRANCH};
 diff:
 	git diff;
 	cd fdjt; git diff
