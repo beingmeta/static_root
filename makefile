@@ -18,7 +18,7 @@ BUILDHOST:=`hostname`
 BRANCH=master
 
 FDJT_CSS=fdjt/fdjt.css
-KNODULES_FILES=knodules/knodules.js knodules/query.js \
+KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/tags.js \
 	knodules/html.js # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
