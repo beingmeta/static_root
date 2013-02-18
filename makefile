@@ -1,4 +1,5 @@
-# This generates various compound files automatically
+# This automatically generates various compound files for beingmeta
+# web applications
 
 # We define this because some versions of make (like on OSX) seem to
 # have a built-in version of echo which doesn't handle the -n argument
@@ -61,7 +62,7 @@ codex/text/%.js: codex/text/%.html makefile
 
 all: allcode alltags index.html
 allcode: fdjt knodules codex \
-	fdjt/fdjt.js knotes/ok.js \
+	fdjt/fdjt.js \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
 	sbooks/codex.min.js.gz
