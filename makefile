@@ -76,6 +76,8 @@ codex:
 	git clone git@github.com:beingmeta/codex.git
 g:
 	svn checkout https://dev.beingmeta.com/src/graphics/targets g
+ext:
+	cd ext; make 
 
 clean:
 	cd fdjt; make clean;
