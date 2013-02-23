@@ -23,10 +23,9 @@ KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/tags.js \
 	knodules/html.js # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
-	codex/hud.js codex/interaction.js                   \
-	codex/toc.js codex/slices.js codex/social.js        \
-	codex/search.js codex/glosses.js                    \
-	codex/layout.js codex/autoload.js
+	codex/hud.js codex/toc.js codex/slices.js \
+	codex/social.js codex/search.js codex/glosses.js \
+	 codex/interaction.js codex/layout.js codex/autoload.js
 CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 	            codex/text/hud.js codex/text/heart.js  \
 	            codex/text/help.js codex/text/hudhelp.js     \
