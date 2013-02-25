@@ -23,7 +23,7 @@ KNODULES_FILES=knodules/knodules.js knodules/query.js knodules/tags.js \
 	knodules/html.js # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
-	codex/hud.js codex/toc.js codex/slices.js \
+	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
 	 codex/interaction.js codex/layout.js codex/autoload.js
 CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
@@ -39,7 +39,7 @@ CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/addgloss.html codex/text/settings.html \
 	codex/text/splash.html codex/text/pageleft.html \
 	codex/text/pageright.html
-CODEX_CSS=codex/css/toc.css codex/css/slices.css \
+CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/card.css codex/css/search.css  \
 	codex/css/addgloss.css codex/css/help.css    \
 	codex/css/flyleaf.css codex/css/hud.css  \
