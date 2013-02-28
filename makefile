@@ -8,7 +8,7 @@ CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
 	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
-	fdjt/refdb.js fdjt/kb.js fdjt/json.js fdjt/ajax.js \
+	fdjt/refdb.js fdjt/json.js fdjt/ajax.js \
 	fdjt/hash.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/completions.js fdjt/taphold.js fdjt/selecting.js \
 	fdjt/adjustfont.js fdjt/scrollever.js \
