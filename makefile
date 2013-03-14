@@ -8,7 +8,7 @@ CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
 	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
-	fdjt/refdb.js fdjt/json.js fdjt/ajax.js \
+	fdjt/json.js fdjt/refdb.js fdjt/ajax.js \
 	fdjt/hash.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/completions.js fdjt/taphold.js fdjt/selecting.js \
 	fdjt/adjustfont.js fdjt/scrollever.js \
@@ -55,6 +55,9 @@ SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css \
 	${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
+
+%.hint: %.js
+	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} $^ | tee $@; fi
 
 codex/text/%.js: codex/text/%.html makefile
 	./text2js Codex.HTML.`basename $@ .js` $< $@
@@ -104,7 +107,7 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 sbooks/tieoff.js:
 	touch sbooks/tieoff.js
-sbooks/codex.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
+sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
 	cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
