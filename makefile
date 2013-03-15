@@ -1,41 +1,56 @@
-# This generates various compound files automatically
+# This automatically generates various compound files for beingmeta
+# web applications
 
 # We define this because some versions of make (like on OSX) seem to
 # have a built-in version of echo which doesn't handle the -n argument
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
+	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
-	fdjt/kb.js fdjt/json.js fdjt/hash.js fdjt/wsn.js \
-	fdjt/ui.js fdjt/taphold.js fdjt/selecting.js \
-	fdjt/scrollever.js fdjt/adjustfont.js \
-	fdjt/completions.js fdjt/syze.js fdjt/iscroll.js \
-	fdjt/ajax.js fdjt/globals.js
+	fdjt/json.js fdjt/refdb.js fdjt/ajax.js \
+	fdjt/hash.js fdjt/wsn.js \
+	fdjt/ui.js fdjt/completions.js fdjt/taphold.js fdjt/selecting.js \
+	fdjt/adjustfont.js fdjt/scrollever.js \
+	fdjt/globals.js
+FDJT_HINTS=fdjt/string.hint fdjt/time.hint \
+	fdjt/syze.hint fdjt/iscroll.hint fdjt/indexed.hint \
+	fdjt/log.hint fdjt/init.hint fdjt/state.hint fdjt/dom.hint \
+	fdjt/refdb.hint fdjt/json.hint fdjt/ajax.hint \
+	fdjt/hash.hint fdjt/wsn.hint \
+	fdjt/ui.hint fdjt/completions.hint fdjt/taphold.hint fdjt/selecting.hint \
+	fdjt/adjustfont.hint fdjt/scrollever.hint
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
+BRANCH=master
 
 FDJT_CSS=fdjt/fdjt.css
-KNODULES_FILES=knodules/knodules.js knodules/query.js \
-	knodules/html.js # knodules/clouds.js 
+KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules/clouds.js 
+KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
-	codex/hud.js codex/interaction.js                   \
-	codex/toc.js codex/slices.js codex/social.js        \
-	codex/search.js codex/glosses.js                    \
-	codex/layout.js codex/autoload.js
+	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
+	codex/social.js codex/search.js codex/glosses.js \
+	 codex/interaction.js codex/layout.js codex/autoload.js
+CODEX_HINTS=codex/core.hint codex/startup.hint codex/domscan.hint \
+	codex/hud.hint codex/toc.hint codex/slices.hint codex/clouds.hint \
+	codex/social.hint codex/search.hint codex/glosses.hint \
+	 codex/interaction.hint codex/layout.hint
 CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 	            codex/text/hud.js codex/text/heart.js  \
 	            codex/text/help.js codex/text/hudhelp.js     \
 		    codex/text/console.js codex/text/messages.js     \
-		    codex/text/settings.js codex/text/splash.js
+		    codex/text/settings.js codex/text/splash.js \
+		    codex/text/pageleft.js codex/text/pageright.js
 
 CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
 	codex/text/console.html codex/text/searchbox.html \
 	codex/text/addgloss.html codex/text/settings.html \
-	codex/text/splash.html
-CODEX_CSS=codex/css/toc.css codex/css/slices.css \
+	codex/text/splash.html codex/text/pageleft.html \
+	codex/text/pageright.html
+CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/card.css codex/css/search.css  \
 	codex/css/addgloss.css codex/css/help.css    \
 	codex/css/flyleaf.css codex/css/hud.css  \
@@ -52,15 +67,40 @@ SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css \
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
+knodules/%.hint: knodules/%.js
+	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config knodules/.jshintrc $< | tee $@; fi
+codex/%.hint: codex/%.js
+	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config codex/.jshintrc $< | tee $@; fi
+%.hint: %.js
+	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} $^ | tee $@; fi
+
 codex/text/%.js: codex/text/%.html makefile
 	./text2js Codex.HTML.`basename $@ .js` $< $@
 
-all: allcode alltags index.html
+all: allcode alltags allhints index.html
 allcode: fdjt knodules codex \
-	fdjt/fdjt.js knotes/ok.js \
+	fdjt/fdjt.js \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
 	sbooks/codex.min.js.gz
+
+allhints: fdjt/fdjt.hints codex/codex.hints knodules/knodules.hints
+
+cleanhints:
+	rm -f fdjt/*.hint fdjt/fdjt.hints codex/*.hint codex/codex.hints
+	rm -f knodules/*.hint knodules/knodules.hints sbooks/*.hint sbooks/sbooks.hints
+
+hints:
+	make cleanhints
+	make allhints
+
+
+fdjt/fdjt.hints: $(FDJT_HINTS)
+	cd fdjt; make fdjt.hints
+codex/codex.hints: $(CODEX_HINTS)
+	cat $^ > $@
+knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
+	cat $^ > $@
 
 # GIT rules
 fdjt:
@@ -71,13 +111,15 @@ codex:
 	git clone git@github.com:beingmeta/codex.git
 g:
 	svn checkout https://dev.beingmeta.com/src/graphics/targets g
+ext:
+	cd ext; make 
 
 clean:
-	cd fdjt; make clean;
-	cd codex; \
-		rm -f ${CODEX_DERIVED_FILES}
-		rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
-		rm -f sbooks/codex.js sbooks/codex.css
+	cd fdjt; make clean
+	make cleanhints
+	rm -f ${CODEX_DERIVED_FILES}
+	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
+	rm -f sbooks/codex.js sbooks/codex.css
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
@@ -98,7 +140,7 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 sbooks/tieoff.js:
 	touch sbooks/tieoff.js
-sbooks/codex.js: sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
+sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
 	cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
@@ -140,6 +182,9 @@ fdjt/TAGS:
 
 jsmin/jsmin: jsmin/jsmin.c
 	${CC} -o jsmin/jsmin jsmin/jsmin.c
+
+checkout:
+	git checkout ${BRANCH}; cd fdjt; git checkout ${BRANCH}; cd ../codex; git checkout ${BRANCH}; cd ../knodules; git checkout ${BRANCH}
 
 diff:
 	git diff;
