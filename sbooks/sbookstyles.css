@@ -37,8 +37,12 @@ body.sbook div#CODEXCONTENT {
 body.sbook a { text-decoration: none;}
 body.sbook a:hover { text-decoration: underline;}
 
-body.sbook #CODEXPAGE p, body.sbook #CODEXPAGE li {max-width: 40em;}
-body.sbook #CODEXCONTENT p, body.sbook #CODEXCONTENT li {max-width: 40em;}
+body.sbook.loveabook #CODEXPAGE p,
+body.sbook.loveabook #CODEXPAGE li {
+    max-width: 40em;}
+body.sbook.forty #CODEXPAGE p,
+body.sbook.forty #CODEXPAGE li {
+    max-width: 38em;}
 
 body.sbook.forty div#CODEXPAGE { max-width: 40em;}
 
@@ -50,9 +54,9 @@ body.sbook.fifty #CODEXCONTENT p, body.sbook.fifty #CODEXCONTENT li {
 
 body.sbook.thirty div#CODEXPAGE { max-width: 30em;}
 body.sbook.thirty #CODEXPAGE p, body.sbook.thirty #CODEXPAGE li {
-    max-width: 38em;}
+    max-width: 29em;}
 body.sbook.thirty #CODEXCONTENT p, body.sbook.thirty #CODEXCONTENT li {
-    max-width: 38em;}
+    max-width: 29em;}
 
 /* Layout classes */
 
