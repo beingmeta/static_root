@@ -102,15 +102,9 @@ hr.divider {
     text-align: center; height: 7px; width: 50%;
     margin-left: 25%; margin-right: 25%;
     color: gray; background-color: gray;}
-body.sbook h1 {
-    page-break-before: always;}
-body.sbook hgroup {
-    page-break-before: always;}
-body.sbook hgroup h1 {
-    page-break-before: auto;}
 body.sbook div.sbookfullpage h1 {
     page-break-before: avoid;}
-body.sbook h1 img, body.sbook .titlepage img {
+body.sbook .titlepage img {
     display: block; clear: both;
     margin-left: auto; margin-right: auto;
     margin-top: 1em; margin-bottom: 1em;}
