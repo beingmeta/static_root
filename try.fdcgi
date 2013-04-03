@@ -1,0 +1,32 @@
+;;; -*- Mode: Scheme; -*-
+
+(use-module '{fdweb xhtml texttools xhtml/tableout bugjar})
+
+(config! 'bugjar "/tmp/bugs/")
+(config! 'bugjar "http://static.beingmeta.com/bugs/")
+
+(define (main)
+  (title! "Trying")
+  (h1 "Testing")
+  (req/call showsquares))
+
+(define (showsquares (n 10))
+  (table* ((class "fdjt"))
+    (dotimes (i (getnum n)) (tr (th i) (td (* i i))))))
+
+(define (getnum arg) (+ arg 5))
+
+(define (errorpage (error #f) (n #f))
+  (req/set! 'content-type "text/html; charset=utf-8")
+  (title! "Unexpected problem!")
+  (h1 "Whoops!")
+  (p "Sorry, our computer has gotten confused somehow.")
+  (when n (p "The argument passed for N was " (write n)))
+  (when error
+    (let* ((bugid (getuuid))
+	   (bugurl (bugjar! bugid error)))
+      (p "The error was " (error-condition error) " with UUID " bugid)
+      (p "You can see a full report "
+	(anchor* bugurl ((target "_blank")) "here")))))
+
+;;(define errorpage "/appinfo.fdcgi")
