@@ -28,6 +28,19 @@ function checkLogin(evt){
             alert("You need to agree to the terms and conditions!");
             fdjt.UI.cancel(evt);}}}
 
+function showPasswords(flag)
+{
+    if (typeof flag === "string") {
+        var checkbox=fdjt.ID(flag);
+        if (checkbox) flag=checkbox.checked;
+        else flag=false;}
+    var inputs=fdjt.DOM.$("INPUT.passwordfield");
+    var i=0, lim=inputs.length;
+    while (i<lim) {
+        if (flag) inputs[i++].type="TEXT";
+        else inputs[i++].type="PASSWORD";}
+}
+
 function sendLoginCode(evt) {
     evt=evt||event;
     var target=fdjt.UI.T(evt);
