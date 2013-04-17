@@ -94,6 +94,8 @@ table.login tr.blockbreak th {
     border-top: solid transparent 12px;
     border-bottom: solid silver 7px;}
 
+div.loginform a:visited { color: blue; }
+
 div.loginform form tr.password, div.loginform form tr.logincode {
     display: none;}
 div.loginform form tbody.registration { display: none; }
