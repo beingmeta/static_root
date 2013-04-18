@@ -19,6 +19,11 @@
   (div ((id "APPVERSION")))
   (h2 "userAgent (from DOM/JS)")
   (div ((id "USERAGENT")))
+  (h2 "Geometry (from DOM/JS)")
+  (p "Window inner=" (span ((id "WIW")) "?") "x" (span ((id "WIH")) "?")
+    ", outer="  (span ((id "WOW")) "?") "x" (span ((id "WOH")) "?")
+    ", doc client=" (span ((id "DCW")) "?") "x" (span ((id "DCH")) "?") ","
+    " offset=" (span ((id "DOW")) "?") "x" (span ((id "DOH")) "?"))
   (h2 "Args")
   (if (bound? name)
       (p "NAME is " name " or also " (req/call showname))
@@ -51,7 +56,20 @@
   (xmlblock "SCRIPT" ((language "javascript"))
     "\n"
     (xhtml "document.getElementById('APPVERSION').innerHTML=navigator.appVersion;\n")
-    (xhtml "document.getElementById('USERAGENT').innerHTML=navigator.userAgent;\n")))
+    (xhtml "document.getElementById('USERAGENT').innerHTML=navigator.userAgent;\n")
+    (xhtml
+      "function updateGeometry(){\n\t\
+           document.getElementById ('WIW').innerHTML=window.innerWidth.toString();\n\t\
+           document.getElementById ('WIH').innerHTML=window.innerHeight.toString();\n\t\
+           document.getElementById ('WOW').innerHTML=window.outerWidth.toString();\n\t\
+           document.getElementById ('WOH').innerHTML=window.outerHeight.toString();\n\t\
+           var docelt=document.documentElement; if (docelt) { \n\t\t\
+           document.getElementById ('DCW').innerHTML=docelt.clientWidth.toString();\n\t\t\
+           document.getElementById ('DCH').innerHTML=docelt.clientHeight.toString();\n\t\t\
+           document.getElementById ('DOW').innerHTML=docelt.offsetWidth.toString();\n\t\t\
+           document.getElementById ('DOH').innerHTML=docelt.offsetHeight.toString();}\n\t\}\n\
+       window.onload=updateGeometry;
+       window.onresize=updateGeometry;\n")))
 
 (define (output-table table)
   (table* ((class "fdjtdata"))
