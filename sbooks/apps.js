@@ -29,22 +29,24 @@ function bookTabToggle(evt)
 
 function favoritesToggle(evt,refuri)
 {
-  evt=evt||event;
-  var target=fdjt.UI.T(evt);
-  if (!(fdjt.DOM.hasClass(target,"starred")))
-    target=fdjt.DOM.getParent(target,".starred");
-  if (!(target)) return;
-  var book=fdjt.DOM.getParent(target,"tbody.book");
-  if (!(book)) return;
-  var refuri=book.getAttribute('data-uri');
-  var favored=fdjt.DOM.hasClass(target,'favorite');
-  fdjt.Ajax.jsonCall(function(newval){
-      if (newval==true) fdjt.DOM.addClass(target,'favorite');
-      else if (!(newval))
-        fdjt.DOM.dropClass(target,'favorite');
-      else fdjt.Log.warn("Odd result from favorites API call");},
-    "https://auth.sbooks.net/admin/favorites",
-    ((favored)?("drop"):("add")),refuri);
+    evt=evt||event;
+    var target=fdjt.UI.T(evt);
+    if (!(fdjt.DOM.hasClass(target,"starred")))
+        target=fdjt.DOM.getParent(target,".starred");
+    if (!(target)) return;
+    var book=fdjt.DOM.getParent(target,".book");
+    if (!(book)) return;
+    var refuri=book.getAttribute('data-refuri');
+    var favored=fdjt.DOM.hasClass(target,'favorite');
+    var update=evt.shiftKey||((evt.touches)&&(evt.touches.length>1));
+    fdjt.Ajax.jsonCall(function(newval){
+        if (newval==true) fdjt.DOM.addClass(target,'favorite');
+        else if (!(newval))
+            fdjt.DOM.dropClass(target,'favorite');
+        else fdjt.Log.warn("Odd result from favorites API call");},
+                       "https://auth.sbooks.net/admin/favorites",
+                       ((update)?("add"):(favored)?("drop"):("add")),
+                       refuri);
 }
 
 function passwordToggle(evt)
