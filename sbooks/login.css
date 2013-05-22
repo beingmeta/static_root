@@ -133,7 +133,7 @@ div.loginform span.sendlogincode {
   display: none;}
 div.loginform form.onetime span.sendlogincode { display: inline;}
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   table.login tr th { font-size: 10px; width: 3em; }
   table.login tr th img[alt="OpenID"] { width: 40px; height: auto;}
   table.login tr td.icon, table.login tr td.button {
