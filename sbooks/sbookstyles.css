@@ -265,10 +265,6 @@ div.poem p.sig, section.poem p.sig {
 /* These are poem titles */
 body.verse h2 { 
   text-align: left;}
-body.verse div.stanza { 
-  page-break-inside: avoid;
-  margin-left: 3em; margin-right: 2em;
-  text-align: left;}
 body.verse div.stanza p { }
 
 p.verse {
@@ -419,6 +415,25 @@ div.sbooktight div, div.sbooktight p {
 .sbooktag { display: none;}
 .sbooktags { display: none;}
 .xdatapagescale { display: none;}
+
+/* Media rules */
+
+@media screen and (min-width: 300px) and (max-width: 500px) {
+    div.poem, section.poem { 
+        margin-left: 3%; margin-right: 2%;
+        /* Setting padding-bottom sometimes avoids blank pages when
+           the poem fits exactly. */
+        padding: 1%; padding-bottom: 0em;
+        border-top: solid gray 3px;}
+    div.stanza { 
+        margin-left: 2%; margin-right: 1%;
+        margin-top: 0px; margin-bottom: 0px;
+        border: transparent solid 1px;
+        padding-top: .75em; padding-bottom: .75em;}
+    div.stanza p {
+        text-align: left; margin-left: 5%;
+        text-indent: -5%; }
+}
 
 /*
 body.essay div.toplinks a {
