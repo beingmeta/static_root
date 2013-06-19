@@ -604,6 +604,23 @@ div.book div.info span.authors, div.book div.info span.publisher {
     font-size: 80%;}
 div.book div.info span.authors { font-style: italic; }
 
+/* Opt loading */
+
+tr.optload button.uploadcancel { float: right; display: none; color: red;}
+tr.optload.uploading button.uploadcancel { display: inline;}
+tr.optload button.uploading { display: none;}
+tr.optload.uploading button.uploading { display: inline;}
+tr.optload.uploading button.notuploading { display: none;}
+
+tr.optload input[TYPE='FILE'], tr.optload button.uploadaction { display: none;}
+
+tr.optload.uploading input[TYPE='FILE'],
+tr.optload.uploading button.uploadaction {
+    display: inline;}
+tr.optload.uploading input[TYPE='TEXT'],
+tr.optload.uploading button.uploadtoggle {
+    display: none;}
+tr.optload.uploading button.uploadaction { color: green; font-weight: bold; }
 
 /* Emacs local variables
 ;;;  Local variables: ***
