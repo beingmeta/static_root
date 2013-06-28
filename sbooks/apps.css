@@ -152,7 +152,16 @@ table.preferences input[TYPE='TEXT'][NAME='NEWOPENID'] {
   background-position: right;
   background-repeat: no-repeat;}
 table.preferences img[ALT='OpenID'] {
-  height: 50px;}
+    height: 25px; width: auto;}
+
+tr.password td a.setpass {
+    float: right;
+    font-size: 80%; font-variant: small-caps;
+    text-decoration: none;}
+tr.password td a.setpass:visited { color: blue;}
+
+table.preferences .openidblock td { vertical-align: middle;}
+table.preferences .openidblock tr:first-child { cursor: pointer;}
 
 div.appblock#IDENTITYBLOCK form#IDFORM { display: none;}
 div.appblock#IDENTITYBLOCK div.message {
