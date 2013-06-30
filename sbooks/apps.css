@@ -146,7 +146,14 @@ table.preferences td textarea {
   width: 100%; height: 60px;}
 table.preferences td textarea:focus { 
   width: 100%; height: 120px;}
-table.preferences img#MYPIC, table.preferences img.userpic { height: 50px;}
+table.preferences img.imagevalue {
+    height: 50px; width: auto;}
+table.preferences a img.imagevalue { border: solid lightblue 2px;}
+table.preferences a img.imagevalue:hover { border: solid blue 2px;}
+table.preferences th.picture img { height: 50px; width: auto;}
+table.preferences th.picture:hover { overflow: visible; }
+table.preferences th.picture img:hover {
+    height: inherit;}
 table.preferences input[TYPE='TEXT'][NAME='NEWOPENID'] {
   background-image: url(http://static.beingmeta.com/g/sbooks/openidlogo16x16.gif);
   background-position: right;
