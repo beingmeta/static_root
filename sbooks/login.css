@@ -94,44 +94,101 @@ table.login tr.blockbreak th {
     border-top: solid transparent 12px;
     border-bottom: solid silver 7px;}
 
-div.loginform a:visited { color: blue; }
+.loginform a:visited { color: blue; }
 
-div.loginform form tr.password, div.loginform form tr.logincode {
+.loginform form tr.password, .loginform form tr.logincode {
     display: none;}
-div.loginform form tbody.registration { display: none; }
-div.loginform form.password tr.password { display: table-row;}
-div.loginform form.onetime tr.logincode { display: table-row;}
-div.loginform form.register tbody.registration { display: table-row-group;}
-div.loginform form.register tr.logincode { display: table-row;}
-div.loginform form
+.loginform form tbody.registration { display: none; }
+.loginform form.password tr.password { display: table-row;}
+.loginform form.onetime tr.logincode { display: table-row;}
+.loginform form.register tbody.registration { display: table-row-group;}
+.loginform form.register tr.logincode { display: table-row;}
+.loginform form
    input[type="SUBMIT"][name="ACTION"][value="Register"] {
   display: none;}
-div.loginform form.register
+.loginform form.register
    input[type="SUBMIT"][name="ACTION"][value="Register"] {
        display: inline;}
-div.loginform form.register
+.loginform form.register
    input[type="SUBMIT"][name="ACTION"][value="Login"] {
        display: none;}
 
-div.loginform .message {
+.loginform .message {
     color: black; font-weight: normal;}
-div.loginform p.message {
+.loginform p.message {
     max-width: 45em;
     margin-left: 15%; text-indent: -5%; margin-right: 15%;}
-div.loginform form td.message {
+.loginform form td.message {
     font-weight: bold; font-size: 130%; color: red;}
-div.loginform form tr.loginoptions a {display: none;}
-div.loginform form.password tr.loginoptions a#SBOOKLOSTPASSWORD {
+.loginform form tr.loginoptions a {display: none;}
+.loginform form.password tr.loginoptions a#SBOOKLOSTPASSWORD {
     display: inline;}
 
-div.loginform form tr.loginoptions div#SBOOKSETPASSWORD { display: none; }
-div.loginform form.onetime tr.loginoptions div#SBOOKSETPASSWORD {
+.loginform form tr.loginoptions div#SBOOKSETPASSWORD { display: none; }
+.loginform form.onetime tr.loginoptions div#SBOOKSETPASSWORD {
     display: block;}
 
-div.loginform span.sendlogincode {
-  font-size: 0.5em; color: blue; margin-top: 0px; cursor: pointer;
-  display: none;}
-div.loginform form.onetime span.sendlogincode { display: inline;}
+.loginform span.sendlogincode {
+    color: blue; margin-top: 0px; cursor: pointer;
+    display: none;}
+.loginform form.onetime span.sendlogincode { display: inline;}
+
+.loginform { margin-left: 10%; margin-right: 10%; text-align: center;}
+.loginform div.input {
+    text-align: left;}
+.loginform div.input input[TYPE="TEXT"], .loginform div.input input[TYPE="PASSWORD"] {
+    font-size: 120%; text-align: left;
+    min-width: 20em; width: 80%;
+    margin-left: 10%; margin-right: 0px;}
+.loginform div.checkboxes {
+    min-height: 1em; width: 80%;
+    margin-left: 10%; margin-right: 0px;}
+.loginform div.checkboxes img { vertical-align: bottom;}
+.loginform div.buttons {
+    margin-top: 1ex; vertical-align: bottom;
+    text-align: center;}
+.loginform div.buttons button { height: 50px; width: auto;}
+
+.loginform form button[VALUE="LOGIN"],
+.loginform form button[VALUE="REGISTER"] {
+    float: right; display: none;}
+.loginform form.onetime button[VALUE="LOGIN"],
+.loginform form.password button[VALUE="LOGIN"],
+.loginform form.register button[VALUE="REGISTER"] {
+    display: inline;}
+
+.loginform form div.password,
+.loginform form div.logincode,
+.loginform form div.registration {
+    display: none;}
+
+.loginform form.register div.buttons,
+.loginform form.onetime div.buttons,
+.loginform form.password div.buttons {
+    display: none;}
+.loginform form.password div.password,
+.loginform form.onetime div.logincode,
+.loginform form.register div.logincode {
+    display: block;}
+.loginform form.register div.registration { display: block;}
+.loginform form div.registration tr.upload span.checkspan {
+    display: none; white-space: nowrap;}
+.loginform form div.registration tr.upload.uploading span.checkspan {
+    display: inline;}
+.loginform form div.registration p {
+    text-align: left; max-width: 35em;}
+.loginform form div.registration p.terms {
+    margin-left: 1em; text-indent: -1em;}
+
+.loginform form div.buttons > div {
+    margin-bottom: 1ex;}
+.loginform form div.buttons button {
+    vertical-align: bottom;}
+
+.loginform table.fdjtform { width: 100%;}
+
+.loginform form div.registration table td textarea {
+    height: 8em;}
 
 @media (max-width: 700px) {
   table.login tr th { font-size: 10px; width: 3em; }
