@@ -117,7 +117,7 @@ table.login tr.blockbreak th {
     color: black; font-weight: normal;}
 .loginform p.message {
     max-width: 45em;
-    margin-left: 15%; text-indent: -5%; margin-right: 15%;}
+    margin-left: 15%; margin-right: 15%;}
 .loginform form td.message {
     font-weight: bold; font-size: 130%; color: red;}
 .loginform form tr.loginoptions a {display: none;}
@@ -131,17 +131,20 @@ table.login tr.blockbreak th {
 .loginform span.sendlogincode {
     color: blue; margin-top: 0px; cursor: pointer;
     display: none;}
-.loginform form.onetime span.sendlogincode { display: inline;}
+.loginform form.onetime span.sendlogincode,
+.loginform form.register span.sendlogincode {
+  display: inline;}
 
 .loginform { margin-left: 10%; margin-right: 10%; text-align: center;}
 .loginform div.input {
     text-align: left;}
-.loginform div.input input[TYPE="TEXT"], .loginform div.input input[TYPE="PASSWORD"] {
+.loginform div.input input[TYPE="TEXT"],
+.loginform div.input input[TYPE="PASSWORD"] {
     font-size: 120%; text-align: left;
-    min-width: 20em; width: 80%;
+    min-width: 20em; width: 75%;
     margin-left: 10%; margin-right: 0px;}
 .loginform div.checkboxes {
-    min-height: 1em; width: 80%;
+    min-height: 1em; width: 75%;
     margin-left: 10%; margin-right: 0px;}
 .loginform div.checkboxes img { vertical-align: bottom;}
 .loginform div.buttons {
@@ -176,7 +179,7 @@ table.login tr.blockbreak th {
 .loginform form div.registration tr.upload.uploading span.checkspan {
     display: inline;}
 .loginform form div.registration p {
-    text-align: left; max-width: 35em;}
+    text-align: left; max-width: 40em;}
 .loginform form div.registration p.terms {
     margin-left: 1em; text-indent: -1em;}
 

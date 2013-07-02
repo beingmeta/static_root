@@ -45,7 +45,7 @@ function sendLoginCode(evt) {
     evt=evt||event;
     var target=fdjt.UI.T(evt);
     var form=fdjt.DOM.getParent(target,'form');
-    var emails=fdjt.DOM.getInputValues(form,'USERNAME');
+    var emails=fdjt.DOM.getInputValues(form,'LOGIN');
     fdjt.Ajax(function(req){
         if (req.responseText) alert(req.responseText);},
              "https://auth.sbooks.net/admin/sendlogin",
