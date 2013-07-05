@@ -61,7 +61,6 @@ function updateResetLink() {
 
 fdjt.addInit(updateResetLink,"updateresetlink");
         
-
 /* Emacs local variables
    ;;;  Local variables: ***
    ;;;  indent-tabs-mode: nil ***

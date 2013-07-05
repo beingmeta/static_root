@@ -193,16 +193,6 @@ table.login tr.blockbreak th {
 .loginform form div.registration table td textarea {
     height: 8em;}
 
-input[TYPE='TEXT'][NAME='LOGIN'], input[TYPE='EMAIL'][NAME='LOGIN'],
-input[TYPE='TEXT'][NAME='EMAIL'], input[TYPE='EMAIL'][NAME='EMAIL'] {
-    background-image: url(/static/g/sbooks/emailaddr_bg100w.png);
-    background-repeat: no-repeat;
-    background-size: auto 100%;
-    background-position: right;}
-body.USESVG input[TYPE='TEXT'][NAME='LOGIN'], body.USESVG input[TYPE='EMAIL'][NAME='LOGIN'],
-body.USESVG input[TYPE='TEXT'][NAME='EMAIL'], body.USESVG input[TYPE='EMAIL'][NAME='EMAIL'] {
-    background-image: url(/static/g/sbooks/emailaddr_bg.svgz);}
-
 @media (max-width: 700px) {
   table.login tr th { font-size: 10px; width: 3em; }
   table.login tr th img[alt="OpenID"] { width: 40px; height: auto;}

@@ -638,16 +638,6 @@ tr.optload.uploading button.uploadtoggle {
     display: none;}
 tr.optload.uploading button.uploadaction { color: green; font-weight: bold; }
 
-input[TYPE='TEXT'][NAME='LOGIN'], input[TYPE='EMAIL'][NAME='LOGIN'],
-input[TYPE='TEXT'][NAME='EMAIL'], input[TYPE='EMAIL'][NAME='EMAIL'] {
-    background-image: url(/static/g/sbooks/emailaddr_bg100w.png);
-    background-repeat: no-repeat;
-    background-size: auto 100%;
-    background-position: right;}
-body.USESVG input[TYPE='TEXT'][NAME='LOGIN'], body.USESVG input[TYPE='EMAIL'][NAME='LOGIN'],
-body.USESVG input[TYPE='TEXT'][NAME='EMAIL'], body.USESVG input[TYPE='EMAIL'][NAME='EMAIL'] {
-    background-image: url(/static/g/sbooks/emailaddr_bg.svgz);}
-
 /* Emacs local variables
 ;;;  Local variables: ***
 ;;;  indent-tabs-mode: nil ***
