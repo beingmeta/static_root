@@ -139,6 +139,7 @@ table.login tr.blockbreak th {
 .loginform div.input {
     text-align: left;}
 .loginform div.input input[TYPE="TEXT"],
+.loginform div.input input[TYPE="EMAIL"],
 .loginform div.input input[TYPE="PASSWORD"] {
     font-size: 120%; text-align: left;
     min-width: 20em; width: 75%;
