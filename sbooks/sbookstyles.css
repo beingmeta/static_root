@@ -366,6 +366,31 @@ a.blockimage {
 a.blockimage img { border: none; width: 100%;}
 img.blockimage { border: none; width: 100%;}
 
+/* Image pages */
+
+div.sbookimagepage {
+    text-align: center; vertical-align: top;}
+
+div.sbookimagepage img {
+    display: block; max-width: 100%; vertical-align: top; width: auto;
+    max-height: 90%;}
+div.sbookimagepage div.caption, div.sbookimagepage caption {
+    display: block; width: 80%; margin-left: 10%; margin-right: 10%;
+    text-align: left;
+    height: 10%;}
+div.sbookimagepage0 img {max-height: 100%;}    
+div.sbookimagepage0 div.caption, div.sbookimagepage0 caption {
+    height: 0px;}
+div.sbookimagepage20 img {max-height: 80%;}    
+div.sbookimagepage20 div.caption, div.sbookimagepage20 caption {
+    height: 20%;}
+div.sbookimagepage30 img {max-height: 70%;}    
+div.sbookimagepage30 div.caption, div.sbookimagepage30 caption {
+    height: 30%;}
+div.sbookimagepage50 img {max-height: 70%;}    
+div.sbookimagepage50 div.caption, div.sbookimagepage50 caption {
+    height: 50%;}
+
 /* Styles for raw sbooks (converted from text) */
 
 body.rawsbook div#CODEXCONTENT {
