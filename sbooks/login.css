@@ -151,7 +151,13 @@ table.login tr.blockbreak th {
 .loginform div.buttons {
     margin-top: 1ex; vertical-align: bottom;
     text-align: center;}
-.loginform div.buttons button { height: 50px; width: auto;}
+.loginform div.buttons button {
+    padding: 2px; border: 0px;
+    background-color: transparent;
+    height: 64px;
+    width: 64px;}
+.loginform div.buttons button img {
+    height: 100%; width: auto;}
 
 .loginform form button[VALUE="LOGIN"],
 .loginform form button[VALUE="REGISTER"] {
