@@ -144,6 +144,10 @@ table.login tr.blockbreak th {
     font-size: 120%; text-align: left;
     min-width: 20em; width: 75%;
     margin-left: 10%; margin-right: 0px;}
+.loginform div.head {
+    text-align: center; font-size: 150%; font-weight: bold;
+    width: 75%; margin-left: 10%; margin-right: 0px;
+    padding-bottom: 1ex;}
 .loginform div.checkboxes {
     min-height: 1em; width: 75%;
     margin-left: 10%; margin-right: 0px;}
