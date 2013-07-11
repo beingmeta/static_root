@@ -29,6 +29,7 @@ FDJT_CSS=fdjt/fdjt.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules/clouds.js 
 KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
+PAGEDOWN_FILES=pagedown/Markdown.Converter.js
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
@@ -61,7 +62,7 @@ SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
 LOGIN_CSS=sbooks/login.css
 
 SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
-	${CODEX_FILES} ${CODEX_DERIVED_FILES}
+	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
 SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css \
 	${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
@@ -111,6 +112,8 @@ codex:
 	git clone git@github.com:beingmeta/codex.git
 g:
 	svn checkout https://dev.beingmeta.com/src/graphics/targets g
+pagedown:
+	hg clone https://code.google.com/p/pagedown/
 ext:
 	cd ext; make 
 
@@ -198,11 +201,12 @@ status:
 	cd knodules; git status -uno
 	cd codex; git status -uno
 	cd g; svn status -q
-update: fdjt codex knodules g
+update: fdjt codex knodules g pagedown
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+	cd pagedown; hg update
 	cd g; svn update
 	make update-graphics
 update-code: fdjt codex knodules
