@@ -1,10 +1,15 @@
 ;;; -*- Mode: Scheme; -*-
 
-(use-module '{fdweb xhtml texttools xhtml/tableout})
+(use-module '{fdweb xhtml texttools optimize logger})
+
+(config! 'traceweb #f)
 
 (define (main (name) (cookiename #f) (cookieval "set")
-	      (dropcookie {}) (filedata #f))
+	      (dropcookie {}) (filedata #f)
+	      (start (timestamp))
+	      (profile #f))
   ;; (+ 2 "two")
+  (when profile (config! 'calltrack profile))
   (when (and cookiename (not (empty-string? cookiename)))
     (req/add! 'cookiedata
       (vector (string->symbol (upcase cookiename)) cookieval))
@@ -69,7 +74,9 @@
            document.getElementById ('DOW').innerHTML=docelt.offsetWidth.toString();\n\t\t\
            document.getElementById ('DOH').innerHTML=docelt.offsetHeight.toString();}\n\t\}\n\
        window.onload=updateGeometry;
-       window.onresize=updateGeometry;\n")))
+       window.onresize=updateGeometry;\n"))
+  (when profile (config! 'calltrack #f))
+  (%watch (difftime start)))
 
 (define (output-table table)
   (table* ((class "fdjtdata"))
@@ -111,3 +118,6 @@
 
 (define (showname (name #f))
   (span ((class "showname")) name))
+
+(optimize!)
+
