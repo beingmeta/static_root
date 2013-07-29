@@ -110,6 +110,8 @@ knodules:
 	git clone git@github.com:beingmeta/knodules_js.git knodules
 codex:
 	git clone git@github.com:beingmeta/codex.git
+showsomeclass:
+	git clone git@github.com:beingmeta/showsomeclass.git
 g:
 	svn checkout https://dev.beingmeta.com/src/graphics/targets g
 pagedown:
@@ -206,6 +208,7 @@ update: fdjt codex knodules g pagedown
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+	cd showsomeclass; git pull
 	cd pagedown; hg update
 	cd g; svn update
 	make update-graphics
