@@ -203,7 +203,7 @@ status:
 	cd knodules; git status -uno
 	cd codex; git status -uno
 	cd g; svn status -q
-update: fdjt codex knodules g pagedown
+update: fdjt codex knodules g pagedown showsomeclass
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
@@ -223,6 +223,8 @@ update-graphics:
 	cd g/sbooks; rm -f *.square *.sqr *.bnr *.rect; \
 		make GRAPHICS=/src/graphics
 	cd g/beingmeta; rm -f *.square *.sqr *.bnr *.rect; \
+		make GRAPHICS=/src/graphics
+	cd g/showsomeclass; rm -f *.square *.sqr *.bnr *.rect; \
 		make GRAPHICS=/src/graphics
 push: fdjt codex knodules
 	git push

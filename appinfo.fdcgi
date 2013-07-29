@@ -76,7 +76,8 @@
        window.onload=updateGeometry;
        window.onresize=updateGeometry;\n"))
   (when profile (config! 'calltrack #f))
-  (%watch (difftime start)))
+  ;; (%watch (difftime start))
+  )
 
 (define (output-table table)
   (table* ((class "fdjtdata"))
