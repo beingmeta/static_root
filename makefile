@@ -80,7 +80,7 @@ codex/text/%.js: codex/text/%.html makefile
 
 all: allcode alltags allhints index.html
 allcode: fdjt knodules codex \
-	fdjt/fdjt.js \
+	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
 	sbooks/codex.min.js.gz
@@ -102,6 +102,13 @@ codex/codex.hints: $(CODEX_HINTS)
 	cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 	cat $^ > $@
+
+showsomeclass/app.js: showsomeclass/ssc.js showsomeclass/dialog.js \
+	showsomeclass/edit.js
+	cd showsomeclass; make
+showsomeclass/app.css: showsomeclass/ssc.css showsomeclass/dialog.css \
+	showsomeclass/edit.css
+	cd showsomeclass; make
 
 # GIT rules
 fdjt:
@@ -229,6 +236,7 @@ update-graphics:
 		make GRAPHICS=/src/graphics
 	cd g/showsomeclass; rm -f *.square *.sqr *.bnr *.rect; \
 		make GRAPHICS=/src/graphics
+
 push: fdjt codex knodules
 	git push
 	cd fdjt; git push
