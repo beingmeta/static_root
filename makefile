@@ -196,12 +196,14 @@ diff:
 	cd fdjt; git diff
 	cd knodules; git diff
 	cd codex; git diff
+	cd showsomeclass; git diff
 	cd g; svn diff
 status:
 	git status -uno
 	cd fdjt; git status -uno
 	cd knodules; git status -uno
 	cd codex; git status -uno
+	cd showsomeclass; git status -uno
 	cd g; svn status -q
 update: fdjt codex knodules g pagedown showsomeclass
 	git pull
@@ -216,6 +218,7 @@ update-code: fdjt codex knodules
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
+	cd showsomeclass; git pull
 	cd codex; git pull
 update-graphics:
 	cd g/codex; rm -f *.square *.sqr *.bnr *.rect; \
