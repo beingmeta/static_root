@@ -623,9 +623,13 @@ div.book div.info span.authors { font-style: italic; }
 /* Opt loading */
 
 tr.optload button.uploadcancel { float: right; display: none; color: red;}
+tr.optload span.filetype { 
+  font-style: italic; font-weight: normal;
+  display: none; }
 tr.optload.uploading button.uploadcancel { display: inline;}
 tr.optload button.uploading { display: none;}
 tr.optload.uploading button.uploading { display: inline;}
+tr.optload.uploading span.filetype { display: inline;}
 tr.optload.uploading button.notuploading { display: none;}
 
 tr.optload input[TYPE='FILE'], tr.optload button.uploadaction { display: none;}
