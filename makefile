@@ -57,7 +57,8 @@ CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/flyleaf.css codex/css/hud.css  \
 	codex/css/foot.css codex/css/preview.css \
 	codex/css/app.css codex/css/media.css
-SBOOKS_FILES=sbooks/bookstyles.css sbooks/app.css sbooks/app.js \
+SBOOKS_FILES=sbooks/sbooks.css sbooks/resetmeyer.css \
+	sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
@@ -67,6 +68,8 @@ SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css \
 	${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
+
+SBOOKSTYLES=sbooks/sbookstylesheet.css
 
 knodules/%.hint: knodules/%.js
 	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config knodules/.jshintrc $< | tee $@; fi
@@ -95,6 +98,9 @@ hints:
 	make cleanhints
 	make allhints
 
+sbookstyles: ${SBOOKSTYLES}
+sbooks/sbookstylesheet.css: sbooks/sbooks.css sbooks/resetmeyer.css
+	cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_HINTS)
 	cd fdjt; make fdjt.hints
