@@ -57,19 +57,19 @@ CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/flyleaf.css codex/css/hud.css  \
 	codex/css/foot.css codex/css/preview.css \
 	codex/css/app.css codex/css/media.css
-SBOOKS_FILES=sbooks/sbooks.css sbooks/resetmeyer.css \
+SBOOKS_FILES=sbooks/sbooks.css sbooks/reset.css \
 	sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-SBOOKS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
+CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
-SBOOKS_CSS=${FDJT_CSS} fdjt/codexlayout.css \
+CODEX_CSS_BUNDLE=sbooks/reset.css ${FDJT_CSS} fdjt/codexlayout.css \
 	${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
-SBOOKSTYLES=sbooks/sbookstylesheet.css
+SBOOKSTYLES=sbooks/sbookstyles.css
 
 knodules/%.hint: knodules/%.js
 	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config knodules/.jshintrc $< | tee $@; fi
@@ -86,7 +86,8 @@ allcode: fdjt knodules codex \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
-	sbooks/codex.min.js.gz
+	sbooks/codex.min.js.gz \
+	sbooks/sbookstyles.css
 
 allhints: fdjt/fdjt.hints codex/codex.hints knodules/knodules.hints
 
@@ -99,7 +100,7 @@ hints:
 	make allhints
 
 sbookstyles: ${SBOOKSTYLES}
-sbooks/sbookstylesheet.css: sbooks/sbooks.css sbooks/resetmeyer.css
+sbooks/sbookstyles.css: sbooks/sbooks.css sbooks/reset.css
 	cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_HINTS)
@@ -144,27 +145,27 @@ fdjt/fdjt.js: $(FDJT_FILES)
 fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 	cd fdjt; make all
 
-sbooks/buildstamp.js: $(SBOOKS_BUNDLE) $(SBOOKS_CSS)
+sbooks/buildstamp.js: $(CODEX_JS_BUNDLE) $(CODEX_CSS_BUNDLE)
 	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
 	@$(ECHO) >> sbooks/buildstamp.js
 	@echo "Created buildstamp.js"
-codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS) $(CODEX_HTML)
+codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS_BUNDLE) $(CODEX_HTML)
 	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
 knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 
 sbooks/tieoff.js:
 	touch sbooks/tieoff.js
-sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(SBOOKS_BUNDLE) \
+sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
 	cat sbooks/amalgam.js fdjt/buildstamp.js \
-		$(SBOOKS_BUNDLE) sbooks/tieoff.js \
+		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js sbooks/buildstamp.js > $@
-sbooks/codex.css: $(SBOOKS_CSS)
-	cat $(SBOOKS_CSS) > $@
+sbooks/codex.css: $(CODEX_CSS_BUNDLE)
+	cat $(CODEX_CSS_BUNDLE) > $@
 sbooks/codex.min.js: sbooks/codex.js jsmin/jsmin
 	jsmin/jsmin < sbooks/codex.js > sbooks/codex.min.js
 sbooks/codex.min.js.gz: sbooks/codex.min.js
@@ -190,9 +191,9 @@ index.html: etc/index_head.html etc/index_foot.html \
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} \
-	${CODEX_FILES} ${CODEX_CSS} ${CODEX_HTML_FILES}
+	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	etags -o $@ $^
-APPTAGS: ${CODEX_FILES} ${CODEX_CSS} ${KNODULES_FILES} \
+APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
 	etags -o $@ $^
 fdjt/TAGS: 
