@@ -605,6 +605,12 @@ div.bookgrid div.book div.overlay a.readlink {
 div.bookgrid div.book div.overlay a.readlink img {
     max-height: 100%; max-width: 100%;}
 
+div.bookgrid div.book.ishidden {
+  background-color: rgba(0,0,200,0.1);}
+div.bookgrid div.book div.ishidden {
+  font-size: 80%; color: red;
+  margin-top: 1ex; text-align: center;}
+
 div.showmore {
     text-align: center; font-size: 200%;
     clear: both;}
