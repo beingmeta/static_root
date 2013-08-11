@@ -37,6 +37,9 @@ body.sbook div#CODEXCONTENT {
 body.sbook a[href] { text-decoration: none;}
 body.sbook a[href]:hover { text-decoration: underline;}
 
+body.sbook p, body.sbook li, body.sbook dt, body.sbook dd {
+    line-height: 110%;}
+
 body.sbook.loveabook #CODEXPAGE p,
 body.sbook.loveabook #CODEXPAGE li {
     max-width: 40em;}

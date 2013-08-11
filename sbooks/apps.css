@@ -593,6 +593,7 @@ div.bookgrid div.book a.cover img.cover {
 div.bookgrid div.book div.overlay {
     position: relative; width: 100%;
     z-index: 50; opacity: 0.80;
+    text-align: center;
     overlay: visible;}
 div.bookgrid div.book div.overlay span.starred {
     position: absolute; left: 2px; top: 0px;
@@ -605,11 +606,8 @@ div.bookgrid div.book div.overlay a.readlink {
 div.bookgrid div.book div.overlay a.readlink img {
     max-height: 100%; max-width: 100%;}
 
-div.bookgrid div.book.ishidden {
-  background-color: rgba(0,0,200,0.1);}
-div.bookgrid div.book div.ishidden {
-  font-size: 80%; color: red;
-  margin-top: 1ex; text-align: center;}
+div.bookgrid div.book div.status {
+    text-align: center; font-size: 80%; color: red;}
 
 div.showmore {
     text-align: center; font-size: 200%;
