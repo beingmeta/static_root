@@ -57,14 +57,16 @@ CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/flyleaf.css codex/css/hud.css  \
 	codex/css/foot.css codex/css/preview.css \
 	codex/css/app.css codex/css/media.css
-SBOOKS_FILES=sbooks/sbooks.css sbooks/reset.css \
+# removed sbooks/reset.css
+SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/app.css sbooks/app.js \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
 CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
-CODEX_CSS_BUNDLE=sbooks/reset.css ${FDJT_CSS} fdjt/codexlayout.css \
+# removed sbooks/reset.css 
+CODEX_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
 	${LOGIN_CSS} ${KNODULES_CSS} ${CODEX_CSS}
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
@@ -100,7 +102,8 @@ hints:
 	make allhints
 
 sbookstyles: ${SBOOKSTYLES}
-sbooks/sbookstyles.css: sbooks/sbooks.css sbooks/reset.css
+# Removed sbooks/reset.css
+sbooks/sbookstyles.css: sbooks/sbooks.css
 	cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_HINTS)
