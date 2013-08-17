@@ -9,7 +9,7 @@ FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
 	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js \
-	fdjt/hash.js fdjt/wsn.js \
+	fdjt/hash.js fdjt/wsn.js fdjt/template.js \
 	fdjt/ui.js fdjt/completions.js fdjt/taphold.js fdjt/selecting.js \
 	fdjt/adjustfont.js fdjt/scrollever.js \
 	fdjt/globals.js
@@ -17,7 +17,7 @@ FDJT_HINTS=fdjt/string.hint fdjt/time.hint \
 	fdjt/syze.hint fdjt/iscroll.hint fdjt/indexed.hint \
 	fdjt/log.hint fdjt/init.hint fdjt/state.hint fdjt/dom.hint \
 	fdjt/refdb.hint fdjt/json.hint fdjt/ajax.hint \
-	fdjt/hash.hint fdjt/wsn.hint \
+	fdjt/hash.hint fdjt/wsn.hint fdjt/template.hint \
 	fdjt/ui.hint fdjt/completions.hint fdjt/taphold.hint fdjt/selecting.hint \
 	fdjt/adjustfont.hint fdjt/scrollever.hint
 BUILDUUID:=`uuidgen`
