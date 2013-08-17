@@ -161,7 +161,7 @@ table.login tr.blockbreak th {
     height: 64px;
     width: 64px;}
 .loginform div.buttons button img {
-    height: 100%; width: auto;}
+    height: 64px; width: auto;}
 
 .loginform form button[VALUE="LOGIN"],
 .loginform form button[VALUE="REGISTER"] {
