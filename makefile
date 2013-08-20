@@ -25,7 +25,7 @@ BUILDTIME:=`date`
 BUILDHOST:=`hostname`
 BRANCH=master
 
-FDJT_CSS=fdjt/fdjt.css
+FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules/clouds.js 
 KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
