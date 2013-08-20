@@ -5,12 +5,13 @@
 # have a built-in version of echo which doesn't handle the -n argument
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
-FDJT_FILES=fdjt/header.js fdjt/string.js fdjt/time.js \
+FDJT_FILES=fdjt/header.js \
+	fdjt/string.js fdjt/time.js fdjt/template.js fdjt/hash.js \
 	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
-	fdjt/json.js fdjt/refdb.js fdjt/ajax.js \
-	fdjt/hash.js fdjt/wsn.js fdjt/template.js \
-	fdjt/ui.js fdjt/completions.js fdjt/taphold.js fdjt/selecting.js \
+	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
+	fdjt/dialog.js fdjt/ui.js fdjt/completions.js \
+	fdjt/taphold.js fdjt/selecting.js \
 	fdjt/adjustfont.js fdjt/scrollever.js \
 	fdjt/globals.js
 FDJT_HINTS=fdjt/string.hint fdjt/time.hint \
@@ -18,7 +19,8 @@ FDJT_HINTS=fdjt/string.hint fdjt/time.hint \
 	fdjt/log.hint fdjt/init.hint fdjt/state.hint fdjt/dom.hint \
 	fdjt/refdb.hint fdjt/json.hint fdjt/ajax.hint \
 	fdjt/hash.hint fdjt/wsn.hint fdjt/template.hint \
-	fdjt/ui.hint fdjt/completions.hint fdjt/taphold.hint fdjt/selecting.hint \
+	fdjt/dialog.hint fdjt/ui.hint fdjt/completions.hint \
+	fdjt/taphold.hint fdjt/selecting.hint \
 	fdjt/adjustfont.hint fdjt/scrollever.hint
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
@@ -103,7 +105,7 @@ hints:
 
 sbookstyles: ${SBOOKSTYLES}
 # Removed sbooks/reset.css
-sbooks/sbookstyles.css: sbooks/sbooks.css
+sbooks/sbookstyles.css: sbooks/normalize.css sbooks/sbooks.css
 	cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_HINTS)
