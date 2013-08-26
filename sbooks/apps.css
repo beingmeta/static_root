@@ -578,7 +578,7 @@ p.preamble { margin-left: 10%; max-width: 40em; font-size: 150%;}
 /* New book layout */
 
 div.bookgrid {
-    width: 80%; margin-left: 10%; margin-right: 10%;
+    width: 94%; margin-left: 3%; margin-right: 3%;
     margin-top: 1em;}
 div.bookgrid div.book {
     text-align: center; vertical-align: top;
@@ -586,7 +586,7 @@ div.bookgrid div.book {
 div.bookgrid div.book {
     width: 150px; height: 250px;
     border: 0px; border-top: solid black 1px; padding-top: 3px;
-    margin-right: 50px; margin-bottom: 15px;
+    margin-left: 50px; margin-bottom: 15px;
     overflow: hidden;}
 div.bookgrid div.book a.cover {
     display: block; text-align: center;
