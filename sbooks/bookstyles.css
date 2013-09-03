@@ -71,35 +71,35 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 .alwaysbreakbefore > * { page-break-before: auto;}
 .alwaysbreakbefore > *.alwaysbreakbefore { page-break-before: always;}
 .alwaysbreakbefore.codexdup, .alwaysbreakbefore.codexdupend {
-    page-break-before: auto;}
+    page-break-before: auto !important;}
 .alwaysbreakafter { page-break-after: always;}
 .alwaysbreakafter > * { page-break-after: auto;}
 .alwaysbreakafter.codexdup, .alwaysbreakafter.codexdupstart {
-    page-break-after: auto;}
+    page-break-after: auto !important;}
 
 .avoidbreakbefore { page-break-before: avoid;}
 .avoidbreakbefore > * { page-break-before: auto;}
 .avoidbreakbefore > *.avoidbreakbefore { page-break-before: avoid;}
 .avoidbreakbefore.codexdup, .avoidbreakbefore.codexdupend {
-    page-break-before: auto;}
+    page-break-before: auto !important;}
 
 .avoidbreakafter { page-break-after: avoid;}
 .avoidbreakafter > * { page-break-after: auto;}
 .avoidbreakafter > *.avoidbreakafter { page-break-after: avoid;}
 .avoidbreakafter.codexdupstart, .avoidbreakafter.codexdup {
-    page-break-after: auto;}
+    page-break-after: auto !important;}
 
 .forcebreakbefore { page-break-before: always;}
 .forcebreakbefore > * { page-break-before: auto;}
 .forcebreakbefore > *.forcebreakbefore { page-break-before: always;}
 .forcebreakbefore.codexdup, .forcebreakbefore.codexdupend {
-    page-break-before: auto;}
+    page-break-before: auto !important;}
 
 .forcebreakafter { page-break-after: always;}
 .forcebreakafter > * { page-break-after: auto;}
 .forcebreakafter > *.forcebreakafter { page-break-after: always;}
 .forcebreakafter.codexdupstart, .forcebreakafter.codexdup {
-    page-break-after: auto;}
+    page-break-after: auto !important;}
 
 .backmatter {
     page-break-before: always;}
@@ -146,7 +146,7 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 
 
 .sbooktitlepage {
-  padding: 1em; 
+  padding: 1em; margin: 0px;
   font-family: helvetica,sans,sans-serif;
   background-color: lightgray;
   text-align: center;
@@ -162,7 +162,7 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 .sbooktitlepage .title {
     text-align: center; font-weight: bold; 
     margin-top: 1em; margin-bottom: 1em;
-    page-break-after: avoid;
+    page-break-inside: avoid;
     clear: both;}
 .sbooktitlepage .connector {
     font-size: 50%;}
@@ -173,7 +173,7 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 .sbooktitlepage .author { 
   clear: both; text-align: center;
   font-style: italic;  font-size: 75%;
-  page-break-after: avoid;
+  page-break-inside: avoid;
   margin-top: 1em; margin-bottom: 1em;}
 .sbooktitlepage .editor { 
   clear: both; text-align: center; font-size: 50%;
@@ -182,7 +182,8 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
   clear: both; font-size: 25%;
   font-style: italic; font-weight: normal;
   margin-left: auto; margin-right: auto;
-  margin-top: 2em;
+  page-break-inside: avoid;
+  margin-top: 1em;
   max-width: 50%;}
 .sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
     margin: 0px; padding: 0px;}
@@ -191,7 +192,8 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-left: 5em; text-indent: -5em;}
 .sbooktitlepage .sbookbibinfo { 
   clear: both; text-align: left; font-size: 80%;
-  padding: 4px; margin-bottom: 7px; margin-top: 2em;}
+  page-break-inside: avoid;
+  padding: 4px; margin-bottom: 7px; margin-top: 1em;}
 .sbooktitlepage .sbookbibinfo p {
     width: 80%; margin-left: 10%; margin-right: 10%;
     text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
