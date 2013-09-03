@@ -121,7 +121,7 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 
 .sbooktitlepage {
     text-align: center;
-    font-size: 250%;}
+    font-size: 200%;}
 
 /* Handy classes */
 
@@ -143,7 +143,6 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
     margin-left: auto; margin-right: auto;}
 body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 0.1em; margin-bottom: 0.1em;}
-
 
 .sbooktitlepage {
   padding: 1em; margin: 0px;
@@ -172,7 +171,7 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
   font-style: normal; font-weight: normal;}
 .sbooktitlepage .author { 
   clear: both; text-align: center;
-  font-style: italic;  font-size: 75%;
+  font-style: italic;  font-size: 85%;
   page-break-inside: avoid;
   margin-top: 1em; margin-bottom: 1em;}
 .sbooktitlepage .editor { 
