@@ -14,6 +14,11 @@
 
 */
 
+/* The sBooks logotype */
+
+.sbooks { font-family: Times-Roman,serif; font-weight: bold;}
+.sbooks em { font-family: sans-serif,sans; font-style: italic; color: blue;}
+
 body.sbooksapp {font-family: sans,sans-serif;}
 
 .paycontrol { display: none; }
