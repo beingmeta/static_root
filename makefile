@@ -105,7 +105,7 @@ hints:
 
 sbookstyles: ${SBOOKSTYLES}
 # Removed sbooks/reset.css
-sbooks/sbookstyles.css: sbooks/normalize.css sbooks/sbooks.css
+sbooks/sbookstyles.css: sbooks/normalize.css sbooks/bookstyles.css
 	cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_HINTS)
