@@ -1,1 +1,495 @@
-sbookstyles.css
+/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2012 beingmeta, inc.
+   This file implements style rules for book rendering.
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+    Use and redistribution (especially embedding in other
+      CC licensed content) is permitted under the terms of the
+      Creative Commons "Attribution-NonCommercial" license:
+
+          http://creativecommons.org/licenses/by-nc/3.0/ 
+
+    Other uses may be allowed based on prior agreement with
+      beingmeta, inc.  Inquiries can be addressed to:
+
+       licensing@biz.beingmeta.com
+
+   Enjoy!
+
+*/
+
+@charset "UTF-8";
+
+body.sbook {
+  margin-left: auto; margin-right: auto;}
+body.sbook div#CODEXCONTENT {
+    margin-left: 3em; margin-right: 3em;}
+body.sbook a[href] { text-decoration: none;}
+body.sbook a[href]:hover { text-decoration: underline;}
+
+body.sbook p, body.sbook li, body.sbook dt, body.sbook dd {
+    line-height: 110%;}
+
+body.sbook.loveabook #CODEXPAGE p,
+body.sbook.loveabook #CODEXPAGE li {
+    max-width: 40em;}
+body.sbook.forty #CODEXPAGE p,
+body.sbook.forty #CODEXPAGE li {
+    max-width: 38em;}
+
+body.sbook.forty div#CODEXPAGE { max-width: 40em;}
+
+body.sbook.fifty div#CODEXPAGE { max-width: 50em;}
+body.sbook.fifty #CODEXPAGE p, body.sbook.fifty #CODEXPAGE li {
+    max-width: 47em;}
+body.sbook.fifty #CODEXCONTENT p, body.sbook.fifty #CODEXCONTENT li {
+    max-width: 47em;}
+
+body.sbook.thirty div#CODEXPAGE { max-width: 30em;}
+body.sbook.thirty #CODEXPAGE p, body.sbook.thirty #CODEXPAGE li {
+    max-width: 29em;}
+body.sbook.thirty #CODEXCONTENT p, body.sbook.thirty #CODEXCONTENT li {
+    max-width: 29em;}
+
+/* Layout classes */
+
+h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
+
+.avoidbreakinside { page-break-inside: avoid;}
+
+.alwaysbreakbefore { page-break-before: always;}
+.alwaysbreakbefore > * { page-break-before: auto;}
+.alwaysbreakbefore > *.alwaysbreakbefore { page-break-before: always;}
+.alwaysbreakbefore.codexdup, .alwaysbreakbefore.codexdupend {
+    page-break-before: auto !important;}
+.alwaysbreakafter { page-break-after: always;}
+.alwaysbreakafter > * { page-break-after: auto;}
+.alwaysbreakafter.codexdup, .alwaysbreakafter.codexdupstart {
+    page-break-after: auto !important;}
+
+.avoidbreakbefore { page-break-before: avoid;}
+.avoidbreakbefore > * { page-break-before: auto;}
+.avoidbreakbefore > *.avoidbreakbefore { page-break-before: avoid;}
+.avoidbreakbefore.codexdup, .avoidbreakbefore.codexdupend {
+    page-break-before: auto !important;}
+
+.avoidbreakafter { page-break-after: avoid;}
+.avoidbreakafter > * { page-break-after: auto;}
+.avoidbreakafter > *.avoidbreakafter { page-break-after: avoid;}
+.avoidbreakafter.codexdupstart, .avoidbreakafter.codexdup {
+    page-break-after: auto !important;}
+
+.forcebreakbefore { page-break-before: always;}
+.forcebreakbefore > * { page-break-before: auto;}
+.forcebreakbefore > *.forcebreakbefore { page-break-before: always;}
+.forcebreakbefore.codexdup, .forcebreakbefore.codexdupend {
+    page-break-before: auto !important;}
+
+.forcebreakafter { page-break-after: always;}
+.forcebreakafter > * { page-break-after: auto;}
+.forcebreakafter > *.forcebreakafter { page-break-after: always;}
+.forcebreakafter.codexdupstart, .forcebreakafter.codexdup {
+    page-break-after: auto !important;}
+
+.backmatter {
+    page-break-before: always;}
+.backmatter > * {
+    page-break-before: auto;}
+.frontmatter {
+    page-break-after: always;}
+.frontmatter > * {
+    page-break-after: auto;}
+
+.sbookfullpage {
+    margin-left: auto; margin-right: auto;
+    page-break-before: always;
+    page-break-after: always;
+    page-break-inside: avoid;}
+.sbookfullpage > * {
+    page-break-before: avoid;
+    page-break-after: avoid;}
+
+.sbooktitlepage {
+    text-align: center;
+    font-size: 200%;}
+
+/* Handy classes */
+
+body.sbook.novel h1, body.sbook.novel .chapter, body.sbook.novel .sbook1 {
+    text-align: center; margin-left: 5%; margin-right: 5%;}
+hr.divider { 
+    text-align: center; height: 7px; width: 50%;
+    margin-left: 25%; margin-right: 25%;
+    color: gray; background-color: gray;}
+body.sbook div.sbookfullpage h1 {
+    page-break-before: avoid;}
+body.sbook .sbooktitlepage img {
+    display: block; clear: both;
+    margin-left: auto; margin-right: auto;
+    margin-top: 1em; margin-bottom: 1em;}
+body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
+    width: 30em; max-width: 70%; clear: both;
+    font-size: 125%;
+    margin-left: auto; margin-right: auto;}
+body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
+    margin-top: 0.1em; margin-bottom: 0.1em;}
+
+.sbooktitlepage {
+  padding: 1em; margin: 0px;
+  font-family: helvetica,sans,sans-serif;
+  background-color: lightgray;
+  text-align: center;
+  page-break-inside: avoid;
+  page-break-before: always;
+  page-break-after: always;
+  overflow: hidden;}
+.sbooktitlepage > * 
+  page-break-inside: avoid;
+  page-break-before: avoid;
+  page-break-after: avoid;}
+
+.sbooktitlepage .title {
+    text-align: center; font-weight: bold; 
+    margin-top: 1em; margin-bottom: 1em;
+    page-break-inside: avoid;
+    clear: both;}
+.sbooktitlepage .connector {
+    font-size: 50%;}
+.sbooktitlepage .title img {max-width: 80%;}
+.sbooktitlepage div.subtitle {
+  clear: both; text-align: center; font-size: 75%;
+  font-style: normal; font-weight: normal;}
+.sbooktitlepage .author { 
+  clear: both; text-align: center;
+  font-style: italic;  font-size: 85%;
+  page-break-inside: avoid;
+  margin-top: 1em; margin-bottom: 1em;}
+.sbooktitlepage .editor { 
+  clear: both; text-align: center; font-size: 50%;
+  font-style: italic; font-weight: normal;}
+.sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
+  clear: both; font-size: 25%;
+  font-style: italic; font-weight: normal;
+  margin-left: auto; margin-right: auto;
+  page-break-inside: avoid;
+  margin-top: 1em;
+  max-width: 50%;}
+.sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
+    margin: 0px; padding: 0px;}
+.sbooktitlepage .dedication.leftalign p,
+.sbooktitlepage .epigraph.leftalign p {
+    margin-left: 5em; text-indent: -5em;}
+.sbooktitlepage .sbookbibinfo { 
+  clear: both; text-align: left; font-size: 80%;
+  page-break-inside: avoid;
+  padding: 4px; margin-bottom: 7px; margin-top: 1em;}
+.sbooktitlepage .sbookbibinfo p {
+    width: 80%; margin-left: 10%; margin-right: 10%;
+    text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
+.sbooktitlepage .sbookbibinfo p span.bibdate {
+    padding-left: 1em;
+    float: right;}
+
+body.sbook .frontpiece div.poem {
+  margin: 0px; border: none; font-weight: normal;}
+body.sbook .frontpiece div.poem div.stanza {
+  margin: 0px;}
+
+body.sbook div.epigraphs p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    text-align: left;}
+body.sbook div.epigraphs p span.attribution {
+    font-style: italic; font-size: 115%;
+    float: right; clear: left;}
+
+/* Various */
+
+body.sbook .signature {
+    text-align: right; font-size: 125%;
+    page-break-before: avoid; clear: left;
+    font-style: italic;}
+body.sbook .signature .place {
+    font-style: normal; font-size: 100%;}
+body.sbook .signature .date {
+    font-style: normal; font-size: 90%; font-weight: normal;}
+
+body.sbook .dateline {
+    text-align: right; 
+    page-break-after: avoid; clear: left;
+    font-weight: bold;
+    margin-bottom: 0px;}
+
+/* Poetry */
+
+div.part, section.part {
+    padding-top: 0px; margin-top: 0px;
+    page-break-before: always;}
+body.verse div.part h1, body.verse section.part h1 {
+    border-top: solid black 1em; 
+    padding-top: .3em;}
+body.verse div.part > h1, body.verse section.part > h1 {
+    page-break-before: auto;
+    page-break-inside: avoid;}
+body.verse div.part h1 img, body.verse section.part h1 img {
+    display: block; margin-left: auto; margin-right: auto;
+    max-height: 75%; max-width: 100%;}
+
+/* These are part headings */
+body.verse h1 { text-align: center;}
+
+/* Poems break pages */
+
+div.poem, section.poem { 
+  page-break-before: always;
+  margin-left: 2em; margin-right: 1em;
+  /* Setting padding-bottom sometimes avoids blank pages when
+     the poem fits exactly. */
+  padding: 1em; padding-bottom: 0em;
+  border-top: solid gray 3px;}
+div.poem.codexdup, div.poem.codexdupend { border-top: 0px; padding-top: 1em;}
+section.poem.codexdup, section.poem.codexdupend { border-top: 0px; padding-top: 1em;}
+
+body.sbookpagehorizontal div.poem, body.sbookpagehorizontal section.poem {
+    margin-top: 0px;
+    margin-bottom: 0px; padding-bottom: 0px;}
+
+/* For glossmarks, we push the margin right to get them out of
+   the body */
+body.sbookpagehorizontal div.poem .codexglossmark, body.sbookpagehorizontal section.poem .codexglossmark {
+    margin-right: -3em;}
+
+div.poem p.sig, section.poem p.sig {
+  text-align: right; font-weight: normal; font-style: italic;
+  margin-top: 8px;}
+
+/* These are poem titles */
+body.verse h2 { 
+  text-align: left;}
+body.verse div.stanza p { }
+
+p.verse {
+  text-align: left; margin-left: 3em;
+  margin-top: 2px; margin-bottom: 2px;
+  text-indent: -3em; }
+div.stanza { 
+  page-break-inside: avoid;
+  text-align: left;
+  margin-left: 4em; margin-right: 2em;
+  margin-top: 0px; margin-bottom: 0px;
+  border: transparent solid 1px;
+  padding-top: .75em; padding-bottom: .75em;}
+div.stanza p {
+  text-align: left; margin-left: 3em;
+  margin-top: 2px; margin-bottom: 2px;
+  text-indent: -3em; }
+
+/* Prose */
+
+p.prose {
+  text-indent: 3em;}
+body.prose p {
+  text-indent: 3em;}
+
+/* BCV
+    stands for BOOK/CHAPTER/VERSE, a structured used in many
+    sacred texts. */
+p.bcv {}
+body.bcv p {}
+.bcv span.v { padding-right: 2em;}
+
+/* Bibles */
+
+body.bible {
+ /* font-family: sans,sans-serif;  */
+ width: 30em; font-size: 16px;
+ margin-left: auto; margin-right: auto;}
+body.bible span.poetry {
+  display: block; margin-left: 3em; text-indent: -2em;
+  line-height: 100%;}
+body.bible span.poetry.level1 { margin-top: 5px;}
+body.bible span.poetry.level1 span.poetry.level1 { margin-left: 0em;}
+body.bible span.poetry.level2 { margin-left: 5em;}
+body.bible span.poetry.level3 { margin-left: 7em;}
+
+body.bible span.verse span.versemark + span.poetry.level1 { 
+  margin-left: 0px; display: inline;}
+
+body.bible span.poetry span.versemark {
+  font-family: sans,sans-serif; font-size: 75%;}
+body.bible span.poetry span.versemark:before { content: '(';}
+body.bible span.poetry span.versemark:after { content: ') ';}
+body.bible span.poetry span.verse:before { content: '';}
+
+body.bible span.verse:before { content: ' // '; font-weight: bold;}
+body.bible span.verse:first-child:before { content: '';}
+body.bible span[versenum='1'].verse:before { content: '';}
+body.bible span[versenum='1'].verse:first-child:before { content: '';}
+
+body.bible span.versemark { font-weight: bold;}
+body.bible span.footnote {
+  font-weight: bold; color: green; vertical-align: super; font-size: 75%;}
+
+/* Essays */
+
+body.essay {
+  font-family: helvetica,arial,sans,sans-serif;
+  max-width: 40em; margin-left: auto; margin-right: auto;}
+
+body.essay h1 { text-align: center;}
+body.essay h1 a { text-decoration: none;}
+body.essay h1 a:hover { text-decoration: underline;}
+body.essay h1 a:visited { color: blue;}
+body.essay h1 div.author {
+    font-size: 50%; }
+body.essay h1 div.pubinfo {
+    font-size: 50%; font-weight: normal; font-variant: small-caps;}
+body.essay h1 div.toplinks {
+    margin-left: auto; margin-right: auto; border-top: solid blue 1px;
+    text-align: center; font-size: 14px;}
+body.essay h1 div.toplinks a {
+    padding-right: 6px; padding-left: 6px;
+    text-decoration: none; color: blue;}
+body.essay h1 div.toplinks a:visited { color: blue;}
+body.essay h1 div.toplinks a:hover { text-decoration: underline;}
+
+body.essay h2 { text-align: left;}
+body.essay li { page-break-inside: avoid;}
+
+a.rightimage { float: right; width: 20%;}
+a.rightimage img { border: none; width: 100%;}
+a.leftimage { float: left; width: 20%;}
+a.leftimage img { border: none; width: 100%;}
+
+a.blockimage {
+    page-break-inside: avoid; page-break-before: avoid;
+    clear: both; width: 100%; display: block;}
+a.blockimage img { border: none; width: 100%;}
+img.blockimage { border: none; width: 100%;}
+
+/* Image pages */
+
+div.sbookimagepage {
+    text-align: center; vertical-align: top;}
+
+div.sbookimagepage img {
+    display: block; max-width: 100%; vertical-align: top; width: auto;
+    max-height: 90%;}
+div.sbookimagepage div.caption, div.sbookimagepage caption {
+    display: block; width: 80%; margin-left: 10%; margin-right: 10%;
+    text-align: left;
+    height: 10%;}
+div.sbookimagepage0 img {max-height: 100%;}    
+div.sbookimagepage0 div.caption, div.sbookimagepage0 caption {
+    height: 0px;}
+div.sbookimagepage20 img {max-height: 80%;}    
+div.sbookimagepage20 div.caption, div.sbookimagepage20 caption {
+    height: 20%;}
+div.sbookimagepage30 img {max-height: 70%;}    
+div.sbookimagepage30 div.caption, div.sbookimagepage30 caption {
+    height: 30%;}
+div.sbookimagepage50 img {max-height: 70%;}    
+div.sbookimagepage50 div.caption, div.sbookimagepage50 caption {
+    height: 50%;}
+
+/* Styles for raw sbooks (converted from text) */
+
+body.rawsbook div#CODEXCONTENT {
+    margin-left: 50px; margin-right: 50px;}
+body.rawsbook div#CODEXCONTENT p { 
+    max-width: 40em; margin-left: auto; margin-right: auto;
+    line-height: 125%;}
+
+/* Kind of dead code */
+
+body.sbook .sbooktitlepage .title {
+    text-align: center; font-weight: bold;
+    clear: both;}
+body.sbook .sbooktitlepage .connector {
+    font-size: 50%;}
+body.sbook .sbooktitlepage .title img {
+    max-width: 80%;}
+body.sbook .sbooktitlepage div.subtitle {
+  clear: both; text-align: center;
+  font-style: normal; font-weight: normal;}
+body.sbook .sbooktitlepage .author { 
+  clear: both; text-align: center;
+  font-style: italic;  font-size: 90%;
+  margin-top: 1em; margin-bottom: 1em;}
+body.sbook .sbooktitlepage .editor { 
+  clear: both; text-align: center;
+  font-style: normal; font-weight: normal; font-size: 90%;}
+body.sbook .sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
+  clear: both; text-align: left;
+  font-style: italic; font-weight: normal;
+  margin-left: auto; margin-right: auto;
+  max-width: 50%; font-size: 80%;}
+body.sbook .sbooktitlepage div.pubinfo { 
+  clear: both; 
+  font-variant: small-caps; font-size: 50%;
+  padding: 4px; margin-bottom: 7px; margin-top: 2em;}
+
+/* Some useful formatting classes */
+
+div.sbooktight {margin-after: 0.5em;}
+div.sbooktight div, div.sbooktight p {
+    margin-top: 2px; margin-bottom: 2px;
+    border: 0px; padding: 1px;}
+
+/* Classes to support hidden sbook values */
+
+.sbooktag { display: none;}
+.sbooktags { display: none;}
+.xdatapagescale { display: none;}
+
+/* Media rules */
+
+@media screen and (min-width: 300px) and (max-width: 500px) {
+    div.poem, section.poem { 
+        margin-left: 3%; margin-right: 2%;
+        /* Setting padding-bottom sometimes avoids blank pages when
+           the poem fits exactly. */
+        padding: 1%; padding-bottom: 0em;
+        border-top: solid gray 3px;}
+    div.stanza { 
+        margin-left: 2%; margin-right: 1%;
+        margin-top: 0px; margin-bottom: 0px;
+        border: transparent solid 1px;
+        padding-top: .75em; padding-bottom: .75em;}
+    div.stanza p {
+        text-align: left; margin-left: 5%;
+        text-indent: -5%; }
+}
+
+/*
+body.essay div.toplinks a {
+    padding-left: 1em; padding-right: 1em;
+    margin-left: 2em; margin-right: 2em;
+    border: solid blue 2px; border-top: none;
+    -khtml-bottom-left-border-radius: 4px; 
+    -webkit-bottom-left-border-radius: 4px; 
+    -moz-border-radius-bottomleft: 4px; 
+    border-bottom-left-radius: 4px;
+    -khtml-bottom-right-border-radius: 4px; 
+    -webkit-bottom-right-border-radius: 4px; 
+    -moz-border-radius-bottomright: 4px; 
+    border-bottom-right-radius: 4px;}
+*/
+
+/* Emacs local variables
+;;;  Local variables: ***
+;;;  indent-tabs-mode: nil ***
+;;;  End: ***
+*/
