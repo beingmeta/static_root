@@ -14,14 +14,6 @@ FDJT_FILES=fdjt/header.js \
 	fdjt/taphold.js fdjt/selecting.js \
 	fdjt/adjustfont.js fdjt/scrollever.js \
 	fdjt/globals.js
-FDJT_HINTS=fdjt/string.hint fdjt/time.hint \
-	fdjt/syze.hint fdjt/iscroll.hint fdjt/indexed.hint \
-	fdjt/log.hint fdjt/init.hint fdjt/state.hint fdjt/dom.hint \
-	fdjt/refdb.hint fdjt/json.hint fdjt/ajax.hint \
-	fdjt/hash.hint fdjt/wsn.hint fdjt/template.hint \
-	fdjt/ui.hint fdjt/dialog.hint fdjt/completions.hint \
-	fdjt/taphold.hint fdjt/selecting.hint \
-	fdjt/adjustfont.hint fdjt/scrollever.hint
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
@@ -79,8 +71,6 @@ knodules/%.hint: knodules/%.js
 	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config knodules/.jshintrc $< | tee $@; fi
 codex/%.hint: codex/%.js
 	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config codex/.jshintrc $< | tee $@; fi
-%.hint: %.js
-	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} $^ | tee $@; fi
 
 codex/text/%.js: codex/text/%.html makefile
 	./text2js Codex.HTML.`basename $@ .js` $< $@
@@ -93,11 +83,14 @@ allcode: fdjt knodules codex \
 	sbooks/codex.min.js.gz \
 	sbooks/sbookstyles.css
 
-allhints: fdjt/fdjt.hints codex/codex.hints knodules/knodules.hints
+allhints: fdjt/fdjt.hints codex/codex.hints knodules/knodules.hints \
+	showsomeclass/hints
 
 cleanhints:
 	rm -f fdjt/*.hint fdjt/fdjt.hints codex/*.hint codex/codex.hints
-	rm -f knodules/*.hint knodules/knodules.hints sbooks/*.hint sbooks/sbooks.hints
+	rm -f knodules/*.hint knodules/knodules.hints
+	rm -f sbooks/*.hint sbooks/sbooks.hints
+	rm -f showsomeclass/*.hint showsomeclass/sbooks.hints
 
 hints:
 	make cleanhints
@@ -108,18 +101,20 @@ sbookstyles: ${SBOOKSTYLES}
 sbooks/sbookstyles.css: sbooks/normalize.css sbooks/bookstyles.css
 	cat $^ > $@
 
-fdjt/fdjt.hints: $(FDJT_HINTS)
+fdjt/fdjt.hints: $(FDJT_FILES)
 	cd fdjt; make fdjt.hints
 codex/codex.hints: $(CODEX_HINTS)
 	cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 	cat $^ > $@
+showsomeclass/hints:
+	cd showsomeclass; make hints
 
 showsomeclass/app.js: showsomeclass/ssc.js showsomeclass/dialog.js \
-	showsomeclass/edit.js
+	showsomeclass/edit.js showsomeclass/makefile
 	cd showsomeclass; make
 showsomeclass/app.css: showsomeclass/ssc.css showsomeclass/dialog.css \
-	showsomeclass/edit.css
+	showsomeclass/edit.css showsomeclass/makefile
 	cd showsomeclass; make
 
 # GIT rules
@@ -140,6 +135,7 @@ ext:
 
 clean:
 	cd fdjt; make clean
+	cd showsomeclass; make clean
 	make cleanhints
 	rm -f ${CODEX_DERIVED_FILES}
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
