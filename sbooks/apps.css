@@ -33,9 +33,9 @@ a.disabled, a[disabled] {
     -moz-opacity: 0.75;
     -o-opacity: 0.75;}
 
-p input[TYPE="CHECKBOX"]:first-child,
-p input[TYPE="RADIO"]:first-child {
-  font-size: 150%; margin-right: 1ex; }
+p > input[TYPE="CHECKBOX"]:first-child,
+p > input[TYPE="RADIO"]:first-child {
+  font-size: 150%; margin-right: 1ex;}
 
 form.sbookflyleafcancel {
     position: absolute; top: 0px; right: 0px; color: red;
