@@ -130,6 +130,8 @@ g:
 	svn checkout https://dev.beingmeta.com/src/graphics/targets g
 pagedown:
 	hg clone https://code.google.com/p/pagedown/
+bibliotype:
+	git clone https://github.com/cmod/bibliotype.git
 ext:
 	cd ext; make 
 
@@ -220,12 +222,13 @@ status:
 	cd codex; git status -uno
 	cd showsomeclass; git status -uno
 	cd g; svn status -q
-update: fdjt codex knodules g pagedown showsomeclass
+update: fdjt codex knodules g pagedown showsomeclass bibliotype
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
 	cd showsomeclass; git pull
+	cd bibliotype; git pull
 	cd pagedown; hg update
 	cd g; svn update
 	make update-graphics
