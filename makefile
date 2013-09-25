@@ -24,6 +24,7 @@ KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules
 KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 PAGEDOWN_FILES=pagedown/Markdown.Converter.js
+SSC_FILES=showsomeclass/ssc.js showsomeclass/dialog.js showsomeclass/edit.js
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
@@ -193,7 +194,7 @@ index.html: etc/index_head.html etc/index_foot.html \
 
 alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
 
-TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} \
+TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
