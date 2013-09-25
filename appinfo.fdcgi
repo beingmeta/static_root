@@ -134,7 +134,7 @@
 	   (length val)
 	   (if (packet? val)  " bytes of data" " characters of text")))
 	((packet? val) val)
-	((string? val) (xmlout val))
+	((string? val) (xmlout "\"" val "\""))
 	((pair? val) val)
 	((table? val)
 	 (let ((s (stringout val)))
