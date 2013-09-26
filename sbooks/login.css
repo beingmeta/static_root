@@ -204,6 +204,12 @@ table.login tr.blockbreak th {
 .loginform form div.registration table td textarea {
     height: 8em;}
 
+.loggedin { font-family: sans,sans-serif;}
+.loggedin h1 { text-align: center;}
+.loggedin .sbookslogo { float: left; width: 15%; height: auto;}
+.loggedin .userimage { float: right; width: 15%; height: auto;}
+.loggedin p { margin-left: 10%; max-width: 35em;}
+
 @media (max-width: 700px) {
   table.login tr th { font-size: 10px; width: 3em; }
   table.login tr th img[alt="OpenID"] { width: 40px; height: auto;}

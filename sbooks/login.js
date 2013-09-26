@@ -61,6 +61,11 @@ function updateResetLink() {
 
 fdjt.addInit(updateResetLink,"updateresetlink");
         
+function loggedInOnLoad(evt){
+    var userinfo=fdjt.DOM.getMeta('SBOOK.userinfo');
+    if ((userinfo)&&(window.parent)&&(window.parent.postMessage))
+        window.parent.postMessage('setuser='+userinfo,'*');}
+
 /* Emacs local variables
    ;;;  Local variables: ***
    ;;;  indent-tabs-mode: nil ***
