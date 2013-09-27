@@ -51,6 +51,20 @@ function sendLoginCode(evt) {
              "https://auth.sbooks.net/admin/sendlogin",
              {email: emails[0]});}
 
+function eraseKeepData(){
+    var cookie=fdjt.State.getCookie("CODEX:CONFIG"), config=false;
+    if (cookie) {
+        try {
+            config=JSON.parse(cookie);}
+        catch (ex) {return;}}
+    // Once the option of keeping data is set, we require that it be
+    // reset through a settings dialog/screen.  The idea is that we
+    // don't want to erase cached data just because somebody forgot
+    // the checkbox when re-logging in.
+    if ((config)&&(config.keepdata))
+        fdjt.DOM.remove(fdjt.DOM.$(".codexkeepdata"));}
+fdjt.addInit(eraseKeepData);
+
 function updateResetLink() {
     var resetlink=fdjt.ID("SBOOKLOSTPASSWORD");
     var username=fdjt.ID("SBOOKUSERNAME");

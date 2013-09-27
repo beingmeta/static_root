@@ -16,8 +16,28 @@
 
 /* The sBooks logotype */
 
-.sbooks { font-family: Times-Roman,serif; font-weight: bold;}
-.sbooks em { font-family: sans-serif,sans; font-style: italic; color: blue;}
+.sbooks {
+   font-family: Times-Roman,serif; font-weight: bold;}
+.sbooks em, .sbooks i {
+   font-family: sans-serif,sans; font-style: italic;
+   color: blue;}
+
+.codex {
+   font-family: sans-serif,sans;
+   font-variant: small-caps;}
+.codex em, .codex i {
+   font-style: italic;
+   font-variant: normal;
+   color: blue;}
+
+.mupub {
+   font-family: sans-serif,sans;
+   font-variant: small-caps;}
+.mupub em, .mupub i {
+   font-style: italic;
+   font-variant: normal;
+   color: blue;}
+
 
 body.sbooksapp {font-family: sans,sans-serif;}
 
