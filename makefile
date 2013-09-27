@@ -7,7 +7,7 @@ ECHO=/bin/echo
 CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js \
 	fdjt/string.js fdjt/time.js fdjt/template.js fdjt/hash.js \
-	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
+	fdjt/syze.js fdjt/iscroll.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/dialog.js fdjt/completions.js \
@@ -58,7 +58,7 @@ SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
+CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/indexed.js fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
 # removed sbooks/reset.css 
 CODEX_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
@@ -192,13 +192,17 @@ index.html: etc/index_head.html etc/index_foot.html \
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
+alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS HTMLTAGS CSSTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
+	etags -o $@ $^
+HTMLTAGS: ${CODEX_HTML_FILES}
+	etags -o $@ $^
+CSSTAGS: ${CODEX_CSS_BUNDLE}
 	etags -o $@ $^
 fdjt/TAGS: 
 	cd fdjt; make TAGS
