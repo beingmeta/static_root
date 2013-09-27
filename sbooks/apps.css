@@ -17,7 +17,7 @@
 /* The sBooks logotype */
 
 .sbooks {
-   font-family: Times-Roman,serif; font-weight: bold;}
+   font-family: Times-Roman,serif;}
 .sbooks em, .sbooks i {
    font-family: sans-serif,sans; font-style: italic;
    color: blue;}
@@ -37,7 +37,6 @@
    font-style: italic;
    font-variant: normal;
    color: blue;}
-
 
 body.sbooksapp {font-family: sans,sans-serif;}
 

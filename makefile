@@ -7,7 +7,7 @@ ECHO=/bin/echo
 CLEAN=/bin/rm -f
 FDJT_FILES=fdjt/header.js \
 	fdjt/string.js fdjt/time.js fdjt/template.js fdjt/hash.js \
-	fdjt/syze.js fdjt/iscroll.js fdjt/indexed.js \
+	fdjt/syze.js fdjt/iscroll.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
 	fdjt/ui.js fdjt/dialog.js fdjt/completions.js \
@@ -24,6 +24,7 @@ KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules
 KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 PAGEDOWN_FILES=pagedown/Markdown.Converter.js
+SSC_FILES=showsomeclass/ssc.js showsomeclass/dialog.js showsomeclass/edit.js
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
@@ -37,14 +38,15 @@ CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 	            codex/text/help.js codex/text/hudhelp.js     \
 		    codex/text/console.js codex/text/messages.js     \
 		    codex/text/settings.js codex/text/splash.js \
-		    codex/text/pageleft.js codex/text/pageright.js
+		    codex/text/pageleft.js codex/text/pageright.js \
+		    codex/text/login.js
 
 CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
 	codex/text/console.html codex/text/searchbox.html \
 	codex/text/addgloss.html codex/text/settings.html \
 	codex/text/splash.html codex/text/pageleft.html \
-	codex/text/pageright.html
+	codex/text/pageright.html codex/text/login.html
 CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/card.css codex/css/search.css  \
 	codex/css/addgloss.css codex/css/help.css    \
@@ -57,7 +59,7 @@ SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
+CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/indexed.js fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
 # removed sbooks/reset.css 
 CODEX_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
@@ -191,13 +193,17 @@ index.html: etc/index_head.html etc/index_foot.html \
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS
+alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS HTMLTAGS CSSTAGS
 
-TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} \
+TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
+	etags -o $@ $^
+HTMLTAGS: ${CODEX_HTML_FILES}
+	etags -o $@ $^
+CSSTAGS: ${CODEX_CSS_BUNDLE}
 	etags -o $@ $^
 fdjt/TAGS: 
 	cd fdjt; make TAGS
