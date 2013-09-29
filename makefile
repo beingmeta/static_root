@@ -52,7 +52,7 @@ CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
 	codex/css/addgloss.css codex/css/help.css    \
 	codex/css/flyleaf.css codex/css/hud.css  \
 	codex/css/foot.css codex/css/preview.css \
-	codex/css/app.css codex/css/media.css
+	codex/css/app.css codex/css/body.css codex/css/media.css
 # removed sbooks/reset.css
 SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/app.css sbooks/app.js \
