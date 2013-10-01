@@ -21,6 +21,8 @@
 .sbooks em, .sbooks i {
    font-family: sans-serif,sans; font-style: italic;
    color: blue;}
+a.sbooks em, a.sbooks i, a .sbooks em, a .sbooks i {
+   color: black;}
 
 .codex {
    font-family: sans-serif,sans;
@@ -33,10 +35,12 @@
 .mupub {
    font-family: sans-serif,sans;
    font-variant: small-caps;}
-.mupub em, .mupub i {
+.mupub em, .mupub i, .mupub .mu {
    font-style: italic;
    font-variant: normal;
    color: blue;}
+a.mupub em, a.mupub i, a .mupub em, a .mupub i {
+   color: black;}
 
 body.sbooksapp {font-family: sans,sans-serif;}
 
