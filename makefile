@@ -25,6 +25,12 @@ KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # kn
 KNODULES_CSS=knodules/knodules.css
 PAGEDOWN_FILES=pagedown/Markdown.Converter.js
 SSC_FILES=showsomeclass/ssc.js showsomeclass/dialog.js showsomeclass/edit.js
+SSC_HTML=showsomeclass/bigtextedit.html showsomeclass/savedialog.html \
+	showsomeclass/editcontent.html showsomeclass/sscabout.html \
+	showsomeclass/editelement.html showsomeclass/sschelp.html \
+	showsomeclass/edithelp.html showsomeclass/ssctoolbar.html \
+	showsomeclass/editselection.html showsomeclass/textedit.html \
+	showsomeclass/reclass.html showsomeclass/toolbar.html
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
@@ -112,8 +118,7 @@ knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 showsomeclass/hints:
 	cd showsomeclass; make hints
 
-showsomeclass/app.js: showsomeclass/ssc.js showsomeclass/dialog.js \
-	showsomeclass/edit.js showsomeclass/makefile
+showsomeclass/app.js: $(SSC_FILES) $(SSC_HTML) showsomeclass/makefile
 	cd showsomeclass; make
 showsomeclass/app.css: showsomeclass/ssc.css showsomeclass/dialog.css \
 	showsomeclass/edit.css showsomeclass/makefile
