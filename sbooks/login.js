@@ -15,15 +15,29 @@
 
 function checkLogin(evt){
     evt=evt||event;
-    var form=fdjt.ID("SBOOKLOGINFORM");
-    if (fdjt.ID("SBOOKSETPASS").checked) {
+    var form=fdjt.UI.T(evt);
+    if (!(form)) form=fdjt.ID("SBOOKSLOGINFORM");
+    if (fdjt.ID("SBOOKSSETPASS").checked) {
         var passin=fdjt.DOM.getInput(form,"PASS1");
         var xpassin=fdjt.DOM.getInput(form,"PASS2");
         if (passin.value!==xpassin.value) {
             alert("Passwords don't match!");
             fdjt.UI.cancel(evt);}}
+    if ((fdjt.DOM.hasClass(form,"register"))||
+        (fdjt.DOM.hasClass(form,"onetime"))) {
+        var logincode=fdjt.ID("SBOOKSLOGINCODE");
+        if ((logincode)&&(fdjt.String.isEmpty(logincode.value))) {
+            if (fdjt.DOM.hasClass(form,"register"))
+                alert("You need to enter your registration code!");
+            else alert("You need to enter your login code!");
+            fdjt.UI.cancel(evt);}}
+    if (fdjt.DOM.hasClass(form,"password")) {
+        var password=fdjt.ID("SBOOKSPASSWORD");
+        if ((password)&&(fdjt.String.isEmpty(password.value))) {
+            alert("You need to enter your (non-empty) password!");
+            fdjt.UI.cancel(evt);}}
     if (fdjt.DOM.hasClass(form,"register")) {
-        var termsok=fdjt.ID("SBOOKTERMSOK");
+        var termsok=fdjt.ID("SBOOKSTERMSOK");
         if (!(termsok.checked)) {
             alert("You need to agree to the terms and conditions!");
             fdjt.UI.cancel(evt);}}}
@@ -55,6 +69,8 @@ function eraseKeepData(){
     var cookie=fdjt.State.getCookie("CODEX:CONFIG"), config=false;
     if (cookie) {
         try {
+            if (cookie[0]==="%")
+                cookie=decodeURIComponent(cookie);
             config=JSON.parse(cookie);}
         catch (ex) {return;}}
     // Once the option of keeping data is set, we require that it be
