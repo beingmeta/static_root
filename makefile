@@ -43,18 +43,20 @@ CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 	            codex/text/hud.js codex/text/heart.js  \
 	            codex/text/help.js codex/text/hudhelp.js     \
 		    codex/text/console.js codex/text/messages.js     \
-		    codex/text/settings.js codex/text/splash.js \
+		    codex/text/settings.js codex/text/welcome.js \
 		    codex/text/pageleft.js codex/text/pageright.js \
-		    codex/text/login.js
+		    codex/text/login.js codex/text/cover.js \
+		    codex/text/coverhelp.js
 
 CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
 	codex/text/console.html codex/text/searchbox.html \
 	codex/text/addgloss.html codex/text/settings.html \
-	codex/text/splash.html codex/text/pageleft.html \
-	codex/text/pageright.html codex/text/login.html
-CODEX_CSS=codex/css/toc.css codex/css/slices.css codex/css/clouds.css \
-	codex/css/card.css codex/css/search.css  \
+	codex/text/welcome.html codex/text/pageleft.html \
+	codex/text/pageright.html codex/text/login.html \
+	codex/text/cover.html codex/text/coverhelp.html
+CODEX_CSS=codex/css/cover.css codex/css/toc.css codex/css/slices.css \
+	codex/css/clouds.css codex/css/card.css codex/css/search.css  \
 	codex/css/addgloss.css codex/css/help.css    \
 	codex/css/flyleaf.css codex/css/hud.css  \
 	codex/css/foot.css codex/css/preview.css \
