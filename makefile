@@ -45,8 +45,7 @@ CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 		    codex/text/console.js codex/text/messages.js     \
 		    codex/text/settings.js codex/text/welcome.js \
 		    codex/text/pageleft.js codex/text/pageright.js \
-		    codex/text/login.js codex/text/cover.js \
-		    codex/text/coverhelp.js
+		    codex/text/login.js codex/text/cover.js
 
 CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
@@ -54,7 +53,7 @@ CODEX_HTML_FILES=codex/text/hud.html codex/text/heart.html \
 	codex/text/addgloss.html codex/text/settings.html \
 	codex/text/welcome.html codex/text/pageleft.html \
 	codex/text/pageright.html codex/text/login.html \
-	codex/text/cover.html codex/text/coverhelp.html
+	codex/text/cover.html
 CODEX_CSS=codex/css/framing.css codex/css/cover.css codex/css/hud.css   \
 	codex/css/foot.css codex/css/body.css codex/css/help.css        \
 	codex/css/toc.css codex/css/slices.css codex/css/clouds.css     \
