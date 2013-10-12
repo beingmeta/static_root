@@ -170,10 +170,6 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
 .codexpage .sbooktitlepage > .author,
 .codexpage .sbooktitlepage > .byline {
     position: absolute; top: 40%; left: 0px; right: 0px;}
-.codexpage .sbooktitlepage .sbookbibinfo,
-.codexpage .sbooktitlepage .bibinfo,
-.codexpage .sbooktitlepage .pubinfo {
-    position: absolute; bottom: 0px; left: 0px; right: 0px;}
 
 .sbooktitlepage .title {
     text-align: center; font-weight: bold; 
@@ -211,11 +207,10 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
     margin-left: 5em; text-indent: -5em;}
 .sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
 .sbooktitlepage .pubinfo { 
-    text-align: left;
-    width: 70%; margin-left: 15%; margin-right: 15%;
-    padding: 4px; margin-top: 1em; margin-bottom: 1ex;
+    text-align: left; display: inline-block;
+    padding: 1ex; margin-top: 1em; margin-bottom: 1ex;
     page-break-inside: avoid;
-    clear: both; }
+    clear: both;}
 .sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
 .sbooktitlepage .pubinfo p {
     width: 80%; margin-left: 10%; margin-right: 10%;
