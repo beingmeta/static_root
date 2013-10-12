@@ -138,6 +138,9 @@ hr.divider {
     color: gray; background-color: gray;}
 body.sbook div.sbookfullpage h1 {
     page-break-before: avoid;}
+body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
+    margin-top: 0.1em; margin-bottom: 0.1em;}
+
 body.sbook .sbooktitlepage img {
     display: block; clear: both;
     margin-left: auto; margin-right: auto;
@@ -146,62 +149,80 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
     width: 30em; max-width: 70%; clear: both;
     font-size: 125%;
     margin-left: auto; margin-right: auto;}
-body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
-    margin-top: 0.1em; margin-bottom: 0.1em;}
 
 .sbooktitlepage {
   padding: 1em; margin: 0px;
   font-family: helvetica,sans,sans-serif;
-  background-color: lightgray;
   text-align: center;
   page-break-inside: avoid;
   page-break-before: always;
   page-break-after: always;
   overflow: hidden;}
-.sbooktitlepage > * 
-  page-break-inside: avoid;
-  page-break-before: avoid;
-  page-break-after: avoid;}
+.sbooktitlepage > * {
+  page-break-inside: avoid;}
+
+.codexpage .sbooktitlepage {
+    position: absolute; height: 100%; width: 100%;
+    margin: 0px; padding: 0px; border: 0px;}
+.codexpage .sbooktitlepage .title {
+    position: absolute; top: 2%; left: 0px; right: 0px;}
+.codexpage .sbooktitlepage > .credits,
+.codexpage .sbooktitlepage > .author,
+.codexpage .sbooktitlepage > .byline {
+    position: absolute; top: 40%; left: 0px; right: 0px;}
+.codexpage .sbooktitlepage .sbookbibinfo,
+.codexpage .sbooktitlepage .bibinfo,
+.codexpage .sbooktitlepage .pubinfo {
+    position: absolute; bottom: 0px; left: 0px; right: 0px;}
 
 .sbooktitlepage .title {
     text-align: center; font-weight: bold; 
     margin-top: 1em; margin-bottom: 1em;
+    width: 90%; margin-left: 5%; margin-right: 5%;
+    font-weight: bold;
     page-break-inside: avoid;
     clear: both;}
 .sbooktitlepage .connector {
     font-size: 50%;}
-.sbooktitlepage .title img {max-width: 80%;}
-.sbooktitlepage div.subtitle {
-  clear: both; text-align: center; font-size: 75%;
-  font-style: normal; font-weight: normal;}
-.sbooktitlepage .author { 
-  clear: both; text-align: center;
-  font-style: italic;  font-size: 85%;
-  page-break-inside: avoid;
-  margin-top: 1em; margin-bottom: 1em;}
+
+.sbooktitlepage h1 { font-size: 2em;}
+.sbooktitlepage h2 { font-size: 1em;}
+.sbooktitlepage > .credits, .sbooktitlepage > .author,
+.sbooktitlepage > .byline { 
+    font-style: italic;
+    width: 80%; margin-left: 10%; margin-right: 10%;
+    margin-top: 1em; margin-bottom: 1em;
+    page-break-inside: avoid;
+    clear: both;}
 .sbooktitlepage .editor { 
-  clear: both; text-align: center; font-size: 50%;
+  clear: both; text-align: center;
   font-style: italic; font-weight: normal;}
-.sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
-  clear: both; font-size: 25%;
-  font-style: italic; font-weight: normal;
-  margin-left: auto; margin-right: auto;
-  page-break-inside: avoid;
-  margin-top: 1em;
-  max-width: 50%;}
+.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
+    text-align: left;
+    font-style: normal; font-weight: normal;
+    margin-left: auto; margin-right: auto;
+    page-break-inside: avoid;
+    margin-top: 1em;
+    max-width: 70%;}
 .sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
     margin: 0px; padding: 0px;}
 .sbooktitlepage .dedication.leftalign p,
 .sbooktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
-.sbooktitlepage .sbookbibinfo { 
-  clear: both; text-align: left; font-size: 80%;
-  page-break-inside: avoid;
-  padding: 4px; margin-bottom: 7px; margin-top: 1em;}
-.sbooktitlepage .sbookbibinfo p {
+.sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
+.sbooktitlepage .pubinfo { 
+    text-align: left;
+    width: 70%; margin-left: 15%; margin-right: 15%;
+    padding: 4px; margin-top: 1em; margin-bottom: 1ex;
+    page-break-inside: avoid;
+    clear: both; }
+.sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
+.sbooktitlepage .pubinfo p {
     width: 80%; margin-left: 10%; margin-right: 10%;
     text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
-.sbooktitlepage .sbookbibinfo p span.bibdate {
+.sbooktitlepage .sbookbibinfo span.bibdate,
+.sbooktitlepage .bibinfo span.bibdate,
+.sbooktitlepage .pubinfo span.bibdate {
     padding-left: 1em;
     float: right;}
 
