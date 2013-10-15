@@ -112,9 +112,7 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
     page-break-before: avoid;
     page-break-after: avoid;}
 
-.sbooktitlepage {
-    text-align: center;
-    font-size: 200%;}
+.sbooktitlepage {text-align: center;}
 
 /* Generic rules */
 
@@ -164,12 +162,14 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
 .codexpage .sbooktitlepage {
     position: absolute; height: 100%; width: 100%;
     margin: 0px; padding: 0px; border: 0px;}
+/*
 .codexpage .sbooktitlepage .title {
     position: absolute; top: 2%; left: 0px; right: 0px;}
 .codexpage .sbooktitlepage > .credits,
 .codexpage .sbooktitlepage > .author,
 .codexpage .sbooktitlepage > .byline {
     position: absolute; top: 40%; left: 0px; right: 0px;}
+*/
 
 .sbooktitlepage .title {
     text-align: center; font-weight: bold; 
@@ -178,6 +178,8 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
     font-weight: bold;
     page-break-inside: avoid;
     clear: both;}
+.codexpage .sbooktitlepage .title, #CODEXCOVER .sbooktitlepage .title {
+    margin-top: 0px;}
 .sbooktitlepage .connector {
     font-size: 50%;}
 
@@ -210,10 +212,11 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
     text-align: left; display: inline-block;
     padding: 1ex; margin-top: 1em; margin-bottom: 1ex;
     page-break-inside: avoid;
+    min-width: 70%;
     clear: both;}
 .sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
 .sbooktitlepage .pubinfo p {
-    width: 80%; margin-left: 10%; margin-right: 10%;
+    width: 96%; margin-left: 2%; margin-right: 2%;
     text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
 .sbooktitlepage .sbookbibinfo span.bibdate,
 .sbooktitlepage .bibinfo span.bibdate,
@@ -447,9 +450,9 @@ body.sbook .sbooktitlepage div.subtitle {
   clear: both; text-align: center;
   font-style: normal; font-weight: normal;}
 body.sbook .sbooktitlepage .author { 
-  clear: both; text-align: center;
-  font-style: italic;  font-size: 90%;
-  margin-top: 1em; margin-bottom: 1em;}
+    font-style: italic; 
+    clear: both; text-align: center;
+    margin-top: 1em; margin-bottom: 1em;}
 body.sbook .sbooktitlepage .editor { 
   clear: both; text-align: center;
   font-style: normal; font-weight: normal; font-size: 90%;}
