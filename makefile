@@ -110,7 +110,7 @@ sbookstyles: ${SBOOKSTYLES}
 sbooks/sbookstyles.css: sbooks/normalize.css sbooks/bookstyles.css
 	cat $^ > $@
 
-fdjt/fdjt.hints: $(FDJT_FILES)
+fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
 	cd fdjt; make fdjt.hints
 codex/codex.hints: $(CODEX_HINTS)
 	cat $^ > $@
