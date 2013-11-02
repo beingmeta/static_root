@@ -17,6 +17,8 @@
   (when (exists? dropcookie)
     (do-choices dropcookie (clear-cookie! dropcookie)))
   (title! "Get connection info")
+  (xmlelt 'META 'name "viewport" 'content
+    "width=device-width,user-scalable=yes,initial-scale=1.0")
   (javascript! "/static/fdjt/fdjt.js")
   (stylesheet! "/static/fdjt/fdjt.css")
   (req/set! 'syshost (gethostname))
@@ -26,8 +28,8 @@
   (div ((id "USERAGENT")))
   (h2 "Geometry (from DOM/JS)")
   (p "Window inner=" (span ((id "WIW")) "?") "x" (span ((id "WIH")) "?")
-    ", outer="  (span ((id "WOW")) "?") "x" (span ((id "WOH")) "?")
-    ", doc client=" (span ((id "DCW")) "?") "x" (span ((id "DCH")) "?") ","
+    ", outer="  (span ((id "WOW")) "?") "x" (span ((id "WOH")) "?"))
+  (p "Doc client=" (span ((id "DCW")) "?") "x" (span ((id "DCH")) "?") ","
     " offset=" (span ((id "DOW")) "?") "x" (span ((id "DOH")) "?"))
   (h2 "Args")
   (if (bound? name)
