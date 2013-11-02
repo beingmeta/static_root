@@ -614,7 +614,7 @@ div.bookgrid div.book {
 div.bookgrid div.book {
     width: 150px; height: 250px;
     border: 0px; border-top: solid black 1px; padding-top: 3px;
-    margin-left: 50px; margin-bottom: 15px;
+    margin-left: 20px; margin-bottom: 15px;
     overflow: hidden;}
 div.bookgrid div.book a.cover {
     display: block; text-align: center;
