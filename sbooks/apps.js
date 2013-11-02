@@ -117,6 +117,7 @@ function showMessage(){
     fdjt.State.clearCookie("SBOOKSMESSAGE","/","sbooks.net");}
 
 fdjt.DOM.addListener(window,"load",showMessage);
+fdjt.DOM.addListener(window,"load",fdjt.DOM.addCXClasses);
 
 /* Emacs local variables
    ;;;  Local variables: ***
