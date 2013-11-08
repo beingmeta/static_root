@@ -10,7 +10,8 @@
 	      (profile #f))
   ;; (+ 2 "two")
   (when profile (config! 'calltrack profile))
-  (when (and cookiename (not (empty-string? cookiename)))
+  (when (and cookiename (not (empty-string? cookiename))
+	     (not (overlaps? (downcase cookiename) (downcase dropcookie))))
     (req/add! 'cookiedata
       (vector (string->symbol (upcase cookiename)) cookieval))
     (set-cookie! cookiename cookieval))
@@ -54,6 +55,12 @@
 	       VALUE (if (bound? name) name ""))
 	(input TYPE "SUBMIT" NAME "ACTION" VALUE "Submit")))
     (h2 "COOKIES")
+    (when (and (exists? dropcookie) dropcookie)
+      (if (singleton? dropcookie)
+	  (p "Dropped the cookie " dropcookie)
+	  (p "Dropped the cookies "
+	    (do-choices (dc dropcookie i)
+	      (xmlout (if (> i 0) ", ") dc)))))
     (form ()
       (p "Set the cookie "
 	(input TYPE "TEXT" NAME "COOKIENAME" VALUE "")
@@ -61,9 +68,10 @@
 	(input TYPE "TEXT" NAME "COOKIEVAL" VALUE "")
 	(input TYPE "SUBMIT" NAME "ACTION" VALUE "Submit"))
       (do-choices (cookie (req/get 'cookiedata #{}))
-	(p "Drop "
-	  (input TYPE "CHECKBOX" NAME "DROPCOOKIE" VALUE (first cookie))
-	  " " (first cookie) "=" (second cookie))))
+	(unless (overlaps? (downcase dropcookie) (downcase (first cookie)))
+	  (p "Drop "
+	    (input TYPE "CHECKBOX" NAME "DROPCOOKIE" VALUE (first cookie))
+	    " " (first cookie) "=" (second cookie)))))
     (h2 "FILEDATA")
     (when filedata)
     (form ((METHOD "POST") (enctype "multipart/form-data"))
