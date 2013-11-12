@@ -312,12 +312,12 @@ div.stanza {
   page-break-inside: avoid;
   text-align: left;
   margin-left: 2em; margin-right: 2em;
-  margin-top: 0px; margin-bottom: 0px; line-height: 110%;
+  margin-top: 0px; margin-bottom: 0px; line-height: 115%;
   border: transparent solid 1px;
   padding-top: 0.75em; padding-bottom: 0.75em;
   margin-bottom: 0.25em;}
 div.stanza p {
-  text-align: left; margin-left: 2em; line-height: 100%;
+  text-align: left; margin-left: 2em; line-height: 105%;
   margin-top: 0px; margin-bottom: 0.5ex;
   text-indent: -2em; }
 
