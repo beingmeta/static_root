@@ -25,12 +25,14 @@ KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # kn
 KNODULES_CSS=knodules/knodules.css
 PAGEDOWN_FILES=pagedown/Markdown.Converter.js
 SSC_FILES=showsomeclass/ssc.js showsomeclass/dialog.js showsomeclass/edit.js
+SSC_CSS=showsomeclass/ssc.css showsomeclass/dialog.css showsomeclass/edit.css
 SSC_HTML=showsomeclass/bigtextedit.html showsomeclass/savedialog.html \
 	showsomeclass/editcontent.html showsomeclass/sscabout.html \
 	showsomeclass/editelement.html showsomeclass/sschelp.html \
 	showsomeclass/edithelp.html showsomeclass/ssctoolbar.html \
 	showsomeclass/editselection.html showsomeclass/textedit.html \
 	showsomeclass/reclass.html showsomeclass/toolbar.html
+SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
@@ -199,7 +201,7 @@ index.html: etc/index_head.html etc/index_foot.html \
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS HTMLTAGS CSSTAGS
+alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
@@ -210,6 +212,8 @@ APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 HTMLTAGS: ${CODEX_HTML_FILES}
 	etags -o $@ $^
 CSSTAGS: ${CODEX_CSS_BUNDLE}
+	etags -o $@ $^
+SSCTAGS: ${SSC_BUNDLE}
 	etags -o $@ $^
 fdjt/TAGS: 
 	cd fdjt; make TAGS
