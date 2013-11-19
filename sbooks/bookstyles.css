@@ -116,8 +116,6 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 
 /* Generic rules */
 
-.codexbody p { text-indent: 1em;}
-body.verse .codexbody p { text-indent: inherit;}
 .codexbody h1 + p, .codexbody h2 + p, .codexbody h3 + p,
 .codexbody div + p, .codexbody img + p, .codexbody table + p,
 .codexbody blockquote + p {
@@ -317,9 +315,10 @@ div.stanza {
   padding-top: 0.75em; padding-bottom: 0.75em;
   margin-bottom: 0.25em;}
 div.stanza p {
-  text-align: left; margin-left: 2em; line-height: 105%;
+  text-align: left; line-height: 105%;
   margin-top: 0px; margin-bottom: 0.5ex;
-  text-indent: -2em; }
+  /* Hanging paragraph */
+  margin-left: 2em; text-indent: -2em;}
 
 /* Prose */
 
@@ -478,25 +477,6 @@ div.sbooktight div, div.sbooktight p {
 .sbooktag { display: none;}
 .sbooktags { display: none;}
 .xdatapagescale { display: none;}
-
-/* Media rules */
-
-@media screen and (min-width: 300px) and (max-width: 500px) {
-    div.poem, section.poem { 
-        margin-left: 3%; margin-right: 2%;
-        /* Setting padding-bottom sometimes avoids blank pages when
-           the poem fits exactly. */
-        padding: 1%; padding-bottom: 0em;
-        border-top: solid gray 3px;}
-    div.stanza { 
-        margin-left: 2%; margin-right: 1%;
-        margin-top: 0px; margin-bottom: 0px;
-        border: transparent solid 1px;
-        padding-top: .75em; padding-bottom: .75em;}
-    div.stanza p {
-        text-align: left; margin-left: 5%;
-        text-indent: -5%; }
-}
 
 /*
 body.essay div.toplinks a {
