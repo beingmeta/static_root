@@ -69,6 +69,30 @@ function textHideToggle(evt,id)
     else elt.type="text";
 }
 
+function changeParent(evt,spec,classname)
+{
+    evt=evt||event;
+    var target=fdjt.UI.T(evt);
+    if (!(target)) return;
+    var parent=fdjt.DOM.getParent(target,spec);
+    if (!(parent)) return;
+    if (target.checked)
+        fdjt.DOM.addClass(parent,classname);
+    else fdjt.DOM.addClass(parent,classname);
+}
+
+function submitOnEnter(evt,value,name){
+    evt=evt||event;
+    var target=fdjtUI.T(evt);
+    var kc=evt.keyCode;
+    if (kc===13) {
+        var elt=fdjt.DOM("INPUT"); {
+            elt.type="HIDDEN"; elt.name=name||"ACTION";
+            elt.value=value||target.value;
+            fdjt.DOM.insertAfter(target,elt);}
+        target.form.submit();
+        fdjt.UI.cancel(evt);}}
+
 function updateForm(form){
   var checks=fdjt.DOM.getInputs(form,"ACCESS");
   var isopen=false; var i=0; var lim=checks.length;

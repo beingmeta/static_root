@@ -155,7 +155,8 @@ table.preferences { margin-left: auto; margin-right: auto;}
 table.preferences th { 
   text-align: right; vertical-align: top;}
 table.preferences th img { height: 40px; width: auto;}
-table.preferences tr th:first-child { width: 100px;} 
+table.preferences tr th:first-child { 
+  width: 100px; font-variant: small-caps;}
 table.preferences td { 
   text-align: left; vertical-align: top;}
 table.preferences td .checkspan { padding-right: 0.5ex; }
@@ -201,6 +202,18 @@ tr.password td a.setpass:visited { color: blue;}
 
 table.preferences .openidblock td { vertical-align: middle;}
 table.preferences .openidblock tr:first-child { cursor: pointer;}
+
+table.preferences tr.setsms td input[TYPE='text'] {
+  width: inherit; max-width: 10em;}
+table.preferences tr.setsms span.verified {
+  color: green; padding-left: 1em;}
+table.preferences tr.setsms span.checkspan {
+  color: red; padding-left: 1em; float: right;}
+table.preferences.fdjtform tr.setsms td p { max-width: inherit; }
+tr.setsms button[VALUE='SMSDELETE'], tr.setsms.deleting button {
+  display: none;}
+tr.setsms.deleting button[VALUE='SMSDELETE'] {
+  color: red; display: inline-block; }
 
 div.appblock#IDENTITYBLOCK form#IDFORM { display: none;}
 div.appblock#IDENTITYBLOCK div.message {
