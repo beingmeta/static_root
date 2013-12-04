@@ -5,6 +5,7 @@
 # have a built-in version of echo which doesn't handle the -n argument
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
+PATH:=/usr/local/bin:${PATH}
 FDJT_FILES=fdjt/header.js fdjt/charnames.js \
 	fdjt/string.js fdjt/time.js fdjt/template.js fdjt/hash.js \
 	fdjt/syze.js fdjt/iscroll.js \
