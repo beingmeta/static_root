@@ -140,6 +140,32 @@ function showMessage(){
     fdjt.State.clearCookie("SBOOKSPOPUP","/","sbooks.net");
     fdjt.State.clearCookie("SBOOKSMESSAGE","/","sbooks.net");}
 
+function watchTask(taskid,callback){
+    var fdjtDOM=fdjt.DOM, fdjtAjax=fdjt.Ajax;
+    var checking=false, done=false, timer=false;
+    var status_link="https://admin.sbooks.net/task/"+taskid;
+    function waiting(){
+	if (checking) return;
+	else if (done) {
+	    if (timer) clearInterval(timer);
+	    timer=false;
+	    return;}
+	else {
+	    checking=true;
+	    fdjtAjax.jsonCall(checkstatus,status_link);}}
+    function checkstatus(result){
+	var uuid=result.uuid, kind=result.kind;
+	if (kind[0]===":") kind=kind.slice(1);
+	if ((uuid)&&(uuid.search("#U")===0)) uuid=uuid.slice(2);
+	if ((result.completed)&&((kind==="UPDATE")||(kind==="IMPORT"))) {
+	    var button=fdjt.ID("SBOOKPUBLISHBUTTON");
+	    if (button) button.disabled=false;}
+        if ((result.completed)||(result.failed)) {
+            done=true; callback(result);}
+	else checking=false;}
+    timer=setInterval(waiting,10000);
+    return timer;}
+
 fdjt.DOM.addListener(window,"load",showMessage);
 fdjt.DOM.addListener(window,"load",fdjt.DOM.addCXClasses);
 
