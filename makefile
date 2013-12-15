@@ -138,7 +138,7 @@ codex:
 showsomeclass:
 	git clone git@github.com:beingmeta/showsomeclass.git
 g:
-	svn checkout https://dev.beingmeta.com/src/graphics/targets g
+	svn checkout svn+ssh://dev.beingmeta.com/svn/src/graphics/targets g
 pagedown:
 	hg clone https://code.google.com/p/pagedown/
 bibliotype:
