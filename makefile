@@ -272,16 +272,12 @@ push: fdjt codex knodules
 	cd codex; git push
 convert:
 	cd codex/graphics; ./convertall
+
+
 publish:
 	make update
 	make
-	s3commit
-	cd g; s3commit --exclude="*.svgz"
-	cd g; s3commit --exclude="*.(png|gif|jpg|jpeg)" --add-header=Content-encoding:gzip
-	cd fdjt; make publish
-	cd knodules; s3commit
-	cd sbooks; s3commit
-	make publish-bundle
+	bash publish.bash
 release: publish
 
 publish-bundle:
