@@ -202,10 +202,12 @@ index.html: etc/index_head.html etc/index_foot.html \
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex TAGS APPTAGS fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
+alltags: fdjt knodules codex TAGS APPTAGS CODEXTAGS fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
+	etags -o $@ $^
+CODEXTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
