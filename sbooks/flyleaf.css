@@ -82,18 +82,18 @@ body.sbookflyleaf div.inviteurl {
     font-family: fixed; font-size: 80%;
     text-align: center;}
 
-body.sbookflyleaf table.overlays { margin-top: 1.5em; }
+body.sbookflyleaf table.layers { margin-top: 1.5em; }
 
-body.sbookflyleaf div.overlaytitle { font-style: italic;}
+body.sbookflyleaf div.layertitle { font-style: italic;}
 body.sbookflyleaf div.booktitle { font-weight: bold;}
 
 div.flyhead {
     text-align: center; font-size: 150%; font-weight: bold;
     border-bottom: solid black 2px;
     margin-bottom: 7px;}
-div.flyhead div.overlaykind {
+div.flyhead div.layerkind {
     font-size: 80%; font-style: italic;}
-div.flyhead div.overlay {
+div.flyhead div.layer {
     font-weight: bold;
     /* This makes space for the icons */
     margin-left: 50px; margin-right: 50px;}

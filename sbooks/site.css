@@ -20,7 +20,7 @@ p.whylogin {
   color: purple;}
 
 table.booklist { width: 95%;}
-table.booklist span.label, table.overlays span.label {
+table.booklist span.label, table.layers span.label {
     font-weight: bold; font-variant: small-caps;}
 table.booklist th, table.booklist td {
     vertical-align: top; overflow: hidden;}
@@ -92,7 +92,7 @@ tbody.book td div.booktabs > div {
 tbody.book[tab='description'] td div.booktabs > div.description,
 tbody.book[tab='subjects'] td div.booktabs > div.subjects,
 tbody.book[tab='circles'] td div.booktabs > div.circles,
-tbody.book[tab='overlays'] td div.booktabs > div.overlays,
+tbody.book[tab='layers'] td div.booktabs > div.layers,
 tbody.book[tab='friends'] td div.booktabs > div.friends {
     opacity: 1.0; z-index: 100; display: block;
     background-color: silver; margin-bottom: 1em;}

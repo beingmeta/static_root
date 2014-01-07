@@ -322,8 +322,8 @@ div.righthead div.subtitle {
     font-weight: normal; font-style: italic;
     font-size: 75%; text-align: right;}
 
-tr.overlay.writable td.buttons { background-color: lightgreen;}
-tr.overlay.hidden > td, tr.overlay.hidden > th {
+tr.layer.writable td.buttons { background-color: lightgreen;}
+tr.layer.hidden > td, tr.layer.hidden > th {
     opacity: 0.50;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     filter: alpha(opacity=50);
@@ -331,7 +331,7 @@ tr.overlay.hidden > td, tr.overlay.hidden > th {
     -khtml-opacity: 0.50;
     -moz-opacity: 0.50;
     -o-opacity: 0.50;}
-tr.overlay.hidden > td.action {
+tr.layer.hidden > td.action {
     opacity: 0.90;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     filter: alpha(opacity=90);
@@ -339,17 +339,17 @@ tr.overlay.hidden > td.action {
     -khtml-opacity: 0.90;
     -moz-opacity: 0.90;
     -o-opacity: 0.90;}
-tr.overlay.hidden > td.action a.unhideaction {
+tr.layer.hidden > td.action a.unhideaction {
     color: red; background-color: pink;}
 
-tr.overlay td div.summary .price { float: right;}
-tr.overlay td div.summary span.name { font-weight: bold; font-size: 120%;}
-tr.overlay td div.summary span.sep { font-weight: bold; font-size: 80%;}
-tr.overlay td div.summary span.writable {
+tr.layer td div.summary .price { float: right;}
+tr.layer td div.summary span.name { font-weight: bold; font-size: 120%;}
+tr.layer td div.summary span.sep { font-weight: bold; font-size: 80%;}
+tr.layer td div.summary span.writable {
     color: green; font-weight: bold; font-size: 80%;}
-tr.overlay td div.summary span.hidden {
+tr.layer td div.summary span.hidden {
     color: red; font-weight: bold; font-size: 80%;}
-tr.overlay td div.summary span.admin {
+tr.layer td div.summary span.admin {
     color: purple; font-weight: bold; font-size: 80%;}
 
 table.fdjtform.sbookinvitation {
@@ -361,33 +361,33 @@ table.fdjtform tr.mainbuttons input[TYPE="SUBMIT"] {
     -moz-border-radius: 1ex;  -khtml-border-radius: 1ex;
     -o-border-radius: 1ex;}
 
-table.overlays {
+table.layers {
     border-collapse: collapse; border-spacing: 0px;
     width: 96%; margin-right: 2%; margin-left: 2%;}
-table.overlays th, table.overlays td { 
+table.layers th, table.layers td { 
   padding-top: 3px; vertical-align: top; padding-bottom: 1em;}
-table.overlays th, table.overlays td div.name {
+table.layers th, table.layers td div.name {
     font-weight: bold;}
-table.overlays th, table.overlays td div.about {
+table.layers th, table.layers td div.about {
     font-size: 90%;}
-table.overlays td div.about {
+table.layers td div.about {
     margin-left: 1em; margin-right: 0.5em;
     background-color: lightblue; padding: 3px;}
 
-table.overlays td.buttons {text-align: left; font-size: 75%;}
-table.overlays td.buttons a {display: block;}
-table.overlays td.action {
+table.layers td.buttons {text-align: left; font-size: 75%;}
+table.layers td.buttons a {display: block;}
+table.layers td.action {
   text-align: right; font-size: 75%; padding-top: 0px;}
-table.overlays td.action > div {
+table.layers td.action > div {
   padding-left: 2px; margin-top: 0px; padding-top: 3px;
   border-left: solid blue 1px; margin-bottom: 3px;}
-table.overlays td.action a {display: block; text-decoration: none; color: blue;}
-table.overlays td.action a:hover {text-decoration: underline; color: purple;}
+table.layers td.action a {display: block; text-decoration: none; color: blue;}
+table.layers td.action a:hover {text-decoration: underline; color: purple;}
 
-table.overlays img.overlay { max-height: 50px; max-width: 50px;}
+table.layers img.layer { max-height: 50px; max-width: 50px;}
 
-tr.overlay > th, tr.overlay > td { border-top: solid blue 1px; }
-tr.overlay > td.actions { border-top: none; }
+tr.layer > th, tr.layer > td { border-top: solid blue 1px; }
+tr.layer > td.actions { border-top: none; }
 
 form[action="manage"] + form[action="invite"] {
     border-top: solid purple 4px; margin-top: 12px; padding-top: 8px;}
@@ -453,7 +453,7 @@ p.whylogin, p.bigwhy {
   color: purple;}
 
 table.booklist { width: 95%;}
-table.booklist span.label, table.overlays span.label {
+table.booklist span.label, table.layers span.label {
     font-weight: bold; font-variant: small-caps;}
 table.booklist th, table.booklist td {
     vertical-align: top; overflow: hidden;}
@@ -540,7 +540,7 @@ tbody.book td div.booktabs > div {
 tbody.book[tab='description'] td div.booktabs > div.description,
 tbody.book[tab='subjects'] td div.booktabs > div.subjects,
 tbody.book[tab='circles'] td div.booktabs > div.circles,
-tbody.book[tab='overlays'] td div.booktabs > div.overlays,
+tbody.book[tab='layers'] td div.booktabs > div.layers,
 tbody.book[tab='friends'] td div.booktabs > div.friends {
     z-index: 100; display: block;
     background-color: silver; margin-bottom: 1em;
@@ -635,20 +635,20 @@ div.bookgrid div.book a.cover {
     width: 80%; margin-left: 10%; margin-right: 10%;}
 div.bookgrid div.book a.cover img.cover {
     height: 100%; width: auto;}
-div.bookgrid div.book div.overlay {
+div.bookgrid div.book div.layer {
     position: relative; width: 100%;
     z-index: 50; opacity: 0.80;
     text-align: center;
-    overlay: visible;}
-div.bookgrid div.book div.overlay span.starred {
+    layer: visible;}
+div.bookgrid div.book div.layer span.starred {
     position: absolute; left: 2px; top: 0px;
     width: 32px; height: 32px;}
-div.bookgrid div.book div.overlay span.starred img {
+div.bookgrid div.book div.layer span.starred img {
     max-height: 100%; max-width: 100%;}
-div.bookgrid div.book div.overlay a.readlink {
+div.bookgrid div.book div.layer a.readlink {
     position: absolute; right: 2px; top: 0px;
     width: 32px; height: 32px;}
-div.bookgrid div.book div.overlay a.readlink img {
+div.bookgrid div.book div.layer a.readlink img {
     max-height: 100%; max-width: 100%;}
 
 div.bookgrid div.book div.status {
