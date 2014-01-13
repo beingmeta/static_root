@@ -635,20 +635,20 @@ div.bookgrid div.book a.cover {
     width: 80%; margin-left: 10%; margin-right: 10%;}
 div.bookgrid div.book a.cover img.cover {
     height: 100%; width: auto;}
-div.bookgrid div.book div.layer {
+div.bookgrid div.book div.overlay {
     position: relative; width: 100%;
     z-index: 50; opacity: 0.80;
     text-align: center;
     layer: visible;}
-div.bookgrid div.book div.layer span.starred {
+div.bookgrid div.book div.overlay span.starred {
     position: absolute; left: 2px; top: 0px;
     width: 32px; height: 32px;}
-div.bookgrid div.book div.layer span.starred img {
+div.bookgrid div.book div.overlay span.starred img {
     max-height: 100%; max-width: 100%;}
-div.bookgrid div.book div.layer a.readlink {
+div.bookgrid div.book div.overlay a.readlink {
     position: absolute; right: 2px; top: 0px;
     width: 32px; height: 32px;}
-div.bookgrid div.book div.layer a.readlink img {
+div.bookgrid div.book div.overlay a.readlink img {
     max-height: 100%; max-width: 100%;}
 
 div.bookgrid div.book div.status {
