@@ -195,7 +195,7 @@ table.preferences img[ALT='OpenID'] {
     height: 25px; width: auto;}
 
 tr.password td a.setpass {
-    display: block; margin-bottom: 1ex;
+    display: block;
     font-size: 90%; font-variant: small-caps;
     text-decoration: none;}
 tr.password td a.setpass:visited { color: blue;}
@@ -204,7 +204,7 @@ table.preferences .openidblock td { vertical-align: middle;}
 table.preferences .openidblock tr:first-child { cursor: pointer;}
 
 table.preferences tr.setsms td input[TYPE='text'] {
-  width: inherit; max-width: 10em;}
+  width: inherit; max-width: 10em; padding-left: 0.5ex;}
 table.preferences tr.setsms span.verified {
   color: green; padding-left: 1em;}
 table.preferences tr.setsms span.checkspan {
