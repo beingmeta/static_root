@@ -1,3 +1,4 @@
+export AWS_DEFAULT_REGION=us-east-1
 COPYJSGZ="aws s3 cp --content-type=text/javascript;charset=utf8 --content-encoding=gzip --acl=public-read"
 COPYCSSGZ="aws s3 cp --content-type=text/css;charset=utf8 --content-encoding=gzip --acl=public-read"
 COPY="aws s3 cp --recursive --acl=public-read"
