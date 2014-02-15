@@ -16,30 +16,29 @@
 
 /* The sBooks logotype */
 
-.sbooks {
+.sbooksname {
    font-family: Times-Roman,serif;}
-.sbooks em, .sbooks i {
+.sbooksname em, .sbooksname i {
    font-family: sans-serif,sans; font-style: italic;
    color: blue;}
-a.sbooks em, a.sbooks i, a .sbooks em, a .sbooks i {
+a.sbooksname em, a.sbooksname i, a .sbooksname em, a .sbooksname i {
    color: black;}
 
-.codex {
+.codexname {
    font-family: sans-serif,sans;
    font-variant: small-caps;}
-.codex em, .codex i {
+.codexname em, .codexname i {
    font-style: italic;
    font-variant: normal;
    color: blue;}
 
-.mupub {
-   font-family: sans-serif,sans;
-   font-variant: small-caps;}
-.mupub em, .mupub i, .mupub .mu {
+.spressoname {
+   font-family: sans-serif,sans;}
+.spressoname em, .spressoname i, .spressoname .mu {
    font-style: italic;
    font-variant: normal;
    color: blue;}
-a.mupub em, a.mupub i, a .mupub em, a .mupub i {
+a.spressoname em, a.spressoname i, a .spressoname em, a .spressoname i {
    color: black;}
 
 body.sbooksapp {font-family: sans,sans-serif;}

@@ -142,6 +142,8 @@ pagedown:
 	hg clone https://code.google.com/p/pagedown/
 bibliotype:
 	git clone https://github.com/cmod/bibliotype.git
+aloha:
+	git clone https://github.com/alohaeditor/Aloha-Editor.git aloha
 ext:
 	cd ext; make 
 
