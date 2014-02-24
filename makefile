@@ -37,7 +37,7 @@ SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
-	 codex/interaction.js codex/layout.js codex/autoload.js
+	 codex/interaction.js codex/layout.js codex/debug.js codex/autoload.js
 CODEX_HINTS=codex/core.hint codex/startup.hint codex/domscan.hint \
 	codex/hud.hint codex/toc.hint codex/slices.hint codex/clouds.hint \
 	codex/social.hint codex/search.hint codex/glosses.hint \
@@ -61,7 +61,7 @@ CODEX_CSS=codex/css/framing.css codex/css/cover.css codex/css/hud.css   \
 	codex/css/toc.css codex/css/slices.css codex/css/clouds.css     \
 	codex/css/card.css codex/css/search.css codex/css/addgloss.css  \
 	codex/css/flyleaf.css codex/css/preview.css                     \
-	codex/css/app.css codex/css/media.css
+	codex/css/app.css codex/css/media.css codex/css/debug.css
 # removed sbooks/reset.css
 SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/app.css sbooks/app.js \
@@ -120,6 +120,11 @@ knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 	cat $^ > $@
 showsomeclass/hints:
 	cd showsomeclass; make hints
+
+codex/css/debug.css:
+	echo "/* No debugging CSS rules */" > codex/css/debug.css
+codex/debug.js:
+	echo "/* No debugging Javascript */" > codex/debug.js
 
 showsomeclass/app.js: $(SSC_FILES) $(SSC_HTML) showsomeclass/makefile
 	cd showsomeclass; make
