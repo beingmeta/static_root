@@ -360,6 +360,40 @@ table.fdjtform tr.mainbuttons input[TYPE="SUBMIT"] {
     -moz-border-radius: 1ex;  -khtml-border-radius: 1ex;
     -o-border-radius: 1ex;}
 
+div.layer {
+    border-bottom: solid black 1px;
+    margin-bottom: 1ex; margin-top: 1em;}
+div.layer div.body {
+    box-sizing: border-box; width: 75%; margin-left: 2%;
+    display: inline-block; clear: none;}
+div.layer a.action {
+    float: left; clear: left; width: 10%;
+    margin-right: 0.5em;
+    text-align: right;}
+div.layer img.layericon {
+    float: left; width: 10%; height: auto;
+    padding-left: 1%;}
+div.layer img.bookicon {
+    float: right; width: 10%; height: auto;
+    padding-right: 0.5%;}
+div.layer div.members form.invite {display: inline-block; float: right;}
+div.layer div.members form.invite input[TYPE="TEXT"] {
+    display: inline-block; float: right;}
+div.layer div.about {
+    margin-left: 2em; margin-right: 3em;
+    margin-top: 0.5ex; margin-bottom: 0.5ex;
+    border: solid black 1px; padding: 0.5ex;
+    font-size: 90%; font-style: italic;}
+
+div.layer span.label {
+    font-variant: small-caps; font-weight: bold;}
+
+div.layer div.body .connector { font-size: 80%; }
+div.layer div.body .title { font-size: 120%; font-weight: bold;}
+div.layer div.body .booktitle { font-style: italic; }
+div.layer div.body .byline { }
+div.layer div.body .publisher { }
+
 table.layers {
     border-collapse: collapse; border-spacing: 0px;
     width: 96%; margin-right: 2%; margin-left: 2%;}
