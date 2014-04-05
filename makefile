@@ -247,7 +247,7 @@ status:
 	cd codex; git status -uno
 	cd showsomeclass; git status -uno
 	cd g; svn status -q
-update: fdjt codex knodules g pagedown showsomeclass bibliotype
+pull: fdjt codex knodules g pagedown showsomeclass bibliotype
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
@@ -256,6 +256,8 @@ update: fdjt codex knodules g pagedown showsomeclass bibliotype
 	cd bibliotype; git pull
 	cd pagedown; hg update
 	cd g; svn update
+update: fdjt codex knodules g pagedown showsomeclass bibliotype
+	make pull
 	make update-graphics
 update-code: fdjt codex knodules
 	git pull

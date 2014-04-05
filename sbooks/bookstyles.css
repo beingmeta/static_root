@@ -465,6 +465,18 @@ body.sbook .sbooktitlepage div.pubinfo {
   font-variant: small-caps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
 
+div.sbookaboutbook, div.sbookaboutauthor, div.sbookaboutauthor div.creator {
+  clear: both; margin-bottom: 1em;}
+
+.sbookaboutbook img.cover, .sbookaboutauthor img.portrait {
+  height: auto; float: right; padding-left: 1em;}
+.sbookaboutbook img.cover {max-width: 15%;}
+.sbookaboutauthor img.portrait {max-width: 25%;}
+
+body .sbookaboutauthor h1, body .sbookaboutauthor h2,
+body .sbookaboutbook h1, body .sbookaboutbook h2 {
+  text-align: left;}
+
 /* Some useful formatting classes */
 
 div.sbooktight {margin-after: 0.5em;}
@@ -495,6 +507,7 @@ body.essay div.toplinks a {
 
 /* Emacs local variables
 ;;;  Local variables: ***
+;;;  compile-command: "cd ..; make sbooks/sbookstyles.css" ***
 ;;;  indent-tabs-mode: nil ***
 ;;;  End: ***
 */
