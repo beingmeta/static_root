@@ -84,7 +84,7 @@ codex/%.hint: codex/%.js
 	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config codex/.jshintrc $< | tee $@; fi
 
 codex/text/%.js: codex/text/%.html makefile
-	./text2js Codex.HTML.`basename $@ .js` $< $@
+	@./text2js Codex.HTML.`basename $@ .js` $< $@
 
 all: allcode alltags allhints index.html
 allcode: fdjt knodules codex \
@@ -110,16 +110,16 @@ hints:
 sbookstyles: ${SBOOKSTYLES}
 # Removed sbooks/reset.css
 sbooks/sbookstyles.css: sbooks/normalize.css sbooks/bookstyles.css
-	cat $^ > $@
+	@cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
-	cd fdjt; make fdjt.hints
-codex/codex.hints: $(CODEX_HINTS)
-	cat $^ > $@
+	@cd fdjt; make fdjt.hints
+codex/codex.hints: $(CODEX_HINTS) codex/.jshintrc
+	@cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
-	cat $^ > $@
+	@cat $^ > $@
 showsomeclass/hints:
-	cd showsomeclass; make hints
+	@cd showsomeclass; make hints
 
 codex/css/debug.css:
 	echo "/* No debugging CSS rules */" > codex/css/debug.css
@@ -178,14 +178,14 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 
 sbooks/tieoff.js:
-	touch sbooks/tieoff.js
+	@touch sbooks/tieoff.js
 sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
-	cat sbooks/amalgam.js fdjt/buildstamp.js \
+	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js sbooks/buildstamp.js > $@
 sbooks/codex.css: $(CODEX_CSS_BUNDLE)
-	cat $(CODEX_CSS_BUNDLE) > $@
+	@cat $(CODEX_CSS_BUNDLE) > $@
 sbooks/codex.min.js: sbooks/codex.js jsmin/jsmin
 	jsmin/jsmin < sbooks/codex.js > sbooks/codex.min.js
 sbooks/codex.min.js.gz: sbooks/codex.min.js
@@ -199,33 +199,36 @@ sbooks/codex.css.gz: sbooks/codex.css
 
 index.html: etc/index_head.html etc/index_foot.html \
 	sbooks/codex.js sbooks/codex.css
-	cat etc/index_head.html > index.html
-	echo "<p>Build host: " `hostname` "</p>" >> index.html
-	echo "<p>Build date: " `date` "</p>" >> index.html
-	cd fdjt; echo "<p>FDJT version: " `git describe` "</p>" >> ../index.html
-	cd codex; echo "<p>Codex version: " `git describe` "</p>" >> ../index.html
-	cat etc/index_foot.html >> index.html
+	@cat etc/index_head.html > index.html
+	@echo "<p>Build host: " `hostname` "</p>" >> index.html
+	@echo "<p>Build date: " `date` "</p>" >> index.html
+	@cd fdjt; echo "<p>FDJT version: " `git describe` "</p>" \
+		>> ../index.html
+	@cd codex; echo "<p>Codex version: " `git describe` "</p>" \
+		>> ../index.html
+	@cat etc/index_foot.html >> index.html
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex TAGS APPTAGS CODEXTAGS fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
+alltags: fdjt knodules codex TAGS APPTAGS CODEXTAGS \
+	fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
-	etags -o $@ $^
+	@etags -o $@ $^
 CODEXTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
-	etags -o $@ $^
+	@etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
-	etags -o $@ $^
+	@etags -o $@ $^
 HTMLTAGS: ${CODEX_HTML_FILES}
-	etags -o $@ $^
+	@etags -o $@ $^
 CSSTAGS: ${CODEX_CSS_BUNDLE}
-	etags -o $@ $^
+	@etags -o $@ $^
 SSCTAGS: ${SSC_BUNDLE}
-	etags -o $@ $^
+	@etags -o $@ $^
 fdjt/TAGS: 
-	cd fdjt; make TAGS
+	@cd fdjt; make TAGS
 
 jsmin/jsmin: jsmin/jsmin.c
 	${CC} -o jsmin/jsmin jsmin/jsmin.c
