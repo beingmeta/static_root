@@ -284,6 +284,17 @@ div.poem, section.poem {
 div.poem.codexdup, div.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 section.poem.codexdup, section.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 
+@media (max-width: 600px) {
+  blockquote { margin-left: 1.5em; margin-right: 0.5em;}}
+
+@media (max-width: 700px) {
+  div.stanza { margin-left: 0.5em; margin-right: 0.25em; }
+  div.stanza p { margin-left: 0.5em; text-indent: -0.5em;}
+  div.poem, section.poem { 
+   margin-left: 0.5ex; margin-right: 0.25ex;
+   padding: 0.25ex; padding-bottom: 0px;}
+}
+
 body.sbookpagehorizontal div.poem, body.sbookpagehorizontal section.poem {
     margin-top: 0px;
     margin-bottom: 0px; padding-bottom: 0px;}
