@@ -7,10 +7,10 @@ SYNC="s3cmd sync --acl-public"
 for r in `cat ./.s3root`; do \
  echo "Copying to" ${r}; \
  s3cmd put index.html ${r}index.html; \
- $COPYJSGZ sbooks/codex.min.js ${r}sbooks/bundle.js; \
- $COPYCSSGZ sbooks/codex.css ${r}sbooks/bundle.css; \
- $COPYJSGZ sbooks/codex.min.js ${r}codexapp.js; \
- $COPYCSSGZ sbooks/codex.css ${r}codexapp.css; \
+ $COPYJSGZ sbooks/codex.min.js.gz ${r}sbooks/bundle.js; \
+ $COPYCSSGZ sbooks/codex.css.gz ${r}sbooks/bundle.css; \
+ $COPYJSGZ sbooks/codex.min.js.gz ${r}codexapp.js; \
+ $COPYCSSGZ sbooks/codex.css.gz ${r}codexapp.css; \
  for d in fdjt knodules codex; \
    do $SYNC --exclude="*" --include="*.js" \
             -m "text/javascript;charset=utf-8" \
