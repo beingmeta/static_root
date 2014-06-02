@@ -449,29 +449,32 @@ body.rawsbook div#CODEXCONTENT p {
 
 /* Kind of dead code */
 
-body.sbook .sbooktitlepage .title {
+.sbooktitlepage .title {
     text-align: center; font-weight: bold;
     clear: both;}
-body.sbook .sbooktitlepage .connector {
+.sbooktitlepage .connector {
     font-size: 50%;}
-body.sbook .sbooktitlepage .title img {
+.sbooktitlepage .title img {
     max-width: 80%;}
-body.sbook .sbooktitlepage div.subtitle {
+.sbooktitlepage .subtitle {
+    font-size: 80%; white-space: nowrap; }
+.sbooktitlepage div.subtitle {
   clear: both; text-align: center;
-  font-style: normal; font-weight: normal;}
-body.sbook .sbooktitlepage .author { 
+  font-style: normal; font-weight: normal;
+  white-space: normal;}
+.sbooktitlepage .author { 
     font-style: italic; 
     clear: both; text-align: center;
     margin-top: 1em; margin-bottom: 1em;}
-body.sbook .sbooktitlepage .editor { 
+.sbooktitlepage .editor { 
   clear: both; text-align: center;
   font-style: normal; font-weight: normal; font-size: 90%;}
-body.sbook .sbooktitlepage .dedication, body.sbook .sbooktitlepage .epigraph { 
+.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
   clear: both; text-align: left;
   font-style: italic; font-weight: normal;
   margin-left: auto; margin-right: auto;
   max-width: 50%; font-size: 80%;}
-body.sbook .sbooktitlepage div.pubinfo { 
+.sbooktitlepage div.pubinfo { 
   clear: both; 
   font-variant: small-caps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
