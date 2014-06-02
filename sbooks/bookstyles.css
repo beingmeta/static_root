@@ -479,6 +479,10 @@ body.rawsbook div#CODEXCONTENT p {
   font-variant: small-caps; font-size: 50%;
   padding: 4px; margin-bottom: 7px; margin-top: 2em;}
 
+.sbooktitlepage .title { margin-bottom: 1em; }
+.sbooktitlepage .credits {
+    margin-top: 1em; margin-bottom: 1em; }
+
 .sbooktitlepage .title h1, .sbooktitlepage .credits h1,
 .sbooktitlepage .title h2, .sbooktitlepage .credits h2,
 .sbooktitlepage .title h3, .sbooktitlepage .credits h3 {
