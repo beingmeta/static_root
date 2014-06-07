@@ -112,8 +112,6 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
     page-break-before: avoid;
     page-break-after: avoid;}
 
-.sbooktitlepage {text-align: center;}
-
 /* Generic rules */
 
 .codexbody h1 + p, .codexbody h2 + p, .codexbody h3 + p,
@@ -137,15 +135,6 @@ body.sbook div.sbookfullpage h1 {
 body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 0.1em; margin-bottom: 0.1em;}
 
-body.sbook .sbooktitlepage img {
-    display: block; clear: both;
-    margin-left: auto; margin-right: auto;
-    margin-top: 1em; margin-bottom: 1em;}
-body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
-    width: 30em; max-width: 70%; clear: both;
-    font-size: 125%;
-    margin-left: auto; margin-right: auto;}
-
 .sbooktitlepage {
   padding: 1em; margin: 0px;
   font-family: helvetica,sans,sans-serif;
@@ -157,17 +146,49 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
 .sbooktitlepage > * {
   page-break-inside: avoid;}
 
-.codexpage .sbooktitlepage {
-    position: absolute; height: 100%; width: 100%;
-    margin: 0px; padding: 0px; border: 0px;}
-/*
-.codexpage .sbooktitlepage .title {
-    position: absolute; top: 2%; left: 0px; right: 0px;}
-.codexpage .sbooktitlepage > .credits,
-.codexpage .sbooktitlepage > .author,
-.codexpage .sbooktitlepage > .byline {
-    position: absolute; top: 40%; left: 0px; right: 0px;}
-*/
+.sbooktitlepage > p, .sbooktitlepage > blockquote > p {
+    width: 30em; max-width: 70%; clear: both;
+    font-size: 125%;
+    margin-left: auto; margin-right: auto;}
+
+.sbooktitlepage > img {
+    display: block; clear: both;
+    margin-left: auto; margin-right: auto;
+    margin-top: 1em; margin-bottom: 1em;}
+.sbooktitlepage > .title {
+    margin-top: 1ex; margin-bottom: 1em;
+    font-size: 3em; font-weight: bold;
+    clear: both;}
+.sbooktitlepage .connector {font-size: 50%;}
+.sbooktitlepage > .credits, .sbooktitlepage > .author,
+.sbooktitlepage > .byline {
+    margin-top: 1em; margin-bottom: 1em;
+    font-size: 2em; font-style: italic;}
+.sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
+.sbooktitlepage .pubinfo { 
+    text-align: left; display: inline-block;
+    padding: 1ex; margin-top: 1em; margin-bottom: 1ex;
+    page-break-inside: avoid;
+    min-width: 70%;
+    clear: both;}
+.sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
+.sbooktitlepage .pubinfo p {
+    margin-right: 3em; margin-left: 3em; text-indent: -2em;
+    text-align: left; margin-bottom: 0px; margin-top: 0px;}
+.sbooktitlepage .pubinfo span.bibdate,
+.sbooktitlepage .sbookbibinfo span.bibdate {
+    padding-left: 1ex; margin-left: 16px; float: right;
+    color: crimson;}
+
+.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
+    text-align: left; font-size: 1em;
+    font-style: normal; font-weight: normal;
+    margin-left: auto; margin-right: auto;
+    page-break-inside: avoid;
+    margin-top: 1em;
+    max-width: 70%;}
+
+.codexbibpage { text-align: left;}
 
 .sbooktitlepage .title {
     text-align: center; font-weight: bold; 
@@ -205,22 +226,6 @@ body.sbook .sbooktitlepage > p, body.sbook .sbooktitlepage > blockquote > p {
 .sbooktitlepage .dedication.leftalign p,
 .sbooktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
-.sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
-.sbooktitlepage .pubinfo { 
-    text-align: left; display: inline-block;
-    padding: 1ex; margin-top: 1em; margin-bottom: 1ex;
-    page-break-inside: avoid;
-    min-width: 70%;
-    clear: both;}
-.sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
-.sbooktitlepage .pubinfo p {
-    width: 96%; margin-left: 2%; margin-right: 2%;
-    text-align: left; margin-bottom: 0.5ex; margin-top: 1ex;}
-.sbooktitlepage .sbookbibinfo span.bibdate,
-.sbooktitlepage .bibinfo span.bibdate,
-.sbooktitlepage .pubinfo span.bibdate {
-    padding-left: 1em;
-    float: right;}
 
 body.sbook .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
