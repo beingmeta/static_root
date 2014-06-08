@@ -146,6 +146,8 @@ hr {
     height: 0;
 }
 
+body span, body em, body strong, body b, body i { font-size: inherit; }
+
 /**
  * Address styling not present in IE 8/9.
  */
