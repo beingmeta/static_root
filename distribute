@@ -1,0 +1,98 @@
+#!/usr/bin/env fdexec
+;;; -*- Mode: Scheme; -*-
+(use-module '{logger sbooks aws/s3 mttools})
+
+(define %loglevel% %notify%)
+
+(define root (->s3loc "s3://static.beingmeta.com/"))
+(define headers '("x-amz-acl: public-read"))
+(define gzheaders '("x-amz-acl: public-read"
+		    "Content-encoding\: gzip"))
+(define forcewrite (config 'FORCE #f))
+
+(define (push-graphics dir (hdrs headers))
+  (let ((updated
+	 (choice (s3/push! dir (s3/mkpath root dir)
+			   #{".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"}
+			   hdrs #f forcewrite)
+		 (s3/push! dir (s3/mkpath root dir) ".svgz"
+			   gzheaders #f forcewrite))))
+    updated))
+
+(define (docopy file from to (hdrs headers))
+  (when (string? from) (set! from (->s3loc from)))
+  (when (string? to) (set! to (->s3loc to)))
+  (let* ((from (s3/mkpath from file))
+	 (to (s3/mkpath to file))
+	 (frominfo (s3/info from))
+	 (toinfo (s3/info to)))
+    (unless (and (not forcewrite) (exists? toinfo) toinfo
+		 (equal? (get toinfo 'etag) (get frominfo 'etag)))
+      (logwarn "Copying " (s3loc->string from) " to " (s3loc->string to))
+      (s3/copy! from to #f '() hdrs))))
+
+(define (strip-slash s) (if (has-prefix s "/") (slice s 1) s))
+
+(define (copydir from to (hdrs headers))
+  (when (string? from) (set! from (->s3loc from)))
+  (when (string? to) (set! to (->s3loc to)))
+  (let ((locs (s3/list from)))
+    (do-choices-mt (loc locs (config 'nthreads 8))
+      (let* ((from loc)
+	     (to (s3/mkpath to (strip-slash (s3loc-path from))))
+	     (frominfo (s3/info from))
+	     (toinfo (s3/info to)))
+	(unless (and (not forcewrite) (exists? toinfo) toinfo
+		     (equal? (get toinfo 'etag)
+			     (get frominfo 'etag)))
+	  (s3/copy! from to #f '() hdrs))))))
+
+(define (distribute local changed remotes)
+  (set! remotes (map (lambda (x) (if (string? x) (->s3loc x) x))
+		     remotes))
+  (logwarn "Distributing " (choice-size changed) " changes from "
+	     local " to " remotes)
+  (let* ((paths (strip-slash (s3loc-path changed)))
+	 (all (s3/list (s3/mkpath root local)))
+	 (allpaths (strip-slash (s3loc-path all))))
+    (if forcewrite
+	(dolist (r remotes)
+	  (copydir (s3/mkpath root local) (s3/mkpath r local)))
+	(dolist (r remotes)
+	  (let* ((remote (s3/mkpath r local))
+		 (bucket (s3loc-bucket r))
+		 (cur (s3/list remote))
+		 (curpaths (strip-slash (s3loc-path cur)))
+		 (todo (choice (mkpath  (s3loc-path r) paths)
+			       (difference (mkpath (s3loc-path r) allpaths)
+					   curpaths))))
+	    (logwarn "Copying " (choice-size todo) " files to " (s3loc->string remote))
+	    (do-choices-mt (change todo (config 'nthreads 8))
+	      (docopy change root bucket)))))))
+
+(define dist-targets
+  '("s3://beingmeta/static/" "s3://free.sbooks.net/static/"
+    "s3://mysbooks/static/" "s3://edu.sbooks.net/static/"
+    "s3://library.sbooks.net/static/"))
+
+(define (distribute-web local)
+  (distribute local
+	      (qc (s3/push! local (s3/mkpath root local) {".css" ".js"}
+			    default-hdrs #f forcewrite))
+	      dist-targets))
+
+(define (main)
+  (do-choices (local {"g/codex/" "g/sbooks/" "g/beingmeta/" "g/showsomeclass/"})
+    (let ((changed-graphics (push-graphics local)))
+      (distribute local (qc changed-graphics) dist-targets)))
+  (s3/push! dir (s3/mkpath root dir)
+	    #{".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"}
+	    default-hdrs #f forcewrite)
+  (distribute-web "sbooks/")
+  (distribute-web "fdjt/")
+  (distribute-web "codex/")
+  (distribute-web "codex/css"))
+
+
+
+	
