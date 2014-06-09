@@ -487,6 +487,8 @@ body.rawsbook div#CODEXCONTENT p {
 .sbooktitlepage .title { margin-bottom: 1em; }
 .sbooktitlepage .credits {
     margin-top: 1em; margin-bottom: 1em; }
+.sbooktitlepage .credits .lifespan {
+    white-space: nowrap; font-size: 0.9em;}
 
 .sbooktitlepage .title h1, .sbooktitlepage .credits h1,
 .sbooktitlepage .title h2, .sbooktitlepage .credits h2,
