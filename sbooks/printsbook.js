@@ -5,6 +5,7 @@ var CodexStaticLayout=
 	var fdjtDOM=fdjt.DOM, fdjtID=fdjt.ID, fdjtState=fdjt.State;
 	var CodexLayout=fdjt.CodexLayout;
 	var getStyle=fdjtDOM.getStyle;
+	var getQuery=fdjtState.getQuery;
 	
 	var pagerule, layout, content, page;
 
@@ -20,6 +21,7 @@ var CodexStaticLayout=
 	    page=fdjtID("CODEXPAGE");
 	    if (!(page)) page=fdjtDOM("div#CODEXPAGE");
 	    else page.parentNode.removeChild(page);
+	    setupPage();
 	    var nodes=[], elts=[], children=document.body.childNodes;
 	    var i=0, lim=children.length, block=false;
 	    while (i<lim) nodes.push(children[i++]);
@@ -46,6 +48,16 @@ var CodexStaticLayout=
 	    document.body.appendChild(pages);
 	    return nodes;
 	}
+
+	function setupPage(){
+	    if (getQuery("format")) {
+		var fmt=getQuery("format");
+		fdjtDOM.addClass(document.body,"cx"+fmt.toUpperCase());
+		return;}
+	    else if ((getQuery("width"))&&(getQuery("height"))) {
+		page.style.width=getQuery("width");
+		page.style.height=getQuery("height");}
+	    else fdjtDOM.addClass(document.body,"cxELASTIC");}
 
 	function doLayout(){
 	    var nodes=setupContent();
