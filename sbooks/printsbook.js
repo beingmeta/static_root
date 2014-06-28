@@ -49,6 +49,8 @@ var CodexStaticLayout=
 	    return nodes;
 	}
 
+	function scale_oversize(){}
+	
 	function setupPage(){
 	    if (getQuery("format")) {
 		var fmt=getQuery("format");
@@ -109,8 +111,13 @@ var CodexStaticLayout=
 	fdjtDOM.addListener(window,"load",function(evt){
 	    doLayout(); fdjtDOM.addListener(window,"resize",resize_handler);});
 	
+	if (getQuery("tracelevel")) {
+	    var tl=parseInt(getQuery("tracelevel"));
+	    if (typeof tl === "number") fdjt.CodexLayout.tracelevel=tl;}
+
 	return {init: doLayout,
 		update: updateLayout,
 		getPagerule: function(){return pagerule;},
 		getLayout: function(){return layout;}};})();
+
 
