@@ -37,7 +37,7 @@ SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
 	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
 	codex/social.js codex/search.js codex/glosses.js \
-	 codex/interaction.js codex/layout.js codex/debug.js codex/autoload.js
+	codex/interaction.js codex/layout.js codex/debug.js codex/autoload.js
 CODEX_HINTS=codex/core.hint codex/startup.hint codex/domscan.hint \
 	codex/hud.hint codex/toc.hint codex/slices.hint codex/clouds.hint \
 	codex/social.hint codex/search.hint codex/glosses.hint \
@@ -68,7 +68,8 @@ SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/indexed.js fdjt/codexlayout.js \
+CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
+	fdjt/indexed.js fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
 # removed sbooks/reset.css 
 CODEX_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
@@ -85,6 +86,8 @@ codex/%.hint: codex/%.js
 
 codex/text/%.js: codex/text/%.html makefile
 	@./text2js Codex.HTML.`basename $@ .js` $< $@
+
+.SUFFIXES: .js .css
 
 all: allcode alltags allhints index.html
 allcode: fdjt knodules codex \
@@ -171,20 +174,25 @@ sbooks/buildstamp.js: $(CODEX_JS_BUNDLE) $(CODEX_CSS_BUNDLE)
 	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
 	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
 	@$(ECHO) >> sbooks/buildstamp.js
-	@echo "Created buildstamp.js"
+	@echo "Created sbooks/buildstamp.js"
 codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS_BUNDLE) $(CODEX_HTML)
-	cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
+	@cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
+	@echo "Created codex/buildstamp.js"
 knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
-	cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
+	@cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
+	@echo "Created knodules/buildstamp.js"
 
 sbooks/tieoff.js:
 	@touch sbooks/tieoff.js
 sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
+	@echo Rebuilding sbooks/codex.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
-		codex/buildstamp.js knodules/buildstamp.js sbooks/buildstamp.js > $@
+		codex/buildstamp.js knodules/buildstamp.js \
+		sbooks/buildstamp.js > $@
 sbooks/codex.css: $(CODEX_CSS_BUNDLE)
+	@echo Rebuilding sbooks/codex.css
 	@cat $(CODEX_CSS_BUNDLE) > $@
 sbooks/codex.min.js: sbooks/codex.js jsmin/jsmin
 	jsmin/jsmin < sbooks/codex.js > sbooks/codex.min.js
