@@ -76,9 +76,20 @@ var CodexStaticLayout=
 	    while (i<lim) {
 		var node=nodes[i++];
 		layout.addContent(node);}
+	    addPageNumbers(layout);
 	    fdjtDOM.dropClass(document.body,"cxLAYOUT");
 	    if (fdjtState.getQuery("debug"))
 		fdjtDOM.addClass(document.body,"cxDEBUGLAYOUT");}
+
+	function addPageNumbers(layout){
+	    var pages=layout.pages;
+	    var i=0, lim=pages.length;
+	    while (i<lim) {
+		var page=pages[i++];
+		var pagenum=page.getAttribute("data-pagenum");
+		if (!(pagenum)) continue;
+		page.appendChild(
+		    fdjtDOM("span.codexpagenumber",pagenum));}}
 
 	function updateLayout(){
 	    if (!(layout)) doLayout();
@@ -99,6 +110,7 @@ var CodexStaticLayout=
 		while (i<lim) nodes.push(children[i++]);
 		i=0; lim=nodes.length; while (i<lim) {
 		    layout.addContent(nodes[i++]);}
+		addPageNumbers(layout);
 		fdjtDOM.dropClass(document.body,"cxLAYOUT");}}
 
 	var resize_timeout=false;
@@ -109,7 +121,8 @@ var CodexStaticLayout=
 		updateLayout();},1000);}
 	
 	fdjtDOM.addListener(window,"load",function(evt){
-	    doLayout(); fdjtDOM.addListener(window,"resize",resize_handler);});
+	    doLayout();
+	    fdjtDOM.addListener(window,"resize",resize_handler);});
 	
 	if (getQuery("tracelevel")) {
 	    var tl=parseInt(getQuery("tracelevel"));
