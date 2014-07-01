@@ -298,7 +298,7 @@ convert:
 publish:
 	make update
 	make
-	bash publish.bash
+	./distribute
 release: publish
 
 publish-bundle:
