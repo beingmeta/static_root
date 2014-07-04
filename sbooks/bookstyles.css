@@ -169,7 +169,7 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     text-align: left; display: inline-block;
     padding: 1ex; margin-top: 1em; margin-bottom: 1ex;
     page-break-inside: avoid;
-    min-width: 70%;
+    min-width: 70%; max-width: 40em;
     clear: both;}
 .sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
 .sbooktitlepage .pubinfo p {
