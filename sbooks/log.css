@@ -2,6 +2,12 @@ div.logentry {
   margin-left: 3em; margin-top: 3px; margin-bottom: 2em;
   border-top: solid black 2px;
   font-family: sans,sans-serif;}
-div.logentry span.loglevel { float: left; font-weight: bold;}
+div.logentry span.loglevel {
+    float: left; font-weight: bold; color: green;}
 div.logentry datetime { float: right; font-variant: small-caps;}
-div.logentry span.message { display: block; white-space: pre; }
+div.logentry span.condition {
+    font-family: fixed; padding-left: 2em;}
+div.logentry span.message {
+    display: block; white-space: pre; 
+    font-family: fixed;
+    overflow: auto;}
