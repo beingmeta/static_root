@@ -12,7 +12,7 @@
   (when profile (config! 'calltrack profile))
   (when (and cookiename (not (empty-string? cookiename))
 	     (not (overlaps? (downcase cookiename) (downcase dropcookie))))
-    (req/add! 'cookiedata
+    (req/add! '_cookiedata
       (vector (string->symbol (upcase cookiename)) cookieval))
     (set-cookie! cookiename cookieval))
   (when (exists? dropcookie)
@@ -67,7 +67,7 @@
 	" to "
 	(input TYPE "TEXT" NAME "COOKIEVAL" VALUE "")
 	(input TYPE "SUBMIT" NAME "ACTION" VALUE "Submit"))
-      (do-choices (cookie (req/get 'cookiedata #{}))
+      (do-choices (cookie (req/get '_cookiedata #{}))
 	(unless (overlaps? (downcase dropcookie) (downcase (first cookie)))
 	  (p "Drop "
 	    (input TYPE "CHECKBOX" NAME "DROPCOOKIE" VALUE (first cookie))

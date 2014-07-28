@@ -8,6 +8,7 @@ div.logentry datetime { float: right; font-variant: small-caps;}
 div.logentry span.condition {
     font-family: fixed; padding-left: 2em;}
 div.logentry span.message {
-    display: block; white-space: pre; margin-left: 1em;
+    display: block; white-space: pre;
+    margin-left: 1em; clear: both;
     font-family: fixed;
     overflow: auto;}
