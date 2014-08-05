@@ -293,7 +293,13 @@ push: fdjt codex knodules
 	cd codex; git push
 convert:
 	cd codex/graphics; ./convertall
-
+sync-graphics:
+	for r in `cat dist-targets`; do \
+	  if test "x$r" != "x"; then    \
+	   echo "Pushing to $r";	\
+	   ./pushg "$r";		\
+	  fi;				\
+	done;
 
 publish:
 	make update

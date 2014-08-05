@@ -11,13 +11,7 @@
 (define graphics  {"g/codex/" "g/sbooks/" "g/beingmeta/" "g/showsomeclass/"})
 
 (define dist-targets
-  '("s3://beingmeta/static/" "s3://free.sbooks.net/static/"
-    "s3://mysbooks/static/" "s3://edu.sbooks.net/static/"
-    "s3://library.sbooks.net/static/"
-    "s3://quakers.sbooks.net/static/"
-    "s3://sbookstore/static/"
-    "s3://opensbooks/static/"
-    "s3://xsbooks/static/"))
+  (remove-if empty-string? (segment (filestring "dist-targets") "\n")))
 ;;(set! dist-targets '("s3://beingmeta/static/"))
 
 (define forcewrite #f)

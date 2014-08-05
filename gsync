@@ -1,0 +1,10 @@
+#!/bin/bash
+if test "x$1" != "x"; then
+    s3cmd sync -P --exclude=\".*/\\..*\" "g/" "$1g/"
+else for r in `cat dist-targets`; do
+       if test "x$r" != "x"; then
+	   echo "Pushing to $r";
+	   s3cmd sync -P --exclude=\".*/\\..*\" "g/" "$rg/"
+       fi;
+     done;
+fi;
