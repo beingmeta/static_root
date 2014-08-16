@@ -1,10 +1,10 @@
 #!/usr/bin/env fdexec
 ;;; -*- Mode: Scheme; -*-
-(use-module '{logger sbooks aws/s3 gpath mttools varconfig})
+(use-module '{logger texttools sbooks aws/s3 gpath mttools varconfig})
 
 (define %loglevel %notify%)
 
-(define root (->s3loc "s3://static.beingmeta.com/"))
+(define root (->s3loc "s3://beingmeta/static/"))
 (define pubheaders '("x-amz-acl: public-read"))
 (define gzheaders '("x-amz-acl: public-read"
 		    "Content-encoding\: gzip"))
@@ -91,9 +91,6 @@
 	      dist-targets))
 
 (define (main)
-  (do-choices (local graphics)
-    (let ((changed-graphics (push-graphics local)))
-      (distribute local (qc changed-graphics) dist-targets)))
   (distribute-web "sbooks/")
   (distribute-web "fdjt/")
   (distribute-web "showsomeclass/")
@@ -114,7 +111,10 @@
     (dolist (r dist-targets)
       (do-choices (path (glom {"sbooks/bundle" "codexapp"} {".css" ".js"}))
 	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
-	(message "Updated " (gpath->string (s3/mkpath r path)))))))
+	(message "Updated " (gpath->string (s3/mkpath r path))))))
+  (do-choices (local graphics)
+    (let ((changed-graphics (push-graphics local)))
+      (distribute local (qc changed-graphics) dist-targets))))
 
 
 
