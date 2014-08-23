@@ -4,7 +4,7 @@
 
 (define %loglevel %notify%)
 
-(define root (->s3loc "s3://beingmeta/static/"))
+(define root (->s3loc "s3://static.beingmeta.com/"))
 (define pubheaders '("x-amz-acl: public-read"))
 (define gzheaders '("x-amz-acl: public-read"
 		    "Content-encoding\: gzip"))
@@ -70,7 +70,8 @@
   (if (fail? changed)
       (lognotice "No changes under " local " to distribute")
       (lognotice "Distributing " (choice-size changed) " changes from "
-		 local " to" (dolist (r remotes) (printout "\n\t" (s3loc->string r)))))
+		 local " to"
+		 (dolist (r remotes) (printout "\n\t" (s3loc->string r)))))
   (when (exists? changed)
     (let ((paths (strip-slash (s3loc-path changed))))
       (dolist (r remotes)

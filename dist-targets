@@ -1,4 +1,4 @@
-s3://static.beingmeta.com/
+s3://beingmeta/static/
 s3://sbooks/static/
 s3://opensbooks/static/
 s3://mysbooks/static/
