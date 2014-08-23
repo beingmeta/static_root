@@ -167,6 +167,8 @@ fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
 fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 	cd fdjt; make all
+fdjt/codexlayouthash.js: fdjt/codexlayout.js fdjt/codexlayout.css
+	cd fdjt; make all
 
 sbooks/buildstamp.js: $(CODEX_JS_BUNDLE) $(CODEX_CSS_BUNDLE)
 	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
@@ -186,11 +188,13 @@ sbooks/tieoff.js:
 	@touch sbooks/tieoff.js
 sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
 	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
-	@echo Rebuilding sbooks/codex.js
+	@echo Rebuilding sbooks/codex.js etc/sha1
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js \
 		sbooks/buildstamp.js > $@
+	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@
 sbooks/codex.css: $(CODEX_CSS_BUNDLE)
 	@echo Rebuilding sbooks/codex.css
 	@cat $(CODEX_CSS_BUNDLE) > $@
@@ -240,6 +244,11 @@ fdjt/TAGS:
 
 jsmin/jsmin: jsmin/jsmin.c
 	${CC} -o jsmin/jsmin jsmin/jsmin.c
+
+# Fileinfo gets version-related information about a file to pass in
+# with -D
+etc/sha1: etc/sha1.c
+	$(CC) -o etc/sha1 etc/sha1.c
 
 checkout:
 	git checkout ${BRANCH}; cd fdjt; git checkout ${BRANCH}; cd ../codex; git checkout ${BRANCH}; cd ../knodules; git checkout ${BRANCH}
