@@ -187,8 +187,8 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 sbooks/tieoff.js:
 	@touch sbooks/tieoff.js
 sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
-	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
-	@echo Rebuilding sbooks/codex.js etc/sha1
+	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js etc/sha1
+	@echo Rebuilding sbooks/codex.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js \
