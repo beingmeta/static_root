@@ -10,8 +10,10 @@
 		    "Content-encoding\: gzip"))
 (define graphics  {"g/codex/" "g/sbooks/" "g/beingmeta/" "g/showsomeclass/"})
 
+(define dist-targets-file (get-component "dist-targets"))
 (define dist-targets
-  (remove-if empty-string? (segment (filestring "dist-targets") "\n")))
+  (remove-if empty-string?
+	     (segment (filestring dist-targets-file) "\n")))
 ;;(set! dist-targets '("s3://beingmeta/static/"))
 
 (define forcewrite #f)
@@ -28,8 +30,8 @@
 
 (define (docopy file from to (hdrs pubheaders))
   (when (string? from) (set! from (->s3loc from)))
-  (when (string? to) (set! to (->s3loc to)))
-  (let* ((from (s3/mkpath from file))
+  (when (string? to) (set! to (->s3loc (strip-slash to))))
+  (let* ((from (s3/mkpath from (strip-slash file)))
 	 (to (s3/mkpath to file)))
     (if forcewrite
 	(begin (loginfo "Copying " (s3loc->string from)
@@ -69,8 +71,8 @@
 		     remotes))
   (if (fail? changed)
       (lognotice "No changes under " local " to distribute")
-      (lognotice "Distributing " (choice-size changed) " changes from "
-		 local " to"
+      (lognotice "Distributing " (choice-size changed) " changes "
+		 "from " local " through " (gpath->string root) " to "
 		 (dolist (r remotes) (printout "\n\t" (s3loc->string r)))))
   (when (exists? changed)
     (let ((paths (strip-slash (s3loc-path changed))))
@@ -85,13 +87,22 @@
 	      (do-choices (path paths)
 		(docopy path root remote))))))))
 
-(define (distribute-web local)
+(define (distribute-web local (retall (config 'COPYALL)))
   (distribute local
 	      (qc (s3/push! local (s3/mkpath root local) {".css" ".js"}
-			    pubheaders forcewrite))
+			    pubheaders forcewrite retall))
 	      dist-targets))
 
-(define (main)
+(define image-suffixes
+  {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
+
+(define (main (arg #f))
+  (when (has-prefix arg "+")
+    (unless (position (slice arg 1) dist-targets)
+      (write-file dist-targets-file
+		  (glom (filestring dist-targets-file)
+		    "\n" (slice arg 1))))
+    (set! arg (slice arg 1)))
   (distribute-web "sbooks/")
   (distribute-web "fdjt/")
   (distribute-web "showsomeclass/")
@@ -114,8 +125,26 @@
 	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
 	(message "Updated " (gpath->string (s3/mkpath r path))))))
   (do-choices (local graphics)
-    (let ((changed-graphics (push-graphics local)))
-      (distribute local (qc changed-graphics) dist-targets))))
+    (let ((changed-graphics (push-graphics local))
+	  (allfiles  (basename (pick (getfiles local) has-suffix
+				     image-suffixes))))
+      (when (or arg (exists? changed-graphics))
+	(message (choice-size changed-graphics) "/" (choice-size allfiles)
+		 " changed graphics"
+		 (if arg
+		     " (copying all)"
+		     (printout
+		       (if (> (choice-size changed-graphics) 17) ": ")
+		       (when (> (choice-size changed-graphics) 17)
+			 (do-choices (g changed-graphics)
+			   (printout "\n    "  (gpath->string g)))))))
+	(distribute local
+		    (if arg
+			(qc (s3/mkpath root allfiles))
+			(qc changed-graphics))
+		    (if arg (list arg) dist-targets))))))
+
+
 
 
 
