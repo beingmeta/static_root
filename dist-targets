@@ -2,6 +2,7 @@ s3://beingmeta/static/
 s3://sbooks/static/
 s3://opensbooks/static/
 s3://mysbooks/static/
+s3://giftsbooks/static/
 s3://xsbooks/static/
 s3://sbookstore/static/
 s3://quakers/static/
