@@ -2,7 +2,7 @@
 ;;; -*- Mode: Scheme; -*-
 (use-module '{logger texttools sbooks aws/s3 gpath mttools varconfig})
 
-(define %loglevel %notify%)
+(define %loglevel %notice%)
 
 (define root (->s3loc "s3://static.beingmeta.com/"))
 (define pubheaders '("x-amz-acl: public-read"))
@@ -31,10 +31,11 @@
 (define (docopy file from to (hdrs pubheaders))
   (when (string? from) (set! from (->s3loc from)))
   (when (string? to) (set! to (->s3loc (strip-slash to))))
-  (let* ((from (s3/mkpath from (strip-slash file)))
+  (let* ((from (s3/mkpath from file))
 	 (to (s3/mkpath to file)))
     (if forcewrite
-	(begin (loginfo "Copying " (s3loc->string from)
+	(begin (loginfo "Copying " file
+			" from " (s3loc->string from)
 			" to " (s3loc->string to))
 	  (s3/copy! from to #f '() hdrs))
 	(let ((frominfo (s3/info from))
@@ -71,16 +72,19 @@
 		     remotes))
   (if (fail? changed)
       (lognotice "No changes under " local " to distribute")
-      (lognotice "Distributing " (choice-size changed) " changes "
-		 "from " local " through " (gpath->string root) " to "
-		 (dolist (r remotes) (printout "\n\t" (s3loc->string r)))))
+      (lognotice "Distributing " (choice-size changed)
+		 " changes from " local
+		 "\n    through " (gpath->string root) " to "
+		 (dolist (r remotes)
+		   (printout "\n\t" (s3loc->string r)))))
   (when (exists? changed)
     (let ((paths (strip-slash (s3loc-path changed))))
       (dolist (r remotes)
-	(let* ((remote (s3/mkpath r local))
+	(let* ((remote r)
 	       (nthreads (config 's3copythreads (config 's3threads 8))))
-	  (logwarn "Distributing " (choice-size paths) " files to "
-		   (s3loc->string remote))
+	  (logwarn "Distributing " (choice-size paths)
+		   " files to " (gpath->string remote)
+		   " from " (s3loc->string root))
 	  (if (and (> nthreads 1) (> (choice-size paths) 8))
 	      (do-choices-mt (path paths nthreads)
 		(docopy path root remote))
@@ -97,7 +101,7 @@
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
 
 (define (main (arg #f))
-  (when (has-prefix arg "+")
+  (when (and arg (has-prefix arg "+"))
     (unless (position (slice arg 1) dist-targets)
       (write-file dist-targets-file
 		  (glom (filestring dist-targets-file)
@@ -126,8 +130,8 @@
 	(message "Updated " (gpath->string (s3/mkpath r path))))))
   (do-choices (local graphics)
     (let ((changed-graphics (push-graphics local))
-	  (allfiles  (basename (pick (getfiles local) has-suffix
-				     image-suffixes))))
+	  (allfiles (pick (getfiles local) has-suffix
+			  image-suffixes)))
       (when (or arg (exists? changed-graphics))
 	(message (choice-size changed-graphics) "/" (choice-size allfiles)
 		 " changed graphics"
@@ -138,7 +142,7 @@
 		       (when (> (choice-size changed-graphics) 17)
 			 (do-choices (g changed-graphics)
 			   (printout "\n    "  (gpath->string g)))))))
-	(distribute local
+	(distribute root
 		    (if arg
 			(qc (s3/mkpath root allfiles))
 			(qc changed-graphics))
