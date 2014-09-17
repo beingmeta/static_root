@@ -18,6 +18,8 @@ BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
 BRANCH=master
+CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
+		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon *.rct *.ico
 
 FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules/clouds.js 
@@ -285,13 +287,17 @@ pull: fdjt codex knodules g pagedown showsomeclass bibliotype
 	cd g; svn update
 update: fdjt codex knodules g pagedown showsomeclass bibliotype
 	make pull
-	make update-graphics
 update-code: fdjt codex knodules
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd showsomeclass; git pull
 	cd codex; git pull
+clean-graphics:
+	cd g/codex; ${CLEANGRAPHICS}
+	cd g/beingmeta; ${CLEANGRAPHICS}
+	cd g/sbooks; ${CLEANGRAPHICS}
+	cd g/showsomeclass; ${CLEANGRAPHICS}
 update-graphics:
 	cd g/codex; rm -f *.square *.sqr *.bnr *.rect; \
 		make GRAPHICS=/src/graphics
