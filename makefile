@@ -94,6 +94,7 @@ allcode: fdjt knodules codex \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
 	sbooks/codex.min.js.gz \
+	fdjt/fdjt.min.js fdjt/fdjt.min.js.gz fdjt/fdjt.css.gz \
 	sbooks/sbookstyles.css
 
 allhints: fdjt/fdjt.hints codex/codex.hints knodules/knodules.hints \
@@ -205,6 +206,13 @@ sbooks/codex.js.gz: sbooks/codex.js
 	gzip -c sbooks/codex.js > $@
 sbooks/codex.css.gz: sbooks/codex.css
 	gzip -c sbooks/codex.css > $@
+
+fdjt/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
+	jsmin/jsmin < fdjt/fdjt.js > fdjt/fdjt.min.js
+fdjt/fdjt.min.js.gz: fdjt/fdjt.min.js
+	gzip fdjt/fdjt.min.js -c > fdjt/fdjt.min.js.gz
+fdjt/fdjt.css.gz: fdjt/fdjt.css
+	gzip -c fdjt/fdjt.css > $@
 
 # Generating the HTML
 
