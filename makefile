@@ -399,6 +399,7 @@ status:
 	cd fdjt; git status -uno
 	cd knodules; git status -uno
 	cd codex; git status -uno
+	cd metabooks; git status -uno
 	cd showsomeclass; git status -uno
 	cd g; svn status -q
 pull: fdjt codex knodules g pagedown showsomeclass bibliotype
@@ -406,6 +407,7 @@ pull: fdjt codex knodules g pagedown showsomeclass bibliotype
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
+	cd metabooks; git pull
 	cd showsomeclass; git pull
 	cd bibliotype; git pull
 	cd pagedown; hg update
@@ -438,6 +440,7 @@ push: fdjt codex knodules
 	cd fdjt; git push
 	cd knodules; git push
 	cd codex; git push
+	cd metabooks; git push
 convert:
 	cd codex/graphics; ./convertall
 sync-graphics:
