@@ -50,19 +50,58 @@ CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
 		    codex/text/cover.js codex/text/settings.js \
 		    codex/text/pageleft.js codex/text/pageright.js
 
-CODEX_HTML_FILES=codex/text/searchbox.html codex/text/addgloss.html \
+CODEX_HTML_FILES=\
+	codex/text/searchbox.html codex/text/addgloss.html \
 	codex/text/hud.html codex/text/heart.html \
 	codex/text/help.html codex/text/hudhelp.html \
 	codex/text/console.html codex/text/messages.html \
 	codex/text/cover.html codex/text/settings.html \
 	codex/text/pageleft.html codex/text/pageright.html 
 
-CODEX_CSS=codex/css/framing.css codex/css/cover.css codex/css/hud.css   \
+CODEX_CSS=\
+	codex/css/framing.css codex/css/cover.css codex/css/hud.css   \
 	codex/css/foot.css codex/css/body.css codex/css/help.css        \
 	codex/css/toc.css codex/css/slices.css codex/css/clouds.css     \
 	codex/css/card.css codex/css/search.css codex/css/addgloss.css  \
 	codex/css/flyleaf.css codex/css/preview.css                     \
 	codex/css/app.css codex/css/media.css codex/css/debug.css
+
+METABOOK_FILES=\
+	metabook/core.js metabook/startup.js metabook/domscan.js \
+	metabook/hud.js metabook/toc.js metabook/slices.js metabook/clouds.js \
+	metabook/social.js metabook/search.js metabook/glosses.js \
+	metabook/interaction.js metabook/layout.js metabook/debug.js \
+	metabook/autoload.js
+METABOOK_HINTS=\
+	metabook/core.hint metabook/startup.hint metabook/domscan.hint \
+	metabook/hud.hint metabook/toc.hint metabook/slices.hint \
+	metabook/clouds.hint metabook/social.hint metabook/search.hint \
+	metabook/glosses.hint metabook/interaction.hint metabook/layout.hint
+METABOOK_DERIVED_FILES=\
+	metabook/text/searchbox.js metabook/text/addgloss.js \
+	metabook/text/hud.js metabook/text/heart.js  \
+	metabook/text/help.js metabook/text/hudhelp.js     \
+	metabook/text/console.js metabook/text/messages.js     \
+	metabook/text/cover.js metabook/text/settings.js \
+	metabook/text/pageleft.js metabook/text/pageright.js
+
+METABOOK_HTML_FILES=\
+	metabook/text/searchbox.html metabook/text/addgloss.html \
+	metabook/text/hud.html metabook/text/heart.html \
+	metabook/text/help.html metabook/text/hudhelp.html \
+	metabook/text/console.html metabook/text/messages.html \
+	metabook/text/cover.html metabook/text/settings.html \
+	metabook/text/pageleft.html metabook/text/pageright.html 
+
+METABOOK_CSS=\
+	metabook/css/framing.css metabook/css/cover.css metabook/css/hud.css \
+	metabook/css/foot.css metabook/css/body.css metabook/css/help.css    \
+	metabook/css/toc.css metabook/css/slices.css metabook/css/clouds.css \
+	metabook/css/card.css metabook/css/search.css \
+	metabook/css/addgloss.css metabook/css/flyleaf.css \
+	metabook/css/preview.css metabook/css/app.css metabook/css/media.css \
+	metabook/css/debug.css
+
 # removed sbooks/reset.css
 SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/app.css sbooks/app.js \
@@ -76,34 +115,58 @@ CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
 CODEX_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
 	${KNODULES_CSS} ${CODEX_CSS}
 
+METABOOK_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
+	fdjt/indexed.js fdjt/codexlayout.js \
+	${PAGEDOWN_FILES} ${METABOOK_FILES} ${METABOOK_DERIVED_FILES}
+# removed sbooks/reset.css 
+METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
+	${KNODULES_CSS} ${METABOOK_CSS}
+
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
 
 SBOOKSTYLES=sbooks/sbookstyles.css
 
 knodules/%.hint: knodules/%.js
-	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config knodules/.jshintrc $< | tee $@; fi
+	@JSHINT=`which jshint`; \
+	if test "x$${JSHINT}" = "x"; then touch $@; \
+	else $${JSHINT} --config knodules/.jshintrc $< | tee $@; \
+	fi
 codex/%.hint: codex/%.js
-	@JSHINT=`which jshint`; if test "x$${JSHINT}" = "x"; then touch $@; else $${JSHINT} --config codex/.jshintrc $< | tee $@; fi
+	@JSHINT=`which jshint`; \
+	if test "x$${JSHINT}" = "x"; then touch $@; \
+	else $${JSHINT} --config codex/.jshintrc $< | tee $@; \
+	fi
+metabook/%.hint: codex/%.js
+	@JSHINT=`which jshint`; \
+	if test "x$${JSHINT}" = "x"; then touch $@; \
+	else $${JSHINT} --config codex/.jshintrc $< | tee $@; \
+	fi
 
 codex/text/%.js: codex/text/%.html makefile
 	@./text2js Codex.HTML.`basename $@ .js` $< $@
+metabook/text/%.js: metabook/text/%.html makefile
+	@./text2js metaBook.HTML.`basename $@ .js` $< $@
 
 .SUFFIXES: .js .css
 
 all: allcode alltags allhints index.html
-allcode: fdjt knodules codex \
+allcode: fdjt knodules codex metabook \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
 	sbooks/codex.min.js.gz \
+	sbooks/metabook.js sbooks/metabook.css \
+	sbooks/metabook.js.gz sbooks/metabook.css.gz \
+	sbooks/metabook.min.js.gz \
 	fdjt/fdjt.min.js fdjt/fdjt.min.js.gz fdjt/fdjt.css.gz \
 	sbooks/sbookstyles.css
 
-allhints: fdjt/fdjt.hints codex/codex.hints knodules/knodules.hints \
-	showsomeclass/hints
+allhints: fdjt/fdjt.hints codex/codex.hints metabook/metabook.hints \
+	knodules/knodules.hints showsomeclass/hints
 
 cleanhints:
-	rm -f fdjt/*.hint fdjt/fdjt.hints codex/*.hint codex/codex.hints
+	rm -f fdjt/*.hint fdjt/fdjt.hints codex/*.hint
+	rm -f codex/codex.hints metabook/metabook.hints
 	rm -f knodules/*.hint knodules/knodules.hints
 	rm -f sbooks/*.hint sbooks/sbooks.hints
 	rm -f showsomeclass/*.hint showsomeclass/sbooks.hints
@@ -121,6 +184,8 @@ fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
 	@cd fdjt; make fdjt.hints
 codex/codex.hints: $(CODEX_HINTS) codex/.jshintrc
 	@cat $^ > $@
+metabook/metabook.hints: $(METABOOK_HINTS) codex/.jshintrc
+	@cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 	@cat $^ > $@
 showsomeclass/hints:
@@ -130,6 +195,11 @@ codex/css/debug.css:
 	echo "/* No debugging CSS rules */" > codex/css/debug.css
 codex/debug.js:
 	echo "/* No debugging Javascript */" > codex/debug.js
+
+metabook/css/debug.css:
+	echo "/* No debugging CSS rules */" > metabook/css/debug.css
+metabook/debug.js:
+	echo "/* No debugging Javascript */" > metabook/debug.js
 
 showsomeclass/app.js: $(SSC_FILES) $(SSC_HTML) showsomeclass/makefile
 	cd showsomeclass; make
@@ -144,6 +214,9 @@ knodules:
 	git clone git@github.com:beingmeta/knodules_js.git knodules
 codex:
 	git clone git@github.com:beingmeta/codex.git
+metabook:
+	git clone git@github.com:beingmeta/codex.git metabook; \
+	    cd metabook; git checkout metabook;
 showsomeclass:
 	git clone git@github.com:beingmeta/showsomeclass.git
 g:
@@ -161,9 +234,10 @@ clean:
 	cd fdjt; make clean
 	cd showsomeclass; make clean
 	make cleanhints
-	rm -f ${CODEX_DERIVED_FILES}
+	rm -f ${CODEX_DERIVED_FILES} ${METABOOK_DERIVED_FILES}
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f sbooks/codex.js sbooks/codex.css
+	rm -f sbooks/metabook.js sbooks/metabook.css
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
@@ -173,15 +247,27 @@ fdjt/codexlayouthash.js: fdjt/codexlayout.js fdjt/codexlayout.css
 	cd fdjt; make all
 
 sbooks/buildstamp.js: $(CODEX_JS_BUNDLE) $(CODEX_CSS_BUNDLE)
-	@$(ECHO) "// sBooks build information" > sbooks/buildstamp.js
-	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> sbooks/buildstamp.js
-	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> sbooks/buildstamp.js
-	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> sbooks/buildstamp.js
-	@$(ECHO) >> sbooks/buildstamp.js
-	@echo "Created sbooks/buildstamp.js"
+	@$(ECHO) "// sBooks Codex build information" > $@
+	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> $@
+	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> $@
+	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> $@
+	@$(ECHO) >> $@
+	@echo "Created $@"
+sbooks/metabookbuildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
+	@$(ECHO) "// sBooks metaBook build information" > $@
+	@$(ECHO) "metaBook.buildhost='${BUILDHOST}';" >> $@
+	@$(ECHO) "metaBook.buildtime='${BUILDTIME}';" >> $@
+	@$(ECHO) "metaBook.buildid='${BUILDUUID}';" >> $@
+	@$(ECHO) >> $@
+	@echo "Created $@"
 codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS_BUNDLE) $(CODEX_HTML)
 	@cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
 	@echo "Created codex/buildstamp.js"
+metabook/buildstamp.js: $(METABOOK_FILES) $(METABOOK_CSS_BUNDLE) \
+			$(METABOOK_HTML)
+	@cd metabook; echo "metaBook.version='"`git describe`"';" > \
+		buildstamp.js
+	@echo "Created metabook/buildstamp.js"
 knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	@cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 	@echo "Created knodules/buildstamp.js"
@@ -209,6 +295,27 @@ sbooks/codex.js.gz: sbooks/codex.js
 sbooks/codex.css.gz: sbooks/codex.css
 	gzip -c sbooks/codex.css > $@
 
+sbooks/metabook.js: fdjt/fdjt.js sbooks/buildstamp.js $(METABOOK_JS_BUNDLE) \
+	metabook/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js etc/sha1
+	@echo Rebuilding sbooks/metabook.js
+	@cat sbooks/amalgam.js fdjt/buildstamp.js \
+		$(METABOOK_JS_BUNDLE) sbooks/tieoff.js \
+		metabook/buildstamp.js knodules/buildstamp.js \
+		sbooks/buildstamp.js > $@
+	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@
+sbooks/metabook.css: $(METABOOK_CSS_BUNDLE)
+	@echo Rebuilding sbooks/metabook.css
+	@cat $(METABOOK_CSS_BUNDLE) > $@
+sbooks/metabook.min.js: sbooks/metabook.js jsmin/jsmin
+	jsmin/jsmin < sbooks/metabook.js > sbooks/metabook.min.js
+sbooks/metabook.min.js.gz: sbooks/metabook.min.js
+	gzip sbooks/metabook.min.js -c > sbooks/metabook.min.js.gz
+sbooks/metabook.js.gz: sbooks/metabook.js
+	gzip -c sbooks/metabook.js > $@
+sbooks/metabook.css.gz: sbooks/metabook.css
+	gzip -c sbooks/metabook.css > $@
+
 fdjt/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
 	jsmin/jsmin < fdjt/fdjt.js > fdjt/fdjt.min.js
 fdjt/fdjt.min.js.gz: fdjt/fdjt.min.js
@@ -227,11 +334,13 @@ index.html: etc/index_head.html etc/index_foot.html \
 		>> ../index.html
 	@cd codex; echo "<p>Codex version: " `git describe` "</p>" \
 		>> ../index.html
+	@cd metabook; echo "<p>metaBook version: " `git describe` "</p>" \
+		>> ../index.html
 	@cat etc/index_foot.html >> index.html
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex TAGS APPTAGS CODEXTAGS \
+alltags: fdjt knodules codex metabook TAGS APPTAGS CODEXTAGS METABOOKTAGS \
 	fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
@@ -239,10 +348,26 @@ TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	@etags -o $@ $^
 CODEXTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	@etags -o $@ $^
+METABOOKTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
+	@etags -o $@ $^C
+CXAPPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
+	${CODEX_HTML_FILES} ${SBOOKS_FILES}
+	@etags -o $@ $^
+MBAPPTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${KNODULES_FILES} \
+	${METABOOK_HTML_FILES} ${SBOOKS_FILES}
+	@etags -o $@ $^
 APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
 	@etags -o $@ $^
+CXHTMLTAGS: ${CODEX_HTML_FILES}
+	@etags -o $@ $^
+MBHTMLTAGS: ${METABOOK_HTML_FILES}
+	@etags -o $@ $^
 HTMLTAGS: ${CODEX_HTML_FILES}
+	@etags -o $@ $^
+CXCSSTAGS: ${CODEX_CSS_BUNDLE}
+	@etags -o $@ $^
+MBCSSTAGS: ${METABOOK_CSS_BUNDLE}
 	@etags -o $@ $^
 CSSTAGS: ${CODEX_CSS_BUNDLE}
 	@etags -o $@ $^
