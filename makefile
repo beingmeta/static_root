@@ -215,8 +215,7 @@ knodules:
 codex:
 	git clone git@github.com:beingmeta/codex.git
 metabook:
-	git clone git@github.com:beingmeta/codex.git metabook; \
-	    cd metabook; git checkout metabook;
+	git clone git@github.com:beingmeta/metabook.git
 showsomeclass:
 	git clone git@github.com:beingmeta/showsomeclass.git
 g:
@@ -253,7 +252,7 @@ sbooks/buildstamp.js: $(CODEX_JS_BUNDLE) $(CODEX_CSS_BUNDLE)
 	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> $@
 	@$(ECHO) >> $@
 	@echo "Created $@"
-sbooks/metabookbuildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
+sbooks/metabookstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
 	@$(ECHO) "// sBooks metaBook build information" > $@
 	@$(ECHO) "metaBook.buildhost='${BUILDHOST}';" >> $@
 	@$(ECHO) "metaBook.buildtime='${BUILDTIME}';" >> $@
@@ -295,13 +294,13 @@ sbooks/codex.js.gz: sbooks/codex.js
 sbooks/codex.css.gz: sbooks/codex.css
 	gzip -c sbooks/codex.css > $@
 
-sbooks/metabook.js: fdjt/fdjt.js sbooks/buildstamp.js $(METABOOK_JS_BUNDLE) \
+sbooks/metabook.js: fdjt/fdjt.js sbooks/metabookstamp.js $(METABOOK_JS_BUNDLE) \
 	metabook/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js etc/sha1
 	@echo Rebuilding sbooks/metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) sbooks/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js \
-		sbooks/buildstamp.js > $@
+		sbooks/metabookstamp.js > $@
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		>> $@
 sbooks/metabook.css: $(METABOOK_CSS_BUNDLE)
