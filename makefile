@@ -136,10 +136,10 @@ codex/%.hint: codex/%.js
 	if test "x$${JSHINT}" = "x"; then touch $@; \
 	else $${JSHINT} --config codex/.jshintrc $< | tee $@; \
 	fi
-metabook/%.hint: codex/%.js
+metabook/%.hint: metabook/%.js
 	@JSHINT=`which jshint`; \
 	if test "x$${JSHINT}" = "x"; then touch $@; \
-	else $${JSHINT} --config codex/.jshintrc $< | tee $@; \
+	else $${JSHINT} --config metabook/.jshintrc $< | tee $@; \
 	fi
 
 codex/text/%.js: codex/text/%.html makefile
@@ -184,7 +184,7 @@ fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
 	@cd fdjt; make fdjt.hints
 codex/codex.hints: $(CODEX_HINTS) codex/.jshintrc
 	@cat $^ > $@
-metabook/metabook.hints: $(METABOOK_HINTS) codex/.jshintrc
+metabook/metabook.hints: $(METABOOK_HINTS) metabook/.jshintrc
 	@cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 	@cat $^ > $@
