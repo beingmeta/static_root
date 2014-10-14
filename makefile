@@ -394,6 +394,7 @@ diff:
 	cd fdjt; git diff
 	cd knodules; git diff
 	cd codex; git diff
+	cd metabook; git diff
 	cd showsomeclass; git diff
 	cd g; svn diff
 status:
