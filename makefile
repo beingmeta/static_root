@@ -78,20 +78,20 @@ METABOOK_HINTS=\
 	metabook/clouds.hint metabook/social.hint metabook/search.hint \
 	metabook/glosses.hint metabook/interaction.hint metabook/layout.hint
 METABOOK_DERIVED_FILES=\
-	metabook/text/searchbox.js metabook/text/addgloss.js \
-	metabook/text/hud.js metabook/text/heart.js  \
-	metabook/text/help.js metabook/text/hudhelp.js     \
-	metabook/text/console.js metabook/text/messages.js     \
-	metabook/text/cover.js metabook/text/settings.js \
-	metabook/text/pageleft.js metabook/text/pageright.js
+	metabook/html/searchbox.js metabook/html/addgloss.js \
+	metabook/html/hud.js metabook/html/heart.js  \
+	metabook/html/help.js metabook/html/hudhelp.js     \
+	metabook/html/console.js metabook/html/messages.js     \
+	metabook/html/cover.js metabook/html/settings.js \
+	metabook/html/pageleft.js metabook/html/pageright.js
 
 METABOOK_HTML_FILES=\
-	metabook/text/searchbox.html metabook/text/addgloss.html \
-	metabook/text/hud.html metabook/text/heart.html \
-	metabook/text/help.html metabook/text/hudhelp.html \
-	metabook/text/console.html metabook/text/messages.html \
-	metabook/text/cover.html metabook/text/settings.html \
-	metabook/text/pageleft.html metabook/text/pageright.html 
+	metabook/html/searchbox.html metabook/html/addgloss.html \
+	metabook/html/hud.html metabook/html/heart.html \
+	metabook/html/help.html metabook/html/hudhelp.html \
+	metabook/html/console.html metabook/html/messages.html \
+	metabook/html/cover.html metabook/html/settings.html \
+	metabook/html/pageleft.html metabook/html/pageright.html 
 
 METABOOK_CSS=\
 	metabook/css/framing.css metabook/css/cover.css metabook/css/hud.css \
@@ -144,7 +144,7 @@ metabook/%.hint: metabook/%.js
 
 codex/text/%.js: codex/text/%.html makefile
 	@./text2js Codex.HTML.`basename $@ .js` $< $@
-metabook/text/%.js: metabook/text/%.html makefile
+metabook/html/%.js: metabook/html/%.html makefile
 	@./text2js metaBook.HTML.`basename $@ .js` $< $@
 
 .SUFFIXES: .js .css
@@ -339,15 +339,18 @@ index.html: etc/index_head.html etc/index_foot.html \
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex metabook TAGS APPTAGS CODEXTAGS METABOOKTAGS \
+alltags: fdjt knodules codex metabook TAGS APPTAGS CODEXTAGS \
+	METABOOKTAGS METABOOKHTMLTAGS \
 	fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
-	${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
+	${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
 	@etags -o $@ $^
 CODEXTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	@etags -o $@ $^
 METABOOKTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
+	@etags -o $@ $^
+METABOOKHTMLTAGS: ${METABOOK_HTML_FILES}
 	@etags -o $@ $^
 CXAPPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
 	${CODEX_HTML_FILES} ${SBOOKS_FILES}
