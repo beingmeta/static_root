@@ -325,7 +325,7 @@ fdjt/fdjt.css.gz: fdjt/fdjt.css
 # Generating the HTML
 
 index.html: etc/index_head.html etc/index_foot.html \
-	sbooks/codex.js sbooks/codex.css
+	sbooks/codex.js sbooks/codex.css sbooks/metabook.css
 	@cat etc/index_head.html > index.html
 	@echo "<p>Build host: " `hostname` "</p>" >> index.html
 	@echo "<p>Build date: " `date` "</p>" >> index.html

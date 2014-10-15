@@ -8,7 +8,8 @@
 (define pubheaders '("x-amz-acl: public-read"))
 (define gzheaders '("x-amz-acl: public-read"
 		    "Content-encoding\: gzip"))
-(define graphics  {"g/codex/" "g/sbooks/" "g/beingmeta/" "g/showsomeclass/"})
+(define graphics
+  {"g/codex/" "g/metabook/" "g/sbooks/" "g/showsomeclass/" "g/beingmeta/"})
 
 (define dist-targets-file (get-component "dist-targets"))
 (define dist-targets
@@ -100,6 +101,9 @@
 (define image-suffixes
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
 
+(define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
+(define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
+
 (define (main (arg #f))
   (when (and arg (has-prefix arg "+"))
     (unless (position (slice arg 1) dist-targets)
@@ -112,20 +116,16 @@
   (distribute-web "showsomeclass/")
   (let ((js (filedata "sbooks/codex.min.js.gz"))
 	(css (filedata "sbooks/codex.css.gz")))
-    (s3/put (s3/mkpath root {"sbooks/bundle.js" "codexapp.js"})
-	    js "text/javascript" gzheaders #t)
+    (s3/put (s3/mkpath root apps.js) js "text/javascript" gzheaders #t)
     (message "Updated "
-	     (do-choices (p (s3/mkpath root
-				       {"sbooks/bundle.js" "codexapp.js"}))
+	     (do-choices (p (s3/mkpath root apps.js))
 	       (printout "\n\t" (gpath->string p))))
-    (s3/put (s3/mkpath root {"sbooks/bundle.css" "codexapp.css"})
-	    css "text/css" gzheaders #t)
+    (s3/put (s3/mkpath root apps.css) css "text/css" gzheaders #t)
     (message "Updated "
-	     (do-choices (p (s3/mkpath root
-				       {"sbooks/bundle.css" "codexapp.css"}))
+	     (do-choices (p (s3/mkpath root apps.css))
 	       (printout "\n\t" (gpath->string p))))
     (dolist (r dist-targets)
-      (do-choices (path (glom {"sbooks/bundle" "codexapp"} {".css" ".js"}))
+      (do-choices (path (choice apps.js apps.css))
 	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
 	(message "Updated " (gpath->string (s3/mkpath r path))))))
   (do-choices (local graphics)
