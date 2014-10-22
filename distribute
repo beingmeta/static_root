@@ -102,7 +102,7 @@
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
 
 (define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
-(define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
+(define apps.css {"bundle.css" "codexapp.css" "metabook.js"})
 
 (define (main (arg #f))
   (when (and arg (has-prefix arg "+"))
@@ -116,13 +116,27 @@
   (distribute-web "showsomeclass/")
   (let ((js (filedata "sbooks/codex.min.js.gz"))
 	(css (filedata "sbooks/codex.css.gz")))
-    (s3/put (s3/mkpath root apps.js) js "text/javascript" gzheaders #t)
+    (s3/put (s3/mkpath root "codexapp.js") js "text/javascript" gzheaders #t)
     (message "Updated "
-	     (do-choices (p (s3/mkpath root apps.js))
+	     (do-choices (p (s3/mkpath root "codexapp.js"))
 	       (printout "\n\t" (gpath->string p))))
-    (s3/put (s3/mkpath root apps.css) css "text/css" gzheaders #t)
+    (s3/put (s3/mkpath root "codexapp.css") css "text/css" gzheaders #t)
     (message "Updated "
-	     (do-choices (p (s3/mkpath root apps.css))
+	     (do-choices (p (s3/mkpath root "codexapp.css"))
+	       (printout "\n\t" (gpath->string p))))
+    (dolist (r dist-targets)
+      (do-choices (path (choice apps.js apps.css))
+	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
+	(message "Updated " (gpath->string (s3/mkpath r path))))))
+  (let ((js (filedata "sbooks/metabook.min.js.gz"))
+	(css (filedata "sbooks/metabook.css.gz")))
+    (s3/put (s3/mkpath root "metabook.js") js "text/javascript" gzheaders #t)
+    (message "Updated "
+	     (do-choices (p (s3/mkpath root "metabook.js"))
+	       (printout "\n\t" (gpath->string p))))
+    (s3/put (s3/mkpath root "metabook.css") css "text/css" gzheaders #t)
+    (message "Updated "
+	     (do-choices (p (s3/mkpath root "metabook.css"))
 	       (printout "\n\t" (gpath->string p))))
     (dolist (r dist-targets)
       (do-choices (path (choice apps.js apps.css))
