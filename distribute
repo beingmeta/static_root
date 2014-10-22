@@ -103,7 +103,7 @@
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
 
 (define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
-(define apps.css {"bundle.css" "codexapp.css" "metabook.js"})
+(define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
 
 (define (main (arg #f))
   (when (and arg (has-prefix arg "+"))
@@ -134,11 +134,15 @@
     (s3/put (s3/mkpath root "metabook.js") js "text/javascript" gzheaders #t)
     (message "Updated "
 	     (do-choices (p (s3/mkpath root "metabook.js"))
-	       (printout "\n\t" (gpath->string p))))
+	       (printout "\n\t" (gpath->string p)))
+	     " with " (length js) " bytes from "
+	     "sbooks/metabook.min.js.gz")
     (s3/put (s3/mkpath root "metabook.css") css "text/css" gzheaders #t)
     (message "Updated "
 	     (do-choices (p (s3/mkpath root "metabook.css"))
-	       (printout "\n\t" (gpath->string p))))
+	       (printout "\n\t" (gpath->string p)))
+	     " with " (length css) " bytes from "
+	     "sbooks/metabook.css.gz")
     (dolist (r dist-targets)
       (do-choices (path (choice apps.js apps.css))
 	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
