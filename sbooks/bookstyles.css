@@ -227,6 +227,20 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 .sbooktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
 
+.codexpage .sbooktitlepage > .title {
+   position: absolute; top: 0px; left: 0px; right: 0px;
+   margin-top: 0px; margin-bottom: 0px; padding-bottom: 1em;
+   box-sizing: border-box; max-height: 40%;}
+.codexpage .sbooktitlepage > .credits {
+   position: absolute; top: 45%; left: 0px; right: 0px;
+   margin-top: 0px; margin-bottom: 0px; padding-bottom: 1em;
+   box-sizing: border-box; max-height: 30%;}
+.codexpage .sbooktitlepage > .pubinfo,
+.codexpage .sbooktitlepage > .publisher {
+   position: absolute; bottom: 0px; left: 0px; right: 0px;
+   margin-top: 0px; margin-bottom: 0px; padding-top: 0.5em;
+   box-sizing: border-box; max-height: 20%;}
+
 body.sbook .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
 body.sbook .frontpiece div.poem div.stanza {
