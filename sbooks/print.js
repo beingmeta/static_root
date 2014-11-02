@@ -65,10 +65,12 @@ var CodexStaticLayout=
 	    var nodes=setupContent();
 	    var pages=fdjtID("CODEXPAGES");
 	    var geom=fdjtDOM.getGeometry(page,false,true);
+	    var xwidth=geom.width, xheight=geom.height;
 	    var width=geom.inner_width, height=geom.inner_height;
+	    fdjt.Log("Geometry: %j",geom);
 	    pagerule=fdjtDOM.addCSSRule(
 		"div.codexpage",
-		"width: "+width+"px; "+"height: "+height+"px;");
+		("width: "+width+"px; "+"height: "+height+"px; "));
 	    fdjtDOM.addClass(document.body,"cxLAYOUT");
 	    layout=new CodexLayout(
 		{container: pages,page_width:width,page_height:height});
