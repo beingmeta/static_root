@@ -6,10 +6,13 @@ var CodexStaticLayout=
 	var CodexLayout=fdjt.CodexLayout;
 	var getStyle=fdjtDOM.getStyle;
 	var getQuery=fdjtState.getQuery;
+	var getGeometry=fdjtDOM.getGeometry;
 	
 	var pagerule, layout, content, page;
 
 	function setupContent(){
+	    var bodyclass=window.bodyclass;
+	    if (bodyclass) document.body.className=((document.body.className)||"")+" "+bodyclass;
 	    content=fdjt.ID("CODEXCONTENT");
 	    if (content) 
 		content.parentNode.removeChild(content);
@@ -46,15 +49,14 @@ var CodexStaticLayout=
 	    document.body.appendChild(page);
 	    document.body.appendChild(content);
 	    document.body.appendChild(pages);
-	    return nodes;
-	}
+	    return nodes;}
 
 	function scale_oversize(){}
 	
 	function setupPage(){
 	    if (getQuery("format")) {
 		var fmt=getQuery("format");
-		fdjtDOM.addClass(document.body,"cx"+fmt.toUpperCase());
+		fdjtDOM.addClass(document.body,"_"+fmt.toUpperCase());
 		return;}
 	    else if ((getQuery("width"))&&(getQuery("height"))) {
 		page.style.width=getQuery("width");
@@ -64,20 +66,22 @@ var CodexStaticLayout=
 	function doLayout(){
 	    var nodes=setupContent();
 	    var pages=fdjtID("CODEXPAGES");
-	    var geom=fdjtDOM.getGeometry(page,false,true);
+	    var geom=getGeometry(page,false,true);
 	    var xwidth=geom.width, xheight=geom.height;
 	    var width=geom.inner_width, height=geom.inner_height;
 	    fdjt.Log("Geometry: %j",geom);
 	    pagerule=fdjtDOM.addCSSRule(
 		"div.codexpage",
-		("width: "+width+"px; "+"height: "+height+"px; "));
+		("width: "+geom.width+"px; "+"height: "+geom.height+"px; "));
 	    fdjtDOM.addClass(document.body,"cxLAYOUT");
 	    layout=new CodexLayout(
-		{container: pages,page_width:width,page_height:height});
+		{container: pages,page_width:width,page_height:height,
+		 pagerule:pagerule});
 	    var i=0, lim=nodes.length;
 	    while (i<lim) {
 		var node=nodes[i++];
 		layout.addContent(node);}
+	    setOffsets(layout,geom.height);
 	    addPageNumbers(layout);
 	    fdjtDOM.dropClass(document.body,"cxLAYOUT");
 	    if (fdjtState.getQuery("debug"))
@@ -88,15 +92,32 @@ var CodexStaticLayout=
 	    var i=0, lim=pages.length;
 	    while (i<lim) {
 		var page=pages[i++];
+		// fdjt.Log("Page %d: %j",i,getGeometry(page));
 		var pagenum=page.getAttribute("data-pagenum");
 		if (!(pagenum)) continue;
 		page.appendChild(
 		    fdjtDOM("span.codexpagenumber",pagenum));}}
 
+	function setOffsets(layout,height){
+	    var pages=layout.pages;
+	    var i=0, lim=pages.length;
+	    while (i<lim) {
+		var page=pages[i++], style=page.style;
+		style.position='absolute';
+		style.top=((i-1)*height)+"px";}}
+	/*
+	function setOffsets(layout,height){
+	    var pages=layout.pages;
+	    var i=0, lim=pages.length;
+	    while (i<lim) {
+		var page=pages[i++], style=page.style;
+		style.position='static';}}
+	*/
+
 	function updateLayout(){
 	    if (!(layout)) doLayout();
 	    else {
-		var geom=fdjtDOM.getGeometry(page,false,true);
+		var geom=getGeometry(page,false,true);
 		var width=geom.inner_width, height=geom.inner_height;
 		var pages=fdjtDOM("div#CODEXPAGES");
 		var cur=fdjtID("CODEXPAGES");
@@ -106,7 +127,8 @@ var CodexStaticLayout=
 		pagerule.style.width=width+"px";
 		pagerule.style.height=height+"px";
 		layout=new CodexLayout(
-		    {container: pages,page_width:width,page_height:height});
+		    {container: pages,page_width:width,page_height:height,
+		     pagerule: pagerule});
 		var children=content.childNodes, nodes=[];
 		var i=0, lim=children.length;
 		while (i<lim) nodes.push(children[i++]);
@@ -122,10 +144,14 @@ var CodexStaticLayout=
 		resize_timeout=false;
 		updateLayout();},1000);}
 	
-	fdjtDOM.addListener(window,"load",function(evt){
-	    doLayout();
-	    fdjtDOM.addListener(window,"resize",resize_handler);});
-	
+	if (!(window.phantomJS)) {
+	    fdjtDOM.addListener(window,"load",function(evt){
+		doLayout();
+		fdjtDOM.addListener(window,"resize",resize_handler);});}
+
+	window.doLayout=doLayout;
+	window.updateLayout=updateLayout;
+
 	if (getQuery("tracelevel")) {
 	    var tl=parseInt(getQuery("tracelevel"));
 	    if (typeof tl === "number") fdjt.CodexLayout.tracelevel=tl;}
