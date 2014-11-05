@@ -415,7 +415,7 @@ pull: fdjt codex knodules g pagedown showsomeclass bibliotype
 	cd bibliotype; git pull
 	cd pagedown; hg update
 	cd g; svn update
-update: fdjt codex knodules g pagedown showsomeclass bibliotype
+update: fdjt metabook codex knodules g pagedown showsomeclass bibliotype
 	make pull
 update-code: fdjt codex knodules
 	git pull
