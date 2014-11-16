@@ -285,7 +285,8 @@ div.part, section.part {
     padding-top: 0px; margin-top: 0px;
     page-break-before: always;}
 body.verse div.part h1, body.verse section.part h1 {
-    border-top: solid black 1em; 
+    border-top: solid black 1em;
+    border-top: solid black 5vh; 
     padding-top: .3em;}
 body.verse div.part > h1, body.verse section.part > h1 {
     page-break-before: auto;
@@ -539,6 +540,19 @@ div.sbooktight div, div.sbooktight p {
 .sbooktag { display: none;}
 .sbooktags { display: none;}
 .xdatapagescale { display: none;}
+
+/* Media rules */
+
+@media (max-width: 600px) {
+  blockquote { margin-left: 1.5em; margin-right: 0.5em;}}
+
+@media (max-width: 700px) {
+  div.stanza { margin-left: 0.5em; margin-right: 0.25em; }
+  div.stanza p { margin-left: 1em; text-indent: -1em;}
+  div.poem, section.poem { 
+   margin-left: 0.5ex; margin-right: 0.25ex;
+   padding: 0.25ex; padding-bottom: 0px;}
+}
 
 /*
 body.essay div.toplinks a {
