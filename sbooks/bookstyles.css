@@ -155,29 +155,37 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     display: block; clear: both;
     margin-left: auto; margin-right: auto;
     margin-top: 1em; margin-bottom: 1em;}
-.sbooktitlepage > .title {
-    margin-top: 1ex; margin-bottom: 1em;
-    font-size: 3em; font-weight: bold;
-    clear: both;}
+.sbooktitlepage .title, .sbooktitlepage .credits,
+.sbooktitlepage .author, .sbooktitlepage .byline,
+.sbooktitlepage .editor {
+    margin-top: 0px; margin-bottom: 1em;
+    display: block; clear: both;}
+.sbooktitlepage .credits .author, .sbooktitlepage .credits .byline,
+.sbooktitlepage .credits .editor, .sbooktitlepage .credits .contributor {
+    margin-bottom: initial;}
+.sbooktitlepage .credits .contributor { font-size: 0.8em;}
+
 .sbooktitlepage .connector {font-size: 50%;}
-.sbooktitlepage > .credits, .sbooktitlepage > .author,
-.sbooktitlepage > .byline {
-    margin-top: 1em; margin-bottom: 1em;
-    font-size: 2em; font-style: italic;}
+
+.sbooktitlepage .title {font-size: 2em; font-weight: bold;}
+.sbooktitlepage .credits, .sbooktitlepage .author, .sbooktitlepage .byline {
+    font-size: 1.5em; font-style: italic;}
+
 .sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
 .sbooktitlepage .pubinfo { 
-    text-align: left; display: inline-block;
-    padding: 1ex; margin-top: 1em; margin-bottom: 1ex;
+    text-align: left; display: inline-block; font-size: 0.8em;
+    min-width: 70%; max-width: 60em;
+    padding: 1ex; padding-bottom: 0px; margin-bottom: 0px;
+    margin-left: auto; margin-right: auto;
     page-break-inside: avoid;
-    min-width: 70%; max-width: 40em;
     clear: both;}
 .sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
 .sbooktitlepage .pubinfo p {
-    margin-right: 3em; margin-left: 3em; text-indent: -2em;
+    margin-right: 2em; margin-left: 3em; text-indent: -2em;
     text-align: left; margin-bottom: 0px; margin-top: 0px;}
 .sbooktitlepage .pubinfo span.bibdate,
 .sbooktitlepage .sbookbibinfo span.bibdate {
-    padding-left: 1ex; margin-left: 16px; float: right;
+    padding-left: 1em; margin-left: 16px; float: right;
     color: crimson;}
 
 .sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
@@ -190,30 +198,8 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 
 .codexbibpage { text-align: left;}
 
-.sbooktitlepage .title {
-    text-align: center; font-weight: bold; 
-    margin-top: 1em; margin-bottom: 1em;
-    width: 90%; margin-left: 5%; margin-right: 5%;
-    font-weight: bold;
-    page-break-inside: avoid;
-    clear: both;}
-.codexpage .sbooktitlepage .title, #CODEXCOVER .sbooktitlepage .title {
-    margin-top: 0px;}
-.sbooktitlepage .connector {
-    font-size: 50%;}
-
 .sbooktitlepage h1 { font-size: 2em;}
 .sbooktitlepage h2 { font-size: 1em;}
-.sbooktitlepage > .credits, .sbooktitlepage > .author,
-.sbooktitlepage > .byline { 
-    font-style: italic;
-    width: 80%; margin-left: 10%; margin-right: 10%;
-    margin-top: 1em; margin-bottom: 1em;
-    page-break-inside: avoid;
-    clear: both;}
-.sbooktitlepage .editor { 
-  clear: both; text-align: center;
-  font-style: italic; font-weight: normal;}
 .sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
     text-align: left;
     font-style: normal; font-weight: normal;
@@ -226,26 +212,6 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 .sbooktitlepage .dedication.leftalign p,
 .sbooktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
-
-.codexpage .sbooktitlepage > .title {
-   position: absolute; top: 0px; left: 0px; right: 0px;
-   padding: 0px; margin: 0px;
-   margin-left: auto; margin-right: auto;
-   box-sizing: border-box; max-height: 40%;}
-.codexpage .sbooktitlepage > .credits,
-.codexpage .sbooktitlepage > .author {
-   position: absolute; top: 45%; left: 0px; right: 0px;
-   padding: 0px; margin: 0px;
-   margin-left: auto; margin-right: auto;
-   box-sizing: border-box; max-height: 30%;}
-.codexpage .sbooktitlepage > .sbookpubinfo,
-.codexpage .sbooktitlepage > .sbookbibinfo,
-.codexpage .sbooktitlepage > .pubinfo,
-.codexpage .sbooktitlepage > .publisher {
-   position: absolute; bottom: 0px; left: 0px; right: 0px;
-   padding: 0px; margin: 0px;
-   margin-left: auto; margin-right: auto;
-   box-sizing: border-box; max-height: 20%;}
 
 body.sbook .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
@@ -473,48 +439,7 @@ body.rawsbook div#CODEXCONTENT p {
     max-width: 40em; margin-left: auto; margin-right: auto;
     line-height: 125%;}
 
-/* Kind of dead code */
-
-.sbooktitlepage .title {
-    text-align: center; font-weight: bold;
-    clear: both;}
-.sbooktitlepage .connector {
-    font-size: 50%;}
-.sbooktitlepage .title img {
-    max-width: 80%;}
-.sbooktitlepage .subtitle {
-    font-size: 80%; white-space: nowrap; }
-.sbooktitlepage div.subtitle {
-  clear: both; text-align: center;
-  font-style: normal; font-weight: normal;
-  white-space: normal;}
-.sbooktitlepage .author { 
-    font-style: italic; 
-    clear: both; text-align: center;
-    margin-top: 1em; margin-bottom: 1em;}
-.sbooktitlepage .editor { 
-  clear: both; text-align: center;
-  font-style: normal; font-weight: normal; font-size: 90%;}
-.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
-  clear: both; text-align: left;
-  font-style: italic; font-weight: normal;
-  margin-left: auto; margin-right: auto;
-  max-width: 50%; font-size: 80%;}
-.sbooktitlepage div.pubinfo { 
-  clear: both; 
-  font-variant: small-caps; font-size: 50%;
-  padding: 4px; margin-bottom: 7px; margin-top: 2em;}
-
-.sbooktitlepage .title { margin-bottom: 1em; }
-.sbooktitlepage .credits {
-    margin-top: 1em; margin-bottom: 1em; }
-.sbooktitlepage .credits .lifespan {
-    white-space: nowrap; font-size: 0.9em;}
-
-.sbooktitlepage .title h1, .sbooktitlepage .credits h1,
-.sbooktitlepage .title h2, .sbooktitlepage .credits h2,
-.sbooktitlepage .title h3, .sbooktitlepage .credits h3 {
-    margin-top: 0px; margin-bottom: 0.5ex;}
+/* Styles for aboutbook/aboutauthor sections */
 
 div.sbookaboutbook, div.sbookaboutauthor, div.sbookaboutauthor div.creator {
   clear: both; margin-bottom: 1em;}
