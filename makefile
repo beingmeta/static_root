@@ -94,12 +94,13 @@ METABOOK_HTML_FILES=\
 	metabook/html/pageleft.html metabook/html/pageright.html 
 
 METABOOK_CSS=\
+	metabook/css/app.css metabook/css/fonts.css \
 	metabook/css/framing.css metabook/css/cover.css metabook/css/hud.css \
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css    \
 	metabook/css/toc.css metabook/css/slices.css metabook/css/clouds.css \
 	metabook/css/card.css metabook/css/search.css \
 	metabook/css/addgloss.css metabook/css/flyleaf.css \
-	metabook/css/preview.css metabook/css/app.css metabook/css/media.css \
+	metabook/css/preview.css metabook/css/media.css \
 	metabook/css/debug.css
 
 # removed sbooks/reset.css
