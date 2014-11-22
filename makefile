@@ -94,7 +94,8 @@ METABOOK_HTML_FILES=\
 	metabook/html/pageleft.html metabook/html/pageright.html 
 
 METABOOK_CSS=\
-	metabook/css/app.css metabook/css/fonts.css \
+	metabook/css/app.css \
+	metabook/css/open_sans_serif.css metabook/css/fonts.css \
 	metabook/css/framing.css metabook/css/cover.css metabook/css/hud.css \
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css    \
 	metabook/css/toc.css metabook/css/slices.css metabook/css/clouds.css \
