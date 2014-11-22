@@ -1,0 +1,38 @@
+@font-face {
+  font-family: 'Aleo';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Aleo Regular'), local('Aleo-Regular'),
+       url(Aleo/Aleo-Regular.otf), url(/static/fonts/Aleo/Aleo-Regular.otf);}
+@font-face {
+  font-family: 'Aleo';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Aleo Italic'), local('Aleo-Italic'),
+       url(Aleo/Aleo-Italic.otf), url(/static/fonts/Aleo/Aleo-Italic.otf);}
+@font-face {
+  font-family: 'Aleo';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Aleo Italic'), local('Aleo-Italic'),
+       url(Aleo/Aleo-Bold.otf), url(/static/fonts/Aleo/Aleo-Bold.otf);}
+@font-face {
+  font-family: 'Aleo';
+  font-style: italic;
+  font-weight: 600;
+  src: local('Aleo BoldItalic'), local('Aleo-BoldItalic'),
+       url(Aleo/Aleo-BoldItalic.otf), url(/static/fonts/Aleo/Aleo-BoldItalic.otf);}
+@font-face {
+  font-family: 'Aleo';
+  font-style: normal;
+  font-weight: 200;
+  src: local('Aleo Light'), local('Aleo-Light'),
+       url(Aleo/Aleo-Light.otf), url(/static/fonts/Aleo/Aleo-Light.otf);}
+@font-face {
+  font-family: 'Aleo';
+  font-style: italic;
+  font-weight: 200;
+  src: local('Aleo LightItalic'), local('Aleo-LightItalic'),
+       url(Aleo/Aleo-LightItalic.otf),
+       url(/static/fonts/Aleo/Aleo-LightItalic.otf);}
+

@@ -1,0 +1,25 @@
+@font-face {
+  font-family: 'Gentium';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Gentium Regular'), local('Gentium-Regular'),
+        url(Gentium/GenBkBasR.ttf), url(/static/fonts/Gentium/GenBkBasR.ttf);}
+@font-face {
+  font-family: 'Gentium';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Gentium Italic'), local('Gentium-Italic'),
+       url(Gentium/GenBkBasI.ttf), url(/static/fonts/Gentium/GenBkBasI.ttf);}
+@font-face {
+  font-family: 'Gentium';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Gentium Bold'), local('Gentium-Bold'),
+       url(Gentium/GenBkBasB.ttf), url(/static/fonts/Gentium/GenBkBasB.ttf);}
+@font-face {
+  font-family: 'Gentium';
+  font-style: italic;
+  font-weight: 600;
+  src: local('Gentium BoldItalic'), local('Gentium-BoldItalic'),
+       url(Gentium/GenBkBasBI.ttf), url(/static/fonts/Gentium/GenBkBasBI.ttf);}
+

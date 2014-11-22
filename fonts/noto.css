@@ -1,0 +1,48 @@
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(noto/unhinted/NotoSans-Regular.ttf),
+       url(/static/fonts/noto/unhinted/NotoSans-Regular.ttf);}
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: italic;
+  font-weight: 400;
+  src: url(noto/unhinted/NotoSans-Italic.ttf),
+       url(/static/fonts/noto/unhinted/NotoSans-Italic.ttf);}
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url(noto/unhinted/NotoSans-Bold.ttf),
+       url(/static/fonts/noto/unhinted/NotoSans-Bold.ttf);}
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: italic;
+  font-weight: 600;
+  src: url(noto/unhinted/NotoSans-BoldItalic.ttf),
+       url(/static/fonts/noto/unhinted/NotoSans-BoldItalic.ttf);}
+@font-face {
+  font-family: 'Noto Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: url(noto/unhinted/NotoSerif-Regular.ttf),
+       url(/static/fonts/noto/unhinted/NotoSerif-Regular.ttf);}
+@font-face {
+  font-family: 'Noto Serif';
+  font-style: italic;
+  font-weight: 400;
+  src: url(noto/unhinted/NotoSerif-Italic.ttf),
+       url(/static/fonts/noto/unhinted/NotoSerif-Italic.ttf);}
+@font-face {
+  font-family: 'Noto Serif';
+  font-style: normal;
+  font-weight: 600;
+  src: url(noto/unhinted/NotoSerif-Bold.ttf),
+       url(/static/fonts/noto/unhinted/NotoSerif-Bold.ttf);}
+@font-face {
+  font-family: 'Noto Serif';
+  font-style: italic;
+  font-weight: 600;
+  src: url(noto/unhinted/NotoSerif-BoldItalic.ttf),
+       url(/static/fonts/noto/unhinted/NotoSerif-BoldItalic.ttf);}
