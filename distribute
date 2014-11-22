@@ -11,6 +11,13 @@
 (define graphics
   {"g/codex/" "g/metabook/" "g/sbooks/" "g/showsomeclass/" "g/beingmeta/"
    "g/metabook/docs/" "g/codex/docs/"})
+(define fonts
+  {"fonts/Adobe/" "fonts/aleo/" "fonts/coelacanth/"
+   "fonts/gentium/" "fonts/noto/"
+   "fonts/Liberation/Sans" "fonts/Liberation/Serif" "fonts/Liberation/Mono"
+   "fonts/OmnibusType/Archivo_Black" "fonts/OmnibusType/Archivo_Narrow"
+   "fonts/OmnibusType/Rosario" "fonts/OmnibusType/Unna"
+   "fonts/open_dyslexic/" "fonts/opensans/"})
 
 (define dist-targets-file (get-component "dist-targets"))
 (define dist-targets
@@ -99,8 +106,10 @@
 			    pubheaders forcewrite retall))
 	      dist-targets))
 
-(define image-suffixes
+(define media-suffixes
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
+(define font-suffixes
+  {".ttf" ".otf" ".eot" ".woff" ".txt"})
 
 (define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
 (define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
@@ -115,6 +124,7 @@
   (distribute-web "sbooks/")
   (distribute-web "fdjt/")
   (distribute-web "showsomeclass/")
+  (distribute-web "fonts/")
   (let ((js (filedata "sbooks/codex.min.js.gz"))
 	(css (filedata "sbooks/codex.css.gz")))
     (s3/put (s3/mkpath root "codexapp.js") js "text/javascript" gzheaders #t)
@@ -150,7 +160,7 @@
   (do-choices (local graphics)
     (let ((changed-graphics (push-graphics local))
 	  (allfiles (pick (getfiles local) has-suffix
-			  image-suffixes)))
+			  media-suffixes)))
       (when (or arg (exists? changed-graphics))
 	(message (choice-size changed-graphics) "/" (choice-size allfiles)
 		 " changed graphics"
@@ -165,7 +175,28 @@
 		    (if arg
 			(qc (s3/mkpath root allfiles))
 			(qc changed-graphics))
+		    (if arg (list arg) dist-targets)))))
+  (do-choices (local fonts)
+    (let ((changed-fonts
+	   (s3/push! local (s3/mkpath root local) (qc font-suffixes)
+		     pubheaders forcewrite))
+	  (allfiles (pick (getfiles local) has-suffix font-suffixes)))
+      (when (or arg (exists? changed-fonts))
+	(message (choice-size changed-fonts) "/" (choice-size allfiles)
+		 " changed fonts"
+		 (if arg
+		     " (copying all)"
+		     (printout
+		       (if (> (choice-size changed-fonts) 17) ": ")
+		       (when (> (choice-size changed-fonts) 17)
+			 (do-choices (f changed-fonts)
+			   (printout "\n    "  (gpath->string f)))))))
+	(distribute root
+		    (if arg
+			(qc (s3/mkpath root allfiles))
+			(qc changed-fonts))
 		    (if arg (list arg) dist-targets))))))
+
 
 
 
