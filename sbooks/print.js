@@ -148,6 +148,7 @@ var CodexStaticLayout=
 	    fdjtDOM.addListener(window,"load",function(evt){
 		doLayout();
 		fdjtDOM.addListener(window,"resize",resize_handler);});}
+	else fdjtDOM.addListener(window,"load",function(evt){doLayout();});
 
 	window.doLayout=doLayout;
 	window.updateLayout=updateLayout;
@@ -160,5 +161,3 @@ var CodexStaticLayout=
 		update: updateLayout,
 		getPagerule: function(){return pagerule;},
 		getLayout: function(){return layout;}};})();
-
-
