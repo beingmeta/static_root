@@ -69,7 +69,10 @@ var CodexStaticLayout=
 	    var geom=getGeometry(page,false,true);
 	    var xwidth=geom.width, xheight=geom.height;
 	    var width=geom.inner_width, height=geom.inner_height;
-	    fdjt.Log("Geometry: %j",geom);
+	    fdjt.Log("Body: %s",document.body.className);
+	    if (document.body.getAttribute("style")) {
+		fdjt.Log("Body style: %s",document.body.getAttribute("style"));
+	    fdjt.Log("Page geometry: %j",geom);
 	    pagerule=fdjtDOM.addCSSRule(
 		"div.codexpage",
 		("width: "+geom.width+"px; "+"height: "+geom.height+"px; "));
@@ -150,8 +153,8 @@ var CodexStaticLayout=
 		fdjtDOM.addListener(window,"resize",resize_handler);});}
 	else fdjtDOM.addListener(window,"load",function(evt){doLayout();});
 
-	window.doLayout=doLayout;
-	window.updateLayout=updateLayout;
+	document.doLayout=window.doLayout=doLayout;
+	document.updateLayout=window.updateLayout=updateLayout;
 
 	if (getQuery("tracelevel")) {
 	    var tl=parseInt(getQuery("tracelevel"));
