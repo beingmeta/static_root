@@ -32,6 +32,9 @@
 
 body.sbook a[href] { text-decoration: none;}
 body.sbook a[href]:hover { text-decoration: underline;}
+body.sbook a.sbextref[href], body.sbook a.sbextlink[href],
+body.sbook a.sbookextref[href], body.sbook a.sbookextlink[href] {
+    text-decoration: underline;}
 
 body.sbook.loveabook #CODEXPAGE p,
 body.sbook.loveabook #CODEXPAGE li {
@@ -135,6 +138,8 @@ body.sbook div.sbookfullpage h1 {
 body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 0.1em; margin-bottom: 0.1em;}
 
+/* Titlepage rules */
+
 .sbooktitlepage {
   padding: 1em; margin: 0px;
   font-family: helvetica,sans,sans-serif;
@@ -145,11 +150,24 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
   overflow: hidden;}
 .sbooktitlepage > * {
   page-break-inside: avoid;}
+.sbooktitlepage > div { line-height: 1.0;}
+
+.sbooktitlepage > h1, .sbooktitlepage > .fdjtadjustfont > h1 {
+    font-size: 2em;}
+.sbooktitlepage > h2, .sbooktitlepage > .fdjtadjustfont > h2 {
+    font-size: 1.2em;}
+
+.sbooktitlepage .title h1, .sbooktitlepage .credits h1,
+.sbooktitlepage .title h2, .sbooktitlepage .credits h2,
+.sbooktitlepage .title h3, .sbooktitlepage .credits h3 {
+    margin-top: 0px; margin-bottom: 0.5ex;}
+.sbooktitlepage .credits .lifespan {
+    white-space: nowrap; font-size: 0.9em;}
 
 .sbooktitlepage > p, .sbooktitlepage > blockquote > p {
-    width: 30em; max-width: 70%; clear: both;
-    font-size: 125%;
-    margin-left: auto; margin-right: auto;}
+    width: 30em; max-width: 70%; font-size: 125%;
+    margin-left: auto; margin-right: auto;
+    clear: both;}
 
 .sbooktitlepage > img {
     display: block; clear: both;
@@ -164,12 +182,23 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 .sbooktitlepage .credits .editor, .sbooktitlepage .credits .contributor {
     margin-bottom: initial;}
 .sbooktitlepage .credits .contributor { font-size: 0.8em;}
+.sbooktitlepage .credits .name { white-space: nowrap;}
 
-.sbooktitlepage .connector {font-size: 50%;}
+.sbooktitlepage .connector {
+    font-size: 50%; margin-top: 1ex; margin-bottom: 1ex;}
 
-.sbooktitlepage .title {font-size: 2em; font-weight: bold;}
+.sbooktitlepage .title {
+    font-size: 2em; font-weight: bold;
+    margin-bottom: 1.5em;}
+.sbooktitlepage .title .subtitle,
+.sbooktitlepage .title .translation,
+.sbooktitlepage .title .originaltitle {
+    font-size: 50%; font-weight: normal;
+    margin-top: 1.5em; margin-bottom: 0px;}
+
 .sbooktitlepage .credits, .sbooktitlepage .author, .sbooktitlepage .byline {
-    font-size: 1.5em; font-style: italic;}
+    font-size: 1.5em; font-style: italic;
+    margin-top: 1em; margin-bottom: 1.5em; }
 
 .sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
 .sbooktitlepage .pubinfo { 
@@ -179,14 +208,35 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-left: auto; margin-right: auto;
     page-break-inside: avoid;
     clear: both;}
+
+.sbooktitlepage .publisher { 
+    font-size: 1em; text-align: center;
+    margin-top: 0.5em; margin-bottom: 0px; }
+
 .sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
 .sbooktitlepage .pubinfo p {
     margin-right: 2em; margin-left: 3em; text-indent: -2em;
     text-align: left; margin-bottom: 0px; margin-top: 0px;}
+
+.sbooktitlepage .sbookbibinfo span.bibdate,
 .sbooktitlepage .pubinfo span.bibdate,
-.sbooktitlepage .sbookbibinfo span.bibdate {
-    padding-left: 1em; margin-left: 16px; float: right;
+.sbooktitlepage .bibinfo span.bibdate {
+    float: right; padding-left: 2em;
     color: crimson;}
+
+.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
+    text-align: left;
+    font-style: normal; font-weight: normal;
+    margin-left: auto; margin-right: auto;
+    page-break-inside: avoid;
+    margin-top: 1em; margin-bottom: 1ex;
+    margin-left: auto; margin-right: auto;
+    max-width: 70%;}
+.sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
+    margin: 0px; padding: 0px;}
+.sbooktitlepage .dedication.leftalign p,
+.sbooktitlepage .epigraph.leftalign p {
+    margin-left: 5em; text-indent: -5em;}
 
 .sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
     text-align: left; font-size: 1em;
@@ -195,23 +245,6 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     page-break-inside: avoid;
     margin-top: 1em;
     max-width: 70%;}
-
-.codexbibpage { text-align: left;}
-
-.sbooktitlepage h1 { font-size: 2em;}
-.sbooktitlepage h2 { font-size: 1em;}
-.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
-    text-align: left;
-    font-style: normal; font-weight: normal;
-    margin-left: auto; margin-right: auto;
-    page-break-inside: avoid;
-    margin-top: 1em;
-    max-width: 70%;}
-.sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
-    margin: 0px; padding: 0px;}
-.sbooktitlepage .dedication.leftalign p,
-.sbooktitlepage .epigraph.leftalign p {
-    margin-left: 5em; text-indent: -5em;}
 
 body.sbook .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
