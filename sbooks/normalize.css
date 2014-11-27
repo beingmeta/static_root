@@ -422,3 +422,13 @@ div {
     page-break-after: auto;
     page-break-inside: auto;
 }
+
+/* */
+
+@media (max-width: 650px) {
+    h1 { font-size: 1.5em;}
+    h2 { font-size: 1.2em;}
+    h3 { font-size: 1.2em;}}
+
+
+
