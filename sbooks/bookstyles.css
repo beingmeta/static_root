@@ -509,7 +509,8 @@ div.sbooktight div, div.sbooktight p {
   div.stanza p { margin-left: 1em; text-indent: -1em;}
   div.poem, section.poem { 
    margin-left: 0.5ex; margin-right: 0.25ex;
-   padding: 0.25ex; padding-bottom: 0px;}
+   padding-left: 0.25ex; padding-right: 0.25ex;
+   padding-bottom: 0px;}
 }
 
 /*
