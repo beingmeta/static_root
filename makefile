@@ -179,7 +179,7 @@ hints:
 
 sbookstyles: ${SBOOKSTYLES}
 # Removed sbooks/reset.css
-sbooks/sbookstyles.css: sbooks/normalize.css sbooks/bookstyles.css
+sbooks/sbookstyles.css: fdjt/normalize.css sbooks/bookstyles.css
 	@cat $^ > $@
 
 fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
