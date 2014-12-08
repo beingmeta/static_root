@@ -63,12 +63,14 @@ var CodexStaticLayout=
 		page.style.height=getQuery("height");}
 	    else fdjtDOM.addClass(document.body,"cxELASTIC");}
 
-	function doLayout(){
+	function doLayout(props){
 	    var nodes=setupContent();
 	    var pages=fdjtID("CODEXPAGES");
 	    var geom=getGeometry(page,false,true);
 	    var xwidth=geom.width, xheight=geom.height;
 	    var width=geom.inner_width, height=geom.inner_height;
+	    var tracelevel=0;
+	    if (!(props)) props={};
 	    fdjt.Log("Body: %s",document.body.className);
 	    if (document.body.getAttribute("style")) 
 		fdjt.Log("Body style: %s",
@@ -78,9 +80,9 @@ var CodexStaticLayout=
 		"div.codexpage",
 		("width: "+geom.width+"px; "+"height: "+geom.height+"px; "));
 	    fdjtDOM.addClass(document.body,"cxLAYOUT");
-	    layout=new CodexLayout(
-		{container: pages,page_width:width,page_height:height,
-		 pagerule:pagerule});
+	    props.container=pages; props.pagerule=pagerule;
+	    props.page_width=width; props.page_height=height;
+	    layout=new CodexLayout(props);
 	    var i=0, lim=nodes.length;
 	    while (i<lim) {
 		var node=nodes[i++];
@@ -146,7 +148,7 @@ var CodexStaticLayout=
 		doLayout();
 		fdjtDOM.addListener(window,"resize",resize_handler);});}
 	else {
-	    fdjtDOM.addListener(window,"load",function(evt){doLayout();});
+	    fdjt.Log("Delaying layout under phantomjs");
 	    fdjtDOM.addListener(window,"layout",function(evt){doLayout();});}
 	
 	var resize_timeout=false;
@@ -156,12 +158,6 @@ var CodexStaticLayout=
 		resize_timeout=false;
 		updateLayout();},1000);}
 	
-	if (!(window.phantomJS)) { /*  */
-	    fdjtDOM.addListener(window,"load",function(evt){
-		doLayout();
-		fdjtDOM.addListener(window,"resize",resize_handler);});}
-	else fdjtDOM.addListener(window,"load",function(evt){doLayout();});
-
 	document.doLayout=window.doLayout=doLayout;
 	document.updateLayout=window.updateLayout=updateLayout;
 	
