@@ -177,11 +177,6 @@ hints:
 	make cleanhints
 	make allhints
 
-sbookstyles: ${SBOOKSTYLES}
-# Removed sbooks/reset.css
-sbooks/sbookstyles.css: sbooks/normalize.css sbooks/bookstyles.css
-	@cat $^ > $@
-
 fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
 	@cd fdjt; make fdjt.hints
 codex/codex.hints: $(CODEX_HINTS) codex/.jshintrc

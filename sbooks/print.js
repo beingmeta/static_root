@@ -147,7 +147,7 @@ var CodexStaticLayout=
 		resize_timeout=false;
 		updateLayout();},1000);}
 	
-	if (!(window.phantomJS)) {
+	if (true) { /* (!(window.phantomJS)) */
 	    fdjtDOM.addListener(window,"load",function(evt){
 		doLayout();
 		fdjtDOM.addListener(window,"resize",resize_handler);});}
@@ -163,4 +163,4 @@ var CodexStaticLayout=
 	return {init: doLayout,
 		update: updateLayout,
 		getPagerule: function(){return pagerule;},
-		getLayout: function(){return layout;}};})();
+		getLayout: function(){return layout;}};}})();
