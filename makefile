@@ -67,8 +67,7 @@ CODEX_CSS=\
 	codex/css/app.css codex/css/media.css codex/css/debug.css
 
 METABOOK_FILES=\
-	metabook/core.js metabook/loadfonts.js metabook/startup.js \
-	metabook/domscan.js \
+	metabook/core.js metabook/startup.js metabook/domscan.js \
 	metabook/hud.js metabook/toc.js metabook/slices.js metabook/clouds.js \
 	metabook/social.js metabook/search.js metabook/glosses.js \
 	metabook/interaction.js metabook/layout.js metabook/debug.js \
@@ -95,9 +94,9 @@ METABOOK_HTML_FILES=\
 	metabook/html/pageleft.html metabook/html/pageright.html 
 
 METABOOK_CSS=\
-	metabook/css/app.css metabook/css/fonts.css \
-	metabook/css/opensans.css metabook/css/opendyslexic.css \
-	metabook/css/framing.css metabook/css/cover.css metabook/css/hud.css \
+	metabook/css/app.css metabook/css/framing.css \
+	fonts/open_sans.css fonts/open_dyslexic.css metabook/css/fonts.css \
+	metabook/css/cover.css metabook/css/hud.css \
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css    \
 	metabook/css/toc.css metabook/css/slices.css metabook/css/clouds.css \
 	metabook/css/card.css metabook/css/search.css \

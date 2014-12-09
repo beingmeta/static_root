@@ -33,27 +33,27 @@
 
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('open_dyslexic/OpenDyslexic-Regular.otf');
+    src: url('fonts/open_dyslexic/OpenDyslexic-Regular.otf');
     font-weight: normal;
     font-style: normal;}
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('open_dyslexic/OpenDyslexic-Bold.otf');
+    src: url('fonts/open_dyslexic/OpenDyslexic-Bold.otf');
     font-weight: 700;
     font-style: normal;}
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('open_dyslexic/OpenDyslexic-Italic.otf');
+    src: url('fonts/open_dyslexic/OpenDyslexic-Italic.otf');
     font-weight: normal;
     font-style: italic;}
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('open_dyslexic/OpenDyslexic-BoldItalic.otf');
+    src: url('fonts/open_dyslexic/OpenDyslexic-BoldItalic.otf');
     font-weight: 700;
     font-style: italic;}
 @font-face {
     font-family: 'Open DyslexicFixed';
-    src: url('open_dyslexic/OpenDyslexicMono-Regular.otf');
+    src: url('fonts/open_dyslexic/OpenDyslexicMono-Regular.otf');
     font-weight: normal;
     font-style: normal;}
 

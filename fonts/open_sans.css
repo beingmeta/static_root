@@ -36,67 +36,67 @@
   font-style: normal;
   font-weight: 400;
   src: local('Open Sans'), local('OpenSans'),
-       url("open_sans/OpenSans-Regular.ttf");}
+       url('fonts/open_sans/OpenSans-Regular.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 200;
   src: local('Open Sans Light'), local('OpenSans-Light'),
-       url("open_sans/OpenSans-Light.ttf");}
+       url('fonts/open_sans/OpenSans-Light.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 500;
   src: local('Open Sans Semibold'), local('OpenSans-Semibold'),
-       url("open_sans/OpenSans-Semibold.ttf");}
+       url('fonts/open_sans/OpenSans-Semibold.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 600;
   src: local('Open Sans Semibold'), local('OpenSans-Semibold'),
-       url("open_sans/OpenSans-Semibold.ttf");}
+       url('fonts/open_sans/OpenSans-Semibold.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 700;
   src: local('Open Sans Bold'), local('OpenSans-Bold'),
-       url('open_sans/OpenSans-Bold.ttf');}
+       url('fonts/open_sans/OpenSans-Bold.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 400;
   src: local('Open Sans Italic'), local('OpenSans-Italic'),
-       url('open_sans/OpenSans-Italic.ttf');}
+       url('fonts/open_sans/OpenSans-Italic.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 200;
   src: local('Open Sans Light Italic'), local('OpenSans-LightItalic'),
-       url('open_sans/OpenSans-LightItalic.ttf');}
+       url('fonts/open_sans/OpenSans-LightItalic.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 600;
   src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'),
-       url('open_sans/OpenSans-SemiboldItalic.ttf');}
+       url('fonts/open_sans/OpenSans-SemiboldItalic.ttf');}
 @font-face {
   font-family: 'Open Sans Condensed';
   font-style: normal;
   font-weight: 300;
   src: local('Open Sans Condensed'), local('OpenSans-Condensed'),
-       url('open_sans/OpenSansCondLight.ttf');}
+       url('fonts/open_sans/OpenSansCondLight.ttf');}
 @font-face {
   font-family: 'Open Sans Condensed';
   font-style: italic;
   font-weight: 300;
   src: local('Open Sans CondensedItalic'), local('OpenSans-CondensedItalic'),
-       url('open_sans/OpenSansCondLightItalic.ttf');}
+       url('fonts/open_sans/OpenSansCondLightItalic.ttf');}
 @font-face {
   font-family: 'Open Sans Condensed';
   font-style: normal;
   font-weight: 600;
   src: local('Open Sans Condensed Bold'), local('OpenSans-CondensedBold'),
-       url('open_sans/OpenSansCondBold.ttf');}
+       url('fonts/open_sans/OpenSansCondBold.ttf');}
 
 
 /* Emacs local variables
