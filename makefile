@@ -67,7 +67,8 @@ CODEX_CSS=\
 	codex/css/app.css codex/css/media.css codex/css/debug.css
 
 METABOOK_FILES=\
-	metabook/core.js metabook/startup.js metabook/domscan.js \
+	metabook/core.js metabook/loadfonts.js metabook/startup.js \
+	metabook/domscan.js \
 	metabook/hud.js metabook/toc.js metabook/slices.js metabook/clouds.js \
 	metabook/social.js metabook/search.js metabook/glosses.js \
 	metabook/interaction.js metabook/layout.js metabook/debug.js \
@@ -152,7 +153,7 @@ metabook/html/%.js: metabook/html/%.html makefile
 .SUFFIXES: .js .css
 
 all: allcode alltags allhints index.html
-allcode: fdjt knodules codex metabook \
+allcode: fdjt knodules codex metabook webfontloader \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
 	sbooks/codex.js sbooks/codex.css \
 	sbooks/codex.js.gz sbooks/codex.css.gz \
@@ -204,7 +205,7 @@ showsomeclass/app.css: showsomeclass/ssc.css showsomeclass/dialog.css \
 	showsomeclass/edit.css showsomeclass/makefile
 	cd showsomeclass; make
 
-# GIT rules
+# Checkout rules
 fdjt:
 	git clone git@github.com:beingmeta/fdjt.git
 knodules:
@@ -225,6 +226,8 @@ aloha:
 	git clone https://github.com/alohaeditor/Aloha-Editor.git aloha
 ext:
 	cd ext; make 
+webfontloader:
+	git clone https://github.com/typekit/webfontloader.git webfontloader
 
 clean:
 	cd fdjt; make clean
@@ -415,8 +418,10 @@ pull: fdjt codex knodules g pagedown showsomeclass bibliotype
 	cd showsomeclass; git pull
 	cd bibliotype; git pull
 	cd pagedown; hg update
+	cd webfontloader; git pull
 	cd g; svn update
-update: fdjt metabook codex knodules g pagedown showsomeclass bibliotype
+update: fdjt metabook codex knodules g pagedown \
+	showsomeclass bibliotype webfontloader
 	make pull
 update-code: fdjt codex knodules
 	git pull
@@ -424,6 +429,7 @@ update-code: fdjt codex knodules
 	cd knodules; git pull
 	cd showsomeclass; git pull
 	cd codex; git pull
+	cd webfontloader; git pull
 clean-graphics:
 	cd g/codex; ${CLEANGRAPHICS}
 	cd g/beingmeta; ${CLEANGRAPHICS}

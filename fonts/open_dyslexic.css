@@ -1,0 +1,67 @@
+/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2014 beingmeta, inc.
+   This file implements a Javascript/DHTML web application for reading
+    large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+    Use and redistribution (especially embedding in other
+      CC licensed content) is permitted under the terms of the
+      Creative Commons "Attribution-NonCommercial" license:
+
+          http://creativecommons.org/licenses/by-nc/3.0/ 
+
+    Other uses may be allowed based on prior agreement with
+      beingmeta, inc.  Inquiries can be addressed to:
+
+       licensing@biz.beingmeta.com
+
+   Enjoy!
+
+*/
+
+@charset "UTF-8";
+
+@font-face {
+    font-family: 'Open Dyslexic';
+    src: url('open_dyslexic/OpenDyslexic-Regular.otf');
+    font-weight: normal;
+    font-style: normal;}
+@font-face {
+    font-family: 'Open Dyslexic';
+    src: url('open_dyslexic/OpenDyslexic-Bold.otf');
+    font-weight: 700;
+    font-style: normal;}
+@font-face {
+    font-family: 'Open Dyslexic';
+    src: url('open_dyslexic/OpenDyslexic-Italic.otf');
+    font-weight: normal;
+    font-style: italic;}
+@font-face {
+    font-family: 'Open Dyslexic';
+    src: url('open_dyslexic/OpenDyslexic-BoldItalic.otf');
+    font-weight: 700;
+    font-style: italic;}
+@font-face {
+    font-family: 'Open DyslexicFixed';
+    src: url('open_dyslexic/OpenDyslexicMono-Regular.otf');
+    font-weight: normal;
+    font-style: normal;}
+
+/* Emacs local variables
+;;;  Local variables: ***
+;;;  compile-command: "cd ../..; make" ***
+;;;  indent-tabs-mode: nil ***
+;;;  End: ***
+*/
+
+
