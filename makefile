@@ -408,15 +408,15 @@ status:
 	cd metabook; git status -uno
 	cd showsomeclass; git status -uno
 	cd g; svn status -q
-pull: fdjt codex knodules g pagedown showsomeclass bibliotype
+pull: fdjt codex knodules g showsomeclass bibliotype
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd codex; git pull
 	cd metabook; git pull
 	cd showsomeclass; git pull
-	cd bibliotype; git pull
-	cd pagedown; hg update
+	if test -d bibliotype; then cd bibliotype; git pull; fi;
+	if test -d pagedown; then cd pagedown; hg update; fi;
 	cd webfontloader; git pull
 	cd g; svn update
 update: fdjt metabook codex knodules g pagedown \
