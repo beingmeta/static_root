@@ -419,8 +419,8 @@ pull: fdjt codex knodules g showsomeclass bibliotype
 	if test -d pagedown; then cd pagedown; hg update; fi;
 	cd webfontloader; git pull
 	cd g; svn update
-update: fdjt metabook codex knodules g pagedown \
-	showsomeclass bibliotype webfontloader
+update: fdjt metabook codex knodules g \
+	showsomeclass webfontloader
 	make pull
 update-code: fdjt codex knodules
 	git pull
