@@ -8,7 +8,8 @@ sizzle:
 	git clone git@github.com:beingmeta/sizzle sizzle
 aloha:
 	git clone git@github.com:beingmeta/Aloha-Editor aloha
-
+iscroll:
+	git clone https://github.com/beingmeta/iscroll.git iscroll
 update:
 	cd markdown; git pull
 	cd xmarkdown; git pull
