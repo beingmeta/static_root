@@ -273,14 +273,14 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 sbooks/tieoff.js:
 	@touch sbooks/tieoff.js
 sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
-	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js etc/sha1
+	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
 	@echo Rebuilding sbooks/codex.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
 		codex/buildstamp.js knodules/buildstamp.js \
 		sbooks/buildstamp.js > $@
-	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
-		>> $@
+	@if test -x etc/sha1; then echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@; fi
 sbooks/codex.css: $(CODEX_CSS_BUNDLE)
 	@echo Rebuilding sbooks/codex.css
 	@cat $(CODEX_CSS_BUNDLE) > $@
@@ -294,14 +294,14 @@ sbooks/codex.css.gz: sbooks/codex.css
 	gzip -c sbooks/codex.css > $@
 
 sbooks/metabook.js: fdjt/fdjt.js sbooks/metabookstamp.js $(METABOOK_JS_BUNDLE) \
-	metabook/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js etc/sha1
+	metabook/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
 	@echo Rebuilding sbooks/metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) sbooks/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js \
 		sbooks/metabookstamp.js > $@
-	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
-		>> $@
+	@if test -x etc/sha1; then echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@; fi
 sbooks/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding sbooks/metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
