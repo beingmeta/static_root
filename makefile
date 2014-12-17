@@ -154,13 +154,11 @@ metabook/html/%.js: metabook/html/%.html makefile
 all: allcode alltags allhints index.html
 allcode: fdjt knodules codex metabook webfontloader \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
-	sbooks/codex.js sbooks/codex.css \
-	sbooks/codex.js.gz sbooks/codex.css.gz \
-	sbooks/codex.min.js.gz \
-	sbooks/metabook.js sbooks/metabook.css \
-	sbooks/metabook.js.gz sbooks/metabook.css.gz \
-	sbooks/metabook.min.js.gz \
+	dist/metabook.js dist/metabook.css \
+	dist/metabook.js.gz dist/metabook.css.gz \
+	dist/metabook.js dist/metabook.min.js.gz \
 	fdjt/fdjt.min.js fdjt/fdjt.min.js.gz fdjt/fdjt.css.gz \
+	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz \
 	sbooks/sbookstyles.css
 
 allhints: fdjt/fdjt.hints codex/codex.hints metabook/metabook.hints \
@@ -236,6 +234,7 @@ clean:
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f sbooks/codex.js sbooks/codex.css
 	rm -f sbooks/metabook.js sbooks/metabook.css
+	rm -f dist/metabook.* dist/metabook.*
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
@@ -244,23 +243,13 @@ fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 fdjt/codexlayouthash.js: fdjt/codexlayout.js fdjt/codexlayout.css
 	cd fdjt; make all
 
-sbooks/buildstamp.js: $(CODEX_JS_BUNDLE) $(CODEX_CSS_BUNDLE)
-	@$(ECHO) "// sBooks Codex build information" > $@
-	@$(ECHO) "Codex.buildhost='${BUILDHOST}';" >> $@
-	@$(ECHO) "Codex.buildtime='${BUILDTIME}';" >> $@
-	@$(ECHO) "Codex.buildid='${BUILDUUID}';" >> $@
-	@$(ECHO) >> $@
-	@echo "Created $@"
-sbooks/metabookstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
+dist/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
 	@$(ECHO) "// sBooks metaBook build information" > $@
 	@$(ECHO) "metaBook.buildhost='${BUILDHOST}';" >> $@
 	@$(ECHO) "metaBook.buildtime='${BUILDTIME}';" >> $@
 	@$(ECHO) "metaBook.buildid='${BUILDUUID}';" >> $@
 	@$(ECHO) >> $@
 	@echo "Created $@"
-codex/buildstamp.js: $(CODEX_FILES) $(CODEX_CSS_BUNDLE) $(CODEX_HTML)
-	@cd codex; echo "Codex.version='"`git describe`"';" > buildstamp.js
-	@echo "Created codex/buildstamp.js"
 metabook/buildstamp.js: $(METABOOK_FILES) $(METABOOK_CSS_BUNDLE) \
 			$(METABOOK_HTML)
 	@cd metabook; echo "metaBook.version='"`git describe`"';" > \
@@ -270,61 +259,39 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	@cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 	@echo "Created knodules/buildstamp.js"
 
-sbooks/tieoff.js:
-	@touch sbooks/tieoff.js
-sbooks/codex.js: fdjt/fdjt.js sbooks/buildstamp.js $(CODEX_JS_BUNDLE) \
-	codex/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
-	@echo Rebuilding sbooks/codex.js
+dist/tieoff.js:
+	@touch dist/tieoff.js
+dist/metabook.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
+	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
+	@echo Rebuilding dist/metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
-		$(CODEX_JS_BUNDLE) sbooks/tieoff.js \
-		codex/buildstamp.js knodules/buildstamp.js \
-		sbooks/buildstamp.js > $@
-	@if test -x etc/sha1; then echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
-		>> $@; fi
-sbooks/codex.css: $(CODEX_CSS_BUNDLE)
-	@echo Rebuilding sbooks/codex.css
-	@cat $(CODEX_CSS_BUNDLE) > $@
-sbooks/codex.min.js: sbooks/codex.js jsmin/jsmin
-	jsmin/jsmin < sbooks/codex.js > sbooks/codex.min.js
-sbooks/codex.min.js.gz: sbooks/codex.min.js
-	gzip sbooks/codex.min.js -c > sbooks/codex.min.js.gz
-sbooks/codex.js.gz: sbooks/codex.js
-	gzip -c sbooks/codex.js > $@
-sbooks/codex.css.gz: sbooks/codex.css
-	gzip -c sbooks/codex.css > $@
-
-sbooks/metabook.js: fdjt/fdjt.js sbooks/metabookstamp.js $(METABOOK_JS_BUNDLE) \
-	metabook/buildstamp.js knodules/buildstamp.js sbooks/tieoff.js
-	@echo Rebuilding sbooks/metabook.js
-	@cat sbooks/amalgam.js fdjt/buildstamp.js \
-		$(METABOOK_JS_BUNDLE) sbooks/tieoff.js \
+		$(METABOOK_JS_BUNDLE) dist/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js \
-		sbooks/metabookstamp.js > $@
-	@if test -x etc/sha1; then echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
-		>> $@; fi
-sbooks/metabook.css: $(METABOOK_CSS_BUNDLE)
-	@echo Rebuilding sbooks/metabook.css
+		dist/buildstamp.js > $@
+	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@
+dist/metabook.css: $(METABOOK_CSS_BUNDLE)
+	@echo Rebuilding dist/metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
-sbooks/metabook.min.js: sbooks/metabook.js jsmin/jsmin
-	jsmin/jsmin < sbooks/metabook.js > sbooks/metabook.min.js
-sbooks/metabook.min.js.gz: sbooks/metabook.min.js
-	gzip sbooks/metabook.min.js -c > sbooks/metabook.min.js.gz
-sbooks/metabook.js.gz: sbooks/metabook.js
-	gzip -c sbooks/metabook.js > $@
-sbooks/metabook.css.gz: sbooks/metabook.css
-	gzip -c sbooks/metabook.css > $@
+dist/metabook.min.js: dist/metabook.js jsmin/jsmin
+	jsmin/jsmin < dist/metabook.js > dist/metabook.min.js
+dist/metabook.min.js.gz: dist/metabook.min.js
+	gzip dist/metabook.min.js -c > dist/metabook.min.js.gz
+dist/metabook.js.gz: dist/metabook.js
+	gzip -c dist/metabook.js > $@
+dist/metabook.css.gz: dist/metabook.css
+	gzip -c dist/metabook.css > $@
 
-fdjt/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
-	jsmin/jsmin < fdjt/fdjt.js > fdjt/fdjt.min.js
-fdjt/fdjt.min.js.gz: fdjt/fdjt.min.js
-	gzip fdjt/fdjt.min.js -c > fdjt/fdjt.min.js.gz
-fdjt/fdjt.css.gz: fdjt/fdjt.css
+fdjt/fdjt.min.js dist/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
+	jsmin/jsmin < fdjt/fdjt.js > $@
+fdjt/fdjt.min.js.gz dist/fdjt.min.js.gz: fdjt/fdjt.min.js
+	gzip fdjt/fdjt.min.js -c > $@
+fdjt/fdjt.css.gz dist/fdjt.css.gz: fdjt/fdjt.css
 	gzip -c fdjt/fdjt.css > $@
 
 # Generating the HTML
 
-index.html: etc/index_head.html etc/index_foot.html \
-	sbooks/codex.js sbooks/codex.css sbooks/metabook.css
+index.html: etc/index_head.html etc/index_foot.html dist/metabook.css
 	@cat etc/index_head.html > index.html
 	@echo "<p>Build host: " `hostname` "</p>" >> index.html
 	@echo "<p>Build date: " `date` "</p>" >> index.html
