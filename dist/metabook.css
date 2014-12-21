@@ -2864,14 +2864,14 @@ body.mbMEDIA #METABOOKMEDIACONTROLS {
     position: absolute;
     top: 4px; top: 1vmax; right: 4px; right: 1vmax;
     width: 50px; width: 10vmax; height: 50px; height: 10vmax; 
-    z-index: 100; opacity: 0.5;
+    z-index: 100; opacity: 0.8;
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/redx.svgz);}
 #METABOOKMEDIAHELP {
     position: absolute;
     bottom: 4px; bottom: 1vmax; left: 4px; left: 1vmax;
     width: 50px; width: 10vmax; height: 50px; height: 10vmax; 
-    z-index: 100; opacity: 0.5;
+    z-index: 100; opacity: 0.8;
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/help.svgz);}
 body.mbSHOWHELP #METABOOKMEDIAHELP {
@@ -3823,7 +3823,8 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
 #METABOOKHEAD {
     position: absolute; left: 60px; right: 60px; z-index: 80;
     max-height: 60px; padding: 0px;
-    background-color: transparent; border: solid transparent 0px;}
+    background-color: transparent; 
+    border: solid transparent 0px;}
 #METABOOKTOPBAR, #METABOOKFOOT {
     position: absolute; left: 0px; right: 0px; height: 50px; z-index: 100;
     text-align: center; padding: 0px; max-height: 50px;}
@@ -3855,7 +3856,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     padding-bottom: 2px; padding-top: 1px;
     border-width: 2px;}
 body.hudup #METABOOKHUD.openheart #METABOOKHEAD {
-    max-height: 60px; overflow: hidden;}
+    max-height: 60px;}
 body._FULLHEIGHT.hudup #METABOOKHEAD {
     background-color: transparent;}
 body.hudup #METABOOKHEAD .hudpanel {
@@ -3944,15 +3945,12 @@ body._ANIMATE #METABOOKSKIMMER.transanimate {
     opacity: 0.0; max-height: 0px;
     display: block;}
 #METABOOKHUD.openhead #METABOOKHEAD {
-    max-height: inherit; opacity: 1.0;
-    left: 60px; right: 60px; width: auto;}
+    max-height: inherit; opacity: 1.0; 
+    left: 60px; right: 60px; width: auto;
+    background-color: ivory;}
 body.hudup #METABOOKHEAD {display: block;}
 #METABOOKHUD.openhead #METABOOKHEAD {
-    border-color: transparent;
-    height: auto;}
-body.hudup #METABOOKHUD.openhead #METABOOKHEAD {
-    border-color: rgba(0, 0, 255, 0.52);
-    background-color: rgba(255, 255, 240, 0.52);}
+    border-color: blue; height: auto;}
 body.hudup #METABOOKHUD.openhead.overtoc #METABOOKHEAD {
     border-color: transparent;}
 
@@ -4070,13 +4068,13 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.glossaddtag #METABOOKRIBBON,
 #METABOOKHUD.glossaddoutlet #METABOOKRIBBON {
     border-bottom: solid blue 2px;
-    height: 35px;}
+    height: 48px;}
 #METABOOKHUD.refinesearch #METABOOKHEARTBODY,
 #METABOOKHUD.expandsearch #METABOOKHEARTBODY,
 #METABOOKHUD.searchresults #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddoutlet #METABOOKHEARTBODY {
-    top: 37px; margin-top: 0px;
+    top: 50px; margin-top: 0px;
     border-radius: 0px;}
 
 #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY,
@@ -6884,6 +6882,9 @@ div.completions.noinput .cloudtoggle {
     -o-border-radius: 12px; -webkit-border-radius: 12px; 
     -moz-border-radius: 12px;
     cursor: pointer;}
+.cloud .showall { display: none; }
+.cloud.noinput .showall { display: block; }
+
 ._MOUSE .cloud .showall:hover,
 .cloud .showall.tapholdtarget {
     border-color: blue;}
@@ -6956,7 +6957,8 @@ div.completions.noinput .cloudtoggle {
     color: rbga(0,0,0,0.8); font-weight: bold;}
 
 .cloud .nomatchmsg {
-    text-align: center; font-size: 200%; font-weight: bold;
+    text-align: center; font-size: 36px; font-size: 3rem; 
+    font-weight: bold;
     margin-top: 1em;}
 
 /* Special rules */
@@ -7345,7 +7347,9 @@ div.resultinfo .stats > span {
     padding-left: 1ex; padding-right: 1ex;
     border-bottom-left-radius: 0.5ex;
     border-bottom-right-radius: 0.5ex;
-    border: outset black 2px; border-top: 0px;}
+    border: outset black 2px; border-top: 0px;
+    padding-top: 2px; padding-bottom: 4px;
+    line-height: 0.9;}
 div.resultinfo .stats > span > br { display: none; }
 
 div.resultinfo .noresults { display: none;}
@@ -7370,7 +7374,7 @@ div.resultinfo.noresults span { display: none;}
 #METABOOKHUD div.resultinfo span.stats {
     -webkit-flex-grow: 0; -moz-flex-grow: 0; -ms-flexbox-grow: 0;
     flex-grow: 0;
-    font-size: 2vw;}
+    font-size: 2vmin;}
 #METABOOKHUD div.resultinfo span.qtags {
     display: -webkit-flex; display: -ms-flexbox;
     display: -moz-flex; display: flex;
@@ -7409,7 +7413,7 @@ body._ANIMATE .qtags {
         font-size: 250%;}}
 
 @media screen and (min-width: 1000px) {
-    #METABOOKHUD div.resultinfo span.stats { font-size: 1.5vw; }}
+    #METABOOKHUD div.resultinfo span.stats { font-size: 2vmin; }}
 
 @media screen and (max-width: 640px) {
     div.searchbox div.query { font-size: 12px; }
@@ -7417,7 +7421,7 @@ body._ANIMATE .qtags {
         width: 10%; height: auto;}
     div.searchbox div.query div.input {
         width: auto; margin-right: 10%;}
-    #METABOOKHUD div.resultinfo span.stats { font-size: 2.5vw; }}
+    #METABOOKHUD div.resultinfo span.stats { font-size: 2vmin; }}
     div.resultinfo .stats > span > br { display: initial; }}
 
 @media screen and (max-width: 500px) {
@@ -7441,29 +7445,29 @@ div.metabookglossformbody { position: relative; }
 
 #METABOOKADDGLOSS div.metabookglossform {
     box-sizing: border-box;
-    border: solid green 2px; border-top: 0px;}
+    border-top: 0px;}
+/*
 #METABOOKADDGLOSS div.metabookglossform.private {
     border-color: red;}
 #METABOOKADDGLOSS div.metabookglossform.modified {
     border-style: dotted;}
 body.hudup #METABOOKADDGLOSS div.metabookglossform {
     border-color: transparent;}
-
-#METABOOKADDGLOSS div.metabookglossform.focused {
-    background-color: ivory;}
-
+*/
 div.metabookglossform form div.textbox,
 div.metabookglossform form div.glossetc {
     max-height: 90%;
     clear: left; text-align: left;
     margin-left: 0.5em; margin-right: 60px;
-    box-sizing: border-box;}
+    padding-right: 3px; padding-top: 3px;
+    box-sizing: border-box; -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;}
 div.metabookglossform.focused form div.textbox,
 div.metabookglossform.focused form div.glossetc {
     max-height: inherit;}
 div.metabookglossform form div.textbox { margin-top: 2px;}
 div.metabookglossform form div.glossetc {
-    overflow: hidden;}
+    font-size: 0.6em; overflow: hidden;}
 div.metabookglossform form div.textbox textarea,
 div.metabookglossform form div.textbox input[type="TEXT"] {
     min-height: 1.5em; max-height: 3em; padding: 2px;}
@@ -7486,9 +7490,6 @@ body div.metabookglossform.focused form div.glossetc {
     -webkit-border-top-right-radius: 0px; 
     -moz-border-radius-topright: 0px;
     -o-border-radius-topright: 0px;}
-#METABOOKADDGLOSS div.metabookglossform {
-    background-color: ivory;
-    padding-bottom: 0.5ex;}
 
 div.metabookglossform { display: none;}
 div.metabookglossform#METABOOKADDGLOSSPROTOTYPE { display: none;}
@@ -7609,15 +7610,15 @@ div.metabookglossform div.textbox input[name='OUTLET'] {
 body._NOSVG div.metabookglossform div.textbox input[name='OUTLET'] {
     background-image: url(g/metabook/sbookspeople24x24.png);}
 
-div.metabookglossform form .glossetc .glossdate {
-    padding: 0px; padding-bottom: 1ex; padding-left: 1ex;
-    float: right;
-    display: none;}
 div.metabookglossform .glossetc .glossdate {
-    font-size: 80%; font-variant: small-caps; color: purple;}
+    font-size: 1.1em; font-variant: small-caps; color: purple;
+    padding: 0px; padding-left: 1ex; float: right;
+    display: none;}
+div.metabookglossform.focused form .glossetc .glossdate {
+    padding-bottom: 1ex;}
 
-div.metabookglossform form .glossexposure {
-    float: right; font-size: 1.5ex;}
+div.metabookglossform .glossetc .glossexposure {
+    font-size: 1.1em; float: right;}
 
 div.metabookglossform form .glossexposure .checkspan {
     float: right; margin-right: 1ex; margin-top: 2px;
@@ -7651,7 +7652,7 @@ div.metabookglossform .checkspan.postgloss img {
     vertical-align: top;}
 
 div.metabookglossform.glossedit form .glossetc .glossdate {
-    display: inline-block; margin-right: 1ex;}
+    display: inline-block;}
 
 div.metabookglossform form div.glossetc .twisty { display: none;}
 div.metabookglossform form div.glossetc.overflow .twisty { display: none;}

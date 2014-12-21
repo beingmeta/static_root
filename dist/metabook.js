@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1229-gb5c5ffd';
+var fdjt_revision='1.5-1231-ge222d80';
 var fdjt_buildhost='Shiny';
-var fdjt_buildtime='Mon Dec 15 12:54:50 PST 2014';
-var fdjt_builduuid='B72CEE29-A091-45D9-A133-29F392266D78';
+var fdjt_buildtime='Sat Dec 20 10:33:00 PST 2014';
+var fdjt_builduuid='519C438F-7382-418E-BDA1-B4E69C9A4395';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -17232,6 +17232,23 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
     Knodule.Knode2HTML=KNode2HTML;
     Knodule.knode2HTML=KNode2HTML;
 
+    /* Adding Kodes to datalists */
+    function knodeToOption(arg){
+        var option;
+        if (typeof arg === "string") {
+            option=fdjtDOM("OPTION",arg);
+            option.setAttribute("value",arg);
+            return option;}
+        var dterm=arg.dterm;
+        var valstring=((typeof arg === "string")&&(arg))||(arg._qid)||
+            ((arg.getQID)&&(arg.getQID()))||(arg.toString());
+        var options=document.createDocumentFragment();
+        option=fdjtDOM("option",dterm);
+        option.setAttribute("value",valstring);
+        options.appendChild(option);
+        return options;}
+    Knodule.knodeToOption=knodeToOption;
+
     /* Getting Knodules out of HTML */
 
     function knoduleLoad(elt,knodule){
@@ -22701,6 +22718,11 @@ var metaBook={
         var refuri=(metaBook.refuri||document.location.href);
         if (refuri.indexOf('#')>0) refuri=refuri.slice(0,refuri.indexOf('#'));
 
+        var taglist=metaBook.taglist||fdjt.ID("METABOOKTAGLIST");
+        if (!(taglist)) {
+            taglist=metaBook.taglist=fdjt.DOM("datalist#METABOOKTAGLIST");
+            document.body.appendChild(taglist);}
+        
         metaBook.docdb=new RefDB(
             refuri+"#",{indices: ["frag","head","heads",
                                   "tags","tags*",
@@ -22710,6 +22732,8 @@ var metaBook={
                                   "^tags","~^tags","*^tags","**^tags",
                                   "^tags*","~^tags*","*^tags*","**^tags*"]});
         
+        var knodeToOption=Knodule.knodeToOption;
+
         var knodule_name=
             fdjtDOM.getMeta("SBOOKS.knodule")||
             fdjtDOM.getMeta("~KNODULE")||
@@ -22767,7 +22791,8 @@ var metaBook={
                         entry=addTag2Cloud(each_tag,empty_cloud);
                         if ((make_cue)&&(entry)) addClass(entry,"cue");
                         entry=addTag2Cloud(each_tag,metaBook.gloss_cloud);
-                        if ((make_cue)&&(entry)) addClass(entry,"cue");}
+                        if ((make_cue)&&(entry)) addClass(entry,"cue");
+                        taglist.appendChild(knodeToOption(each_tag));}
                     var tag_slots=["tags","*tags","**tags"];
                     var s=0, n_slots=tag_slots.length; while (s<n_slots) {
                         var tagslot=tag_slots[s++], tags=item[tagslot];
@@ -23611,7 +23636,10 @@ var metaBook={
         if (Trace.state)
             fdjtLog("Pushing history %j %s (%s) '%s'",
                     state,href,title);
-        window.history.pushState(state,title,href+"#"+hash);
+        if ((!(window.history.state))||
+            (window.history.state.target!==state.target)||
+            (window.history.state.location!==state.location)) {
+            window.history.pushState(state,title,href+"#"+hash);}
     }
 
     function restoreState(state,reason,savehist){
@@ -24222,6 +24250,7 @@ metaBook.Startup=
         var getChildren=fdjtDOM.getChildren;
         var getGeometry=fdjtDOM.getGeometry;
         var hasContent=fdjtDOM.hasContent;
+        var isEmpty=fdjtString.isEmpty;
 
         function hasAnyContent(n){return hasContent(n,true);}
 
@@ -24406,7 +24435,7 @@ metaBook.Startup=
             // if (changed) fdjtDOM.addClass("METABOOKSETTINGS","changed");
             
             var devicename=current_config.devicename;
-            if ((devicename)&&(!(fdjtString.isEmpty(devicename))))
+            if ((devicename)&&(!(isEmpty(devicename))))
                 metaBook.deviceName=devicename;
             if (Trace.startup>1)
                 fdjtLog("initConfig took %dms",fdjtTime()-started);}
@@ -24440,7 +24469,7 @@ metaBook.Startup=
                 document.getElementsByName("METABOOKKEYBOARDHELP"),
                 value);});
         metaBook.addConfig("devicename",function(name,value){
-            if (fdjtString.isEmpty(value)) metaBook.deviceName=false;
+            if (isEmpty(value)) metaBook.deviceName=false;
             else metaBook.deviceName=value;});
 
         metaBook.addConfig("holdmsecs",function(name,value){
@@ -25866,7 +25895,7 @@ metaBook.Startup=
                     var aclass=a.className, extclass="extref";
                     if (href.search(wikiref_pat)===0) {
                         var text=fdjt.DOM.textify(a);
-                        if (!(fdjtString.isEmpty(text))) {
+                        if (!(isEmpty(text))) {
                             if (!(a.title)) a.title="From Wikipedia";
                             else if (a.title.search(/wikipedia/i)>=0) {}
                             else a.title="Wikipedia: "+a.title;
@@ -26692,6 +26721,12 @@ metaBook.Startup=
             var addTag2Cloud=metaBook.addTag2Cloud;
             var empty_cloud=metaBook.empty_cloud;
             var gloss_cloud=metaBook.gloss_cloud;
+            var taglist=metaBook.taglist||fdjt.ID("METABOOKTAGLIST");
+            if (!(taglist)) {
+                taglist=metaBook.taglist=fdjt.DOM("datalist#METABOOKTAGLIST");
+                document.body.appendChild(taglist);}
+            var knodeToOption=Knodule.knodeToOption;
+
             cloud_setup_start=fdjtTime();
             metaBook.empty_query.results=
                 [].concat(metaBook.glossdb.allrefs).concat(metaBook.docdb.allrefs);
@@ -26710,11 +26745,16 @@ metaBook.Startup=
                     fdjtDOM("div.cloudprogress","Cloud Shaping in Progress"));
             addClass(gloss_cloud.dom,"working");
             fdjtTime.slowmap(function(tag){
-                if (!(tag instanceof KNode)) return;
+                if (!(tag instanceof KNode)) {
+                    if ((typeof tag === "string")&&(!(isEmpty(tag)))) {
+                        var option=fdjtDOM("OPTION",tag); option.value=tag;
+                        taglist.appendChild(option);}
+                    return;}
                 var elt=addTag2Cloud(tag,empty_cloud,metaBook.knodule,
                                      metaBook.tagweights,tagfreqs,false);
                 // Ignore section name tags
                 if (tag._id[0]==="\u00a7") return;
+                taglist.appendChild(knodeToOption(tag));
                 var freq=tagfreqs.get(tag);
                 if ((tag.prime)||((freq>4)&&(freq<(max_freq/2)))||
                     (tag._db!==metaBook.knodule)) {
@@ -28029,9 +28069,7 @@ metaBook.setMode=
                     // addgloss has submodes which may specify the
                     //  open heart configuration
                     addClass(metaBookHUD,"openhead");
-                    if (metaBookHUD.className.search(metabookHeartModes)<0)
-                        dropClass(metaBookHUD,"openheart");
-                    else addClass(metaBookHUD,"openheart");}
+                    dropClass(metaBookHUD,"openheart");}
                 else {
                     if (mode.search(metabookHeartModes)<0) {
                         dropClass(metaBookHUD,"openheart");}
@@ -28514,17 +28552,23 @@ metaBook.setMode=
 
         function showMedia(node){
             var media=fdjt.ID("METABOOKMEDIA");
+            if (metaBook.zoomed===node) {
+                addClass(document.body,"mbMEDIA");
+                return;}
+            else metaBook.zoomed=node;
             var copy=node.cloneNode();
             fdjtDOM.stripIDs(copy);
             copy.setAttribute("style","");
+            if (metaBook.mediascroll) 
+                metaBook.mediascroll.destroy();
             media.innerHTML="";
             media.appendChild(copy);
             addClass(document.body,"mbMEDIA");
-            if (metaBook.mediascroll) metaBook.mediascroll.destroy();
             metaBook.mediascroll=
                 new IScroll(media,{zoom: true,
                                    scrollX: true,
                                    scrollY: true,
+                                   freeScroll: true,
                                    keyBindings: true,
                                    mouseWheel: true,
                                    scrollbars: true,
@@ -37989,11 +38033,11 @@ metaBook.HTML.pageright=
     "    */\n"+
     "  -->\n"+
     "";
-metaBook.version='v0.5-2306-gbc3aaeb';
-Knodule.version='v0.8-138-g4bd4c1a';
+metaBook.version='v0.5-2315-gf3417f8';
+Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Tue Dec 16 16:21:07 PST 2014';
-metaBook.buildid='3D8A8BAB-4BE4-4A24-ACF1-1606AED58A5B';
+metaBook.buildtime='Sat Dec 20 14:43:56 PST 2014';
+metaBook.buildid='253EFB7A-E4EA-4803-A7F5-A67255E39393';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';
