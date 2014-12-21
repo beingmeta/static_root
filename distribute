@@ -17,7 +17,7 @@
    "fonts/Liberation/Sans" "fonts/Liberation/Serif" "fonts/Liberation/Mono"
    "fonts/OmnibusType/Archivo_Black" "fonts/OmnibusType/Archivo_Narrow"
    "fonts/OmnibusType/Rosario" "fonts/OmnibusType/Unna"
-   "fonts/open_dyslexic/" "fonts/opensans/"})
+   "fonts/open_dyslexic/" "fonts/open_sans/"})
 
 (define dist-targets-file (get-component "dist-targets"))
 (define dist-targets
@@ -126,20 +126,6 @@
   (distribute-web "fdjt/")
   (distribute-web "showsomeclass/")
   (distribute-web "fonts/")
-  (let ((js (filedata "dist/codex.min.js.gz"))
-	(css (filedata "dist/codex.css.gz")))
-    (s3/put (s3/mkpath root "codexapp.js") js "text/javascript" gzheaders #t)
-    (message "Updated "
-	     (do-choices (p (s3/mkpath root "codexapp.js"))
-	       (printout "\n\t" (gpath->string p))))
-    (s3/put (s3/mkpath root "codexapp.css") css "text/css" gzheaders #t)
-    (message "Updated "
-	     (do-choices (p (s3/mkpath root "codexapp.css"))
-	       (printout "\n\t" (gpath->string p))))
-    (dolist (r dist-targets)
-      (do-choices (path (choice apps.js apps.css))
-	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
-	(message "Updated " (gpath->string (s3/mkpath r path))))))
   (let ((js (filedata "dist/metabook.min.js.gz"))
 	(css (filedata "dist/metabook.css.gz")))
     (s3/put (s3/mkpath root "metabook.js") js "text/javascript" gzheaders #t)
