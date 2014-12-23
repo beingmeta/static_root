@@ -38037,7 +38037,7 @@ metaBook.version='v0.5-2321-g5af2ed2';
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Mon Dec 22 17:53:19 PST 2014';
-metaBook.buildid='5E3B8BE4-C65E-4A27-A947-B29E243EF863';
+metaBook.buildtime='Mon Dec 22 18:03:35 PST 2014';
+metaBook.buildid='65789034-34F6-45BC-9FFE-30D8525FA938';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';
