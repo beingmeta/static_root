@@ -27,9 +27,9 @@
 
 // FDJT build information
 var fdjt_revision='1.5-1231-ge222d80';
-var fdjt_buildhost='Shiny';
-var fdjt_buildtime='Sat Dec 20 10:33:00 PST 2014';
-var fdjt_builduuid='519C438F-7382-418E-BDA1-B4E69C9A4395';
+var fdjt_buildhost='worker0.sbooks.net';
+var fdjt_buildtime='Mon Dec 15 23:14:49 UTC 2014';
+var fdjt_builduuid='58cfe7ef-6e90-4827-a2cd-db025ede5bce';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -38034,10 +38034,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 metaBook.version='v0.5-2321-g5af2ed2';
-Knodule.version='v0.8-139-g821141a';
+Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
-metaBook.buildhost='Shiny';
-metaBook.buildtime='Mon Dec 22 18:03:35 PST 2014';
-metaBook.buildid='65789034-34F6-45BC-9FFE-30D8525FA938';
+metaBook.buildhost='worker0.sbooks.net';
+metaBook.buildtime='Tue Dec 23 02:17:36 UTC 2014';
+metaBook.buildid='33111b42-c050-48fd-8739-ff72b6d1a74e';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';
