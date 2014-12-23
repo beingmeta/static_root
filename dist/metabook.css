@@ -2441,10 +2441,10 @@ body._MOUSE #METABOOKBODY a[rel='footnote']:hover,
 body._MOUSE #METABOOKBODY a[rel='endnote']:hover {
     text-decoration: overline;}
 
-a[href] { color: blue; text-decoration: none;}
-a.extef[href], a.sbextef[href] {
-    color: blue; text-decoration: underline;}
+a[href] { color: blue; background-color: transparent; text-decoration: none;}
 body._MOUSE a[href]:hover {text-decoration: underline;}
+#METABOOKBODY a.extref[href], #METABOOKBODY a.sbextref[href] {
+    color: blue; text-decoration: underline;}
 
 body._MOUSE a[href].extref:hover, body._MOUSE a[href].sbextref:hover,
 a[href].extref.tapholding, body._MOUSE a[href].sbextref.tapholding,
@@ -2776,6 +2776,10 @@ body {
 #METABOOKFRAME > div, #METABOOKFRAME > div > div, #METABOOKFRAME > div > a {
     box-sizing: border-box; -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box; -o-box-sizing: border-box;}
+#METABOOKFRAME a { 
+    background-color: transparent; text-decoration: none;}
+#METABOOKCOVER a { color: lightblue; }
+
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.mbSKIMMING #METABOOKFRAME, body.openhud #METABOOKFRAME,
 body.hudup #METABOOKHUD, body.mbSKIMMING #METABOOKHUD,
@@ -3385,8 +3389,12 @@ div.loginbox form > span, div.loginbox form > select {
 #METABOOKCOVER > div.userbox {
     background-color: black; color: gold;
     text-align: center;}
-#METABOOKCOVER div.userbox a, #METABOOKCOVER div.userbox a:visited {
-    color: silver;}
+#METABOOKCOVER div.userbox a:link,
+#METABOOKCOVER div.userbox a:active,
+#METABOOKCOVER div.userbox a:hover,
+#METABOOKCOVER div.userbox a:visited,
+#METABOOKCOVER div.userbox a {
+    color: silver; background-color: transparent;}
 #METABOOKCOVER div.userbox a.sbookslogo em { color: cornflowerblue; }
 #METABOOKCOVER div.userbox span.sbooks em { color: silver;}
 #METABOOKCOVER div.userbox a.sbooks em { color: steelblue;}
@@ -3733,7 +3741,6 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     height: 1ex; background-color: gold;}
 
 /* Media specific rules */
-
 
 @media screen and (max-width: 750px) {
     body._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1.3em; }}
@@ -5690,7 +5697,7 @@ body._NOSVG a[href].wikiref, body._NOSVG a[href].sbwikiref {
 /* Custom media rules */
 
 @media screen and (min-width: 500px) and (max-width: 700px) {
-    #CODEXPAGE {left: 25px; right: 25px;}}
+    #CODEXPAGE {top: 25px; left: 25px; right: 25px;}}
 @media screen and (min-width: 350px) and (max-width: 500px) {
     #CODEXPAGE {top: 25px; left: 10px; right: 10px;}}
 @media screen and (max-width: 350px) {
