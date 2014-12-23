@@ -236,6 +236,11 @@ clean:
 	rm -f sbooks/metabook.js sbooks/metabook.css
 	rm -f dist/metabook.* dist/metabook.*
 
+undist:
+	git checkout dist/metabook.css dist/metabook.css.gz \
+		dist/metabook.js dist/metabook.min.js \
+		dist/metabook.js.gz dist/metabook.min.js.gz
+
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
 fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
