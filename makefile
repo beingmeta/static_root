@@ -151,17 +151,15 @@ metabook/html/%.js: metabook/html/%.html makefile
 
 .SUFFIXES: .js .css
 
-default:
-	@echo "make all" to build everything, "make update" to update
 all: allcode alltags allhints index.html
 allcode: fdjt knodules codex metabook webfontloader \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
-	dist/metabook.js dist/metabook.css \
+	metabook.js metabook.css
+
+dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
 	dist/metabook.js dist/metabook.min.js.gz \
-	fdjt/fdjt.min.js fdjt/fdjt.min.js.gz fdjt/fdjt.css.gz \
 	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz \
-	sbooks/sbookstyles.css
 
 allhints: fdjt/fdjt.hints codex/codex.hints metabook/metabook.hints \
 	knodules/knodules.hints showsomeclass/hints
@@ -267,8 +265,22 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	@cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 	@echo "Created knodules/buildstamp.js"
 
-dist/tieoff.js:
-	@touch dist/tieoff.js
+
+metabook.css: $(METABOOK_CSS_BUNDLE)
+	@echo Rebuilding metabook.css
+	@cat $(METABOOK_CSS_BUNDLE) > $@
+metabook.js: $(METABOOK_JS_BUNDLE) fdjt/buildstamp.js knodules/buildstamp.js \
+	metabook/tieoff.js etc/sha1
+	@echo Rebuilding metabook.js
+	@cat sbooks/amalgam.js fdjt/buildstamp.js \
+		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+		metabook/buildstamp.js knodules/buildstamp.js > $@
+	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@
+
+metabook/tieoff.js dist/tieoff.js:
+	@touch $@
+
 dist/metabook.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
 	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
 	@echo Rebuilding dist/metabook.js
