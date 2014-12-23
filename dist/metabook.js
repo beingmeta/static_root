@@ -38033,11 +38033,11 @@ metaBook.HTML.pageright=
     "    */\n"+
     "  -->\n"+
     "";
-metaBook.version='v0.5-2319-gc5119a4';
+metaBook.version='v0.5-2321-g5af2ed2';
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Mon Dec 22 16:46:47 PST 2014';
-metaBook.buildid='EC32BEDF-9E5E-4230-A6AC-7587A83E5FD8';
+metaBook.buildtime='Mon Dec 22 17:53:19 PST 2014';
+metaBook.buildid='5E3B8BE4-C65E-4A27-A947-B29E243EF863';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';

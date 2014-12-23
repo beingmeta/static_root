@@ -5586,7 +5586,7 @@ p { line-height: 1.2;}
 .sbooktitlepage .title .translation,
 .sbooktitlepage .title .originaltitle {
     font-size: 50%; font-weight: normal;
-    margin-top: 1.5em; margin-bottom: 0px;}
+    margin-top: 1ex; margin-bottom: 0px;}
 
 .sbooktitlepage .credits, .sbooktitlepage .author, .sbooktitlepage .byline {
     font-size: 1.5em; font-style: italic;
