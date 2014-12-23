@@ -151,6 +151,8 @@ metabook/html/%.js: metabook/html/%.html makefile
 
 .SUFFIXES: .js .css
 
+default:
+	@echo "make all" to build everything, "make update" to update
 all: allcode alltags allhints index.html
 allcode: fdjt knodules codex metabook webfontloader \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
@@ -239,7 +241,8 @@ clean:
 undist:
 	git checkout dist/metabook.css dist/metabook.css.gz \
 		dist/metabook.js dist/metabook.min.js \
-		dist/metabook.js.gz dist/metabook.min.js.gz
+		dist/metabook.js.gz dist/metabook.min.js.gz \
+		dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
