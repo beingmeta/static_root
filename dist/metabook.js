@@ -37634,7 +37634,7 @@ metaBook.HTML.cover=
     "  <iframe name=\"SBOOKSAPP\" id=\"SBOOKSAPP\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
     "</div>\n"+
     "<div id=\"METABOOKCOVERCONTROLS\"\n"+
-    "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 1em; font-size: 1.5rem; font-size: 4vw;\">\n"+
+    "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 4vw;\">\n"+
     "  <span class=\"control\" data-mode=\"coverpage\" title=\"see the cover\"\n"+
     "        tabindex=\"1\">\n"+
     "    Cover</span>\n"+
@@ -38033,11 +38033,11 @@ metaBook.HTML.pageright=
     "    */\n"+
     "  -->\n"+
     "";
-metaBook.version='v0.5-2315-gf3417f8';
+metaBook.version='v0.5-2319-gc5119a4';
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Sat Dec 20 14:43:56 PST 2014';
-metaBook.buildid='253EFB7A-E4EA-4803-A7F5-A67255E39393';
+metaBook.buildtime='Mon Dec 22 16:23:18 PST 2014';
+metaBook.buildid='35AB2C5F-35E7-4F88-BD34-1E3125444B84';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';
