@@ -194,11 +194,13 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
 .sbooktitlepage .title .translation,
 .sbooktitlepage .title .originaltitle {
     font-size: 50%; font-weight: normal;
-    margin-top: 1.5em; margin-bottom: 0px;}
+    margin-top: 1ex; margin-bottom: 0px;}
 
 .sbooktitlepage .credits, .sbooktitlepage .author, .sbooktitlepage .byline {
     font-size: 1.5em; font-style: italic;
     margin-top: 1em; margin-bottom: 1.5em; }
+.sbooktitlepage .credits em, .sbooktitlepage .author em, .sbooktitlepage .byline em {
+    font-size: 0.7em;}
 
 .sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
 .sbooktitlepage .pubinfo { 
