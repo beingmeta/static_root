@@ -267,11 +267,11 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 
 metabook.css: $(METABOOK_CSS_BUNDLE)
-	@echo Rebuilding metabook.css
+	@echo Building metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.js: $(METABOOK_JS_BUNDLE) fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/tieoff.js etc/sha1
-	@echo Rebuilding metabook.js
+	@echo Building metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js > $@
