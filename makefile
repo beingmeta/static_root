@@ -35,36 +35,6 @@ SSC_HTML=showsomeclass/bigtextedit.html showsomeclass/savedialog.html \
 	showsomeclass/editselection.html showsomeclass/textedit.html \
 	showsomeclass/reclass.html showsomeclass/toolbar.html
 SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
-CODEX_FILES=codex/core.js codex/startup.js codex/domscan.js \
-	codex/hud.js codex/toc.js codex/slices.js codex/clouds.js \
-	codex/social.js codex/search.js codex/glosses.js \
-	codex/interaction.js codex/layout.js codex/debug.js codex/autoload.js
-CODEX_HINTS=codex/core.hint codex/startup.hint codex/domscan.hint \
-	codex/hud.hint codex/toc.hint codex/slices.hint codex/clouds.hint \
-	codex/social.hint codex/search.hint codex/glosses.hint \
-	 codex/interaction.hint codex/layout.hint
-CODEX_DERIVED_FILES=codex/text/searchbox.js codex/text/addgloss.js   \
-	            codex/text/hud.js codex/text/heart.js  \
-	            codex/text/help.js codex/text/hudhelp.js     \
-		    codex/text/console.js codex/text/messages.js     \
-		    codex/text/cover.js codex/text/settings.js \
-		    codex/text/pageleft.js codex/text/pageright.js
-
-CODEX_HTML_FILES=\
-	codex/text/searchbox.html codex/text/addgloss.html \
-	codex/text/hud.html codex/text/heart.html \
-	codex/text/help.html codex/text/hudhelp.html \
-	codex/text/console.html codex/text/messages.html \
-	codex/text/cover.html codex/text/settings.html \
-	codex/text/pageleft.html codex/text/pageright.html 
-
-CODEX_CSS=\
-	codex/css/framing.css codex/css/cover.css codex/css/hud.css   \
-	codex/css/foot.css codex/css/body.css codex/css/help.css        \
-	codex/css/toc.css codex/css/slices.css codex/css/clouds.css     \
-	codex/css/card.css codex/css/search.css codex/css/addgloss.css  \
-	codex/css/flyleaf.css codex/css/preview.css                     \
-	codex/css/app.css codex/css/media.css codex/css/debug.css
 
 METABOOK_FILES=\
 	metabook/core.js metabook/startup.js metabook/domscan.js \
@@ -110,13 +80,6 @@ SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-CODEX_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
-	fdjt/indexed.js fdjt/codexlayout.js \
-	${PAGEDOWN_FILES} ${CODEX_FILES} ${CODEX_DERIVED_FILES}
-# removed sbooks/reset.css 
-CODEX_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
-	${KNODULES_CSS} ${CODEX_CSS}
-
 METABOOK_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
 	fdjt/indexed.js fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${METABOOK_FILES} ${METABOOK_DERIVED_FILES}
@@ -124,7 +87,7 @@ METABOOK_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
 METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
 	${KNODULES_CSS} ${METABOOK_CSS}
 
-ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(CODEX_FILES)
+ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(METABOOK_FILES)
 
 SBOOKSTYLES=sbooks/sbookstyles.css
 
@@ -133,26 +96,19 @@ knodules/%.hint: knodules/%.js
 	if test "x$${JSHINT}" = "x"; then touch $@; \
 	else $${JSHINT} --config knodules/.jshintrc $< | tee $@; \
 	fi
-codex/%.hint: codex/%.js
-	@JSHINT=`which jshint`; \
-	if test "x$${JSHINT}" = "x"; then touch $@; \
-	else $${JSHINT} --config codex/.jshintrc $< | tee $@; \
-	fi
 metabook/%.hint: metabook/%.js
 	@JSHINT=`which jshint`; \
 	if test "x$${JSHINT}" = "x"; then touch $@; \
 	else $${JSHINT} --config metabook/.jshintrc $< | tee $@; \
 	fi
 
-codex/text/%.js: codex/text/%.html makefile
-	@./text2js Codex.HTML.`basename $@ .js` $< $@
 metabook/html/%.js: metabook/html/%.html makefile
 	@./text2js metaBook.HTML.`basename $@ .js` $< $@
 
 .SUFFIXES: .js .css
 
 all: allcode alltags allhints index.html
-allcode: fdjt knodules codex metabook webfontloader \
+allcode: fdjt knodules metabook webfontloader \
 	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
 	metabook.js metabook.css
 
@@ -161,12 +117,12 @@ dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.js dist/metabook.min.js.gz \
 	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz \
 
-allhints: fdjt/fdjt.hints codex/codex.hints metabook/metabook.hints \
+allhints: fdjt/fdjt.hints metabook/metabook.hints \
 	knodules/knodules.hints showsomeclass/hints
 
 cleanhints:
-	rm -f fdjt/*.hint fdjt/fdjt.hints codex/*.hint
-	rm -f codex/codex.hints metabook/metabook.hints
+	rm -f fdjt/*.hint fdjt/fdjt.hints
+	rm -f metabook/metabook.hints
 	rm -f knodules/*.hint knodules/knodules.hints
 	rm -f sbooks/*.hint sbooks/sbooks.hints
 	rm -f showsomeclass/*.hint showsomeclass/sbooks.hints
@@ -177,19 +133,12 @@ hints:
 
 fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
 	@cd fdjt; make fdjt.hints
-codex/codex.hints: $(CODEX_HINTS) codex/.jshintrc
-	@cat $^ > $@
 metabook/metabook.hints: $(METABOOK_HINTS) metabook/.jshintrc
 	@cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
 	@cat $^ > $@
 showsomeclass/hints:
 	@cd showsomeclass; make hints
-
-codex/css/debug.css:
-	echo "/* No debugging CSS rules */" > codex/css/debug.css
-codex/debug.js:
-	echo "/* No debugging Javascript */" > codex/debug.js
 
 metabook/css/debug.css:
 	echo "/* No debugging CSS rules */" > metabook/css/debug.css
@@ -207,8 +156,6 @@ fdjt:
 	git clone git@github.com:beingmeta/fdjt.git
 knodules:
 	git clone git@github.com:beingmeta/knodules_js.git knodules
-codex:
-	git clone git@github.com:beingmeta/codex.git
 metabook:
 	git clone git@github.com:beingmeta/metabook.git
 showsomeclass:
@@ -230,11 +177,10 @@ clean:
 	cd fdjt; make clean
 	cd showsomeclass; make clean
 	make cleanhints
-	rm -f ${CODEX_DERIVED_FILES} ${METABOOK_DERIVED_FILES}
+	rm -f ${METABOOK_DERIVED_FILES}
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
-	rm -f sbooks/codex.js sbooks/codex.css
 	rm -f sbooks/metabook.js sbooks/metabook.css
-	rm -f dist/metabook.* dist/metabook.*
+	rm -f metabook.js metabook.css
 
 undist:
 	git checkout dist/metabook.css dist/metabook.css.gz \
@@ -267,11 +213,11 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 
 metabook.css: $(METABOOK_CSS_BUNDLE)
-	@echo Building metabook.css
+	@echo Building ./metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.js: $(METABOOK_JS_BUNDLE) fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/tieoff.js etc/sha1
-	@echo Building metabook.js
+	@echo Building ./metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js > $@
@@ -317,22 +263,18 @@ index.html: etc/index_head.html etc/index_foot.html dist/metabook.css
 	@echo "<p>Build date: " `date` "</p>" >> index.html
 	@cd fdjt; echo "<p>FDJT version: " `git describe` "</p>" \
 		>> ../index.html
-	@cd codex; echo "<p>Codex version: " `git describe` "</p>" \
-		>> ../index.html
 	@cd metabook; echo "<p>metaBook version: " `git describe` "</p>" \
 		>> ../index.html
 	@cat etc/index_foot.html >> index.html
 
 # Generating javascript strings from HTML
 
-alltags: fdjt knodules codex metabook TAGS APPTAGS CODEXTAGS \
+alltags: fdjt knodules metabook TAGS APPTAGS \
 	METABOOKTAGS METABOOKHTMLTAGS METABOOKCSSTAGS METABOOKXCSSTAGS \
 	fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
 TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
 	${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
-	@etags -o $@ $^
-CODEXTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${CODEX_HTML_FILES}
 	@etags -o $@ $^
 METABOOKTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
 	@etags -o $@ $^
@@ -342,26 +284,15 @@ METABOOKCSSTAGS: ${METABOOK_CSS_BUNDLE}
 	@etags -o $@ $^
 METABOOKHTMLTAGS: ${METABOOK_HTML_FILES}
 	@etags -o $@ $^
-CXAPPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
-	${CODEX_HTML_FILES} ${SBOOKS_FILES}
-	@etags -o $@ $^
 MBAPPTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${KNODULES_FILES} \
 	${METABOOK_HTML_FILES} ${SBOOKS_FILES}
 	@etags -o $@ $^
-APPTAGS: ${CODEX_FILES} ${CODEX_CSS_BUNDLE} ${KNODULES_FILES} \
-	${CODEX_HTML_FILES} ${SBOOKS_FILES}
+APPTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${KNODULES_FILES} \
+	${METABOOK_HTML_FILES} ${SBOOKS_FILES}
 	@etags -o $@ $^
-CXHTMLTAGS: ${CODEX_HTML_FILES}
+HTMLTAGS: ${METABOOK_HTML_FILES}
 	@etags -o $@ $^
-MBHTMLTAGS: ${METABOOK_HTML_FILES}
-	@etags -o $@ $^
-HTMLTAGS: ${CODEX_HTML_FILES}
-	@etags -o $@ $^
-CXCSSTAGS: ${CODEX_CSS_BUNDLE}
-	@etags -o $@ $^
-MBCSSTAGS: ${METABOOK_CSS_BUNDLE}
-	@etags -o $@ $^
-CSSTAGS: ${CODEX_CSS_BUNDLE}
+CSSTAGS: ${METABOOK_CSS_BUNDLE}
 	@etags -o $@ $^
 SSCTAGS: ${SSC_BUNDLE}
 	@etags -o $@ $^
@@ -377,13 +308,12 @@ etc/sha1: etc/sha1.c
 	$(CC) -o etc/sha1 etc/sha1.c
 
 checkout:
-	git checkout ${BRANCH}; cd fdjt; git checkout ${BRANCH}; cd ../codex; git checkout ${BRANCH}; cd ../knodules; git checkout ${BRANCH}
+	git checkout ${BRANCH}; cd fdjt; git checkout ${BRANCH}; cd ../metabook; git checkout ${BRANCH}; cd ../knodules; git checkout ${BRANCH}
 
 diff:
 	git diff;
 	cd fdjt; git diff
 	cd knodules; git diff
-	cd codex; git diff
 	cd metabook; git diff
 	cd showsomeclass; git diff
 	cd g; svn diff
@@ -391,39 +321,34 @@ status:
 	git status -uno
 	cd fdjt; git status -uno
 	cd knodules; git status -uno
-	cd codex; git status -uno
 	cd metabook; git status -uno
 	cd showsomeclass; git status -uno
 	cd g; svn status -q
-pull: fdjt codex knodules g showsomeclass bibliotype
+pull: fdjt knodules g showsomeclass bibliotype
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
-	cd codex; git pull
 	cd metabook; git pull
 	cd showsomeclass; git pull
 	if test -d bibliotype; then cd bibliotype; git pull; fi;
 	if test -d pagedown; then cd pagedown; hg update; fi;
 	cd webfontloader; git pull
 	cd g; svn update
-update: fdjt metabook codex knodules g \
+update: fdjt metabook knodules g \
 	showsomeclass webfontloader
 	make pull
-update-code: fdjt codex knodules
+update-code: fdjt knodules
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
 	cd showsomeclass; git pull
-	cd codex; git pull
+	cd metabook; git pull
 	cd webfontloader; git pull
 clean-graphics:
-	cd g/codex; ${CLEANGRAPHICS}
 	cd g/beingmeta; ${CLEANGRAPHICS}
 	cd g/sbooks; ${CLEANGRAPHICS}
 	cd g/showsomeclass; ${CLEANGRAPHICS}
 update-graphics:
-	cd g/codex; rm -f *.square *.sqr *.bnr *.rect; \
-		make GRAPHICS=/src/graphics
 	cd g/sbooks; rm -f *.square *.sqr *.bnr *.rect; \
 		make GRAPHICS=/src/graphics
 	cd g/beingmeta; rm -f *.square *.sqr *.bnr *.rect; \
@@ -431,11 +356,11 @@ update-graphics:
 	cd g/showsomeclass; rm -f *.square *.sqr *.bnr *.rect; \
 		make GRAPHICS=/src/graphics
 
-push: fdjt codex knodules
+push: fdjt metabook knodules
 	git push
 	cd fdjt; git push
 	cd knodules; git push
-	cd codex; git push
+	cd metabook; git push
 	cd metabook; git push
 convert:
 	cd codex/graphics; ./convertall
@@ -460,5 +385,5 @@ fdiff:
 	cd fdjt; git diff
 kdiff:
 	cd knodules; git diff
-cdiff:	
-	cd codex; git diff
+mdiff:	
+	cd metabook; git diff
