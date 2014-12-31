@@ -204,9 +204,14 @@ dist/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
 	@echo "Created $@"
 metabook/buildstamp.js: $(METABOOK_FILES) $(METABOOK_CSS_BUNDLE) \
 			$(METABOOK_HTML)
-	@cd metabook; echo "metaBook.version='"`git describe`"';" > \
+	@$(ECHO) "// sBooks metaBook build information" > $@
+	@cd metabook; echo "metaBook.version='"`git describe`"';" >> \
 		buildstamp.js
-	@echo "Created metabook/buildstamp.js"
+	@$(ECHO) "metaBook.buildhost='${BUILDHOST}';" >> $@
+	@$(ECHO) "metaBook.buildtime='${BUILDTIME}';" >> $@
+	@$(ECHO) "metaBook.buildid='${BUILDUUID}';" >> $@
+	@$(ECHO) >> $@
+	@echo "Created $@"
 knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	@cd knodules; echo "Knodule.version='"`git describe`"';" > buildstamp.js
 	@echo "Created knodules/buildstamp.js"
@@ -216,7 +221,7 @@ metabook.css: $(METABOOK_CSS_BUNDLE)
 	@echo Building ./metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.js: $(METABOOK_JS_BUNDLE) fdjt/buildstamp.js knodules/buildstamp.js \
-	metabook/tieoff.js etc/sha1
+	metabook/buildstamp.js metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
