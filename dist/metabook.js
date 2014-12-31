@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1231-ge222d80';
-var fdjt_buildhost='worker0.sbooks.net';
-var fdjt_buildtime='Mon Dec 15 23:14:49 UTC 2014';
-var fdjt_builduuid='58cfe7ef-6e90-4827-a2cd-db025ede5bce';
+var fdjt_revision='1.5-1232-g91f8d71';
+var fdjt_buildhost='moby.dot.beingmeta.com';
+var fdjt_buildtime='Wed Dec 31 13:08:32 EST 2014';
+var fdjt_builduuid='226386d4-f17c-4892-a046-e8242760975c';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -13577,7 +13577,7 @@ fdjt.Dialog=(function(){
             box.appendChild(countdown);}
         if (!((spec.modal)||(spec.noclose)||(hasClass(box,"fdjtmodal")))) {
             var close_button=fdjtDOM.Image(
-                "https://s3.amazonaws.com/static.beingmeta.com/g/codex/redx40x40.png",
+                "https://s3.amazonaws.com/static.beingmeta.com/fdjt/redx50x50.png",
                 "closebutton","Close");
             addListener(close_button,"click",close_dialog_handler);
             addListener(close_button,"touchend",close_dialog_handler);
@@ -24681,6 +24681,7 @@ metaBook.Startup=
             //  (the HUD/Heads Up Display and the cover)
             metaBook.initHUD();
             setupCover();
+            setupZoom();
 
             if (metaBook.refuri) {
                 var refuris=document.getElementsByName("REFURI");
@@ -25734,6 +25735,23 @@ metaBook.Startup=
             return cover;}
         metaBook.setupCover=setupCover;
 
+        function setupZoom(){
+            var zoom=metaBook.Zoom=fdjtDOM(
+                "div#METABOOKZOOM.metabookzoom.metabookcontent",
+                fdjtDOM("div#METABOOKZOOMBOX",
+                        fdjtDOM("div#METABOOKZOOMTARGET")),
+                fdjtDOM("div#METABOOKZOOMCONTROLS",
+                        fdjtDOM("div#METABOOKZOOMCLOSE"),
+                        fdjtDOM("div#METABOOKUNZOOM"),
+                        fdjtDOM("div#METABOOKZOOMIN"),
+                        fdjtDOM("div#METABOOKZOOMOUT"),
+                        fdjtDOM("div#METABOOKZOOMHELP"),
+                        fdjtDOM("div#METABOOKZOOMHELPTEXT",
+                                "Drag to pan, use two fingers to zoom")));
+            zoom.metabookui=true;
+            document.body.appendChild(zoom);}
+        metaBook.setupZoom=setupZoom;
+
         var toArray=fdjtDOM.toArray;
         function addToCover(cover,item){
             var children=toArray(cover.childNodes);
@@ -25807,6 +25825,9 @@ metaBook.Startup=
         function cover_clicked(evt){
             var target=fdjtUI.T(evt);
             var cover=fdjtID("METABOOKCOVER");
+            if (metaBook.statedialog) {
+                fdjt.Dialog.close(metaBook.statedialog);
+                metaBook.statedialog=false;}
             if (fdjt.UI.isClickable(target)) return;
             if (!(hasParent(target,fdjtID("METABOOKCOVERCONTROLS")))) {
                 if (!(hasParent(target,fdjtID("METABOOKCOVERMESSAGE")))) {
@@ -25867,8 +25888,6 @@ metaBook.Startup=
             else swapClass(mbody,/\bmetabookcontrast[a-z]+\b/g,
                           "metabookcontrast"+value);});
                 
-
-
         /* Initializing the body and content */
 
         function initBody(){
@@ -25877,6 +25896,9 @@ metaBook.Startup=
             var content=(init_content)||(fdjtDOM("div#CODEXCONTENT"));
             var i, lim;
             if (Trace.startup>2) fdjtLog("Starting initBody");
+
+            addClass(content,"metabookcontent");
+            addClass(content,"codexroot");
 
             body.setAttribute("tabindex",1);
             /* Remove explicit constraints */
@@ -25958,7 +25980,7 @@ metaBook.Startup=
 
             var pages=metaBook.pages=fdjtID("METABOOKPAGES")||
                 fdjtDOM("div#METABOOKPAGES");
-            var page=metaBook.page=fdjtDOM("div#CODEXPAGE",pages);
+            var page=metaBook.page=fdjtDOM("div#CODEXPAGE.metabookcontent",pages);
             
             metaBook.body=fdjtID("METABOOKBODY");
             if (!(metaBook.body)) {
@@ -27621,10 +27643,9 @@ metaBook.setMode=
         var fixStaticRefs=metaBook.fixStaticRefs;
 
         var metaBookHUD=false;
-        var metaBookMedia=false;
 
         // This will contain the interactive input console (for debugging)
-        var frame=false, hud=false, media=false;
+        var frame=false, hud=false;
         var allglosses=false, sbooksapp=false;
 
         function initHUD(){
@@ -27635,10 +27656,8 @@ metaBook.setMode=
             if (Trace.startup>2) fdjtLog("Initializing HUD layout");
             metaBook.HUD=metaBookHUD=hud=
                 fdjtDOM("div#METABOOKHUD.metabookhud");
-            metaBook.Media=metaBookMedia=media=
-                fdjtDOM("div#METABOOKMEDIA.metabookmedia");
-            hud.metabookui=true; media.metabookui=true;
             hud.innerHTML=fixStaticRefs(metaBook.HTML.hud);
+            hud.metabookui=true;
             fdjtDOM.append(messages);
             if (fdjtID("METABOOKFRAME")) frame=fdjtID("METABOOKFRAME");
             else {
@@ -27646,13 +27665,6 @@ metaBook.setMode=
                 fdjtDOM.prepend(document.body,frame);}
             addClass(frame,"metabookframe");
             frame.appendChild(messages); frame.appendChild(hud);
-            frame.appendChild(media);
-            frame.appendChild(
-                fdjtDOM("div#METABOOKMEDIACONTROLS",
-                        fdjtDOM("div#METABOOKMEDIACLOSE"),
-                        fdjtDOM("div#METABOOKMEDIAHELP"),
-                        fdjtDOM("div#METABOOKMEDIAHELPTEXT",
-                                "Drag to pan, use two fingers to zoom")));
 
             metaBook.Frame=frame;
             // Fill in the HUD help
@@ -28547,41 +28559,6 @@ metaBook.setMode=
                                    5000);},
                            5000);}
         metaBook.keyboardHelp=keyboardHelp;
-
-        /* Full page media mode */
-
-        function showMedia(node){
-            var media=fdjt.ID("METABOOKMEDIA");
-            if (metaBook.zoomed===node) {
-                addClass(document.body,"mbMEDIA");
-                return;}
-            else metaBook.zoomed=node;
-            var copy=node.cloneNode();
-            fdjtDOM.stripIDs(copy);
-            copy.setAttribute("style","");
-            if (metaBook.mediascroll) 
-                metaBook.mediascroll.destroy();
-            media.innerHTML="";
-            media.appendChild(copy);
-            addClass(document.body,"mbMEDIA");
-            metaBook.mediascroll=
-                new IScroll(media,{zoom: true,
-                                   scrollX: true,
-                                   scrollY: true,
-                                   freeScroll: true,
-                                   keyBindings: true,
-                                   mouseWheel: true,
-                                   scrollbars: true,
-                                   zoomMin: 0.2,
-                                   zoomMax: 5,
-                                   wheelAction: 'zoom'
-                                  });}
-        metaBook.showMedia=showMedia;
-
-        function closeMedia(evt){
-            dropClass(document.body,"mbMEDIA");
-            if (evt) fdjt.UI.cancel(evt);}
-        metaBook.closeMedia=closeMedia;
 
         /* Showing a particular gloss */
 
@@ -33081,7 +33058,7 @@ metaBook.Slice=(function () {
                     document.body.className,metaBook.HUD.className,
                     target,metaBook.glosstarget);
         if (hasParent(target,"IMG,AUDIO,VIDEO,OBJECT")) {
-            metaBook.showMedia(getParent(target,"IMG,AUDIO,VIDEO,OBJECT"));
+            metaBook.startZoom(getParent(target,"IMG,AUDIO,VIDEO,OBJECT"));
             fdjt.UI.cancel(evt);
             return;}
         if (metaBook.glosstarget) {
@@ -33167,12 +33144,14 @@ metaBook.Slice=(function () {
     var body_tapstart=false;
     function body_touchstart(evt){
         evt=evt||window.event;
+        if (metaBook.zoomed) return;
         var target=fdjtUI.T(evt);
         if (target.id!=="METABOOKBODY") return;
         body_tapstart=fdjtTime();}
 
     function body_touchend(evt){
         evt=evt||window.event;
+        if (metaBook.zoomed) return;
         var target=fdjtUI.T(evt);
         if (target.id!=="METABOOKBODY") return;
         if ((body_tapstart)&&(true) //((fdjtTime()-body_tapstart)<1000)
@@ -33197,6 +33176,7 @@ metaBook.Slice=(function () {
 
     function body_released(evt){
         evt=evt||window.event;
+        if (metaBook.zoomed) return;
         var target=fdjtUI.T(evt), children=false;
         if (Trace.gestures) fdjtLog("body_released %o",evt);
         if (metaBook.previewing) {
@@ -33245,6 +33225,7 @@ metaBook.Slice=(function () {
     metaBook.startAddGloss=startAddGloss;
 
     function body_swiped(evt){
+        if (metaBook.zoomed) return;
         var dx=evt.deltaX, dy=evt.deltaY;
         var vw=fdjtDOM.viewWidth();
         var adx=((dx<0)?(-dx):(dx)), ady=((dy<0)?(-dy):(dy));
@@ -33310,6 +33291,7 @@ metaBook.Slice=(function () {
     // This overrides the default_tap handler
     function body_click(evt){
         evt=evt||window.event;
+        if (metaBook.zoomed) return;
         var target=fdjtUI.T(evt);
         // This avoids double-handling of clicks
         if ((clicked)&&((fdjtTime()-clicked)<3000))
@@ -33653,7 +33635,7 @@ metaBook.Slice=(function () {
              if (metaBook.previewing) {
                  metaBook.stopPreview("escape_key");
                  fdjtUI.TapHold.clear();}
-             dropClass(document.body,"mbMEDIA");
+             dropClass(document.body,"mbZOOM");
              if (metaBook.mode==="addgloss") metaBook.cancelGloss();
              if (metaBook.mode) {
                  metaBook.last_mode=metaBook.mode;
@@ -33666,7 +33648,7 @@ metaBook.Slice=(function () {
                   (target.tagName==="INPUT")||
                   (target.tagName==="BUTTON"))
              return;
-        else if (hasClass(document.body,"mbMEDIA"))
+        else if (hasClass(document.body,"mbZOOM"))
             return;
         else if ((metaBook.controlc)&&(evt.ctrlKey)&&((kc===99)||(kc===67))) {
             if (metaBook.previewing) metaBook.stopPreview("onkeydown",true);
@@ -34106,6 +34088,7 @@ metaBook.Slice=(function () {
     /* Default click/tap */
     function default_tap(evt){
         var target=fdjtUI.T(evt);
+        if (metaBook.zoomed) return;
         if (Trace.gestures)
             fdjtLog("default_tap %o (%o) %s%s%s",evt,target,
                     ((fdjtUI.isClickable(target))?(" clickable"):("")),
@@ -34948,6 +34931,29 @@ metaBook.Slice=(function () {
         clearFocus(input);}
     metaBook.UI.blur=metabookblur;
 
+    /* Full page zoom mode */
+    
+    function startZoom(node){
+        var zoom_target=fdjt.ID("METABOOKZOOMTARGET");
+        if (!(node)) return stopZoom();
+        if (metaBook.zoomtarget===node) {
+            metaBook.zoomed=node;
+            addClass(document.body,"mbZOOM");}
+        metaBook.zoomtarget=node;
+        var copy=node.cloneNode();
+        fdjtDOM.stripIDs(copy);
+        copy.setAttribute("style","");
+        copy.id="METABOOKZOOMTARGET";
+        fdjt.DOM.replace(zoom_target,copy);
+        addClass(document.body,"mbZOOM");}
+    metaBook.startZoom=startZoom;
+
+    function stopZoom(evt){
+        dropClass(document.body,"mbZOOM");
+        metaBook.zoomed=false;
+        if (evt) fdjt.UI.cancel(evt);}
+    metaBook.stopZoom=stopZoom;
+    
     /* Rules */
 
     var noDefault=fdjt.UI.noDefault;
@@ -35034,6 +35040,7 @@ metaBook.Slice=(function () {
 
     function global_mouseup(evt){
         evt=evt||window.event;
+        if (metaBook.zoomed) return;
         if (metaBook.page_turner) {
             clearInterval(metaBook.page_turner);
             metaBook.page_turner=false;
@@ -35055,6 +35062,31 @@ metaBook.Slice=(function () {
         fdjt.UI.cancel(evt);
         return false;}
     metaBook.lowerHUD=lowerHUD;
+
+    function zoomIn(evt){
+        evt=evt||window.event;
+        var zb=fdjt.ID("METABOOKZOOMBOX");
+        var scale=metaBook.zoomscale;
+        if (!(scale)) scale=metaBook.zoomscale=1.0;
+        scale=scale*1.1;
+        metaBook.zoomscale=scale;
+        zb.style[fdjt.DOM.transform]="scale("+scale+")";
+        fdjt.UI.cancel(evt);}
+    function zoomOut(evt){
+        evt=evt||window.event;
+        var zb=fdjt.ID("METABOOKZOOMBOX");
+        var scale=metaBook.zoomscale;
+        if (!(scale)) scale=metaBook.zoomscale=1.0;
+        scale=scale/1.1;
+        metaBook.zoomscale=scale;
+        zb.style[fdjt.DOM.transform]="scale("+scale+")";
+        fdjt.UI.cancel(evt);}
+    function unZoom(evt){
+        evt=evt||window.event;
+        var zb=fdjt.ID("METABOOKZOOMBOX");
+        zb.style[fdjt.DOM.transform]="";
+        metaBook.zoomscale=false;
+        fdjt.UI.cancel(evt);}
 
     function saveGloss(evt){
         evt=evt||window.event; metaBook.submitGloss();}
@@ -35095,7 +35127,6 @@ metaBook.Slice=(function () {
          "#METABOOKBODY": {
              mouseup: global_mouseup,
              click: default_tap},
-         "#METABOOKMEDIA": {mousemove: noDefault},
          content: {tap: body_tapped,
                    taptap: body_taptap,
                    hold: body_held,
@@ -35237,10 +35268,11 @@ metaBook.Slice=(function () {
                  evt=evt||window.event;
                  metaBook.UI.handlers.everyone_ontap(evt);
                  fdjt.UI.cancel(event);}},
-         "#METABOOKMEDIACLOSE": {
-             click: metaBook.closeMedia},
-         "#METABOOKMEDIAHELP": {
-             click: toggleHelp}});
+         "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
+         "#METABOOKZOOMHELP": {click: toggleHelp},
+         "#METABOOKZOOMIN": {click: zoomIn},
+         "#METABOOKZOOMOUT": {click: zoomOut},
+         "#METABOOKUNZOOM": {click: unZoom}});
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.touch,
@@ -35273,7 +35305,6 @@ metaBook.Slice=(function () {
                    touchtoo: slice_touchtoo,
                    touchmove: preview_touchmove_nodefault,
                    slip: slice_slipped},
-         "#METABOOKMEDIA": {touchmove: noDefault},
          "#METABOOKSTARTPAGE": {touchend: metaBook.UI.dropHUD},
          "#METABOOKTOPBAR": {tap: raiseHUD},
          //"#METABOOKTOOLTAB": {tap: raiseHUD, release: raiseHUD},
@@ -35431,10 +35462,11 @@ metaBook.Slice=(function () {
                  evt=evt||window.event;
                  metaBook.UI.handlers.everyone_ontap(evt);
                  fdjt.UI.cancel(event);}},
-         "#METABOOKMEDIACLOSE": {
-             click: metaBook.closeMedia},
-         "#METABOOKMEDIAHELP": {
-             click: toggleHelp}});
+         "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
+         "#METABOOKZOOMHELP": {click: toggleHelp},
+         "#METABOOKZOOMIN": {click: zoomIn},
+         "#METABOOKZOOMOUT": {click: zoomOut},
+         "#METABOOKUNZOOM": {click: unZoom}});
     
 })();
 
@@ -37708,63 +37740,63 @@ metaBook.HTML.cover=
     "    </select>\n"+
     "    <button name=\"AUTHORITY\" TABINDEX=\"11\"\n"+
     "            value=\":FACEBOOK\">\n"+
-    "      <img src=\"{{bmg}}sbooks/facebook64x64.png\" class=\"nosvg\"\n"+
+    "      <img src=\"{{bmg}}metabook/facebook64x64.png\" class=\"nosvg\"\n"+
     "           alt=\"Facebook\" class=\"noautoscale\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/facebook.svgz\" class=\"svg\"\n"+
+    "      <img src=\"{{bmg}}metabook/facebook.svgz\" class=\"svg\"\n"+
     "           alt=\"Facebook\" class=\"noautoscale\"/>\n"+
     "    </button>\n"+
     "    <button NAME=\"AUTHORITY\" TABINDEX=\"12\"\n"+
     "            VALUE=\":TWITTER\">\n"+
-    "      <img src=\"{{bmg}}sbooks/twitter64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/twitter64x64.png\"\n"+
     "           alt=\"Twitter\" title=\"login with Twitter\"\n"+
     "           class=\"nosvg\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/twitter.svgz\"\n"+
+    "      <img src=\"{{bmg}}metabook/twitter.svgz\"\n"+
     "           alt=\"Twitter\" title=\"login with Twitter\"\n"+
     "           class=\"svg\"/>\n"+
     "    </button>\n"+
     "    <button NAME=\"AUTHORITY\" TABINDEX=\"13\"\n"+
     "            VALUE=\"https://open.login.yahooapis.com/openid/op/auth\">\n"+
-    "      <img src=\"{{bmg}}sbooks/yahoo64x64.png\" class=\"nosvg\"\n"+
+    "      <img src=\"{{bmg}}metabook/yahoo64x64.png\" class=\"nosvg\"\n"+
     "           alt=\"Yahoo!\" title=\"login using Yahoo!\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/yahoo.svgz\" class=\"svg\"\n"+
+    "      <img src=\"{{bmg}}metabook/yahoo.svgz\" class=\"svg\"\n"+
     "           alt=\"Yahoo!\" title=\"login using Yahoo!\"/>\n"+
     "    </button>\n"+
     "    <button NAME=\"AUTHORITY\" TABINDEX=\"14\"\n"+
     "            VALUE=\":GOOGLE\">\n"+
-    "      <img src=\"{{bmg}}sbooks/google64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/google64x64.png\"\n"+
     "           alt=\"Google\" title=\"login using your Google account\"\n"+
     "           class=\"nosvg\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/google.svgz\"\n"+
+    "      <img src=\"{{bmg}}metabook/google.svgz\"\n"+
     "           alt=\"Google\" title=\"login using your Google account\"\n"+
     "           class=\"svg\"/>\n"+
     "    </button>\n"+
     "    <button NAME=\"AUTHORITY\" TABINDEX=\"15\"\n"+
     "            VALUE=\":GPLUS\">\n"+
-    "      <img src=\"{{bmg}}sbooks/googleplus64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/googleplus64x64.png\"\n"+
     "           alt=\"Google\" title=\"login using Google+\"\n"+
     "           class=\"nosvg\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/googleplus.svgz\"\n"+
+    "      <img src=\"{{bmg}}metabook/googleplus.svgz\"\n"+
     "           alt=\"Google\" title=\"login using Google+\"\n"+
     "           class=\"svg\"/>\n"+
     "    </button>\n"+
     "    <button NAME=\"AUTHORITY\" VALUE=\":LINKEDIN\" TABINDEX=\"16\">\n"+
-    "      <img src=\"{{bmg}}sbooks/linkedin64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/linkedin64x64.png\"\n"+
     "           alt=\"Linked In\" title=\"login with Linked In\"\n"+
     "           class=\"nosvg\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/linkedin.svgz\"\n"+
+    "      <img src=\"{{bmg}}metabook/linkedin.svgz\"\n"+
     "           alt=\"Linked In\" title=\"login with Linked In\"\n"+
     "           class=\"svg\"/>\n"+
     "    </button>\n"+
     "    <button name=\"AUTHORITY\" TABINDEX=\"17\"\n"+
     "            value=\":AMAZON\">\n"+
-    "      <img src=\"https://images-na.ssl-images-amazon.com/images/G/01/lwa/btnLWA_gold_64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/amazon64x64.png\"\n"+
     "           alt=\"Amazon\" title=\"login with your Amazon account\"/>\n"+
     "    </button>\n"+
     "    <button name=\"AUTHORITY\" TABINDEX=\"18\"\n"+
     "            value=\":PAYPAL\">\n"+
-    "      <img src=\"{{bmg}}sbooks/paypalsquare64x64.png\" class=\"nosvg\"\n"+
+    "      <img src=\"{{bmg}}metabook/paypalsquare64x64.png\" class=\"nosvg\"\n"+
     "           alt=\"PayPal\" title=\"login with PayPal\"/>\n"+
-    "      <img src=\"{{bmg}}sbooks/paypalsquare.svgz\" class=\"svg\"\n"+
+    "      <img src=\"{{bmg}}metabook/paypalsquare.svgz\" class=\"svg\"\n"+
     "           alt=\"PayPal\" title=\"login with PayPal\"/>\n"+
     "    </button>\n"+
     "  </form>\n"+
@@ -38033,11 +38065,16 @@ metaBook.HTML.pageright=
     "    */\n"+
     "  -->\n"+
     "";
-metaBook.version='v0.5-2321-g5af2ed2';
+// sBooks metaBook build information
+metaBook.version='v0.5-2325-g30c78b9';
+metaBook.buildhost='moby.dot.beingmeta.com';
+metaBook.buildtime='Wed Dec 31 12:31:14 EST 2014';
+metaBook.buildid='7bbc5911-43e1-41f2-a8c0-6da867e7671d';
+
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
-metaBook.buildhost='worker0.sbooks.net';
-metaBook.buildtime='Tue Dec 23 02:17:36 UTC 2014';
-metaBook.buildid='33111b42-c050-48fd-8739-ff72b6d1a74e';
+metaBook.buildhost='moby.dot.beingmeta.com';
+metaBook.buildtime='Wed Dec 31 13:24:36 EST 2014';
+metaBook.buildid='d8cde8d7-4d8f-4be0-b378-44f1cb2b97d1';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';
