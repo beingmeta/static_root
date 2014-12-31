@@ -9,8 +9,7 @@
 (define gzheaders '("x-amz-acl: public-read"
 		    "Content-encoding\: gzip"))
 (define graphics
-  {"g/codex/" "g/metabook/" "g/sbooks/" "g/showsomeclass/" "g/beingmeta/"
-   "g/metabook/docs/" "g/codex/docs/"})
+  {"g/metabook/" "g/metabook/docs/" "g/fdjt/"})
 (define fonts
   {"fonts/Adobe/" "fonts/aleo/" "fonts/coelacanth/"
    "fonts/gentium/" "fonts/noto/"
@@ -124,7 +123,6 @@
   (distribute-web "dist/")
   (distribute-web "sbooks/")
   (distribute-web "fdjt/")
-  (distribute-web "showsomeclass/")
   (distribute-web "fonts/")
   (let ((js (filedata "dist/metabook.min.js.gz"))
 	(css (filedata "dist/metabook.css.gz")))
