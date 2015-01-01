@@ -37617,15 +37617,15 @@ metaBook.HTML.cover=
     "  </div>\n"+
     "  <div class=\"metabookstatus\" id=\"METABOOKLAYOUTMESSAGE\">\n"+
     "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
-    "    <div class=\"message\"></div>\n"+
+    "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
     "  </div>\n"+
     "  <div class=\"metabookstatus\" id=\"METABOOKINDEXMESSAGE\">\n"+
     "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
-    "    <div class=\"message\"></div>\n"+
+    "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
     "  </div>\n"+
     "  <div class=\"metabookstatus\" id=\"METABOOKGLOSSMESSAGE\">\n"+
     "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
-    "    <div class=\"message\"></div>\n"+
+    "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
     "  </div>\n"+
     "</div>\n"+
     "<div id=\"METABOOKCOVERPAGE\"\n"+
@@ -38074,7 +38074,7 @@ metaBook.buildid='7bbc5911-43e1-41f2-a8c0-6da867e7671d';
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Wed Dec 31 13:24:36 EST 2014';
-metaBook.buildid='d8cde8d7-4d8f-4be0-b378-44f1cb2b97d1';
+metaBook.buildtime='Thu Jan  1 17:54:40 EST 2015';
+metaBook.buildid='05c87cd8-9c93-437c-991f-25f9a543f383';
 
 fdjt.CodexLayout.sourcehash='F4857D09F6DA92F3BD2F81561BD01FF5C7EAD5EC';
