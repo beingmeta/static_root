@@ -24258,6 +24258,9 @@ metaBook.Startup=
         var Trace=metaBook.Trace;
         var fixStaticRefs=metaBook.fixStaticRefs;
 
+        var readLocal=metaBook.readLocal;
+        var saveLocal=metaBook.saveLocal;
+
         // This is the window outer dimensions, which is stable across
         // most chrome changes, especially on-screen keyboards.  We
         // track so that we can avoid resizes which shouldn't force
@@ -24278,10 +24281,6 @@ metaBook.Startup=
         metaBook.startupMessage=startupMessage;
 
         /* Save local */
-
-        var readLocal=metaBook.readLocal;
-        var saveLocal=metaBook.saveLocal;
-        var clearOffline=metaBook.clearOffline;
 
         /* Whether to resize by default */
         var resize_default=false;
@@ -24772,7 +24771,8 @@ metaBook.Startup=
 
             // If the configuration is set to not persist, but there's
             //  a sync timestamp, we should erase what's there.
-            if ((metaBook.sync)&&(!(metaBook.persist))) clearOffline();
+            if ((metaBook.sync)&&(!(metaBook.persist)))
+                metaBook.clearOffline();
 
             if (metaBook.nologin) {}
             else if ((metaBook.persist)&&(getLocal("metabook.user"))) {
@@ -26215,7 +26215,7 @@ metaBook.Startup=
                     addClass(document.body,"_NOUSER");}
                 if (info.nodeid) setNodeID(info.nodeid);}
             else if (info.wronguser) {
-                clearOffline();
+                metaBook.clearOffline();
                 window.location=window.location.href;
                 return;}
             else if ((info.userinfo)&&(metaBook.user)) {
@@ -26243,7 +26243,7 @@ metaBook.Startup=
             if ((metaBook.persist)&&(metaBook.cacheglosses)&&
                 (info)&&(info.userinfo)&&(metaBook.user)&&
                 (info.userinfo._id!==metaBook.user._id)) {
-                clearOffline();}
+                metaBook.clearOffline();}
             info.loaded=fdjtTime();
             if ((!(metaBook.localglosses))&&
                 ((getLocal("metabook.sync("+refuri+")"))||
@@ -38066,15 +38066,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2325-g30c78b9';
+metaBook.version='v0.5-2328-g2886232';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Wed Dec 31 12:31:14 EST 2014';
-metaBook.buildid='7bbc5911-43e1-41f2-a8c0-6da867e7671d';
+metaBook.buildtime='Sat Jan  3 13:15:44 EST 2015';
+metaBook.buildid='bd7272dd-5985-4f29-aa52-a25153c9cb24';
 
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Fri Jan  2 11:03:23 EST 2015';
-metaBook.buildid='fc935c4e-f5bf-4250-a692-4ce4837815f5';
+metaBook.buildtime='Sat Jan  3 14:16:57 EST 2015';
+metaBook.buildid='9af5250d-55a7-4418-8349-534a37818eb9';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';

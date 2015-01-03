@@ -2739,8 +2739,8 @@ span.bma {
      #METABOOKFRAME
        #METABOOKHUD
        #METABOOKCOVER
-       #METABOOKMEDIA
      #METABOOKBODY
+       #METABOOKZOOM
        #CODEXCONTENT
        #CODEXPAGE
          #METABOOKPAGES
@@ -2783,21 +2783,16 @@ body {
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.mbSKIMMING #METABOOKFRAME, body.openhud #METABOOKFRAME,
 body.hudup #METABOOKHUD, body.mbSKIMMING #METABOOKHUD,
-body.openhud #METABOOKHUD, body.mbCOVER #METABOOKCOVER,
-body.mbMEDIA #METABOOKFRAME > #METABOOKMEDIA {
+body.openhud #METABOOKHUD, body.mbCOVER #METABOOKCOVER {
     top: 0px; bottom: 0px; left: 0px; right: 0px;
     height: 100%; width: 100%;
     display: block;}
-body.mbMEDIA #METABOOKBODY, body.mbMEDIA #METABOOKCOVER, 
-body.mbMEDIA #METABOOKHUD { 
-    display: none;}
-
-body.mbMEDIA #METABOOKFRAME > #METABOOKMEDIA {
-    pointer-events: all;}
+body.mbZOOM #METABOOKFRAME, body.mbZOOM #METABOOKBODY { 
+    opacity: 0.0; z-index: -500; pointer-events: none;}
 
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.openhud #METABOOKFRAME, body.mbSKIMMING #METABOOKFRAME,
-body.mbSHOWHELP #METABOOKFRAME, body.mbMEDIA #METABOOKFRAME {
+body.mbSHOWHELP #METABOOKFRAME, body.mbZOOM #METABOOKFRAME {
     z-index: 50;}
 
 /* Override simple stylesheet definitions in the metaBook frame */
@@ -2855,74 +2850,107 @@ body.mbCOVER #METABOOKBODY {
 body.mbCOVER #METABOOKHUD, body.hudup.mbCOVER #METABOOKHUD {
     visibility: hidden; z-index: -50; pointer-events: none;}
 
-#METABOOKMEDIA { 
+#METABOOKZOOM, #METABOOKZOOMBOX { 
     position: absolute;
-    top: 0px; left: 0px; height: 0px; width: 0px;
-    overflow: hidden;
-    display: none; }
-#METABOOKMEDIACONTROLS {display: none;}
-body.mbMEDIA #METABOOKMEDIACONTROLS { 
-    pointer-events: all; display: block;}
+    top: 0px; left: 0px; bottom: 0px; right: 0px;
+    text-align: center; vertical-align: middle;}
 
-#METABOOKMEDIACLOSE {
+#METABOOKZOOM {
+    overflow-x: scroll; overflow-y: scroll;
+    display: none; }
+#METABOOKZOOMBOX {
+    transform-origin: 0px 0px;
+    -webkit-transform-origin: 0px 0px;
+    -moz-transform-origin: 0px 0px;}
+
+body.mbZOOM #METABOOKZOOM {
+    min-width: 100%; min-height: 100%;
+    height: auto; width: auto;
+    display: block;}
+#METABOOKZOOMCONTROLS { 
+    position: fixed;
+    top: 0px; left: 0px; height: 100%; width: 100%;
+    text-align: center; vertical-align: middle;
+    z-index: 100; opacity: 0.5;
+    pointer-events: none;}
+#METABOOKZOOMCONTROLS > * {
+    pointer-events: all;
+    background-color: ivory;}
+
+#METABOOKZOOMCLOSE {
     position: absolute;
-    top: 4px; top: 1vmax; right: 4px; right: 1vmax;
-    width: 50px; width: 10vmax; height: 50px; height: 10vmax; 
-    z-index: 100; opacity: 0.8;
+    top: 4px; top: 1vmax; right: 1em; right: 1rem;
+    width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/redx.svgz);}
-#METABOOKMEDIAHELP {
+body._NOSVG #METABOOKZOOMCLOSE {
+    background-image: url(g/metabook/redx100x100.png);}
+#METABOOKZOOMHELP {
     position: absolute;
     bottom: 4px; bottom: 1vmax; left: 4px; left: 1vmax;
-    width: 50px; width: 10vmax; height: 50px; height: 10vmax; 
-    z-index: 100; opacity: 0.8;
+    width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/help.svgz);}
-body.mbSHOWHELP #METABOOKMEDIAHELP {
+body._NOSVG #METABOOKZOOMHELP {
+    background-image: url(g/metabook/help100x100.png);}
+
+#METABOOKZOOMOUT {
+    position: absolute;
+    bottom: 4px; bottom: 1vmax; right: 1em; right: 1rem;
+    width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
+    background-repeat: no-repeat; background-size: contain;
+    background-image: url(g/metabook/zoomout.svgz);}
+body._NOSVG #METABOOKZOOMOUT {
+    background-image: url(g/metabook/zoomout50x50.png);}
+
+#METABOOKZOOMIN {
+    position: absolute;
+    bottom: 120px; bottom: 20vmax; right: 1em; right: 1rem;
+    width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
+    background-repeat: no-repeat; background-size: contain;
+    background-image: url(g/metabook/zoomin.svgz);}
+body._NOSVG #METABOOKZOOMIN {
+    background-image: url(g/metabook/zoomin50x50.png);}
+
+#METABOOKUNZOOM {
+    position: absolute;
+    bottom: 60px; bottom: 10vmax; right: 1em; right: 1rem;
+    width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
+    background-repeat: no-repeat; background-size: contain;
+    background-image: url(g/metabook/unzoom.svgz);}
+body._NOSVG #METABOOKUNZOOM {
+    background-image: url(g/metabook/unzoom50x50.png);}
+
+body.mbSHOWHELP #METABOOKZOOMHELP {
     opacity: 1.0; background-color: gray;}
 
-#METABOOKMEDIAHELPTEXT {
+#METABOOKZOOMHELPTEXT {
     position: absolute;
     width: 60%; left: 20%; height: 80%; top: 10%; z-index: 500;
     font-size: 2em; font-weight: bold; padding: 1em;
     background: gray; opacity: 0.9;
     text-align: center;
     display: none;}
-body.mbSHOWHELP.mbMEDIA #METABOOKMEDIAHELPTEXT { display: block; }
-
-body._NOSVG #METABOOKFRAME #METABOOKMEDIACLOSE {
-    background-image: url(g/metabook/redx100x100.png);}
-
-#METABOOKMEDIA > img, #METABOOKMEDIA > video, #METABOOKMEDIA > audio { }
-
-/* For IScroll */
-#METABOOKMEDIA > * {
-    position: absolute;
-    z-index: 1;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-    width: 100%;
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-text-size-adjust: none;
-    -moz-text-size-adjust: none;
-    -ms-text-size-adjust: none;
-    -o-text-size-adjust: none;
-    text-size-adjust: none;
-}
+body.mbSHOWHELP.mbZOOM #METABOOKZOOMHELPTEXT { display: block; }
 
 @media (orientation: landscape) {
-    #METABOOKMEDIA > img, #METABOOKMEDIA > video, #METABOOKMEDIA > audio {
+    #METABOOKZOOM > img, #METABOOKZOOM > video, #METABOOKZOOM > audio {
         min-height: 100%; width: auto;}}
 @media (orientation: portrait) {
-    #METABOOKMEDIA > img, #METABOOKMEDIA > video, #METABOOKMEDIA > audio {
+    #METABOOKZOOM > img, #METABOOKZOOM > video, #METABOOKZOOM > audio {
+        min-width: 100%; height: auto;}}
+
+#METABOOKZOOM > img, #METABOOKZOOM > video, #METABOOKZOOM > audio { }
+
+@media (orientation: landscape) {
+    img#METABOOKZOOMTARGET,
+    video#METABOOKZOOMTARGET,
+    audio#METABOOKZOOMTARGET {
+        min-height: 100%; width: auto;}}
+@media (orientation: portrait) {
+    img#METABOOKZOOMTARGET,
+    video#METABOOKZOOMTARGET,
+    audio#METABOOKZOOMTARGET {
         min-width: 100%; height: auto;}}
 
 /* METABOOKBODY is where all of the content lives, whether broken into
@@ -3308,7 +3336,8 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
     z-index: 50;}
 
 #METABOOKCOVERCONTROLS {
-    white-space: nowrap;}
+    white-space: nowrap;
+    font-size: 20px; font-size: 4vw;}
 
 #METABOOKCOVER > #METABOOKCOVERCONTROLS {
     box-sizing: border-box; -moz-box-sizing: border-box;
@@ -3466,6 +3495,11 @@ body._USER._CONN .control[data-mode='login'] { display: none;}
 
 /* The sBooks app for managing layers */
 
+#METABOOKCOVER > div#METABOOKLAYERS {
+    border-top-left-radius: 0px; border-top-right-radius: 0px;
+    -webkit-border-top-left-radius: 0px; -webkit-border-top-right-radius: 0px;
+    -moz-border-left-top-radius: 0px; -webkit-border-right-top-radius: 0px;}
+
 #METABOOKCOVER > #METABOOKLAYERS iframe#SBOOKSAPP {
     height: 100%; width: 100%; margin: 0px; padding: 0px;
     background-color: ivory;}
@@ -3557,16 +3591,16 @@ body._NOUSER #METABOOKSETTINGS h1 a.logout {display:none;}
     text-align: right;}
 #METABOOKSETTINGS table.settings td button.floatright,
 #METABOOKSETTINGS table.settings th.buttons button {
-    min-width: 7em; height: 2em;
+    min-width: 12ex; height: 2em;
     border-width: 2px; text-align: right;
+    margin-left: 0.5ex; margin-bottom: 0.2ex;
     font-weight: 600;}
 #METABOOKSETTINGS table.settings th.buttons button img {
     height: 1em; width: auto; float: left;}
 #METABOOKSETTINGS table.settings th.buttons button.refresh,
 #METABOOKSETTINGS table.settings td button.floatright.refresh,
 #METABOOKSETTINGS table.settings th.buttons button.reset,
-#METABOOKSETTINGS table.settings td button.floatright.reset
-{
+#METABOOKSETTINGS table.settings td button.floatright.reset {
     background-position: left center; background-repeat: no-repeat;
     background-size: contain;
 }
@@ -3709,7 +3743,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKOPENTAB {
 
 #METABOOKCOVERMESSAGE > div {
     color: silver; display: none;
-    padding-left: 1em; padding-right: 1em;
+    padding-left: 0px; padding-right: 0px;
     padding-top: 0px;
     box-sizing: border-box;
     width: 100%;}
@@ -3731,7 +3765,7 @@ body.mbLAYOUT #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE,
 body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     display: none;}
 #METABOOKLAYOUTMESSAGE div.message {
-    font-size: 24px; font-size: 1.8rem;}
+    font-size: 24px; font-size: 5vmin;}
 
 #METABOOKREADYMESSAGE { padding-bottom: 1ex; }
 
@@ -3771,12 +3805,19 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     body._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
     body._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
     
-    #METABOOKCOVER > #METABOOKCOVERCONTROLS { height: 80px; }
+    #METABOOKCOVER > #METABOOKCOVERCONTROLS {
+        height: 80px; white-space: normal; }
 
     #METABOOKCOVER div.loginbox {font-size: 1em;}
 
-    #METABOOKSETTINGS { padding: 1ex; }
-    #METABOOKSETTINGS h1 { font-size: 1.5em;}
+    #METABOOKSETTINGS {
+        padding: 1ex;
+        padding-left: 2px;
+        padding-right: 2px;}
+    #METABOOKSETTINGS h1 {
+        font-size: 1.5em;
+        margin-right: 1ex;
+        margin-left: 1ex;}
 }
 
 @media (pointer: coarse) {
@@ -3795,7 +3836,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     #METABOOKCOVER div.loginbox form input[TYPE="TEXT"]:focus {
         width: 100%; max-width: 100%; z-index: 100;}
     #METABOOKSETTINGS button.floatright {
-        font-size: 16px; font-size: 1rem;}}
+        font-size: 16px; font-size: 0.8rem;}}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -7166,6 +7207,9 @@ div.metabookcard > hr {
 .metabookcard.passage .metabookcardbody {
     background-color: white;
     border-top: solid purple 1px;}
+.metabookslice > .metabookcard:first-child .metabookcardbody {
+    border-top-width: 0px;}
+
 .metabookcard span.controller { cursor: pointer;}
 .metabookcard .info { 
     float: right;}
