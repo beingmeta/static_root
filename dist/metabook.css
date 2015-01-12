@@ -3512,7 +3512,10 @@ body._USER._CONN .control[data-mode='login'] { display: none;}
 #METABOOKCOVER > div#METABOOKLAYERS {
     border-top-left-radius: 0px; border-top-right-radius: 0px;
     -webkit-border-top-left-radius: 0px; -webkit-border-top-right-radius: 0px;
-    -moz-border-left-top-radius: 0px; -webkit-border-right-top-radius: 0px;}
+    -moz-border-left-top-radius: 0px; -webkit-border-right-top-radius: 0px;
+    border-bottom-left-radius: 1.5em; border-bottom-right-radius: 1.5em;
+    -webkit-border-bottom-left-radius: 1.5em; -webkit-border-bottom-right-radius: 1.5em;
+    -moz-border-left-bottom-radius: 1.5em; -webkit-border-right-bottom-radius: 1.5em;}
 
 #METABOOKCOVER > #METABOOKLAYERS iframe#SBOOKSAPP {
     height: 100%; width: 100%; margin: 0px; padding: 0px;

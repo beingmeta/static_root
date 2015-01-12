@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1233-g12a1508';
+var fdjt_revision='1.5-1236-g1e03098';
 var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Tue Jan 6 14:53:32 EST 2015';
-var fdjt_builduuid='c82fbd0f-f203-43cc-b2c4-3a0663fed51b';
+var fdjt_buildtime='Mon Jan 12 15:25:35 EST 2015';
+var fdjt_builduuid='4b289b1f-9ac2-4631-bee3-0e0d085b80a0';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -6605,9 +6605,11 @@ fdjt.DOM=
                                 sel.slice(1,sel.length-1),
                                 sel.slice(1,sel.length-1));}
                         else {
-                            node.setAttribute(
-                                sel.slice(1,eqpos),
-                                sel.slice(eqpos+1,sel.length-1));}}
+                            var val=sel.slice(eqpos+1,sel.length-1);
+                            if (((val[0]==="'")&&(val[val.length-1]==="'"))||
+                                ((val[0]==='"')&&(val[val.length-1]==='"')))
+                                val=val.slice(1,val.length-1);
+                            node.setAttribute(sel.slice(1,eqpos),val);}}
                     else {}}
                 if (classname) node.className=classname;}
             else {
@@ -12658,22 +12660,49 @@ fdjt.UI.ProgressBar=(function(){
     "use strict";
     var fdjtDOM=fdjt.DOM;
     var fdjtUI=fdjt.UI;
+    var fdjtString=fdjt.String;
+    var isEmpty=fdjtString.isEmpty;
+    var hasClass=fdjtDOM.hasClass;
 
-    function multitext_keypress(evt,sepch){
+    function multitext_keypress(evt,sepchars,sepexp,fn){
+        // sepchars are characters which function just like 'Return'
+        // sepexp is a regular expression which is used to split an
+        //   input string into multiple values
         evt=(evt)||(event);
-        var ch=evt.charCode;
+        var chcode=evt.charCode, ch=String.fromCharCode(chcode);
         var target=fdjtUI.T(evt);
-        if (typeof sepch === 'string') sepch=sepch.charCodeAt(0);
-        if ((ch!==13)||((sepch)&&(sepch!==ch))) return;
-        fdjtUI.cancel(evt);
-        var checkspec=target.getAttribute("data-checkspec")||"div.checkspan";
-        var checkbox=
-            fdjtDOM.Input("[type=checkbox]",target.name,target.value);
-        var checkelt=fdjtDOM(checkspec,checkbox,target.value);
-        checkbox.checked=true;
-        fdjtDOM.addClass(checkelt,"ischecked");
-        fdjtDOM(target.parentNode," ",checkelt);
-        target.value='';}
+        if  (sepchars instanceof RegExp) {
+            sepexp=sepchars; sepchars=false;}
+        else if ((sepchars)&&(sepchars.call)) {
+            fn=sepchars; sepchars=false;}
+        else {}
+        if ((!sepchars)&&(target.getAttribute("data-sepchars")))
+            sepchars=target.getAttribute("data-sepchars");
+        if ((chcode===13)&&(isEmpty(target.value))&&
+            (hasClass(target,"fdjtentersubmit"))) {
+            fdjt.UI.cancel(evt);
+            target.form.submit();
+            return;}
+        if ((chcode===13)||
+            ((sepchars)&&((sepchars.indexOf(ch))>=0))) {
+            if ((!(sepexp))&&(target.getAttribute("data-separator")))
+                sepexp=new RegExp(target.getAttribute("data-separator"),"g");
+            var checkspec=
+                target.getAttribute("data-checkspec")||"div.checkspan";
+            var values=((sepexp)?(target.value.split(sepexp)):[target.value]);
+            var i=0, lim=values.length; while (i<lim) {
+                var value=values[i++];
+                if (fn)
+                    fdjtDOM(target.parentNode,"\n",fn(target.name,value));
+                else {
+                    var checkbox=
+                        fdjtDOM.Input("[type='checkbox']",target.name,value);
+                    var checkelt=fdjtDOM(checkspec,checkbox,value);
+                    checkbox.checked=true;
+                    fdjtDOM.addClass(checkelt,"ischecked");
+                    fdjtDOM(target.parentNode,"\n",checkelt);}}
+            fdjtUI.cancel(evt);
+            target.value='';}}
     fdjtUI.MultiText.keypress=multitext_keypress;})();
 
 
@@ -22917,7 +22946,7 @@ var metaBook={
             metaBook.glossdb.clearOffline(function(){
                 clearLocal("metabook.sync("+uri+")");
                 setTimeout(metaBook.updateInfo,25);});}
-             metaBook.refreshOffline=refreshOffline;
+        metaBook.refreshOffline=refreshOffline;
 
         function Query(tags,base_query){
             if (!(this instanceof Query))
@@ -27739,7 +27768,7 @@ metaBook.setMode=
             function messageHandler(evt){
                 var origin=evt.origin;
                 if (Trace.messages)
-                    fdjtLog("Got a message from %s with payload %s",
+                    fdjtLog("Got a message from %s with payload %o",
                             origin,evt.data);
                 if (origin.search(/https:\/\/[^\/]+.sbooks.net/)!==0) {
                     fdjtLog.warn("Rejecting insecure message from %s",
@@ -27750,9 +27779,23 @@ metaBook.setMode=
                 else if (evt.data==="loggedin") {
                     if (!(metaBook.user)) {
                         metaBook.userSetup();}}
-                else if (evt.data.search("setuser=")===0) {
+                else if ((typeof evt.data === "string")&&
+                         (evt.data.search("setuser=")===0)) {
                     if (!(metaBook.user)) {
                         metaBook.userinfo=JSON.parse(evt.data.slice(8));
+                        metaBook.loginUser(metaBook.userinfo);
+                        metaBook.setMode("welcome");
+                        metaBook.userSetup();}}
+                else if (evt.data.updateglosses) {
+                    metaBook.updateInfo();}
+                else if (evt.data.addlayer) {
+                    metaBook.updateInfo();}
+                else if ((evt.data.droplayer)||(evt.data.hidelayer)||
+                         (evt.data.showlayer)) {
+                    metaBook.refreshOffline();}
+                else if (evt.data.userinfo) {
+                    if (!(metaBook.user)) {
+                        metaBook.userinfo=evt.data.userinfo;
                         metaBook.loginUser(metaBook.userinfo);
                         metaBook.setMode("welcome");
                         metaBook.userSetup();}}
@@ -27760,11 +27803,9 @@ metaBook.setMode=
                     fdjtDOM("METABOOKINTRO",evt.data);
                 else {}}
             var appframe=sbooksapp;
-            var appwindow=((appframe)&&(appframe.contentWindow));
-            if (appwindow.postMessage) {
-                if (Trace.messages)
-                    fdjtLog("Setting up message listener");
-                fdjtDOM.addListener(window,"message",messageHandler);}
+            if (Trace.messages)
+                fdjtLog("Setting up message listener");
+            fdjtDOM.addListener(window,"message",messageHandler);
             
             metaBook.TapHold.foot=
                 new fdjtUI.TapHold(
@@ -28270,7 +28311,8 @@ metaBook.setMode=
             if (document.location.hash) {
                 appuri=appuri+"&HASH="+document.location.hash.slice(1);}
 
-            fdjtID("SBOOKSAPP").src=appuri;
+            var app=fdjtID("SBOOKSAPP");
+            app.src=appuri;
             iframe_app_init=true;}
         metaBook.initIFrameApp=initIFrameApp;
 
@@ -38066,15 +38108,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2330-g459b43a';
+metaBook.version='v0.5-2333-g0699ded';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Thu Jan  8 18:04:49 EST 2015';
-metaBook.buildid='704d2225-5822-45c7-aa26-b6232375e4b8';
+metaBook.buildtime='Mon Jan 12 15:51:43 EST 2015';
+metaBook.buildid='b624c417-44ce-47c1-b81b-10c8881808b0';
 
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Thu Jan  8 18:04:49 EST 2015';
-metaBook.buildid='84774f26-71fa-40d0-85dc-93b334d586cc';
+metaBook.buildtime='Mon Jan 12 15:51:43 EST 2015';
+metaBook.buildid='c5b92dc3-9086-45df-87d8-e8ba2e31723a';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';
