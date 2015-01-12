@@ -109,8 +109,8 @@ metabook/html/%.js: metabook/html/%.html makefile
 
 all: allcode alltags allhints index.html
 allcode: fdjt knodules metabook webfontloader \
-	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css \
-	metabook.js metabook.css
+	metabook.js metabook.css fdjt.js fdjt.css \
+	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css
 
 dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
@@ -179,8 +179,7 @@ clean:
 	make cleanhints
 	rm -f ${METABOOK_DERIVED_FILES}
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
-	rm -f sbooks/metabook.js sbooks/metabook.css
-	rm -f metabook.js metabook.css
+	rm -f metabook.js metabook.css fdjt.js fdjt.css
 
 undist:
 	git checkout dist/metabook.css dist/metabook.css.gz \
@@ -194,6 +193,11 @@ fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 	cd fdjt; make all
 fdjt/codexlayouthash.js: fdjt/codexlayout.js fdjt/codexlayout.css
 	cd fdjt; make all
+
+fdjt.js: fdjt/fdjt.js
+	cp fdjt/fdjt.js fdjt.js
+fdjt.css: fdjt/fdjt.css
+	cp fdjt/fdjt.css fdjt.css
 
 dist/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
 	@$(ECHO) "// sBooks metaBook build information" > $@
