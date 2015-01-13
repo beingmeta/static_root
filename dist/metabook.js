@@ -38110,13 +38110,13 @@ metaBook.HTML.pageright=
 // sBooks metaBook build information
 metaBook.version='v0.5-2333-g0699ded';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Mon Jan 12 15:51:43 EST 2015';
-metaBook.buildid='b624c417-44ce-47c1-b81b-10c8881808b0';
+metaBook.buildtime='Tue Jan 13 10:42:17 EST 2015';
+metaBook.buildid='a77a778f-8832-4399-8ff8-73f89ebc65b2';
 
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Mon Jan 12 15:51:43 EST 2015';
-metaBook.buildid='c5b92dc3-9086-45df-87d8-e8ba2e31723a';
+metaBook.buildtime='Tue Jan 13 10:42:17 EST 2015';
+metaBook.buildid='73493a1c-d520-4af8-aeac-484516f8c47c';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';
