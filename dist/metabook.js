@@ -28,8 +28,8 @@
 // FDJT build information
 var fdjt_revision='1.5-1237-ge861f9e';
 var fdjt_buildhost='Shiny';
-var fdjt_buildtime='Tue Jan 13 14:14:24 EST 2015';
-var fdjt_builduuid='CF5AF780-0254-4A26-A44E-052C0E9E606D';
+var fdjt_buildtime='Wed Jan 14 16:33:48 EST 2015';
+var fdjt_builduuid='579CEFD3-9FE1-4D24-B265-401FEF43F585';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -27083,7 +27083,7 @@ metaBook.Startup=
                 else if (outlet.description)
                     completion.title=outlet.description;
                 else if (outlet.nick) completion.title=outlet.name;
-                fdjtDOM("#METABOOKOUTLETS",completion," ");
+                fdjtDOM("#METABOOKOUTLETCLOUD",completion," ");
                 metaBook.share_cloud.addCompletion(completion);}
             if (outlet._live) init();
             else outlet.onLoad(init,"addoutlet2cloud");}
@@ -27675,7 +27675,7 @@ metaBook.setMode=
 
         // This will contain the interactive input console (for debugging)
         var frame=false, hud=false;
-        var allglosses=false, sbooksapp=false;
+        var allglosses=false;
 
         function initHUD(){
             if (fdjtID("METABOOKHUD")) return;
@@ -27802,7 +27802,6 @@ metaBook.setMode=
                 else if (evt.data)
                     fdjtDOM("METABOOKINTRO",evt.data);
                 else {}}
-            var appframe=sbooksapp;
             if (Trace.messages)
                 fdjtLog("Setting up message listener");
             fdjtDOM.addListener(window,"message",messageHandler);
@@ -27847,16 +27846,16 @@ metaBook.setMode=
             updateScroller("METABOOKALLTAGS");
             metaBook.TapHold.empty_cloud=new TapHold(metaBook.empty_cloud.dom);
             
-            var dom_share_cloud=fdjtID("METABOOKSHARECLOUD");
-            metaBook.share_cloud=
+            var dom_outlet_cloud=fdjtID("METABOOKOUTLETCLOUD");
+            metaBook.outlet_cloud=
                 new fdjtUI.Completions(
-                    dom_share_cloud,fdjtID("METABOOKTAGINPUT"),
+                    dom_outlet_cloud,fdjtID("METABOOKOUTLETINPUT"),
                     fdjtUI.FDJT_COMPLETE_OPTIONS|
                         fdjtUI.FDJT_COMPLETE_CLOUD|
                         fdjtUI.FDJT_COMPLETE_ANYWORD);
-            metaBook.DOM.share_cloud=dom_share_cloud;
-            updateScroller("METABOOKSHARECLOUD");
-            metaBook.TapHold.share_cloud=new TapHold(metaBook.share_cloud.dom);
+            metaBook.DOM.share_cloud=dom_outlet_cloud;
+            updateScroller("METABOOKOUTLETCLOUD");
+            metaBook.TapHold.outlet_cloud=new TapHold(metaBook.outlet_cloud.dom);
 
             fdjtDOM.setupCustomInputs(fdjtID("METABOOKHUD"));
 
@@ -32155,7 +32154,7 @@ metaBook.Slice=(function () {
 
     /***** The Outlet Cloud *****/
 
-    function sharecloud_ontap(evt){
+    function outletcloud_ontap(evt){
         var target=fdjtUI.T(evt);
         var completion=getParent(target,'.completion');
         if (completion) {
@@ -32170,7 +32169,7 @@ metaBook.Slice=(function () {
                 if (value) addOutlet(form,completion,"EMAIL");
             else addOutlet(form,completion);}
         fdjtUI.cancel(evt);}
-    metaBook.UI.sharecloud_ontap=sharecloud_ontap;
+    metaBook.UI.outletcloud_ontap=outletcloud_ontap;
 
     /***** Saving (submitting/queueing) glosses *****/
 
@@ -35229,7 +35228,7 @@ metaBook.Slice=(function () {
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
-         "#METABOOKSHARECLOUD": {
+         "#METABOOKOUTLETCLOUD": {
              tap: outlet_select,release: outlet_select},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
@@ -35389,7 +35388,7 @@ metaBook.Slice=(function () {
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
-         "#METABOOKSHARECLOUD": {
+         "#METABOOKOUTLETCLOUD": {
              tap: outlet_select,release: outlet_select},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
@@ -37208,8 +37207,7 @@ metaBook.HTML.heart=
     "<div id=\"METABOOKALLTAGS\" class=\"completions searchcloud cloud noinput\">\n"+
     "</div>\n"+
     "<div id=\"METABOOKSEARCHRESULTS\" class=\"metabookslice hudpanel\"></div>\n"+
-    "<div id=\"METABOOKSHARECLOUD\" class=\"hudpanel completions showall\"></div>\n"+
-    "<div id=\"METABOOKOUTLETS\"></div>\n"+
+    "<div id=\"METABOOKOUTLETCLOUD\" class=\"hudpanel completions showall\"></div>\n"+
     "<div id=\"METABOOKGLOSSCLOUD\" class=\"hudpanel completions showall\">\n"+
     "  <div class=\"nomatchmsg\">(no matches)</div>\n"+
     "</div>\n"+
@@ -38108,15 +38106,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2334-gb9313c6';
+metaBook.version='v0.5-2336-gb321a61';
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Wed Jan 14 11:17:35 EST 2015';
-metaBook.buildid='D4C79115-8E96-4C69-A666-976A5E338CDE';
+metaBook.buildtime='Wed Jan 14 16:33:08 EST 2015';
+metaBook.buildid='FB3CF9F3-2DF0-4857-B713-0077B3623205';
 
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Wed Jan 14 11:17:35 EST 2015';
-metaBook.buildid='426229E8-4D1F-4946-AF0B-5A46FCAD6368';
+metaBook.buildtime='Wed Jan 14 16:35:17 EST 2015';
+metaBook.buildid='1EAF7F8F-A340-4D32-9151-EBC6BBB8BEF0';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';

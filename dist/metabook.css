@@ -4090,7 +4090,8 @@ body.hudup #METABOOKHEART {
 #METABOOKHEART #METABOOKHEARTBODY {}
 
 #METABOOKHUD #METABOOKRIBBON {
-    position: absolute; top: 0px; left: 0px; right: 0px; height: 0px;
+    position: absolute;
+    top: 0px; left: 0px; right: 0px; height: 0px; z-index: 50;
     background-color: ivory;
     font-size: 50%;}
 #METABOOKHUD #METABOOKHEARTBODY {
@@ -4139,7 +4140,7 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.searchresults #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddoutlet #METABOOKHEARTBODY {
-    top: 5.25ex; margin-top: 0px;
+    top: 3ex; margin-top: 0px;
     border-radius: 0px;}
 
 /*
@@ -4278,9 +4279,9 @@ body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCH {
 #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY
    #METABOOKGLOSSCLOUD.hudpanel,
 #METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEARTBODY
-   #METABOOKSHARECLOUD.hudpanel,
+   #METABOOKOUTLETCLOUD.hudpanel,
 #METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEARTBODY
-   #METABOOKSHARECLOUD.hudpanel,
+   #METABOOKOUTLETCLOUD.hudpanel,
 #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY
    #METABOOKGLOSSATTACH.hudpanel,
 #METABOOKHUD.addgloss.glosseditdetail #METABOOKHEARTBODY
@@ -7961,18 +7962,18 @@ body.hudup #METABOOKHUD.addgloss div.hudpanel#METABOOKADDGLOSS {}
 #METABOOKHUD #METABOOKGLOSSEDITDETAIL textarea {
     width: 90%; max-height: 90%; min-height: 250px;}
 
-div.completions#METABOOKSHARECLOUD #METABOOKSHARECLOUD {
+div.completions#METABOOKOUTLETCLOUD > div {
     margin-left: 50px; margin-right: 50px;}
 div.completions#METABOOKGLOSSCLOUD > div {
     margin-left: 50px; margin-right: 50px;}
-#METABOOKFRAME._ANIMATE div.completions#METABOOKSHARECLOUD {
+#METABOOKFRAME._ANIMATE div.completions#METABOOKOUTLETCLOUD {
     transition-property: height;
     -webkit-transition-property: height;
     -moz-transition-property: height;
     -o-transition-property: height;
     transition-duration: 3s; -webkit-transition-duration: 3s;
     -moz-duration: 3s; -o-transition-duration: 3s;}
-body.hudup #METABOOKHUD.addgloss.glossaddoutlet div.completions#METABOOKSHARECLOUD {
+body.hudup #METABOOKHUD.addgloss.glossaddoutlet div.completions#METABOOKOUTLETCLOUD {
     display: block;}
 body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
     display: block;}
@@ -8018,7 +8019,7 @@ body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
 #METABOOKNETWORKBUTTONS span.checkspan.ischecked span.checked,
 #METABOOKNETWORKBUTTONS span.checkspan.ischecked img.checked {
     display: inline;}
-#METABOOKSHARECLOUD #METABOOKNETWORKBUTTONS img {
+#METABOOKOUTLETCLOUD #METABOOKNETWORKBUTTONS img {
     height: 40px; width: auto;}
 
 #METABOOKRIBBON > div.inputbox {
@@ -8032,7 +8033,7 @@ body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
     background-position-x: right; background-position-y: top;
     background-size: 1.2em 1.2em;
     background-repeat: no-repeat;
-    height: 1.2em; padding-bottom: 1px; padding-top: 1px;
+    height: 1.4em; padding-bottom: 0.1em; padding-top: 0.1em;
     font-size: 20px;
     width: 90%;}
 #METABOOKRIBBON div.inputbox#METABOOKGLOSSTAGINPUT input[TYPE="TEXT"] {
