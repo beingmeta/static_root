@@ -3921,7 +3921,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     padding-bottom: 2px; padding-top: 1px;
     border-width: 2px;}
 body.hudup #METABOOKHUD.openheart #METABOOKHEAD {
-    max-height: 60px;}
+    max-height: 100px;}
 body._FULLHEIGHT.hudup #METABOOKHEAD {
     background-color: transparent;}
 body.hudup #METABOOKHEAD .hudpanel {
@@ -4070,7 +4070,7 @@ body.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER.expanded {
     background-color: whitesmoke;
     border-color: rgba(70, 130, 180, 0.54);}
 #METABOOKHUD.openheart #METABOOKHEART {
-    top: 75px; bottom: 50px;}
+    top: 100px; bottom: 50px;}
 body.hudup #METABOOKHEART {
     display: block; opacity: 1.0;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
@@ -4133,15 +4133,16 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.glossaddtag #METABOOKRIBBON,
 #METABOOKHUD.glossaddoutlet #METABOOKRIBBON {
     border-bottom: solid blue 2px;
-    height: 48px;}
+    padding-top: 1ex; height: 5ex;}
 #METABOOKHUD.refinesearch #METABOOKHEARTBODY,
 #METABOOKHUD.expandsearch #METABOOKHEARTBODY,
 #METABOOKHUD.searchresults #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddoutlet #METABOOKHEARTBODY {
-    top: 50px; margin-top: 0px;
+    top: 5.25ex; margin-top: 0px;
     border-radius: 0px;}
 
+/*
 #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY,
 #METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEARTBODY,
@@ -4151,6 +4152,7 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
     margin-bottom: 1.5ex; margin-top: 1.5ex; 
     padding-bottom: 1em; padding-top: 1ex;
     margin-right: 1px;}
+*/
 
 body.hudup #METABOOKHUD.openheart.allglosses #METABOOKHEARTBODY div.hudpanel,
 body.hudup #METABOOKHUD.openheart.searchresults
@@ -4194,7 +4196,7 @@ body._ISCROLL #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY #METABOOKHEAR
 #METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEART,
 #METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEART,
 #METABOOKHUD.addgloss.glosseditdetail #METABOOKHEART {
-    top: 70px; bottom: 50px; height: auto;}
+    top: 120px; bottom: 50px; height: auto;}
 #METABOOKHUD.addgloss.glossattach #METABOOKHEART {
     top: 150px; height: auto; min-height: 10em;}
 #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY {
