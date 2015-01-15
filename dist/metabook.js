@@ -31626,7 +31626,7 @@ metaBook.Slice=(function () {
                 formvar.toLowerCase());
         var checkspan=fdjtUI.CheckSpan(
             spanspec,formvar||"SHARE",outlet_id,checked,
-            "→",outlet.nick||outlet.name,
+            fdjtDOM("span.arrow","↣"),outlet.nick||outlet.name,
             fdjtDOM.Image(mbicon("redx",32,32),"img.redx","x"));
         if ((outlet.nick)&&(outlet.description))
             checkspan.title=outlet.name+": "+outlet.description;
@@ -37204,12 +37204,12 @@ metaBook.HTML.heart=
     "    </table>\n"+
     "  </form>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSEARCHCLOUD\" class=\"completions searchcloud\"></div>\n"+
+    "<div id=\"METABOOKSEARCHCLOUD\" class=\"completions cloud searchcloud\"></div>\n"+
     "<div id=\"METABOOKALLTAGS\" class=\"completions searchcloud cloud noinput\">\n"+
     "</div>\n"+
     "<div id=\"METABOOKSEARCHRESULTS\" class=\"metabookslice hudpanel\"></div>\n"+
-    "<div id=\"METABOOKSHARECLOUD\" class=\"hudpanel completions showall\"></div>\n"+
-    "<div id=\"METABOOKGLOSSCLOUD\" class=\"hudpanel completions showall\">\n"+
+    "<div id=\"METABOOKSHARECLOUD\" class=\"hudpanel completions cloud showall\"></div>\n"+
+    "<div id=\"METABOOKGLOSSCLOUD\" class=\"hudpanel completions cloud showall\">\n"+
     "  <div class=\"nomatchmsg\">(no matches)</div>\n"+
     "</div>\n"+
     "<div class=\"tabcontent flyleaftab hudpanel\" id=\"METABOOKSTATICTOC\"></div>\n"+
@@ -38107,15 +38107,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2340-g4c6ef2c';
+metaBook.version='v0.5-2342-gc9d6d81';
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Thu Jan 15 14:07:08 EST 2015';
-metaBook.buildid='71BF343C-6017-49D8-B288-E37EEAF1D89E';
+metaBook.buildtime='Thu Jan 15 15:42:56 EST 2015';
+metaBook.buildid='1D76FF08-42C6-4427-BD73-7F19CC23F370';
 
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Thu Jan 15 14:09:17 EST 2015';
-metaBook.buildid='F7EDDB40-C694-4F0D-912C-652F2A5FE41A';
+metaBook.buildtime='Thu Jan 15 15:43:47 EST 2015';
+metaBook.buildid='484A96AA-37CF-4814-957E-0CD052C1DA81';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';

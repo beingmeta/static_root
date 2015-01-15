@@ -3921,7 +3921,9 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     padding-bottom: 2px; padding-top: 1px;
     border-width: 2px;}
 body.hudup #METABOOKHUD.openheart #METABOOKHEAD {
-    max-height: 100px;}
+    max-height: 100px; height: auto;}
+body.hudup #METABOOKHUD.openheart.openhead #METABOOKHEAD {
+    max-height: 100px; min-height: 60px; height: auto;}
 body._FULLHEIGHT.hudup #METABOOKHEAD {
     background-color: transparent;}
 body.hudup #METABOOKHEAD .hudpanel {
@@ -4070,7 +4072,9 @@ body.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER.expanded {
     background-color: whitesmoke;
     border-color: rgba(70, 130, 180, 0.54);}
 #METABOOKHUD.openheart #METABOOKHEART {
-    top: 100px; bottom: 50px;}
+    top: 50px; bottom: 50px;}
+#METABOOKHUD.openhead.openheart #METABOOKHEART {
+    top: 70px;}
 body.hudup #METABOOKHEART {
     display: block; opacity: 1.0;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
@@ -4134,13 +4138,13 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.glossaddtag #METABOOKRIBBON,
 #METABOOKHUD.glossaddoutlet #METABOOKRIBBON {
     border-bottom: solid blue 2px;
-    padding-top: 1ex; height: 5ex;}
+    padding-top: 0px; height: 6ex;}
 #METABOOKHUD.refinesearch #METABOOKHEARTBODY,
 #METABOOKHUD.expandsearch #METABOOKHEARTBODY,
 #METABOOKHUD.searchresults #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddoutlet #METABOOKHEARTBODY {
-    top: 3ex; margin-top: 0px;
+    top: 3.1ex; margin-top: 0px;
     border-radius: 0px;}
 
 /*
@@ -4948,7 +4952,8 @@ body.mbSKIMMING.mbSKIMSTART.mbSKIMEND img.metabookskimbutton#METABOOKPREVSKIM {
 #METABOOKHUD div.hudpanel#SBOOKGLOSSES {position: absolute; right: 50px;}
 #METABOOKHUD #METABOOKSOURCES.hudpanel {
     overflow-y: hidden; overflow-x: auto; white-space: nowrap;
-    padding-top: 2px;}
+    box-sizing: content-box;
+    padding-top: 2px; padding-bottom: 8px;}
 #METABOOKHUD #METABOOKHEAD #METABOOKSOURCES.hudpanel {
     position: absolute;}
 
@@ -6794,8 +6799,8 @@ div.metabookslice div.metabookcard.metabookskimpoint .fdjtclearfloats {
 
 div.metabooksources {}
 div.metabooksources img.button {
-    height: 100%; width: auto; max-width: 50px; border-radius: 10%;
-    box-sizing: border-box;}
+    height: 50px; width: auto; max-width: 50px; border-radius: 10%;
+    box-sizing: content-box;}
 div.metabooksources img.button.everyone {}
 div.metabooksources img.button.everyone.selected { background-color: silver; }
 div.metabooksources .button {
@@ -7351,7 +7356,9 @@ div.searchbox div.query {
     box-sizing: border-box; -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box; -o-box-sizing: border-box;
     width: 100%; max-height: 100%;
-    padding-top: 2px; padding-bottom: 3px;}
+    margin-top: 0.2ex; 
+    padding-top: 2px; padding-bottom: 3px;
+    padding-left: 0.5ex; padding-right: 4px;}
 div.searchbox div.query {
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -7372,17 +7379,8 @@ div.searchbox input[type='TEXT'] {
     flex-grow: 1; -webkit-flex-grow: 1; -moz-flex-grow: 1;
     font-size: 1.5rem; margin-left: 1ex;}
 div.searchbox input[type='TEXT'] {
-    border-radius: 0.5ex; -webkit-border-radius: 0.5ex;
-    -o-border-radius: 0.5ex; -moz-border-radius: 0.5ex;
-    border-top-width: 0px;
-    border-top-left-radius: 0px;
-    -webkit-border-top-left-radius: 0px; 
-    -moz-border-radius-topleft: 0px;
-    -o-border-radius-topleft: 0px; 
-    border-top-right-radius: 0px;
-    -webkit-border-top-right-radius: 0px; 
-    -moz-border-radius-topright: 0px;
-    -o-border-radius-topright: 0px;}
+    border-radius: 0px; -webkit-border-radius: 0px;
+    -o-border-radius: 0px; -moz-border-radius: 0px;}
 
 div.searchbox input[type='TEXT'][name='QTEXT'] {
     background-position: right top;
@@ -7465,7 +7463,7 @@ div.resultinfo.noresults span { display: none;}
     display: block;}
 #METABOOKSEARCHINFO .qtags {
     box-sizing: border-box;
-    padding-top: 0.25ex; padding-right: 1ex;
+    padding-top: 0.5ex; padding-right: 1ex;
     margin-left: 1em; margin-bottom: 0px;
     height: 100%; vertical-align: top;
     clear: left;}
@@ -7761,6 +7759,9 @@ div.metabookglossform form div.glossetc .checkspan.ischecked {
     text-decoration: none;}
 div.metabookglossform form div.glossetc .checkspan.waschecked.ischecked {
     text-decoration: none;}
+div.metabookglossform form div.glossetc .outlets,
+div.metabookglossform form div.glossetc .tags { 
+    line-height: 0.6;}
 div.metabookglossform form div.glossetc .outlets { padding-left: 1px;}
 div.metabookglossform form div.glossetc .links { padding-left: 1px;}
 div.metabookglossform form div.glossetc .checkspan img {
@@ -7782,6 +7783,8 @@ body.hudup div.metabookglossform form div.glossetc .links.empty,
 body.hudup div.metabookglossform form div.glossetc .tags.empty,
 body.hudup div.metabookglossform form div.glossetc .excerpt.empty {
     display: none;}
+
+div.metabookglossform form div.glossetc .arrow { font-size: 150%; }
 
 div.metabookglossform form div.glossetc .outlets { display: none; }
 div.metabookglossform form div.glossetc .networks {
@@ -7902,11 +7905,12 @@ img[alt="glossdelete"] {
     display: none;}
 
 div.metabookglossform form .checkspan {
-    padding-left: 2px; padding-right: 2px;}
+    padding-left: 1ex; padding-right: 2px;}
 
 div.metabookglossform form span.source:before,
 .completions span.source:before {
-    content: '@'; color: darkblue;}
+    content: '↣'; font-size: 150%;
+    color: darkblue;}
 
 div.metabookglossform .button.savebutton,
 div.metabookglossform .button.replybutton,
@@ -8023,7 +8027,7 @@ body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
     height: 40px; width: auto;}
 
 #METABOOKRIBBON > div.inputbox {
-    text-align: center; margin-bottom: 1ex;}
+    text-align: center; margin-bottom: 1ex; margin-top: 1ex;}
 #METABOOKRIBBON > div.inputbox img.label {
     float: right; height: 2em; width: auto;}
 #METABOOKRIBBON > div.inputbox span.head {
