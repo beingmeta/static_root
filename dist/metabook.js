@@ -28,8 +28,8 @@
 // FDJT build information
 var fdjt_revision='1.5-1237-ge861f9e';
 var fdjt_buildhost='Shiny';
-var fdjt_buildtime='Wed Jan 14 16:33:48 EST 2015';
-var fdjt_builduuid='579CEFD3-9FE1-4D24-B265-401FEF43F585';
+var fdjt_buildtime='Thu Jan 15 13:50:40 EST 2015';
+var fdjt_builduuid='B7FF15B8-8D6F-457A-9572-1DC3386A18DD';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -9927,7 +9927,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
 /* -*- Mode: Javascript; -*- */
 
-/* ######################### fdjt/kb.js ###################### */
+/* ######################### fdjt/refdb.js ###################### */
 
 /* Copyright (C) 2009-2014 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
@@ -10369,7 +10369,7 @@ if (!(fdjt.RefDB)) {
                         loadfn(this);}}
                 // Run per-instance delayed inits
                 if (this._onload) {
-                    var inits=this._onload.fns;
+                    var onloads=this._onload, inits=onloads.fns;
                     var j=0, jlim=inits.length; while (j<jlim) {
                         inits[j++](this);}
                     delete this._onload;}}
@@ -26556,6 +26556,8 @@ metaBook.Startup=
                     var friend=RefDB.resolve(friends[i++],sourcedb);
                     metaBook.addTag2Cloud(friend,metaBook.gloss_cloud);
                     metaBook.addTag2Cloud(friend,metaBook.share_cloud);}}
+            if (metaBook.outlets)
+                addOutlets2UI(metaBook.outlets);
             if (Trace.startup) {
                 var now=fdjtTime();
                 fdjtLog("setUser %s (%s), UI setup took %dms",
@@ -27071,22 +27073,22 @@ metaBook.Startup=
                     addOutlets2UI(outlets[i++]);
                 return;}
             if (!(outlet instanceof Ref)) return;
+            if (outlet._inui) return;
             var completion=fdjtDOM("span.completion.cue.source",outlet._id);
             function init(){
+                outlet._inui=completion;
                 completion.id="mbOUTLET"+outlet.humid;
                 completion.setAttribute("data-value",outlet._id);
                 completion.setAttribute("data-key",outlet.name);
                 completion.innerHTML=outlet.name;
                 if ((outlet.description)&&(outlet.nick))
-                    completion.title=outlet.name+": "+
-                    outlet.description;
+                    completion.title=outlet.name+": "+outlet.description;
                 else if (outlet.description)
                     completion.title=outlet.description;
                 else if (outlet.nick) completion.title=outlet.name;
-                fdjtDOM("#METABOOKOUTLETCLOUD",completion," ");
+                fdjtDOM("#METABOOKSHARECLOUD",completion," ");
                 metaBook.share_cloud.addCompletion(completion);}
-            if (outlet._live) init();
-            else outlet.onLoad(init,"addoutlet2cloud");}
+            outlet.onLoad(init,"addoutlet2cloud");}
         
         /* Other setup */
         
@@ -27826,7 +27828,7 @@ metaBook.setMode=
             var dom_gloss_cloud=fdjtID("METABOOKGLOSSCLOUD");
             metaBook.gloss_cloud=
                 new fdjtUI.Completions(
-                    dom_gloss_cloud,fdjtID("METABOOKTAGINPUT"),
+                    dom_gloss_cloud,fdjtID("METABOOKADDTAGINPUT"),
                     fdjtUI.FDJT_COMPLETE_OPTIONS|
                         fdjtUI.FDJT_COMPLETE_CLOUD|
                         fdjtUI.FDJT_COMPLETE_ANYWORD);
@@ -27846,16 +27848,16 @@ metaBook.setMode=
             updateScroller("METABOOKALLTAGS");
             metaBook.TapHold.empty_cloud=new TapHold(metaBook.empty_cloud.dom);
             
-            var dom_outlet_cloud=fdjtID("METABOOKOUTLETCLOUD");
-            metaBook.outlet_cloud=
+            var dom_share_cloud=fdjtID("METABOOKSHARECLOUD");
+            metaBook.share_cloud=
                 new fdjtUI.Completions(
-                    dom_outlet_cloud,fdjtID("METABOOKOUTLETINPUT"),
+                    dom_share_cloud,fdjtID("METABOOKADDSHAREINPUT"),
                     fdjtUI.FDJT_COMPLETE_OPTIONS|
                         fdjtUI.FDJT_COMPLETE_CLOUD|
                         fdjtUI.FDJT_COMPLETE_ANYWORD);
-            metaBook.DOM.share_cloud=dom_outlet_cloud;
-            updateScroller("METABOOKOUTLETCLOUD");
-            metaBook.TapHold.outlet_cloud=new TapHold(metaBook.outlet_cloud.dom);
+            metaBook.DOM.share_cloud=dom_share_cloud;
+            updateScroller("METABOOKSHARECLOUD");
+            metaBook.TapHold.share_cloud=new TapHold(metaBook.share_cloud.dom);
 
             fdjtDOM.setupCustomInputs(fdjtID("METABOOKHUD"));
 
@@ -30460,11 +30462,9 @@ metaBook.Slice=(function () {
                     else {}}
                 var kind=info.kind;
                 if (pic) {}
-                else if (kind===':CIRCLE')
+                else if ((kind===':CIRCLE')||(info.iscircle))
                     pic=mbicon("readingcircle",64,64);
-                else if (kind===':OVERLAY')
-                    pic=mbicon("sideguide",64,64);
-                else {}
+                else pic=mbicon("sideguide",64,64);
                 if (pic)
                   icon=fdjtDOM.Image
                     (pic,".button.source",info.name|info.kind,
@@ -31229,14 +31229,14 @@ metaBook.Slice=(function () {
             dropClass("METABOOKHUD",/\bgloss\w+\b/);
             dropClass("METABOOKHUD","openheart");
             return;}
-        if (mode==="addtag") input=fdjtID("METABOOKTAGINPUT");
+        if (mode==="addtag") input=fdjtID("METABOOKADDTAGINPUT");
         else if (mode==="attach") {
             var upload_glossid=fdjtID("METABOOKUPLOADGLOSSID");
             upload_glossid.value=uuid.value;
             var upload_itemid=fdjtID("METABOOKUPLOADITEMID");
             upload_itemid.value=fdjtState.getUUID();
             input=fdjtID("METABOOKATTACHURL");}
-        else if (mode==="addoutlet") input=fdjtID("METABOOKOUTLETINPUT");
+        else if (mode==="addoutlet") input=fdjtID("METABOOKADDSHAREINPUT");
         else if (mode==="editdetail") {
             input=fdjtID("METABOOKDETAILTEXT");
             fdjt.ID("METABOOKDETAILTEXT").value=detail_elt.value;}
@@ -32154,7 +32154,7 @@ metaBook.Slice=(function () {
 
     /***** The Outlet Cloud *****/
 
-    function outletcloud_ontap(evt){
+    function sharecloud_ontap(evt){
         var target=fdjtUI.T(evt);
         var completion=getParent(target,'.completion');
         if (completion) {
@@ -32169,7 +32169,7 @@ metaBook.Slice=(function () {
                 if (value) addOutlet(form,completion,"EMAIL");
             else addOutlet(form,completion);}
         fdjtUI.cancel(evt);}
-    metaBook.UI.outletcloud_ontap=outletcloud_ontap;
+    metaBook.UI.sharecloud_ontap=sharecloud_ontap;
 
     /***** Saving (submitting/queueing) glosses *****/
 
@@ -34701,11 +34701,12 @@ metaBook.Slice=(function () {
 
     function outlet_select(evt){
         var target=fdjtUI.T(evt);
-        var outletspan=getParent(target,'.outlet');
+        var outletspan=getParent(target,'.outlet')||
+            getParent(target,'.source');
         if (!(outletspan)) return;
         var live=fdjtID("METABOOKLIVEGLOSS");
         var form=((live)&&(getChild(live,"form")));
-        var outlet=outletspan.value;
+        var outlet=metaBook.share_cloud.getValue(outletspan);
         metaBook.addOutlet2Form(form,outlet);
         fdjtUI.cancel(evt);}
 
@@ -35218,8 +35219,8 @@ metaBook.Slice=(function () {
          "#METABOOKTABS": {click: head_tap},
          "#METABOOKHEAD": {click: head_tap},
          "#METABOOKPAGEFOOT": {tap: foot_tap},
-         "#METABOOKTAGINPUT": {keydown: addtag_keydown},
-         "#METABOOKOUTLETINPUT": {keydown: addoutlet_keydown},
+         "#METABOOKADDTAGINPUT": {keydown: addtag_keydown},
+         "#METABOOKADDSHAREINPUT": {keydown: addoutlet_keydown},
          "#METABOOKATTACHFORM": {submit: attach_submit},
          "#METABOOKATTACHURL": {keydown: attach_keydown},
          "#METABOOKATTACHTITLE": {keydown: attach_keydown},
@@ -35228,7 +35229,7 @@ metaBook.Slice=(function () {
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
-         "#METABOOKOUTLETCLOUD": {
+         "#METABOOKSHARECLOUD": {
              tap: outlet_select,release: outlet_select},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
@@ -35378,8 +35379,8 @@ metaBook.Slice=(function () {
          "#METABOOKHEAD": {touchend: head_tap},
          "#METABOOKFOOT": {
              tap: foot_tap,touchstart: noDefault,touchmove: noDefault},
-         "#METABOOKTAGINPUT": {keydown: addtag_keydown},
-         "#METABOOKOUTLETINPUT": {keydown: addoutlet_keydown},
+         "#METABOOKADDTAGINPUT": {keydown: addtag_keydown},
+         "#METABOOKADDSHAREINPUT": {keydown: addoutlet_keydown},
          "#METABOOKATTACHFORM": {submit: attach_submit},
          "#METABOOKATTACHURL": {keydown: attach_keydown},
          "#METABOOKATTACHTITLE": {keydown: attach_keydown},
@@ -35388,7 +35389,7 @@ metaBook.Slice=(function () {
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
-         "#METABOOKOUTLETCLOUD": {
+         "#METABOOKSHARECLOUD": {
              tap: outlet_select,release: outlet_select},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
@@ -36927,17 +36928,17 @@ metaBook.HTML.hud=
     "</div>\n"+
     "<div id=\"METABOOKHEART\">\n"+
     "  <div id=\"METABOOKRIBBON\">\n"+
-    "    <div class=\"inputbox\" ID=\"METABOOKGLOSSTAGINPUT\">\n"+
+    "    <div class=\"inputbox\" ID=\"METABOOKADDTAGHOLDER\">\n"+
     "      <input TYPE=\"TEXT\" NAME=\"TAG\" VALUE=\"\"\n"+
     "             placeholder=\"Type or define a tag, with completion\"\n"+
     "             autocomplete=\"off\"\n"+
-    "             ID=\"METABOOKTAGINPUT\"/>\n"+
+    "             ID=\"METABOOKADDTAGINPUT\"/>\n"+
     "    </div>\n"+
-    "    <div class=\"inputbox\" ID=\"METABOOKGLOSSOUTLETINPUT\">\n"+
+    "    <div class=\"inputbox\" ID=\"METABOOKADDSHAREHOLDER\">\n"+
     "      <input TYPE=\"TEXT\" NAME=\"OUTLET\" VALUE=\"\"\n"+
     "             placeholder=\"Type a group or individual name\"\n"+
     "             autocomplete=\"off\"\n"+
-    "             ID=\"METABOOKOUTLETINPUT\"/>\n"+
+    "             ID=\"METABOOKADDSHAREINPUT\"/>\n"+
     "    </div>\n"+
     "    <div class=\"resultinfo notags noresults\" id=\"METABOOKSEARCHINFO\">\n"+
     "      <span class=\"noresults\">No results</span>\n"+
@@ -37207,7 +37208,7 @@ metaBook.HTML.heart=
     "<div id=\"METABOOKALLTAGS\" class=\"completions searchcloud cloud noinput\">\n"+
     "</div>\n"+
     "<div id=\"METABOOKSEARCHRESULTS\" class=\"metabookslice hudpanel\"></div>\n"+
-    "<div id=\"METABOOKOUTLETCLOUD\" class=\"hudpanel completions showall\"></div>\n"+
+    "<div id=\"METABOOKSHARECLOUD\" class=\"hudpanel completions showall\"></div>\n"+
     "<div id=\"METABOOKGLOSSCLOUD\" class=\"hudpanel completions showall\">\n"+
     "  <div class=\"nomatchmsg\">(no matches)</div>\n"+
     "</div>\n"+
@@ -38106,15 +38107,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2336-gb321a61';
+metaBook.version='v0.5-2340-g4c6ef2c';
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Wed Jan 14 16:33:08 EST 2015';
-metaBook.buildid='FB3CF9F3-2DF0-4857-B713-0077B3623205';
+metaBook.buildtime='Thu Jan 15 14:07:08 EST 2015';
+metaBook.buildid='71BF343C-6017-49D8-B288-E37EEAF1D89E';
 
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Wed Jan 14 16:35:17 EST 2015';
-metaBook.buildid='1EAF7F8F-A340-4D32-9151-EBC6BBB8BEF0';
+metaBook.buildtime='Thu Jan 15 14:09:17 EST 2015';
+metaBook.buildid='F7EDDB40-C694-4F0D-912C-652F2A5FE41A';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';

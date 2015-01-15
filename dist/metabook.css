@@ -4279,9 +4279,9 @@ body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCH {
 #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY
    #METABOOKGLOSSCLOUD.hudpanel,
 #METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEARTBODY
-   #METABOOKOUTLETCLOUD.hudpanel,
+   #METABOOKSHARECLOUD.hudpanel,
 #METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEARTBODY
-   #METABOOKOUTLETCLOUD.hudpanel,
+   #METABOOKSHARECLOUD.hudpanel,
 #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY
    #METABOOKGLOSSATTACH.hudpanel,
 #METABOOKHUD.addgloss.glosseditdetail #METABOOKHEARTBODY
@@ -7952,28 +7952,28 @@ div.glossetc, div.glossetc img, div.glossetc span, div.glossetc input {
 
 body.hudup #METABOOKHUD.addgloss div.hudpanel#METABOOKADDGLOSS {}
 
-#METABOOKHUD #METABOOKGLOSSTAGINPUT { display: none;}
-#METABOOKHUD.addgloss.glossaddtag #METABOOKGLOSSTAGINPUT {
+#METABOOKHUD #METABOOKADDTAGHOLDER { display: none;}
+#METABOOKHUD.addgloss.glossaddtag #METABOOKADDTAGHOLDER {
     display: block;}
-#METABOOKHUD #METABOOKGLOSSOUTLETINPUT { display: none;}
-#METABOOKHUD.addgloss.glossaddoutlet #METABOOKGLOSSOUTLETINPUT {
+#METABOOKHUD #METABOOKADDSHAREHOLDER { display: none;}
+#METABOOKHUD.addgloss.glossaddoutlet #METABOOKADDSHAREHOLDER {
     display: block;}
 
 #METABOOKHUD #METABOOKGLOSSEDITDETAIL textarea {
     width: 90%; max-height: 90%; min-height: 250px;}
 
-div.completions#METABOOKOUTLETCLOUD > div {
+div.completions#METABOOKSHARECLOUD > div {
     margin-left: 50px; margin-right: 50px;}
 div.completions#METABOOKGLOSSCLOUD > div {
     margin-left: 50px; margin-right: 50px;}
-#METABOOKFRAME._ANIMATE div.completions#METABOOKOUTLETCLOUD {
+#METABOOKFRAME._ANIMATE div.completions#METABOOKSHARECLOUD {
     transition-property: height;
     -webkit-transition-property: height;
     -moz-transition-property: height;
     -o-transition-property: height;
     transition-duration: 3s; -webkit-transition-duration: 3s;
     -moz-duration: 3s; -o-transition-duration: 3s;}
-body.hudup #METABOOKHUD.addgloss.glossaddoutlet div.completions#METABOOKOUTLETCLOUD {
+body.hudup #METABOOKHUD.addgloss.glossaddoutlet div.completions#METABOOKSHARECLOUD {
     display: block;}
 body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
     display: block;}
@@ -8019,7 +8019,7 @@ body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
 #METABOOKNETWORKBUTTONS span.checkspan.ischecked span.checked,
 #METABOOKNETWORKBUTTONS span.checkspan.ischecked img.checked {
     display: inline;}
-#METABOOKOUTLETCLOUD #METABOOKNETWORKBUTTONS img {
+#METABOOKSHARECLOUD #METABOOKNETWORKBUTTONS img {
     height: 40px; width: auto;}
 
 #METABOOKRIBBON > div.inputbox {
@@ -8030,21 +8030,19 @@ body.hudup #METABOOKHUD.addgloss.glossattach #METABOOKGLOSSATTACH {
     color: black; font-weight: bold;}
 #METABOOKRIBBON div.inputbox input[type="TEXT"] {
     background-position: right top;
-    background-position-x: right; background-position-y: top;
+    background-position-x: right; background-position-y: center;
     background-size: 1.2em 1.2em;
     background-repeat: no-repeat;
-    height: 1.4em; padding-bottom: 0.1em; padding-top: 0.1em;
-    font-size: 20px;
+    height: 1.6em; padding-bottom: 0.1em; padding-top: 0.1em;
+    font-size: 20px; font-size: 1.4rem;
     width: 90%;}
-#METABOOKRIBBON div.inputbox#METABOOKGLOSSTAGINPUT input[TYPE="TEXT"] {
+#METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDTAGINPUT {
     background-image: url(g/metabook/tagicon.svgz);}
-#METABOOKRIBBON div.inputbox#METABOOKGLOSSOUTLETINPUT input[TYPE="TEXT"] {
+#METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
     background-image: url(g/metabook/sbookspeople.svgz);}
-body._NOSVG #METABOOKRIBBON div.inputbox#METABOOKGLOSSTAGINPUT
-  input[TYPE="TEXT"] {
+body._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDTAGINPUT {
     background-image: url(g/metabook/tagicon64x64.png);}
-body._NOSVG #METABOOKRIBBON div.inputbox#METABOOKGLOSSOUTLETINPUT
-  input[TYPE="TEXT"] {
+body._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
     background-image: url(g/metabook/sbookspeople64x64.png);}
 
 /* New menu stuff */
