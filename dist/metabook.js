@@ -28746,7 +28746,7 @@ metaBook.TOC=
                     ((100*(headinfo.starts_at-hstart))/hlen)+"%";}
             else if (sizebar) sizebar.style.width="100%";
             else {}
-            fdjtDOM.addClass(toc,"toc"+depth);
+            fdjtDOM.addClass(toc,"metabooktoc"+depth);
             toc.id=(prefix||"METABOOKTOC4")+headinfo.frag;
             if ((!(sub))||(!(sub.length))) {
                 fdjtDOM.addClass(toc,"metabooktocleaf");
@@ -28904,7 +28904,7 @@ metaBook.TOC=
             var livetitles=(fdjtDOM.$("a.metabooklivehead.metabooktitle"));
             var i=0; var lim=livetitles.length;
             while (i<lim) livetitles[i++].style.fontSize='';
-            var tocs=fdjtDOM.$(".toc0");
+            var tocs=fdjtDOM.$(".metabooktoc0");
             // Update current location in ToCs
             i=0; lim=tocs.length; while (i<lim) {
                 updateTOC(headinfo,tocs[i++]);}
@@ -28922,7 +28922,8 @@ metaBook.TOC=
                     var toc=getParent(ref,".metabooktoc");
                     var isbrick=((ref.tagName==='A')&&(ref.className)&&
                                  (ref.className.search(/\bbrick\b/)>=0));
-                    if ((level)&&(isbrick)&&(!(hasClass(toc,"toc"+(level-1)))))
+                    if ((level)&&(isbrick)&&
+                        (!(hasClass(toc,"metabooktoc"+(level-1)))))
                         continue;
                     addClass(ref,"metabooklivehead");
                     if (isbrick) addClass(ref.parentNode,"metabooklivehead");}
@@ -36014,6 +36015,7 @@ metaBook.Paginate=
                 var pages=layout.pages, pagenum=layout.pagenum;
                 var topnode=getPageTop(page);
                 var topid=topnode.codexbaseid||topnode.id;
+                var lastid=getPageLastID(page);
                 var prevpage=
                     (((pagenum)&&(pagenum>1))&&(pages[pagenum-2]));
                 var staticref=getChild(
@@ -36032,6 +36034,7 @@ metaBook.Paginate=
                     var prevref=prevpage.getAttribute("data-staticpageref");
                     if (prevref)
                         page.setAttribute("data-staticpageref",prevref);}
+                if (lastid) page.setAttribute("data-lastid",lastid);
                 if (topnode) {
                     var topstart=mbID(topid);
                     var locoff=((topstart===topnode)?(0):
@@ -36042,8 +36045,8 @@ metaBook.Paginate=
                     page.setAttribute("data-sbookloc",curloc);}
                 else {
                     if (prevpage) {
-                        var lastid=getPageLastID(prevpage);
-                        var lastinfo=((lastid)&&(docinfo[lastid]));
+                        var prevlast=prevpage.getAttribute("data-lastid");
+                        var lastinfo=((prevlast)&&(docinfo[prevlast]));
                         if (lastinfo) {
                             curloc=lastinfo.starts_at;
                             page.setAttribute("data-sbookloc",lastinfo.ends_at);}
@@ -36053,7 +36056,8 @@ metaBook.Paginate=
                                 page.setAttribute("data-sbookloc",prevoff);
                             else page.setAttribute("data-sbookloc","0");}}}
                 if ((typeof curloc === "number")&&(pagenum)&&
-                    (!(metaBook.curpage))&&(metaBook.state)&&(goneto!==metaBook.state)&&
+                    (!(metaBook.curpage))&&(metaBook.state)&&
+                    (goneto!==metaBook.state)&&
                     (metaBook.state.hasOwnProperty('location'))&&
                     (curloc>=metaBook.state.location)) {
                     goneto=metaBook.state;
@@ -36533,7 +36537,8 @@ metaBook.Paginate=
                 var staticref=page.getAttribute("data-staticpageref");
                 updatePageDisplay(pagenum,staticref,metaBook.location);
                 curpage=page; metaBook.curpage=pagenum;
-                var curnode=mbID(page.getAttribute("data-topid"));
+                var curnode=mbID(page.getAttribute("data-lastid"))||
+                    mbID(page.getAttribute("data-topid"));
                 if (curnode) metaBook.setHead(curnode);
                 if (savestate) {
                     metaBook.point=curnode;
@@ -38107,15 +38112,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2342-gc9d6d81';
+metaBook.version='v0.5-2344-g3af2ea0';
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Thu Jan 15 15:42:56 EST 2015';
-metaBook.buildid='1D76FF08-42C6-4427-BD73-7F19CC23F370';
+metaBook.buildtime='Fri Jan 16 13:45:40 EST 2015';
+metaBook.buildid='3FA91F55-0ECE-47A4-9327-A2216E5BFE53';
 
 Knodule.version='v0.8-139-g821141a';
 // sBooks metaBook build information
 metaBook.buildhost='Shiny';
-metaBook.buildtime='Thu Jan 15 15:43:47 EST 2015';
-metaBook.buildid='484A96AA-37CF-4814-957E-0CD052C1DA81';
+metaBook.buildtime='Fri Jan 16 13:47:11 EST 2015';
+metaBook.buildid='3ADCB84F-3DA4-43D3-9B49-03BF835EEEA4';
 
 fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';

@@ -2218,6 +2218,9 @@ body._ANIMATE .metabooktarget, body.mbSHRINK .metabooktarget {
     -webkit-transition-duration: 6s;}
 body.hudup .metabooktarget, body.mbSHRINK .metabooktarget {
     cursor: pointer;}
+body.hudup .metabooktarget, body.mbSHRINK .metabooktarget,
+body.mbSKIMMING .metabooktarget {
+    outline: dotted silver 2px;}
 
 body.hudup .metabooktarget.metabooknewtarget {
     background-color: inherit; }
@@ -6373,9 +6376,9 @@ div.metabooktoc div.spanbar div.metabookhudspan.metabookfirstspan a.brick {
     border-left: 0px;}
 div.metabooktoc div.spanbar div.metabookhudspan.metabooklastspan a.brick {
     border-right: 0px;}
-div.metabooktoc.toc0 > div.spanbar div.metabookhudspan.metabookfirstspan a.brick {
+div.metabooktoc.metabooktoc0 > div.spanbar div.metabookhudspan.metabookfirstspan a.brick {
     border-left: 0px;}
-div.metabooktoc.toc0 > div.spanbar div.metabookhudspan.metabooklastspan a.brick {
+div.metabooktoc.metabooktoc0 > div.spanbar div.metabookhudspan.metabooklastspan a.brick {
     border-right: 0px;}
 
 div.metabooktoc div.spanbar div.metabookhudspan a.brick.metabooklivehead {
@@ -6488,7 +6491,7 @@ body._MOUSE div.metabooktoc div.spans:hover a.metabooktitle.cohi {
     height: 100%;}
 #METABOOKTOC div.spanbar div.progressbox {
     vertical-align: top; height: auto; top: 4px; bottom: 4px;}
-#METABOOKTOC div.toc0 > div.spanbar div.progressbox {
+#METABOOKTOC div.metabooktoc0 > div.spanbar div.progressbox {
     vertical-align: top; top: 0px;}
 #METABOOKTOC div.spanbar div.spans { font-size: 30px;}
 #METABOOKTOC div.spanbar div.spans a.metabooktitle {
@@ -6575,10 +6578,10 @@ div.spanbar div.metabookhudspan.current {
     padding-left: 1em; padding-right: 1em;}
 #METABOOKHUD #METABOOKTOC div.metabooktoc { 
     padding-left: 0.5em; padding-right: 0.5em;}
-#METABOOKHUD #METABOOKTOC div.metabooktoc.toc0 { 
+#METABOOKHUD #METABOOKTOC div.metabooktoc.metabooktoc0 { 
     padding-left: 0px; padding-right: 0px;
     border-right: 0px; border-left: 0px;}
-#METABOOKHUD div.metabooktoc.toc0 {
+#METABOOKHUD div.metabooktoc.metabooktoc0 {
     padding-left: 0px; padding-right: 0px;}
 
 div.spanbar { padding: 0px; margin: 0px;}
@@ -6643,10 +6646,10 @@ body.mbPREVIEW #METABOOKHUD div.metabooktoc.metabooklivehead.metabookcurhead
 /* The first one is special, doesn't need a top border to indicate
    hierarchy */
 
-#METABOOKTOC div.metabooktoc.toc0 > div.spanbar { height: 44px;}
-#METABOOKTOC div.metabooktoc.toc0 > div.spanbar > div.spans {
+#METABOOKTOC div.metabooktoc.metabooktoc0 > div.spanbar { height: 44px;}
+#METABOOKTOC div.metabooktoc.metabooktoc0 > div.spanbar > div.spans {
     border-top-width: 0px;}
-#METABOOKTOC div.metabooktoc.toc0 >
+#METABOOKTOC div.metabooktoc.metabooktoc0 >
 div.spanbar div.metabookhudspan a.brick.metabooklivehead {
     border-top-color: darkblue;}
 
@@ -7358,7 +7361,8 @@ div.searchbox div.query {
     width: 100%; max-height: 100%;
     margin-top: 0.2ex; 
     padding-top: 2px; padding-bottom: 3px;
-    padding-left: 0.5ex; padding-right: 4px;}
+    padding-left: 0.5ex; padding-right: 4px;
+    font-size: 16px; font-size: 1.2rem;}
 div.searchbox div.query {
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -7370,14 +7374,14 @@ div.searchbox .metabookclearsearch {
     box-sizing: border-box; -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box; -o-box-sizing: border-box;
     border: solid transparent 2px;
-    height: 1em; width: auto; padding-left: 1vw;
+    height: 2em; width: auto; padding-left: 1vw;
     flex-grow: 0; -webkit-flex-grow: 0; -moz-flex-grow: 0;}
 div.searchbox .metabookclearsearch.tapholdtarget {
     border-color: blue;}
 
 div.searchbox input[type='TEXT'] {
     flex-grow: 1; -webkit-flex-grow: 1; -moz-flex-grow: 1;
-    font-size: 1.5rem; margin-left: 1ex;}
+    max-height: 2em; margin-left: 1ex;}
 div.searchbox input[type='TEXT'] {
     border-radius: 0px; -webkit-border-radius: 0px;
     -o-border-radius: 0px; -moz-border-radius: 0px;}
@@ -7485,11 +7489,6 @@ body._ANIMATE .qtags {
     #METABOOKHUD div.resultinfo span.stats { font-size: 2vmin; }}
 
 @media screen and (max-width: 640px) {
-    div.searchbox div.query { font-size: 12px; }
-    div.searchbox div.query .metabookclearsearch {
-        width: 10%; height: auto;}
-    div.searchbox div.query div.input {
-        width: auto; margin-right: 10%;}
     #METABOOKHUD div.resultinfo span.stats { font-size: 2vmin; }}
     div.resultinfo .stats > span > br { display: initial; }}
 
