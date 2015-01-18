@@ -25570,8 +25570,9 @@ metaBook.Startup=
             if (nofocus.length)
                 metaBook.nofocus=new fdjtDOM.Selector(nofocus);}
 
-        function applyMetaClass(name){
-            var meta=getMeta(name,true);
+        function applyMetaClass(name,metaname){
+            if (!(metaname)) metaname=name;
+            var meta=getMeta(metaname,true);
             var i=0; var lim=meta.length;
             while (i<lim) fdjtDOM.addClass(fdjtDOM.$(meta[i++]),name);}
 
@@ -25978,24 +25979,35 @@ metaBook.Startup=
             var notesblock=fdjtID("SBOOKNOTES")||
                 fdjtDOM("div.sbookbackmatter#SBOOKNOTES");
             applyMetaClass("sbooknote");
+            applyMetaClass("sbooknote","SBOOKS.note");
+            addClass(fdjtDOM.$("span[data-type='footnote']"),"sbooknote");
             var note_counter=1;
             var allnotes=getChildren(content,".sbooknote");
             i=0; lim=allnotes.length; while (i<lim) {
-                var notable=allnotes[i++];
-                if (!(notable.id)) notable.id="METABOOKNOTE"+(note_counter++);
-                var noteref=notable.id+"_REF";
-                if (!(mbID(noteref))) {
-                    var label=getChild(notable,"label")||
-                        getChild(notable,"summary")||
-                        getChild(notable,".sbooklabel")||
-                        getChild(notable,".sbooksummary")||
-                        getChild(notable,"span")||"Note";
-                    var anchor=fdjtDOM.Anchor("#"+notable.id,"A",label);
-                    anchor.rel="sbooknote";
-                    anchor.id=noteref;
-                    fdjtDOM.replace(notable,anchor);
-                    fdjtDOM.append(notesblock,notable,"\n");}
-                else fdjtDOM.append(notesblock,notable,"\n");}
+                var refid="METABOOKNOTE"+counter+"_ref";
+                var notable=allnotes[i++]; var counter=note_counter++;
+                var label_text=notable.getAttribute("data-label")||"Note";
+                var label_node=
+                    getChild(notable,"label")||
+                    getChild(notable,"summary")||
+                    getChild(notable,".sbooklabel")||
+                    getChild(notable,".sbooksummary")||
+                    getChild(notable,"span")||
+                    (""+counter);
+                var anchor=fdjtDOM.Anchor(
+                    "#"+notable.id,"A.mbnoteref",
+                    ((label_node)?(label_node.cloneNode(true)):
+                     (label_text)));
+                var backlink=fdjtDOM.Anchor(
+                    "#"+refid,"A.mbnotebackref",
+                    ((label_node)?(label_node.cloneNode(true)):
+                     (label_text)));
+                anchor.id=refid;
+                fdjtDOM.replace(notable,anchor);
+                var noteblock=fdjtDOM("div.metbooknotewrapper",
+                                      backlink,notable);
+                noteblock.id="METABOOKNOTE"+counter;
+                fdjtDOM.append(notesblock,noteblock,"\n");}
             
             if (!(init_content)) {
                 var children=[], childnodes=body.childNodes;
@@ -37766,7 +37778,7 @@ metaBook.HTML.cover=
     "  <iframe name=\"SBOOKSAPP\" id=\"SBOOKSAPP\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
     "</div>\n"+
     "<div id=\"METABOOKCOVERCONTROLS\"\n"+
-    "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 4vw;\">\n"+
+    "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;\">\n"+
     "  <span class=\"control\" data-mode=\"coverpage\" title=\"see the cover\"\n"+
     "        tabindex=\"1\">\n"+
     "    Cover</span>\n"+
@@ -38166,15 +38178,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2350-g897712b';
+metaBook.version='v0.5-2352-g776ae22';
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Sun Jan 18 22:13:50 UTC 2015';
-metaBook.buildid='a2652e0f-c6fc-49c5-8782-613be8253d77';
+metaBook.buildtime='Sun Jan 18 23:53:58 UTC 2015';
+metaBook.buildid='bc535e87-850f-4f4b-8c24-6a2249e257ec';
 
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Sun Jan 18 22:13:53 UTC 2015';
-metaBook.buildid='62eb4e07-1bb0-4b25-96fe-920e49fffe57';
+metaBook.buildtime='Sun Jan 18 23:56:04 UTC 2015';
+metaBook.buildid='63462d00-4695-495d-829b-9058716302e4';
 
 fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';
