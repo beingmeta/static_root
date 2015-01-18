@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1237-ge861f9e';
-var fdjt_buildhost='Shiny';
-var fdjt_buildtime='Thu Jan 15 13:50:40 EST 2015';
-var fdjt_builduuid='B7FF15B8-8D6F-457A-9572-1DC3386A18DD';
+var fdjt_revision='1.5-1242-g664bfe8';
+var fdjt_buildhost='dev.beingmeta.com';
+var fdjt_buildtime='Sun Jan 18 22:13:50 UTC 2015';
+var fdjt_builduuid='9eac3e12-f701-49d3-bbec-37e0983898d8';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -1757,22 +1757,22 @@ fdjt.String=
                 var i=0, n=substs.length; while (i<n) {
                     var match=substs[i++];
                     var prop=match.slice(2,-2);
-                    var propname=((prop.search(/\|/)>=0)?
-                                  (prop.slice(0,prop.search(/\|/))):
-                                  (prop));
-                    if (done[propname]) continue;
-                    if ((data.hasOwnProperty(propname))&&(data[propname])) {
+                    var bar=prop.search(/\|/);
+                    var propname=((bar>=0)?(prop.slice(0,bar)):(prop));
+                    if ((done[prop])||(done[propname])) continue;
+                    else if (data.hasOwnProperty(propname)) {
                         var pat=new RegExp(
                             "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
                         var val=data[propname], stringval=val.toString();
                         done[propname]=prop;
                         text=text.replace(pat,stringval);}
-                    else {
-                        fdjt.Log.warn("No data for %s in %j to use",
-                                      prop,data,text);
-                        var rpat=/\{\{\w+\|([^\}]*)\}\}/gm;
-                        text=text.replace(rpat,"$1");
-                        done[propname]=prop;}}}
+                    else if (bar>0) {
+                        var replace=prop.slice(bar+1);
+                        text=text.replace("{{"+prop+"}}",replace);
+                        done[prop]=prop;}
+                    else fdjt.Log.warn(
+                        "No data for %s in %j to substitute for %s",
+                        propname,data,"{{"+prop+"}}");}}
             if (dom) {
                 if (dom.nodeType===3) dom.nodeValue=text;
                 else dom.innerHTML=text;
@@ -6708,24 +6708,20 @@ fdjt.DOM=
         fdjtDOM.appendArray=domappend;
         
         function toArray(arg) {
-            var result=new Array(arg.length);
-            var i=0; var lim=arg.length;
-            while (i<lim) {result[i]=arg[i]; i++;}
-            return result;}
+            return Array.prototype.slice.call(arg);}
         fdjtDOM.toArray=toArray;
         function extendArray(result,arg) {
             var i=0; var lim=arg.length;
             while (i<lim) {result.push(arg[i]); i++;}
             return result;}
         function TOA(arg,start) {
-            if ((arg.constructor === Array)||(arg instanceof Array)) {
+            if ((arg.constructor === Array)||
+                (arg instanceof Array)) {
                 if (start) return arg.slice(start);
                 else return arg;}
-            start=start||0;
-            var i=0; var lim=arg.length-start;
-            var result=new Array(lim);
-            while (i<lim) {result[i]=arg[i+start]; i++;}
-            return result;}
+            else if (start)
+                return Array.prototype.slice(arg,start||0);
+            else return Array.prototype.slice(arg,start||0);}
         fdjtDOM.Array=TOA;
         fdjtDOM.slice=TOA;
 
@@ -11576,13 +11572,19 @@ fdjt.Ajax=
         var trace_ajax=false;
         
         function fdjtAjax(success_callback,base_uri,args,other_callback,
-                          headers){
+                          headers,timeout){
             var req=new XMLHttpRequest();
             var uri=((args)?(compose_uri(base_uri,args)):(base_uri));
             req.onreadystatechange=function () {
                 if ((req.readyState === 4) && (req.status === 200)) {
                     success_callback(req);}
                 else if (other_callback) other_callback(req);};
+            if (timeout) {
+                req.timeout=timeout;
+                if (other_callback) {
+                    req.ontimeout=function(evt){
+                        evt=evt||window.event;
+                        other_callback(req);};}}
             req.open("GET",uri);
             req.withCredentials=true;
             if (headers) {
@@ -18741,14 +18743,14 @@ fdjt.CodexLayout=
 
         function stripBottomStyles(node,keep){
             var style=node.style;
-            if ((keep)&&(!(node.getAttribute("data-savedstyle")))) 
+            if ((keep)&&(!(node.hasAttribute("data-savedstyle")))) 
                 node.setAttribute("data-savedstyle",style.cssText);
             style.paddingBottom="0px";
             style.borderBottomWidth="0px";
             style.marginBottom="0px";}
         function stripTopStyles(node,keep){
             var style=node.style;
-            if ((keep)&&(!(node.getAttribute("data-savedstyle"))))
+            if ((keep)&&(!(node.hasAttribute("data-savedstyle"))))
                 node.setAttribute("data-savedstyle",style.cssText);
             style.textIndent="0px";
             style.paddingTop="0px";
@@ -18823,7 +18825,7 @@ fdjt.CodexLayout=
             var nodestyle=node.getAttribute("style")||"";
             var newstyle=nodestyle+((nodestyle)?("; "):(""))+
                 "margin-top: 0px !important;";
-            if (!(node.getAttribute("data-savedstyle")))
+            if (!(node.hasAttribute("data-savedstyle")))
                 node.setAttribute("data-savedstyle",nodestyle);
             node.setAttribute("style",newstyle);
             addClass(node,"codexpagetop");
@@ -20487,9 +20489,10 @@ fdjt.CodexLayout=
                             var dupi=0, ndups=alldups.length;
                             while (dupi<ndups) {
                                 var dup=alldups[dupi++];
-                                if (!(dup.getAttribute(dup,"data-savedstyle"))) 
+                                if (!(dup.hasAttribute(dup,"data-savedstyle"))) 
                                     dup.setAttribute(
-                                        "data-savedstyle",dup.getAttribute("style")||"");
+                                        "data-savedstyle",
+                                        dup.getAttribute("style")||"");
                                 dup.style.listStyleType="none";}}
                         lastdup.className=lastdup.className.replace(
                                 /\bcodexdup\b/,"codexdupend");}
@@ -22644,10 +22647,14 @@ var metaBook={
     mycopyid: false, 
     // This is the time of the last update
     syncstamp: false,
-    // Number of milliseconds between gloss updates
-    update_interval: 5*60*1000,
-    // Number of milliseconds between location sync
-    sync_interval: 15*1000,
+    // Gloss sync settings (in milleseconds)
+    update_interval: 30*1000, // Interval between checks
+    update_timeout: 30*1000,    // Timeout on requests
+    update_pause: 30*60*1000,   // Interval to sleep on error or timeout
+    // State sync settings (in milliseconds):
+    sync_interval: 60*1000, // Interval between sync checks
+    sync_timeout: 10000,    // Timeout on requests
+    sync_pause: 15*60*1000, // Interval to sleep on error or timeout
     // Various handlers, settings, and status information for the
     // metaBook interface
     UI: {
@@ -23730,7 +23737,8 @@ var metaBook={
             var uri=metaBook.docuri;
             var traced=(Trace.state)||(Trace.network);
             var state=metaBook.state;
-            var refuri=((metaBook.target)&&(metaBook.getRefURI(metaBook.target)))||
+            var refuri=
+                ((metaBook.target)&&(metaBook.getRefURI(metaBook.target)))||
                 (metaBook.refuri);
             var sync_uri="https://sync.sbooks.net/v1/sync"+
                 "?REFURI="+encodeURIComponent(refuri)+
@@ -23757,7 +23765,9 @@ var metaBook={
             var req=new XMLHttpRequest();
             syncing=state;
             req.onreadystatechange=freshState;
+            req.ontimeout=syncTimeout;
             req.withCredentials=true;
+            req.timeout=metaBook.sync_timeout;
             if (traced) fdjtLog("syncState(call) %s",sync_uri);
             try {
                 req.open("GET",sync_uri,true);
@@ -23772,8 +23782,17 @@ var metaBook={
                         "Sync request %s returned status %d, pausing",
                         uri,req.status);}
                 metaBook.locsync=false;
-                setTimeout(function(){metaBook.locsync=true;},15*60*1000);}}
+                setTimeout(function(){metaBook.locsync=true;},
+                           metaBook.sync_pause);}}
     } metaBook.syncState=syncState;
+
+
+    function syncTimeout(evt){
+        evt=evt||window.event;
+        fdjtLog.warn("Sync request timed out, pausing");
+        metaBook.locsync=false;
+        setTimeout(function(){
+            metaBook.locsync=true;},metaBook.sync_pause);}
 
     var prompted=false;
 
@@ -23782,11 +23801,14 @@ var metaBook={
         var traced=(Trace.state)||(Trace.network);
         if (req.readyState===4) {
             if ((req.status>=200)&&(req.status<300)) {
-                var xstate=JSON.parse(req.responseText);
+                var rtext=req.responseText;
+                if (!(rtext)) return;
+                var xstate=JSON.parse(rtext);
                 var tick=fdjtTime.tick();
                 if (xstate.changed) {
                     if (traced)
-                        fdjtLog("freshState %o %j\n\t%j",evt,xstate,metaBook.state);
+                        fdjtLog("freshState %o %j\n\t%j",
+                                evt,xstate,metaBook.state);
                     if (xstate.changed>(tick+300))
                         fdjtLog.warn(
                             "Beware of oracles (future state date): %j ",
@@ -24059,13 +24081,15 @@ var metaBook={
         else if (metaBook.layout instanceof fdjt.CodexLayout) {
             var dups=((getTarget(target))&&(metaBook.getDups(target)));
             metaBook.startPagePreview(target,caller);
+            addClass(target,"metabookpreviewtarget");
             if (dups) addClass(dups,"metabookpreviewtarget");}
         else {
             scrollPreview(target,caller);
             addClass(target,"metabookpreviewtarget");}
         metaBook.previewing=target;
         addClass(document.body,"mbPREVIEW");
-        if (hasClass(target,"codexpage")) addClass(document.body,"mbPAGEPREVIEW");
+        if (hasClass(target,"codexpage"))
+            addClass(document.body,"mbPAGEPREVIEW");
         return target;}
     metaBook.startPreview=startPreview;
     function stopPreview(caller,jumpto){
@@ -24510,14 +24534,6 @@ metaBook.Startup=
             metaBook.taptapmsecs=value;
             fdjtUI.TapHold.default_opts.taptapthresh=value;});
 
-        metaBook.addConfig("glossupdate",function(name,value){
-            metaBook.update_interval=value;
-            if (ticktock) {
-                clearInterval(metaBook.ticktock);
-                metaBook.ticktock=ticktock=false;
-                if (value) metaBook.ticktock=ticktock=
-                    setInterval(updateInfo,value*1000);}});
-
         metaBook.addConfig("syncinterval",function(name,value){
             metaBook.sync_interval=value;
             if (metaBook.synctock) {
@@ -24526,6 +24542,11 @@ metaBook.Startup=
             if ((value)&&(metaBook.locsync))
                 metaBook.synctock=synctock=
                 setInterval(metaBook.syncState,value*1000);});
+        metaBook.addConfig("synctimeout",function(name,value){
+            metaBook.sync_timeout=value;});
+        metaBook.addConfig("syncpause",function(name,value){
+            metaBook.sunc_pause=value;});
+
         metaBook.addConfig("locsync",function(name,value){
             // Start or clear the sync check interval timer
             if ((!(value))&&(metaBook.synctock)) {
@@ -24538,6 +24559,18 @@ metaBook.Startup=
             else {}
             metaBook.locsync=value;});
         
+        metaBook.addConfig("glossupdate",function(name,value){
+            metaBook.update_interval=value;
+            if (ticktock) {
+                clearInterval(metaBook.ticktock);
+                metaBook.ticktock=ticktock=false;
+                if (value) metaBook.ticktock=ticktock=
+                    setInterval(updateInfo,value*1000);}});
+        metaBook.addConfig("updatetimeout",function(name,value){
+            metaBook.update_timeout=value;});
+        metaBook.addConfig("updatepause",function(name,value){
+            metaBook.update_pause=value;});
+
         function syncStartup(){
             // This is the startup code which is run
             //  synchronously, before the time-sliced processing
@@ -24555,6 +24588,10 @@ metaBook.Startup=
             outer_height=window.outerHeight;
             outer_width=window.outerWidth;
 
+            /* This was for a problem with saving documents as webapps under
+               iOS, where the webapp doesn't get the authentication cookies
+               of the saved app.  This may no longer be neccessary. */
+            /*
             if ((fdjtDevice.standalone)&&
                 (fdjtDevice.ios)&&(fdjtDevice.mobile)&&
                 (!(getLocal("metabook.user")))&&
@@ -24562,6 +24599,7 @@ metaBook.Startup=
                 var authkey=fdjt.State.getQuery("SBOOKS:AUTH-");
                 fdjtLog("Got auth key %s",authkey);
                 metaBook.authkey=authkey;}
+            */
 
             // Check for any trace settings passed as query arguments
             if (getQuery("cxtrace")) readTraceSettings();
@@ -24849,7 +24887,7 @@ metaBook.Startup=
             else {}
             if (window.navigator.onLine) {
                 if ((metaBook.user)&&(sync))
-                    fdjtLog("Requesting new (> %s (%d)) glosses on %s from %s for %s",
+                    fdjtLog("Requesting additional glosses (> %s (%d)) on %s from %s for %s",
                             fdjtTime.timeString(metaBook.sync),metaBook.sync,
                             metaBook.refuri,metaBook.server,metaBook.user._id,metaBook.user.name);
                 else if (metaBook.user)
@@ -26338,14 +26376,21 @@ metaBook.Startup=
             var uri="https://"+metaBook.server+"/v1/loadinfo.js?REFURI="+
                 encodeURIComponent(metaBook.refuri);
             var ajax_headers=((metaBook.sync)?({}):(false));
-            if (metaBook.sync) ajax_headers["If-Modified-Since"]=((new Date(metaBook.sync*1000)).toString());
+            if (metaBook.sync)
+                ajax_headers["If-Modified-Since"]=
+                ((new Date(metaBook.sync*1000)).toString());
             function gotInfo(req){
                 updating=false;
-                metaBook.authkey=false; // No longer needed, we should have our own authentication keys
+                // No longer needed, we should have our own authentication keys
+                // metaBook.authkey=false;
                 var response=JSON.parse(req.responseText);
                 if ((response.glosses)&&(response.glosses.length))
-                    fdjtLog("Received %d glosses from the server",response.glosses.length);
-                metaBook.updatedInfo(response,uri+((user)?("&SYNCUSER="+user._id):("&JUSTUSER=yes")),start);
+                    fdjtLog("Received %d glosses from the server",
+                            response.glosses.length);
+                metaBook.updatedInfo(
+                    response,
+                    uri+((user)?("&SYNCUSER="+user._id):("&JUSTUSER=yes")),
+                    start);
                 if (user) {
                     // If there was already a user, just startup
                     //  regular updates now
@@ -26364,45 +26409,54 @@ metaBook.Startup=
             function ajaxFailed(req){
                 if ((req.readyState===4)&&(req.status<500)) {
                     fdjtLog.warn(
-                        "Ajax call to %s failed on callback, falling back to JSONP",
+                        "Ajax to %s callback failed, falling back to JSONP",
                         uri);
                     updateInfoJSONP(uri+((user)?(""):("&JUSTUSER=yes")),jsonp);
                     noajax=true;}
                 else if (req.readyState===4) {
                     try {
                         fdjtLog.warn(
-                            "Ajax call to %s returned status %d %j, taking a break",
+                            "Ajax to %s returned %d %j, taking a break",
                             uri,req.status,JSON.parse(req.responseText));}
                     catch (ex) {
                         fdjtLog.warn(
-                            "Ajax call to %s returned status %d, taking a break",
+                            "Ajax to %s returned %d, taking a break",
                             uri,req.status);}
                     if (ticktock) {
                         clearInterval(metaBook.ticktock);
                         metaBook.ticktock=ticktock=false;}
-                    setTimeout(updateInfo,30*60*1000);}}
-            if ((updating)||(!(navigator.onLine))) return; else updating=true;
+                    setTimeout(updateInfo,metaBook.update_pause);}}
+            if ((updating)||(!(navigator.onLine))) return; 
+            else updating=true;
             // Get any requested glosses and add them to the call
             var i=0, lim, glosses=getQuery("GLOSS",true); {
-                i=0; lim=glosses.length; while (i<lim) uri=uri+"&GLOSS="+glosses[i++];}
+                i=0; lim=glosses.length; while (i<lim)
+                    uri=uri+"&GLOSS="+glosses[i++];}
             glosses=getHash("GLOSS"); {
-                i=0; lim=glosses.length; while (i<lim) uri=uri+"&GLOSS="+glosses[i++];}
-            if (metaBook.mycopyid) uri=uri+"&MCOPYID="+encodeURIComponent(metaBook.mycopyid);
-            if (metaBook.authkey) uri=uri+"&SBOOKS%3aAUTH-="+encodeURIComponent(metaBook.authkey);
+                i=0; lim=glosses.length; while (i<lim) 
+                    uri=uri+"&GLOSS="+glosses[i++];}
+            if (metaBook.mycopyid)
+                uri=uri+"&MCOPYID="+encodeURIComponent(metaBook.mycopyid);
+            if (metaBook.authkey)
+                uri=uri+"&SBOOKS%3aAUTH-="+encodeURIComponent(metaBook.authkey);
             if (metaBook.sync) uri=uri+"&SYNC="+(metaBook.sync+1);
             if (user) uri=uri+"&SYNCUSER="+user._id;
             if ((!(user))&&(Trace.startup))
-                fdjtLog("Requesting initial user information with %s using %s",
+                fdjtLog("Requesting initial user info with %s using %s",
                         ((noajax)?("JSONP"):("Ajax")),uri);
             if (noajax) {
                 updateInfoJSONP(uri+((user)?(""):("&JUSTUSER=yes")),jsonp);
                 return;}
-            try { fdjtAjax(gotInfo,uri+"&CALLBACK=return"+((user)?(""):("&JUSTUSER=yes")),[],
+            try { fdjtAjax(gotInfo,
+                           uri+"&CALLBACK=return"+
+                           ((user)?(""):("&JUSTUSER=yes")),
+                           [],
                            ajaxFailed,
-                           ajax_headers);}
+                           ajax_headers,
+                           metaBook.update_timeout);}
             catch (ex) {
                 fdjtLog.warn(
-                    "Ajax call to %s failed on transmission, falling back to JSONP",uri);
+                    "Ajax call to %s failed, falling back to JSONP",uri);
                 updateInfoJSONP(uri);}}
         metaBook.updateInfo=updateInfo;
         function updatedInfoJSONP(data){
@@ -38112,15 +38166,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2344-g3af2ea0';
-metaBook.buildhost='Shiny';
-metaBook.buildtime='Fri Jan 16 13:45:40 EST 2015';
-metaBook.buildid='3FA91F55-0ECE-47A4-9327-A2216E5BFE53';
+metaBook.version='v0.5-2350-g897712b';
+metaBook.buildhost='dev.beingmeta.com';
+metaBook.buildtime='Sun Jan 18 22:13:50 UTC 2015';
+metaBook.buildid='a2652e0f-c6fc-49c5-8782-613be8253d77';
 
-Knodule.version='v0.8-139-g821141a';
+Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
-metaBook.buildhost='Shiny';
-metaBook.buildtime='Fri Jan 16 13:47:11 EST 2015';
-metaBook.buildid='3ADCB84F-3DA4-43D3-9B49-03BF835EEEA4';
+metaBook.buildhost='dev.beingmeta.com';
+metaBook.buildtime='Sun Jan 18 22:13:53 UTC 2015';
+metaBook.buildid='62eb4e07-1bb0-4b25-96fe-920e49fffe57';
 
-fdjt.CodexLayout.sourcehash='86DC5ECD029D0D53D20436D90E577D4BE7021375';
+fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';

@@ -2465,7 +2465,7 @@ body._MOUSE a[href]:hover {text-decoration: underline;}
 
 body._MOUSE a[href].extref:hover, body._MOUSE a[href].sbextref:hover,
 a[href].extref.tapholding, body._MOUSE a[href].sbextref.tapholding,
-.tapholding a[href].extref, .tapholding a[href].sbextref { 
+.tapholding > a[href].extref, .tapholding > a[href].sbextref { 
     background-color: rgba(0,0,255,0.3);}
 
 /* Block elements */
@@ -3611,7 +3611,7 @@ body._NOUSER #METABOOKSETTINGS h1 a.logout {display:none;}
     text-align: right;}
 #METABOOKSETTINGS table.settings td button.floatright,
 #METABOOKSETTINGS table.settings th.buttons button {
-    min-width: 12ex; height: 2em;
+    min-width: 14ex; height: 2em;
     border-width: 2px; text-align: right;
     margin-left: 0.5ex; margin-bottom: 0.2ex;
     font-weight: 600;}
