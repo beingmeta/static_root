@@ -311,10 +311,15 @@ div.poem, section.poem {
 div.poem.codexdup, div.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 section.poem.codexdup, section.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 
+body.sbook.verse div.poem, body.sbook.verse section.poem {
+    font-size: 1.2em;}
+
 @media (max-width: 600px) {
   blockquote { margin-left: 1.5em; margin-right: 0.5em;}}
 
 @media (max-width: 700px) {
+    body.sbook.verse div.poem, body.sbook.verse section.poem {
+        font-size: 1em;}
   div.stanza { margin-left: 0.5em; margin-right: 0.25em; }
   div.stanza p { margin-left: 0.5em; text-indent: -0.5em;}
   div.poem, section.poem { 
