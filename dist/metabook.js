@@ -25958,6 +25958,8 @@ metaBook.Startup=
                 
         /* Initializing the body and content */
 
+        var note_counter=1;
+        
         function initBody(){
             var body=document.body, started=fdjtTime();
             var init_content=fdjtID("CODEXCONTENT");
@@ -25981,32 +25983,34 @@ metaBook.Startup=
             applyMetaClass("sbooknote");
             applyMetaClass("sbooknote","SBOOKS.note");
             addClass(fdjtDOM.$("span[data-type='footnote']"),"sbooknote");
-            var note_counter=1;
             var allnotes=getChildren(content,".sbooknote");
             i=0; lim=allnotes.length; while (i<lim) {
-                var refid="METABOOKNOTE"+counter+"_ref";
                 var notable=allnotes[i++]; var counter=note_counter++;
-                var label_text=notable.getAttribute("data-label")||"Note";
+                var noteid="METABOOKNOTE"+counter;
+                var refid="METABOOKNOTE"+counter+"_ref";
+                var label_text=notable.getAttribute("data-label")||(""+counter);
                 var label_node=
                     getChild(notable,"label")||
                     getChild(notable,"summary")||
                     getChild(notable,".sbooklabel")||
-                    getChild(notable,".sbooksummary")||
-                    getChild(notable,"span")||
-                    (""+counter);
+                    getChild(notable,".sbooksummary");
                 var anchor=fdjtDOM.Anchor(
-                    "#"+notable.id,"A.mbnoteref",
+                    "#"+noteid,"A.mbnoteref.sbooknoteref",
                     ((label_node)?(label_node.cloneNode(true)):
                      (label_text)));
                 var backlink=fdjtDOM.Anchor(
-                    "#"+refid,"A.mbnotebackref",
+                    "#"+refid,"A.mbackref",
                     ((label_node)?(label_node.cloneNode(true)):
                      (label_text)));
                 anchor.id=refid;
                 fdjtDOM.replace(notable,anchor);
-                var noteblock=fdjtDOM("div.metbooknotewrapper",
-                                      backlink,notable);
-                noteblock.id="METABOOKNOTE"+counter;
+                dropClass(notable,"sbooknote");
+                var noteblock=
+                    ((notable.tagName==='SPAN')?
+                     fdjtDOM("div.metabooknotebody",
+                             backlink,toArray(notable.childNodes)):
+                     fdjtDOM("div.metabooknotebody",backlink,notable));
+                noteblock.id=noteid;
                 fdjtDOM.append(notesblock,noteblock,"\n");}
             
             if (!(init_content)) {
@@ -26025,8 +26029,11 @@ metaBook.Startup=
             // Mark all external anchors and set their targets
             var anchors=content.getElementsByTagName("A");
             var ai=0, alimit=anchors.length; while (ai<alimit) {
-                var a=anchors[ai++], href=a.href;
-                if ((href)&&(href.search(/^[a-zA-Z]+:/)===0)) {
+                // Use a.getAttribute to not automatically get the
+                // base URL added
+                var a=anchors[ai++], href=a.getAttribute("href");
+                if ((href)&&(href[0]!=="#")&&
+                    (href.search(/^[a-zA-Z][a-zA-Z][a-zA-Z]+:/)===0)) {
                     var aclass=a.className, extclass="extref";
                     if (href.search(wikiref_pat)===0) {
                         var text=fdjt.DOM.textify(a);
@@ -32972,8 +32979,8 @@ metaBook.Slice=(function () {
     var MetaBookSlice=metaBook.Slice;
 
     function handle_body_click(target){
-        // Assume 3s gaps are spurious
-        if ((clicked)&&((fdjtTime()-clicked)<3000)) return true;
+        // Assume 1s gaps are spurious
+        if ((clicked)&&((fdjtTime()-clicked)<1000)) return true;
 
         // Handle various click-like operations, overriding to sBook
         //  navigation where appropriate.  Set *clicked* to the
@@ -32998,6 +33005,7 @@ metaBook.Slice=(function () {
                 var shownote=note_node.cloneNode(true);
                 fdjtDOM.stripIDs(shownote);
                 dropClass(shownote,/\bmetabook\S+/g);
+                addClass(shownote,"metabooknotebody");                
                 metaBook.DOM.noteshud.setAttribute("data-note",noteid||(href.slice(1)));
                 fdjtDOM.append(metaBook.DOM.noteshud,shownote);
                 metaBook.setMode("shownote");
@@ -33093,14 +33101,18 @@ metaBook.Slice=(function () {
 
     function jumpToNote(evt){
         evt=evt||window.event;
-        var noteshud=metaBook.DOM.noteshud;
-        var jumpto=noteshud.getAttribute("data-note");
-        if (jumpto) {
-            noteshud.removeAttribute("data-note");
-            noteshud.innerHTML="";
-            metaBook.setMode(false);
-            metaBook.GoTo(jumpto,"jumpToNote",true,true);}
-        else metaBook.setMode(false);}
+        var target=fdjt.UI.T(evt);
+        var anchor=getParent(target,"A[href]");
+        if (!(anchor)) {
+            fdjt.UI.cancel(evt);
+            var noteshud=metaBook.DOM.noteshud;
+            var jumpto=noteshud.getAttribute("data-note");
+            if (jumpto) {
+                noteshud.removeAttribute("data-note");
+                noteshud.innerHTML="";
+                metaBook.setMode(false);
+                metaBook.GoTo(jumpto,"jumpToNote",true,true);}
+            else metaBook.setMode(false);}}
     
     var selectors=[];
     var slip_timer=false;
@@ -35242,7 +35254,7 @@ metaBook.Slice=(function () {
                    release: body_released,
                    mousedown: body_touchstart,
                    mouseup: body_touchend,
-                   click: body_click},
+                   click: cancel},
          toc: {tap: toc_tapped,hold: toc_held,
                release: toc_released, slip: toc_slipped,
                mouseover: fdjtUI.CoHi.onmouseover,
@@ -38178,15 +38190,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2352-g776ae22';
+metaBook.version='v0.5-2354-ga268500';
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Sun Jan 18 23:53:58 UTC 2015';
-metaBook.buildid='bc535e87-850f-4f4b-8c24-6a2249e257ec';
+metaBook.buildtime='Mon Jan 19 18:10:25 UTC 2015';
+metaBook.buildid='587010ef-4428-460f-a30d-2a1283a71d5f';
 
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Sun Jan 18 23:56:04 UTC 2015';
-metaBook.buildid='63462d00-4695-495d-829b-9058716302e4';
+metaBook.buildtime='Mon Jan 19 18:13:46 UTC 2015';
+metaBook.buildid='747f9b6c-ee82-4e7f-a692-00bd183d6c92';
 
 fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';

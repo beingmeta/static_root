@@ -2450,7 +2450,7 @@ details > summary , .html5details > summary {
 #METABOOKBODY a[rel='endnote'],
 #METABOOKBODY a.mbnoteref {
     font-size: 80%; vertical-align: super; margin-left: 0.5ex;
-    color: darkblue; text-decoration: overline; font-variant: small-caps;
+    color: darkblue; font-variant: small-caps;
     border-radius: 1ex; -webkit-border-radius: 1ex;
     -khtml-border-radius: 1ex; -moz-border-radius: 1ex;
     -o-border-radius: 1ex;}
@@ -2459,8 +2459,8 @@ body._MOUSE #METABOOKBODY a[rel='footnote']:hover,
 body._MOUSE #METABOOKBODY a[rel='endnote']:hover {
     text-decoration: overline;}
 
-#METABOOKBODY a.mbnoteref:before {content: '[';}
-#METABOOKBODY a.mbnoteref:after {content: ']';}
+#METABOOKBODY a.mbnoteref:before, a.mbackref:before {content: '[';}
+#METABOOKBODY a.mbnoteref:after, a.mbackref:after {content: ']';}
 
 a[href] { color: blue; background-color: transparent; text-decoration: none;}
 body._MOUSE a[href]:hover {text-decoration: underline;}
@@ -5766,6 +5766,9 @@ a[href].wikiref, a[href].sbwikiref {
     background-size: 1em;}
 body._NOSVG a[href].wikiref, body._NOSVG a[href].sbwikiref {
     background-image: url(g/sbooks/wikipedia64w.png);}
+
+div.metabooknotebody { margin-left: 3em;}
+div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 
 /* Custom media rules */
 
