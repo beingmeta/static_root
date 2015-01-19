@@ -116,6 +116,7 @@ dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
 	dist/metabook.js dist/metabook.min.js.gz \
 	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz \
+	dist/fdjt.js dist/fdjt.css
 
 allhints: fdjt/fdjt.hints metabook/metabook.hints \
 	knodules/knodules.hints showsomeclass/hints
@@ -264,6 +265,10 @@ fdjt/fdjt.min.js.gz dist/fdjt.min.js.gz: fdjt/fdjt.min.js
 	gzip fdjt/fdjt.min.js -c > $@
 fdjt/fdjt.css.gz dist/fdjt.css.gz: fdjt/fdjt.css
 	gzip -c fdjt/fdjt.css > $@
+dist/fdjt.js: fdjt/fdjt.js
+	cp $< $@
+dist/fdjt.css: fdjt/fdjt.css
+	cp $< $@
 
 # Generating the HTML
 

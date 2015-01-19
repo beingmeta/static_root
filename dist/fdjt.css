@@ -1,0 +1,1229 @@
+/* Copyright (C) 2001-2012 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   These are style declarations that work with the UI elements
+    implemented in handlers.js and other files.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+    Use, modification, and redistribution of this program is permitted
+    under either the GNU General Public License (GPL) Version 2 (or
+    any later version) or under the GNU Lesser General Public License
+    (version 3 or later).
+
+    These licenses may be found at www.gnu.org, particularly:
+      http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+      http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+*/
+
+@charset "UTF-8";
+
+/* Generally useful */
+
+.centered { text-align: center; }
+.flushleft { text-align: left; }
+.flushright { text-align: right; }
+.justified { text-align: justify; }
+.nowrap { white-space: nowrap;}
+
+.fullwidth { width: 100%;}
+.floatleft, .leftfloat { float: left;}
+.floatright, .rightfloat { float: right;}
+.clearleft, .leftclear { clear: left;}
+.clearright, .rightclear { clear: right;}
+.leftclearfloat { float: left; clear: left;}
+.rightclearfloat { float: right; clear: right;}
+
+p .floatright, p .rightfloat { margin-left: 1ex; }
+p .floatleft, p .leftfloat { margin-right: 1ex; }
+
+input[TYPE="FILE"].floatright { text-align: right; }
+
+.fdjtinvisible { display: none;}
+.fdjthidden { visibility: hidden;}
+span[onclick] { cursor: pointer;}
+
+.hidetext {
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;}
+
+.noindent {text-indent: 0px !important;}
+
+/* Clearing floats in various ways */
+
+div.fdjtclearfloats {
+    width: 100%; height: 0px; clear: both;
+    margin: 0px; padding: 0px; border: 0px;}
+
+/**
+ * From: http://nicolasgallagher.com/micro-clearfix-hack/
+ * For modern browsers
+ * 1. The space content is one way to avoid an Opera bug when the
+ *    contenteditable attribute is included anywhere else in the document.
+ *    Otherwise it causes space to appear at the top and bottom of elements
+ *    that are clearfixed.
+ * 2. The use of `table` rather than `block` is only necessary if using
+ *    `:before` to contain the top-margins of child elements.
+ */
+.fdjtfloats:before, .cf:before,
+.fdjtfloats:after, .cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */}
+
+.fdjtfloats:after, .cf:after { clear: both; }
+
+/* For IE 6/7 only (triggers hasLayout) */
+.fdjtfloats, .cf { zoom: 1; }
+
+/* Checkspans */
+
+.checkspan { cursor: pointer; }
+.checkspan.disabled { opacity: 0.5; cursor: auto;}
+
+/* We use color, rather than bolding for inline(ish)
+   checkspans to avoid distorting layouts too much. */
+span.checkspan, th.checkspan, td.checkspan, .inlinecheckspan {
+    color: gray;}
+
+.checkspan .alt { font-size: inherit; color: black;}
+span.checkspan, a.checkspan { white-space: nowrap; }
+span.wrapcheckspan, a.wrapcheckspan,
+span.checkspan.longspan, a.checkspan.longspan {
+    white-space: normal; }
+.checkspan .checked { display: none;}
+
+.checkspan input[TYPE="CHECKBOX"], .checkspan input[TYPE="RADIO"] {
+    font-size: inherit; height: 1.5ex; width: 1.5ex;}
+@media (pointer: coarse) {
+  .checkspan input[TYPE="CHECKBOX"], .checkspan input[TYPE="RADIO"] {
+     height: 1em; width: 1em;}}
+
+.fontsize_wrapper .checkspan input[TYPE="CHECKBOX"],
+.checkspan .fontsize_wrapper input[TYPE="CHECKBOX"],
+.fontsize_wrapper .checkspan input[TYPE="RADIO"],
+.checkspan .fontsize_wrapper input[TYPE="RADIO"] {
+    height: 1ex; width: 1ex;}
+
+.checkspan.ischecked { font-weight: bold;}
+.checkspan.ischecked .alt { font-size: 80%; font-weight: normal;}
+.checkspan.ischecked .unchecked { display: none;}
+.checkspan.ischecked span.checked,
+.checkspan.ischecked a.checked,
+.checkspan.ischecked img.checked { display: inline;} 
+.checkspan.ischecked div.checked { display: block;}
+.checkspan.ischecked li.checked { display: list-item;}
+.checkspan.ischecked input { font-weight: normal; }
+
+.checkspan[checked] { font-weight: bold; }
+
+/* We use color, rather than bolding for inline(ish)
+   checkspans to avoid distorting layouts too much. */
+span.checkspan.ischecked,
+th.checkspan.ischecked, th.checkspan[checked],
+td.checkspan.ischecked, td.checkspan[checked] {
+    font-weight: normal; color: black;}
+
+.checkspan[checked] .alt { font-size: 80%; font-weight: normal;}
+.checkspan[checked] { display: none;}
+.checkspan[checked] .unchecked { display: none;}
+.checkspan[checked] span.checked,
+.checkspan[checked] a.checked,
+.checkspan[checked] img.checked { display: inline;} 
+.checkspan[checked] div.checked { display: block;}
+.checkspan[checked] li.checked { display: list-item;}
+
+th .checkspan, th.checkspan { font-weight: normal;}
+th .checkspan.ischecked, th .checkspan[checked] { color: black;}
+ { color: black;}
+
+/* Check blocks */
+
+div.checkblock {  text-align: left; margin-top: 0.5em;}
+td div.checkblock { margin-top: 0px; }
+div.checkblock > table { display: none; }
+ul.checkblock > li, ol.checkblock > li { display: none; }
+div.checkblock > p {
+   margin-left: 5em; text-indent: -3em;
+   margin-top: 0px; margin-bottom: 0px; font-size: 80%;
+   display: none;}
+div.checkblock > p:first-child {
+   margin-left: 3em; text-indent: -3em; display: block;}
+.checkblock.checkspan.ischecked > p { font-weight: normal; }
+.checkblock.checkspan.ischecked > p:first-child {
+   color: black; }
+div.checkblock.ischecked > p { display: block; }
+div.checkblock.ischecked > table { display: table; }
+ul.checkblock.ischecked >  li { display: list-item; }
+ol.checkblock.ischecked >  li { display: list-item; }
+
+/* Autoprompt classes */
+
+input.autoprompt { font-family: sans,sans-serif; }
+input.autoprompt { font-style: italic; color: gray;}
+input.autoprompt.isempty { font-style: italic; color: gray;}
+
+textarea.autoprompt { font-family: sans,sans-serif;}
+textarea.autoprompt { font-style: italic; color: gray;}
+textarea.autoprompt.isempty { font-style: italic; color: gray;}
+
+/* Input help classes */
+
+.helptext { display: none;}
+
+.showhelp span.helptext { display: block;}
+.showhelp div.helptext { display: block;}
+.showhelp td.helptext { display: table-cell;}
+.showhelp tr.helptext { display: table-row;}
+.showhelp tbody.helptext { display: table-row-group;}
+.showhelp p.helptext { display: block;}
+
+img.helpicon { 
+  padding-right: 2px; padding-left: 2px;
+  margin-left: 1px; margin-right: 0px;
+  color: yellow; background-color: gray;
+  font-size: 80%; vertical-align: middle;
+  font-weight: bold; font-style: normal;}
+td img.helpicon { background-color: transparent; }
+
+/* Tabs */
+
+div.tabbar { line-height: 200%;}
+
+a.tab:visited { color: inherit;}
+a.tab:hover { color: darkblue; text-decoration: underline;}
+a.tab, span.tab {
+  color: inherit;
+  font-family: sans,sans-serif;
+  margin-left: 0.25ex; margin-right: 0.25ex;
+  border: outset black 2px;
+  padding: 0.2ex;}
+a.tab[shown], span.tab[shown],a.tab.fdjtshown, span.tab.fdjtshown {
+  border: inset black 2px;
+  border-bottom: hidden;}
+div.tabbar.vertical[shown],div.tabbar.vertical.fdjtshown {
+  border-bottom: inset;}
+div.tabcontent {
+ margin-left: 1em; margin-top: 0.5em; margin-right: 1em;
+ text-align: left;
+ display: none;}
+div.tabcontent[shown],div.tabcontent.fdjtshown { display: block; }
+div.tabcontent div.tabcontent[shown],div.tabcontent div.tabcontent.fdjtshown { display: none; }
+div.tabcontent[shown] div.tabcontent[shown],div.tabcontent.fdjtshown div.tabcontent.fdjtshown { display: block; }
+
+div.tabcontent div.narrative {
+ color: purple; font-family: sans; font-style: italic;}
+div.tabcontent p { margin: 0.5ex; padding: 0.2ex;}
+
+/* Lisp(ish) data */
+
+.lispish { font-family: fixed;}
+.lispexpr { font-family: fixed; font-style: italic;}
+.lispvalue { font-family: fixed;}
+
+/* KNodes (from knodules) */
+
+span.dterm {
+    font-family: sans,sans-serif; color: blue; white-space: nowrap;}
+span.dterm.long { white-space: normal;}
+span.dterm span.disambig {
+  color: red;}
+span.dterm .langid {
+  color: green; font-style:italic; font-family: fixed;}
+
+/* Wordforms and langids */
+
+span.wordform {
+  white-space: nowrap; color: black;}
+span.wordform sub.langids {
+  color: green; font-family: fixed;}
+span.wordform .langid {
+  color: green; font-family: fixed;}
+
+/* Glosses */
+
+p.gloss {
+  font-style: italic; font-family: sans;}
+p.gloss span.spacer {
+  padding-left: 1ex; padding-right: 1ex;
+  font-family: sans; font-weight: bold; font-size: 150%;}
+
+/* Font sizers */
+
+span.font_sizer {
+  float: right; width: 2em;
+  font-size: 16px; font-size: 1.25rem; font-weight: bold; 
+  text-align: center; cursor: pointer; margin: 0.2ex;
+  background: gray; color: white;
+  opacity: .75;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
+  -webkit-opacity: .75;
+  -khtml-opacity: .75;
+  -moz-opacity: .75;
+  -o-opacity: .75;}
+
+/* Flexboxes */
+
+div.flexbox { max-height: 128px;}
+div.flexbox_expanded { max-height: inherit;}
+
+/* Formatted output */
+
+div.fdjtdata {
+  font-family: fixed; width: 100%; white-space: pre;}
+
+/* Generic table stuff */
+
+tr.padding { height: 1ex;}
+
+/* Data tables */
+
+table.fdjtdata {width: 100%; font-family: fixed;}
+table.fdjtdata th { 
+  vertical-align: top; text-align: right; padding-right: 0.2ex;}
+table.fdjtdata td { 
+  vertical-align: top; text-align: left; padding-left: 0.2ex;}
+
+table.fdjt {font-family: sans,sans-serif;}
+table.fdjt.full { width: 100%; }
+table.fdjt th { vertical-align: top; text-align: right;}
+table.fdjt td { vertical-align: top; text-align: left;}
+table.fdjt td input.fullwidth[type="TEXT"] { width: 100%;}
+table.fdjt td textarea.fullwidth { width: 100%;}
+
+/* Auto completion */
+
+div.completions {font-family: sans,sans-serif;}
+.completions .completionslabel { float: right; font-size: 125%;}
+.completions img.completionslabel { height: 5ex;}
+
+.completions .nocompletemsg { display: none;}
+.completions.nomatches span.nocompletemsg { display: inline;}
+.completions.nomatches li.nocompletemsg { display: list-item;}
+.completions.nomatches div.nocompletemsg { display: block;}
+.completions.nomatches p.nocompletemsg { display: block;}
+.completions.nomatches tr.nocompletemsg { display: table-row;}
+.completions.nomatches tbody.nocompletemsg { display: table-row-group;}
+
+.completions .nomatchmsg { display: none;}
+.completions.nomatches span.nomatchmsg { display: inline;}
+.completions.nomatches li.nomatchmsg { display: list-item;}
+.completions.nomatches div.nomatchmsg { display: block;}
+.completions.nomatches p.nomatchmsg { display: block;}
+.completions.nomatches tr.nomatchmsg { display: table-row;}
+.completions.nomatches tbody.nomatchmsg { display: table-row-group;}
+
+.completions .completion { display: none; cursor: pointer;}
+.completions .completion .variation { display: none; }
+.completions .completion[displayed] .variation { display: none; }
+.completions .completion.displayed .variation { display: none; }
+
+.completions.noinput a.completion.cue { display: inline; }
+.completions.noinput span.completion.cue { display: inline; }
+.completions.noinput li.completion.cue { display: list-item; }
+.completions.noinput div.completion.cue { display: block; }
+/* Override these */
+.completions.noinput .completion.cue.hidden { display: none; }
+
+.completions.showall.noinput a.completion { display: inline; }
+.completions.showall.noinput span.completion { display: inline; }
+.completions.showall.noinput li.completion { display: list-item; }
+.completions.showall.noinput div.completion { display: block; }
+.completions.showall.noinput tr.completion { display: table-row; }
+.completions.showall.noinput tbody.completion { display: table-row-group; }
+/* Override these */
+.completions.showall.noinput .completion.hidden { display: none; }
+
+.completions .noinputmsg { display: none;}
+
+.completions.maxcomplete .completion[displayed] { display: none;}
+.completions.maxcomplete .completion.displayed { display: none;}
+
+.completions .maxcompletemsg { display: none;}
+.completions.maxcomplete span.maxcompletemsg { display: inline;}
+.completions.maxcomplete a.maxcompletemsg { display: inline;}
+.completions.maxcomplete li.maxcompletemsg { display: list-item;}
+.completions.maxcomplete div.maxcompletemsg { display: block;}
+.completions.showmaxcomplete span.maxcompletemsg { display: inline;}
+.completions.showmaxcomplete a.maxcompletemsg { display: inline;}
+.completions.showmaxcomplete li.maxcompletemsg { display: list-item;}
+.completions.showmaxcomplete div.maxcompletemsg { display: block;}
+.completions.noinput .maxcompletemsg { display: none;}
+
+.maxcompletemsg .hideall { color: blue; font-style: italic;}
+.maxcompletemsg .showall { color: blue; font-style: italic;}
+.completions.maxcomplete .maxcompletemsg .hideall { display: none;}
+.completions.showmaxcomplete .maxcompletemsg .showall { display: none;}
+
+.completions.noinput span.noinputmsg { display: inline;}
+.completions.noinput li.noinputmsg { display: list-item;}
+.completions.noinput div.noinputmsg { display: block;}
+.completions.noinput p.noinputmsg { display: block;}
+
+.completions .completion.selected {
+    text-decoration: underline;}
+
+/* Display rules (with displayed attribute) */
+
+.completions a.completion[displayed] { display: inline;}
+.completions span.completion[displayed] { display: inline;}
+.completions li.completion[displayed] { display: list-item;}
+.completions div.completion[displayed] { display: block;}
+.completions tr.completion[displayed] { display: table-row;}
+.completions tbody.completion[displayed] { display: table-row-group;}
+
+.completions .completion[displayed] span.variation[displayed] { 
+   display: inline; }
+.completions .completion[displayed] li.variation[displayed] { 
+   display: list-item; }
+.completions .completion[displayed] div.variation[displayed] { 
+   display: block; }
+
+.completions.maxcomplete .completion[displayed] .variation[displayed] { 
+   display: none; }
+
+/* Display rules (with displayed class) */
+
+.completions a.completion.displayed { display: inline;}
+.completions span.completion.displayed { display: inline;}
+.completions li.completion.displayed { display: list-item;}
+.completions div.completion.displayed { display: block;}
+.completions tr.completion.displayed { display: table-row;}
+.completions tbody.completion.displayed { display: table-row-group;}
+
+.completions a.completion.displayed span.variation.displayed { 
+   display: inline; }
+.completions .completion.displayed span.variation.displayed { 
+   display: inline; }
+.completions .completion.displayed li.variation.displayed { 
+   display: list-item; }
+.completions .completion.displayed div.variation.displayed { 
+   display: block; }
+.completions .completion.displayed tr.variation.displayed { 
+   display: table-row; }
+.completions .completion.displayed tbody.variation.displayed { 
+   display: table-row-group; }
+
+.completions.maxcomplete .completion.displayed .variation.displayed { 
+   display: none; }
+
+/* Checkspan/completion display rules (attribute based) */
+
+.completions.checkspans span.completion.checkspan[checked] { 
+  display: inline; }
+.completions.checkspans li.completion.checkspan[checked] { 
+  display: list-item; }
+.completions.checkspans div.completion.checkspan[checked] { 
+  display: block; }
+.completions.checkspans p.completion.checkspan[checked] { 
+  display: block; }
+
+.completions.checkspans .completion.checkspan[checked]
+     span.variation[displayed] { display: inline; }
+.completions.checkspans .completion.checkspan[checked]
+     li.variation[displayed] { display: list-item; }
+.completions.checkspans .completion.checkspan[checked]
+     div.variation[displayed] { display: block; }
+.completions.checkspans .completion.checkspan[checked]
+     div.variation[displayed] { display: block; }
+
+.completions.checkspans span.completion.checkspan[checked] { 
+  display: inline; }
+.completions.checkspans li.completion.checkspan[checked] { 
+  display: list-item; }
+.completions.checkspans div.completion.checkspan[checked] { 
+  display: block; }
+.completions.checkspans p.completion.checkspan[checked] { 
+  display: block; }
+
+.completions.checkspans .completion.checkspan[checked]
+     span.variation[displayed] { display: inline; }
+.completions.checkspans .completion.checkspan[checked]
+     li.variation[displayed] { display: list-item; }
+.completions.checkspans .completion.checkspan[checked]
+     div.variation[displayed] { display: block; }
+.completions.checkspans .completion.checkspan[checked]
+     div.variation[displayed] { display: block; }
+
+/* Checkspan/completion display rles (class based) */
+
+.completions.checkspans span.completion.checkspan.ischecked { 
+  display: inline; }
+.completions.checkspans li.completion.checkspan.ischecked { 
+  display: list-item; }
+.completions.checkspans div.completion.checkspan.ischecked { 
+  display: block; }
+.completions.checkspans p.completion.checkspan.ischecked { 
+  display: block; }
+
+.completions.checkspans .completion.checkspan.ischecked
+     span.variation.displayed { display: inline; }
+.completions.checkspans .completion.checkspan.ischecked
+     li.variation.displayed { display: list-item; }
+.completions.checkspans .completion.checkspan.ischecked
+     div.variation.displayed { display: block; }
+.completions.checkspans .completion.checkspan.ischecked
+     div.variation.displayed { display: block; }
+
+.completions.checkspans span.completion.checkspan.ischecked { 
+  display: inline; }
+.completions.checkspans li.completion.checkspan.ischecked { 
+  display: list-item; }
+.completions.checkspans div.completion.checkspan.ischecked { 
+  display: block; }
+.completions.checkspans p.completion.checkspan.ischecked { 
+  display: block; }
+
+.completions.checkspans .completion.checkspan.ischecked
+     span.variation.displayed { display: inline; }
+.completions.checkspans .completion.checkspan.ischecked
+     li.variation.displayed { display: list-item; }
+.completions.checkspans .completion.checkspan.ischecked
+     div.variation.displayed { display: block; }
+.completions.checkspans .completion.checkspan.ischecked
+     div.variation.displayed { display: block; }
+
+/* Rich tips 
+   Richtips are overlayed tooltips for metakeys, displayed
+   in translucent rectangles.
+*/
+
+div.richtip {
+  text-align: left; padding: 0.25ex;
+  font-size: 10px; font-size: 0.8rem;
+  font-family: sans-serif; font-weight: normal;
+  width: 33%; position: absolute; top: 24px; left: 24px;
+  display: none; background: lightgray; z-index: 32; opacity: .85;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=85)";
+  filter: alpha(opacity=85);
+  -webkit-opacity: .85;
+  -khtml-opacity: .85;
+  -moz-opacity: .85;
+  -o-opacity: .85;}
+div.richtip:hover { 
+    opacity: .95;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=95)";
+    filter: alpha(opacity=95);
+    -webkit-opacity: .95;
+    -khtml-opacity: .95;
+    -moz-opacity: .95;
+    -o-opacity: .95;}
+
+div.richtip span.dterm {
+  color: blue; font-size: 1.1em; font-weight: bold;}
+div.richtip span.disambiguator {
+  color: red; font-size: 1.1em; font-weight: bold;}
+div.richtip span.term {
+  color: blue; font-size: 1.1em; font-weight: bold;}
+
+div.richtip span.gloss {
+  color: black; font-style: italic;}
+div.richtip div.rel {}
+div.richtip div.rel span.relname {
+  font-weight: bold; padding: 0.2ex; color: purple;}
+
+div.richtip span.controls { 
+  float: right; display: none;
+  text-align: right; vertical-align: top;}
+div.richtip.static span.controls { 
+  float: right; display: inline; padding-left: 0.4ex;}
+div.static.richtip { display: block;}
+div.live.richtip { display: block;}
+
+div.richtip span.controls .button {
+  font-weight: bold; font-size: 150%; color: brown; 
+  padding: 0px; margin: 0px; padding-right: 1px;
+  cursor: pointer; vertical-align: top;}
+
+div.richtip.minimized { max-height: 4em;}
+div.richtip.minimized .maximize { display: inline; }
+div.richtip.minimized .minimize { display: none; }
+div.richtip .minimize { display: inline; }
+div.richtip .maximize { display: none; }
+
+table.fdjtdata table { border: solid silver 2px;}
+table.fdjtdata table.fdjtdata { width: auto;}
+table.fdjtdata td ul, table.fdjtdata td ol {
+    margin-left: 0px; margin-right: 0px;
+    margin-top: 0px; margin-bottom: 0px;}
+
+/* Tables for form input */
+
+table.fdjtform { }
+table.fdjtform th, table.fdjtform td { vertical-align: top;}
+table.fdjtform th span.type {
+   font-size: 80%; font-weight: normal; font-style: italic;}
+table.fdjtform tr.headers { font-size: 120%; vertical-align: bottom;}
+table.fdjtform tr.headers th, table.fdjtform tr.headers td {
+  vertical-align: bottom;}
+table.fdjtform tr.headers th { text-align: left; }
+table.fdjtform .controls { text-align: left; }
+table.fdjtform tr.headers th.p { padding-left: 1em; }
+table.fdjtform .controls button, table.fdjtform .controls input {
+  font-size: 100%;}
+
+table.fdjtform th { text-align: right; padding-right: 0.2ex;}
+
+table.fdjtform td { text-align: left;}
+table.fdjtform td.rightalign { text-align: right;}
+
+table.fdjtform td input[TYPE="URL"],
+table.fdjtform td input[TYPE="EMAIL"],
+table.fdjtform td input[TYPE="PASSWORD"],
+table.fdjtform td input[TYPE="SEARCH"],
+table.fdjtform td input[TYPE="TEXT"],
+table.fdjtform td textarea {
+    box-sizing: border-box; -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box; -o-box-sizing: border-box;
+    width: 100%;}
+table.fdjtform td p {
+    font-size: 80%; max-width: 45em;
+    margin-top: 0.25ex; margin-left: 1em;
+    margin-bottom: 0.25ex;}
+table.fdjtform td p:first-child { margin-top: 0px; }
+
+table.fdjtform td.messages {
+    text-align: center; font-style: italic;}
+table.fdjtform td.messages div.message {
+    text-align: left; max-width: 35em; margin-left: auto; margin-right: auto;
+    color: red;}
+
+table.fdjtform tbody.collapsible tr.collapsible { display: none;}
+table.fdjtform tbody.collapsible div.collapsible { display: none;}
+table.fdjtform tbody.collapsible span.collapsible { display: none;}
+table.fdjtform tbody.collapsible.expanded tr.collapsible { display: table-row;}
+table.fdjtform tbody.collapsible.expanded div.collapsible { display: block;}
+table.fdjtform tbody.collapsible.expanded span.collapsible { display: inline;}
+table.fdjtform tbody.collapsible .expanded { display: none;}
+table.fdjtform tbody.collapsible.expanded div.expanded { display: block;}
+table.fdjtform tbody.collapsible.expanded span.expanded { display: inline;}
+table.fdjtform tbody.collapsible.expanded img.expanded { display: inline;}
+table.fdjtform tbody.collapsible.expanded button.expanded { display: inline;}
+table.fdjtform tbody.collapsible.expanded input.expanded { display: inline;}
+table.fdjtform tbody.collapsible.expanded .collapsed { display: none;}
+
+table.fdjtform th.leftalign, th.leftalign, td.leftalign { text-align: left;}
+table.fdjtform th.rightalign, th.rightalign, td.rightalign { text-align: right;}
+table.fdjtform th.centeralign, th.centeralign, td.centeralign {
+    text-align: center;}
+
+table.fdjtform td.text, table.fdjt td.text, table.fdjtdata td.text {
+    vertical-align: baseline;}
+
+table.fdjtform tr.mainbuttons td, table.fdjtform tr.mainbuttons th {
+    text-align: left;}
+table.fdjtform tr.mainbuttons button,
+table.fdjtform tr.mainbuttons input[TYPE="SUBMIT"] {
+    font-variant: small-caps; font-size: 150%; float: right;}
+table.fdjtform tr.mainbuttons span.note { font-size: 120%; color: red; }
+
+th button, td button { white-space: nowrap;}
+
+form.evalform input[name="EXPR"] {
+    font-family: fixed; width: 100%;}
+
+/* Twisties */
+
+.twisties {}
+.twisties span.twisty { cursor: pointer; }
+.twisties span.twisty img { font-weight: bold; }
+.twisties span.twisty img[alt="-"] { display: none;}
+.twisties .expanded span.twisty img[alt="-"] { display: inline;}
+.twisties .expanded span.twisty img[alt="+"] { display: none;}
+.twisties .expanded span.twisty { font-weight: bold;}
+
+/* Displaying deadlinks as red, Wikipedia style */
+
+a.deadlink { color: red;}
+span.underline { text-decoration: underline;}
+
+/* Log entries */
+
+div.fdjtlog { text-align: left; margin-left: 2em;}
+div.fdjtlog span.time {
+    float: left; width: 6em; margin-right: 0.25ex;
+    color: green; background-color: wheat;}
+
+/* Expansion */
+
+.fdjtexpands.closed * { display: none;}
+.fdjtexpands.closed span.controller { display: inline;}
+.fdjtexpands.closed div.controller { display: block;}
+
+.fdjtexpands .whenexpanded { display: none;}
+.fdjtexpands.fdjtexpanded .whencollapsed { display: none;}
+
+.fdjtexpands.fdjtexpanded span.whenexpanded,
+.fdjtexpands.fdjtexpanded img.whenexpanded,
+.fdjtexpands.fdjtexpanded a.whenexpanded,
+.fdjtexpands.fdjtexpanded em.whenexpanded,
+.fdjtexpands.fdjtexpanded strong.whenexpanded,
+.fdjtexpands.fdjtexpanded cite.whenexpanded  {
+    display: inline;}
+.fdjtexpands.fdjtexpanded p.whenexpanded,
+.fdjtexpands.fdjtexpanded blockquote.whenexpanded,
+.fdjtexpands.fdjtexpanded div.whenexpanded {
+    display: block;}
+.fdjtexpands.fdjtexpanded li.whenexpanded {
+    display: list-item;}
+
+/* Tabular output of FramerD data structures */
+
+table.fdcompound {
+    border-left: solid black 2px;
+    border-right: solid black 2px;}
+table.fdcompound.fdtable { border: solid black 2px; }
+table.fdcompound.vector { border: 4px; }
+table.fdcompound.choice { border: dotted;}
+table.fdcompound th.count {
+    font-family: sans, sans-serif;
+    font-weight: normal; font-size: 80%; 
+    visibility: hidden;}
+table.fdcompound tr:hover > th.count { visibility: visible; }
+table.fdcompound th.size { text-align: left; }
+table.fdcompound th.delimiter { font-size: 120%; font-weight: bold;}
+table.fdcompound th.delimiter.open {text-align: right;}
+table.fdcompound th.delimiter.close {
+    text-align: left; vertical-align: bottom;}
+table.fdcompound.fdtable th.key {
+    font-family: sans, sans-serif;}
+
+/* Error pages */
+
+body#ERRORPAGE {
+  margin: 2em; margin-right: 1em;
+  background-color: black; color: ivory;}
+
+div.server_sorry {
+  font-family: sans; font-size: 120%; color: silver;}
+div.server_sorry div.error {
+  font-weight: bold; font-size: 140%; color: white;}
+
+div.error {
+  margin-left: 8em; text-indent: -8em; font-family: sans; }
+div.error span.ex { font-weight: bold;}
+div.error span.cxt { font-weight: normal; }
+div.error span.details { font-weight: normal; font-style: italic; }
+div.error span.irritant {
+  margin-left: 0.5em; white-space: nowrap;
+  color: red;}
+div.error div.irritant {
+  margin-left: 0.5em; font-family: fixed; white-space: pre;
+  color: red;}
+
+/* Backtraces */
+
+table.backtrace {
+    font-family: sans,sans-serif; width: 100%;
+    border-collapse: collapse;}
+table.backtrace > tbody > tr:first-child { border-top: solid black 2px;}
+table.backtrace th, table.backtrace td { vertical-align: top;}
+table.backtrace th { text-align: right; padding-right: 0.5ex;}
+table.backtrace td { text-align: left; padding-left: 0.2ex;}
+table.backtrace td.string { font-family: serif;}
+table.backtrace tbody.error {
+    background-color: lightblue; color: black;}
+table.backtrace tbody.error span.exception {
+    font-weight: bold; color: purple;}
+table.backtrace tbody.error span.context {
+    font-weight: bold; font-family: fixed;}
+table.backtrace tr > th:first-child { width: 7em;}
+table.backtrace tbody.error tr.details td { font-style: italic;}
+table.backtrace tbody.error tr.irritant td {
+    background-color: white; font-family: fixed; color: black;} 
+
+table.backtrace td > table { font-size: 90%;}
+
+table.backtrace > tbody > tr > th {
+    font-size: 125%; font-variant: small-caps;}
+table.backtrace > tbody > tr.details > th {
+    font-size: 90%; color: green;}
+table.backtrace > tbody > tr.irritant > th {
+    font-size: 90%; color: red;}
+table.backtrace > tbody > tr > td {
+    text-align: left; padding-top: 0.2ex;}
+table.backtrace > tbody.eval td.expr {
+    background-color: white; color: black; white-space: pre;}
+table.backtrace > tbody.eval td.expr .focus { color: blue; }
+table.backtrace > tbody.call > tr > td {
+    background-color: whitesmoke; color: black;}
+table.backtrace > tbody.bindings > tr > td {
+    background-color: lightskyblue; color: black;}
+table.backtrace > tbody.bindings > tr > td > table.bindings {
+    font-family: fixed;}
+table.bindings { }
+table.bindings th.head { text-align: left;}
+table.bindings tr.binding th.var { font-family: sans,sans-serif;}
+table.backtrace > tbody.bindings > tr:first-child > th {
+    background-color: blue;}
+table.backtrace > tbody.eval > tr > th { background-color: white; color: black;}
+table.backtrace > tbody.call > tr th { background-color: red; color: white;}
+table.backtrace > tbody.bindings > tr > td, table.backtrace > tbody.eval > tr > td {
+    font-family: fixed;}
+table.backtrace > tbody.call > tr > td { color: red; }
+table.backtrace > tbody.call > tr > td span.operator {font-weight: bold;}
+table.backtrace > tbody.call > tr > td span {white-space: nowrap;}
+
+/* Old backtrace code */
+
+div.error {
+  margin-left: 8em; text-indent: -8em; font-family: sans; }
+div.error span.ex { font-weight: bold;}
+div.error span.cxt { font-weight: normal; }
+div.error span.details { font-weight: normal; font-style: italic; }
+div.error span.irritant {
+  margin-left: 1ex; white-space: nowrap;
+  color: red;}
+div.error div.irritant {
+  margin-left: 1ex; font-family: fixed; white-space: pre;
+  color: red;}
+
+
+div.backtrace { margin-top: 2em; font-size: 120%;}
+
+div.backtrace_indent {
+  margin-left: 0.8em; font-size: 98%;}
+
+div.backtrace div.expr {
+  font-family: courier,fixed; white-space: pre; text-align: left;
+  padding-top: 0.2ex; padding-bottom: 0.2ex;}
+div.backtrace div.expr span.focus {
+  font-weight: bold; color: yellow; font-size: 120%;}
+
+div.backtrace div.bindings {
+  background-color: ivory;  color: black;
+  padding-left: 5em; text-indent: -5em;
+  padding-top: 0.5ex; padding-bottom: 0.5ex;}
+div.backtrace div.bindings span.binding {
+  font-family: fixed; font-weight: bold; color: red; white-space: nowrap; }
+div.backtrace div.bindings span.head {
+  padding-right: 1em; color: brown; font-weight: bold;}
+
+div.backtrace div.rail {
+  background-color: green;}
+div.backtrace div.rail span.name {
+  color: yellow; font-family: sans; font-weight: bold; padding-right: 1.5ex;}
+div.backtrace div.rail span.arg {
+  color: white; font-family: fixed; font-weight: bold;
+  padding-right: 1ex; padding-left: 1ex;}
+
+div.backtrace div.last_entry {
+  font-size: 150%;}
+
+/* Highlighting */
+
+span.fdjthighlight { background-color: yellow;}
+
+/* For inline images */
+
+img.inline {
+    height: 1.25em;
+    display: inline; float: none;
+    padding-left: 0.2em; padding-right: 0.2em;
+    vertical-align: bottom;}
+body .nosvg { display: none; }
+body img.nosvg { display: none; }
+body .inline.nosvg { display: none; }
+body img.inline.nosvg { display: none; }
+body._NOSVG img.svg { display: none;}
+body._NOSVG img.inline.svg { display: none;}
+body._NOSVG .nosvg { display: inline;}
+body._NOSVG .inline.nosvg { display: inline;}
+
+img.hires { display: none !important;}
+img.svg { display: none !important;}
+body._USESVG img.svg { display: inline !important;}
+body._USESVG img.stdres, body._USESVG img.notsvg {
+    display: none !important;}
+
+
+/* Progress boxes */
+
+div.fdjtprogress {
+    text-align: left; position: relative;
+    margin: 0px; padding: 0px; border: 0px;}
+div.fdjtprogress div.indicator {
+    position: absolute; left: 0px; top: 0px; z-index: 50;
+    background-color: lightblue; height: 100%; width: 0%;
+    margin: 0px; padding: 0px; border: 0px;
+    border-right: solid darkblue 2px;}
+div.fdjtprogress div.message {
+    position: absolute; left: 0px; top: 0px; z-index: 100;
+    width: 100%; height: 100%;
+    text-align: center; vertical-align: middle;}
+
+/* File upload affirmations */
+
+.fileuploader .affirmation { display: none;}
+.fileuploader.inuse span.affirmation { display: inline;}
+.fileuploader.inuse div.affirmation { display: block;}
+.fileuploader.inuse p.affirmation { display: block;}
+
+/* Reticle CSS */
+
+/* Reticles help when giving demos by highlighting the position and
+   action of the mouse.  */
+
+div.reticle {
+    background-color: black; margin: 0px; border: 0px; padding: 0px;
+    z-index: 1000; opacity: .50;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+    -webkit-opacity: .50;
+    -khtml-opacity: .50;
+    -moz-opacity: .50;
+    -o-opacity: .50;
+    pointer-events: none;}
+div.reticle.vertical {
+    position: fixed; height: 100%; top: 0px; bottom: 0px;
+    width: 1px;}
+div.reticle.horizontal {
+    position: fixed; width: 100%; left: 0px; right: 0px;
+    height: 1px;}
+
+div.reticle.highlight { color: blue;}
+div.reticle.horizontal.highlight { height: 3px;}
+div.reticle.vertical.highlight { width: 3px;}
+
+/* Ellipsis */
+
+.ellipsis {}
+.ellipsis .elided { display: none;}
+.ellipsis .elision, .ellipsis .delision {
+   cursor: pointer; white-space: nowrap;}
+.ellipsis .delision { display: none;}
+.ellipsis.compact .elided { display: none;}
+.ellipsis.expanded .elided { display: inline;}
+.ellipsis.expanded .elision { display: none;}
+.ellipsis.expanded span.delision { display: inline;}
+
+/* Backtraces */
+
+table.backtrace {
+    font-family: sans,sans-serif; width: 100%;
+    border-collapse: collapse;}
+table.backtrace > tbody > tr:first-child { border-top: solid black 2px;}
+table.backtrace th, table.backtrace td { vertical-align: top;}
+table.backtrace th { text-align: right; padding-right: 0.5ex;}
+table.backtrace td { text-align: left; padding-left: 0.2ex;}
+table.backtrace td.string { font-family: serif;}
+table.backtrace tbody.error {
+    background-color: lightblue; color: black;}
+table.backtrace tbody.error span.exception {
+    font-weight: bold; color: purple;}
+table.backtrace tbody.error span.context {
+    font-weight: bold; font-family: fixed;}
+table.backtrace tbody.error tr.details td { font-style: italic;}
+table.backtrace tbody.error tr.irritant td {
+    background-color: white; font-family: fixed; color: black;} 
+
+table.backtrace td > table { font-size: 90%;}
+
+table.backtrace > tbody > tr > th {
+    font-size: 125%; font-variant: small-caps;}
+table.backtrace > tbody > tr.details > th {
+    font-size: 90%; color: green;}
+table.backtrace > tbody > tr.irritant > th {
+    font-size: 90%; color: red;}
+table.backtrace > tbody > tr > td {
+    text-align: left; padding-top: 0.2ex;}
+table.backtrace > tbody.eval td.expr {
+    background-color: white; color: black;}
+table.backtrace > tbody.eval td.expr .focus { color: blue; }
+table.backtrace > tbody.call > tr > td {
+    background-color: whitesmoke; color: black;}
+table.backtrace > tbody.bindings > tr > td {
+    background-color: lightskyblue; color: black;}
+table.backtrace > tbody.bindings > tr > td > table.bindings {
+    font-family: fixed;}
+table.bindings { }
+table.bindings th.head { text-align: left;}
+table.bindings tr.binding th.var { font-family: sans,sans-serif;}
+table.backtrace > tbody.bindings > tr:first-child > th {
+    background-color: blue;}
+table.backtrace > tbody.eval > tr > th { background-color: white; color: black;}
+table.backtrace > tbody.call > tr th { background-color: red; color: white;}
+table.backtrace > tbody.bindings > tr > td, table.backtrace > tbody.eval > tr > td {
+    font-family: fixed;}
+table.backtrace > tbody.call > tr > td { color: red; }
+table.backtrace > tbody.call > tr > td span.operator {font-weight: bold;}
+table.backtrace > tbody.call > tr > td span {white-space: nowrap;}
+
+table.fdcompound { border-left: solid black 2px;}
+table.fdcompound th.count {
+    font-weight: normal; font-size: 80%; font-style: italic;}
+table.fdcompound th.delimiter { font-size: 120%; font-weight: bold;}
+table.fdcompound th.delimiter.open {text-align: right;}
+table.fdcompound th.delimiter.close {text-align: left;}
+table.fdcompound.table th.key {
+  font-family: sans, sans-serif;}
+
+/* Alerts */
+
+div.fdjtdialog {
+    position: fixed;
+    background-color: slategray; color: black;
+    font-family: helvetica,sans,sans-serif;
+    font-size: 2em; font-size: 2rem;
+    box-sizing: border-box; -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box; -o-box-sizing: border-box; 
+    width: 50%; max-width: 700px; top: 15%; max-height: 70%;
+    left: 0px; right: 0px; height: auto;
+    margin-left: auto; margin-right: auto;
+    text-align: center; padding: 1em; vertical-align: middle; 
+    z-index: 250; 
+    opacity: .99;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=99)";
+    filter: alpha(opacity=99);
+    -webkit-opacity: .99;
+    -khtml-opacity: .99;
+    -moz-opacity: .99;
+    -o-opacity: .99;
+    transition-property: opacity;
+    -webkit-transition-property: -webkit-opacity;
+    -khtml-transition-property: -khtml-opacity;
+    -moz-transition-property: -moz-opacity;
+    -ms-transition-property: filter;
+    -o-transition-property: -o-opacity;
+    transition-duration:  0.50s;
+    -webkit-transition-duration:  0.50s;
+    -khtml-transition-duration:  0.50s;
+    -moz-transition-duration:  0.50s;
+    -ms-transition-duration:  0.50s;
+    -o-transition-duration:  0.50s;
+    transition-timing-function:  ease-in;
+    -webkit-transition-timing-function:  ease-in;
+    -khtml-transition-timing-function:  ease-in;
+    -moz-transition-timing-function:  ease-in;
+    -ms-transition-timing-function:  ease-in;
+    -o-transition-timing-function:  ease-in;
+    border: solid black 4px;
+    border-radius: 1em;
+    -webkit-border-radius: 1em;
+    -khtml-border-radius: 1em;
+    -moz-border-radius: 1em;
+    -o-border-radius: 1em;}
+div.fdjtdialog#FDJTALERT { z-index: 250;}
+div.fdjtdialog.closing {
+    opacity: .05;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+    -webkit-opacity: .05;
+    -khtml-opacity: .05;
+    -moz-opacity: .05;
+    -o-opacity: .05;}
+div.fdjtdialog.closing { cursor: pointer;}
+
+div.fdjtdialog div.title {
+  text-align: center; font-weight: bold; font-size: 120%;}
+div.fdjtdialog p {
+  margin-top: 1ex; margin-bottom: 0.5ex;
+  text-align: left; text-indent: 0px;}
+
+div.fdjtdialog > div, div.fdjtdialog > span { vertical-align: middle;}
+
+div.fdjtdialog .countdown {
+    color: brown; font-weight: bold;
+    position: absolute; height: 1em; top: 4px; left: 0.5ex;
+    font-variant: small-caps;}
+div.fdjtdialog .countdown { display: none;}
+div.fdjtdialog.closing .countdown { display: block;}
+
+div.fdjtdialog .closebutton {
+    position: absolute;
+    width: 1em; height: 1em;
+    top: 4px; right: 1ex;
+    cursor: pointer;}
+
+div.fdjtdialog div.choices button {
+    font-size: 60%;}
+
+div.fdjtdialog.fdjtconfirm div.message {
+    font-weight: bold;}
+div.fdjtdialog.fdjtconfirm div.message .smaller { font-size: 50%;}
+div.fdjtdialog.fdjtconfirm div.message p { text-align: left;}
+div.fdjtdialog.fdjtconfirm div.choices {
+    padding-bottom: 1em; padding-top: 1em; text-align: center;}
+div.fdjtdialog.fdjtconfirm div.choices button {
+    padding: 1ex; border: solid silver 3px;
+    background-color: silver;
+    border-radius: 1ex;
+    margin-left: 0.5ex; margin-right: 0.5ex; margin-bottom: 1ex;
+    -webkit-border-radius: 1ex;
+    -khtml-border-radius: 1ex;
+    -moz-border-radius: 1ex;
+    -o-border-radius: 1ex;}
+
+div.fdjtdialog.fdjtconfirm div.choices button.selected,
+div.fdjtdialog.fdjtconfirm div.choices button:focus {
+    color: black; border: solid black 3px;}
+
+@media screen and (max-height: 400px) {
+    div.fdjtdialog { top: 10%; }
+}
+@media screen and (max-width: 800px) {
+    div.fdjtdialog {
+	width: 80%; left: 10%; right: 10%;}}
+@media screen and (max-width: 600px) {
+    div.fdjtdialog {
+	font-size: 24px; font-size: 1.7rem;}}
+@media (pointer: coarse) {
+    div.fdjtdialog {
+	font-size: 150%;
+	font-size: 5vw;}}
+
+/* Tap Hold */
+
+body.tapheld {}
+body.taptouch {}
+.fdjthotspot {
+    display: block; position: absolute; box-sizing: border-box;
+    width: 4px; height: 4px; border: solid transparent 1px;
+    background-color: rgba(255,0,0,0.5);
+    pointer-events: none;
+    display: none;}
+.fdjthotspot.taptouching { display: block; }
+.fdjthotspot.tapholding {
+    background-color: rgba(255,0,0,0.7);
+    border-color: rgba(255,0,0,0.9);}
+
+/* Text selection */
+
+.fdjtselecting {
+    margin: 0px !important;
+    padding: 0px !important;
+    border: 0px !important;}
+.fdjtselecting {
+     user-select: none;
+    -o-user-select: none;
+    -moz-user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0.5);
+    -webkit-user-select: none;}
+.fdjtselectwrap {}
+.fdjtselectwrap {background-color: rgba(247, 247, 124, 0.25);}
+
+.fdjtselecting .fdjtselected {
+    margin: 0px !important;
+    padding: 0px !important;
+    border: 0px !important;
+    background-color: yellow; }
+.fdjtselecting .fdjtselectstart, .fdjtselecting .fdjtselectend {
+    background-color: gold; }
+
+.fdjtselecting .fdjtselected:hover,
+.fdjtselecting .fdjtselectstart:hover,
+.fdjtselecting .fdjtselectend:hover {
+    text-decoration: underline;}
+
+.fdjtselecting > div, .fdjtselecting > p,
+.fdjtselecting > ul,  .fdjtselecting > li {
+    pointer-events: none; }
+.fdjtselecting > div span, .fdjtselecting > p span,
+.fdjtselecting > ul span,  .fdjtselecting > li span {
+    pointer-events: all; }
+
+body._TOUCH .fdjtselecting .fdjtselected:hover,
+body._TOUCH .fdjtselecting .fdjtselectstart:hover,
+body._TOUCH .fdjtselecting .fdjtselectend:hover,
+body._TOUCH .fdjtselecting .fdjtselected:hover,
+body._TOUCH .fdjtselecting .fdjtselectstart:hover,
+body._TOUCH .fdjtselecting .fdjtselectend:hover {
+    text-decoration: none;}
+
+.fdjtselecting .fdjtadjuststart .fdjtselectstart,
+.fdjtselecting .fdjtadjustend .fdjtselectend {
+    background-color: gold;}
+
+.fdjtselectloupe {
+    display: inline-block; position: relative;
+    float: left; /* This seems to keep it from affecting the line layout */
+    font-size: 150%; outline: dotted silver 2px;
+    height: 0px; overflow: visible; z-index: 200; /* width: 0px; */
+    white-space: nowrap; pointer-events: none;
+    padding-right: 1ex; padding-left: 1ex;
+    background-color: white;
+    bottom: 100px;
+    display: none;}
+.fdjtselectloupe > span {
+    background-color: white;
+    opacity: 0.8; -webkit-opacity: 0.8; -moz-opacity: 0.8;
+    -o-opacity: 0.8;}
+
+/* Use this rule for the select loupe, e.g. on touch platforms. */
+/* .fdjtselecting .fdjtselectloupe { display: inline-block; } */
+
+/* Page break classes */
+
+.alwaysbreakbefore { page-break-before: always;}
+.alwaysbreakafter { page-break-after: always;}
+.avoidbreakbefore { page-break-before: avoid;}
+.avoidbreakafter { page-break-after: avoid;}
+.avoidbreakinside { page-break-inside: avoid;}
+.forcebreakbefore { page-break-before: always;}
+.forcebreakafter { page-break-after: always;}
+
+/* Adjust font wrapper */
+
+.fdjtfontwrapper {
+    margin: 0px !important;
+    padding: 0px !important;
+    border: 0px !important;}
+
+/* For printing */
+
+@media screen {
+  .forprinting { display: none; }
+}
+@media print {
+  .unprintable { display: none; }
+}
+
+/* input background images */
+
+input.fdjtemailinput, input[TYPE="EMAIL"] {
+    background-image: url(/static/fdjt/email_bg.png);
+    background-repeat: no-repeat;
+    background-size: auto 100%;
+    background-position: right;}
+body._USESVG input.fdjtemailinput,body._USESVG input[TYPE="EMAIL"] { 
+    background-image: url(/static/fdjt/email_bg.svg);}
+
+input[TYPE="TEXT"].markdowninput, textarea.markdowninput {
+    background-image: url(/static/fdjt/markdown-solid_bg.png);
+    background-repeat: no-repeat;
+    background-position: bottom right;}
+body._USESVG input[TYPE="TEXT"].markdowninput, textarea.markdowninput {
+    background-image: url(/static/fdjt/markdown-solid_bg.svg);}
+input[TYPE="TEXT"].markdowninput {
+    background-size: 20% auto;}
+textarea.markdowninput {
+    background-size: auto 2em;}
+
+td.usebaseline, th.usebaseline, .usebaseline th, .usebaseline td {
+    vertical-align: baseline;}
+table.fdjtform td.usebaseline,
+table.fdjtform th.usebaseline,
+table.fdjtform .usebaseline th,
+table.fdjtform .usebaseline td {
+    vertical-align: baseline;}
+
+/* Some font family classes */
+
+.widesans, .wide_sans { font-family: Verdana, Geneva, sans-serif;}
+.narrowsans, .narrow_sans { font-family: Helvetica,Arial,sans-serif;}
+.wideserif, .wide_serif { font-family: Georgia,Utopia,Charter,serif;}
+.narrowserif, .narrow_serif { font-family: 'Times New Roman',Times, serif;}
+
+/* Add named breakpoints */
+
+@media all and (max-width: 800px) and (min-width: 500px) {
+    body:before { content: 'fdjt_tablet'; display: none; }}
+@media all and (max-width: 500px) {
+    body:before { content: 'fdjt_phone'; display: none; }}
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
+   ;;;  End: ***
+*/
