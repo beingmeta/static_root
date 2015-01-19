@@ -266,7 +266,7 @@ fdjt/fdjt.min.js.gz dist/fdjt.min.js.gz: fdjt/fdjt.min.js
 fdjt/fdjt.css.gz dist/fdjt.css.gz: fdjt/fdjt.css
 	gzip -c fdjt/fdjt.css > $@
 fdjt/fdjt.js.gz dist/fdjt.js.gz: fdjt/fdjt.js
-	gzip -c fdjt/fdjt.css > $@
+	gzip -c fdjt/fdjt.js > $@
 dist/fdjt.js: fdjt/fdjt.js
 	cp $< $@
 dist/fdjt.css: fdjt/fdjt.css
