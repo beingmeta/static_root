@@ -38198,7 +38198,7 @@ metaBook.buildid='587010ef-4428-460f-a30d-2a1283a71d5f';
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Mon Jan 19 19:11:58 UTC 2015';
-metaBook.buildid='906abd41-9747-4708-a336-ffb058701c60';
+metaBook.buildtime='Mon Jan 19 19:15:34 UTC 2015';
+metaBook.buildid='1320a671-f4e3-4519-bcef-5d1f77964b7b';
 
 fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';
