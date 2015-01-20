@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1242-g664bfe8';
+var fdjt_revision='1.5-1245-g54b393c';
 var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Sun Jan 18 22:13:50 UTC 2015';
-var fdjt_builduuid='9eac3e12-f701-49d3-bbec-37e0983898d8';
+var fdjt_buildtime='Tue Jan 20 21:38:09 UTC 2015';
+var fdjt_builduuid='4dd21f71-1ddf-4ffe-b2b4-667a7606ad24';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -6720,8 +6720,8 @@ fdjt.DOM=
                 if (start) return arg.slice(start);
                 else return arg;}
             else if (start)
-                return Array.prototype.slice(arg,start||0);
-            else return Array.prototype.slice(arg,start||0);}
+                return Array.prototype.slice.call(arg,start||0);
+            else return Array.prototype.slice.call(arg,start||0);}
         fdjtDOM.Array=TOA;
         fdjtDOM.slice=TOA;
 
@@ -8962,13 +8962,18 @@ fdjt.DOM=
                 return accum;}
             else if (node.nodeType===3) {
                 var stringval=node.nodeValue;
-                if (stringval) accum=accum+stringval;
+                if (stringval)
+                    accum=accum+stringval;
                 return accum;}
             else if (node.nodeType===1) {
                 var children=node.childNodes;
                 i=0; lim=children.length;
                 while (i<lim) {
-                    accum=node2text(children[i++],accum);}
+                    var child=children[i++];
+                    if (child.nodeType===3) {
+                        var s=child.nodeValue;
+                        if (s) accum=accum+s;}
+                    else accum=node2text(child,accum);}
                 return accum;}
             else return accum;}
         fdjtDOM.node2text=node2text;
@@ -9072,13 +9077,22 @@ fdjt.DOM=
             if (typeof count === 'undefined') count=1;
             var match=false;
             var fulltext=node2text(node);
-            var scan=((off===0)?(fulltext):(fulltext.slice(off)));
+            var sub=((off===0)?(fulltext):(fulltext.slice(off)));
+            var scan=sub.replace(/­/mg,"");
             var pat=((typeof needle === 'string')?
                      (new RegExp(getRegexString(needle),"gm")):
                      (needle));
             while ((match=pat.exec(scan))) {
                 if (count===1) {
                     var loc=match.index;
+                    if (scan!==sub) {
+                        // If the text contains soft hyphens, we need
+                        // to adjust *loc* (which is an offset into
+                        // the string without those hyphens into an
+                        // offset in the actual string in the DOM.
+                        var i=0; while (i<loc) {
+                            if (sub[i]==="­") loc++;
+                            i++;}}
                     var absloc=loc+off;
                     var start=get_text_pos(node,absloc,0,true);
                     var end=get_text_pos(node,absloc+(match[0].length),0);
@@ -23908,6 +23922,13 @@ var metaBook={
             target=((istarget)&&
                     (((istarget.nodeType)&&(istarget.id))?(istarget):
                      (resolveLocation(arg))));}
+        else if ((arg.target)&&((arg.location)||(arg.offset))) {
+            target=getTarget(arg.target);
+            if (arg.location) 
+                location=arg.location;
+            else {
+                locinfo=getLocInfo(arg.target);
+                location=locinfo.start+arg.offset;}}
         else if (arg.nodeType) {
             target=getTarget(arg);
             locinfo=getLocInfo(arg);
@@ -26110,16 +26131,11 @@ metaBook.Startup=
             var fakepage_geom=getGeometry(fakepage,page,true);
             var inner_width=geom.inner_width;
             var inner_height=geom.inner_height;
-            // The (-2) is for the two pixel wide border on the right side of
+            // The (-3) is for the three pixel wide border on the right side of
             //  the glossmark
             var page_margin=view_width-inner_width;
-            var glossmark_offset=Math.floor(page_margin/2)+(-3)+
-                fakepage_geom.right_border+
-                geom.right_padding+geom.right_border;
+            var glossmark_offset=Math.floor(page_margin/2)+fakepage_geom.right_border;
             fdjtDOM.remove(fakepage);
-            // var glossmark_offset=page_margin;
-            // The 2 here is for the right border of the glossmark,
-            // which appears as a vertical mark on the margin.
             if (metaBook.CSS.pagerule) {
                 metaBook.CSS.pagerule.style.width=inner_width+"px";
                 metaBook.CSS.pagerule.style.height=inner_height+"px";}
@@ -30694,7 +30710,7 @@ metaBook.Slice=(function () {
                     var starts=range.startContainer;
                     if (!(hasClass(starts,"metabookhighlightexcerpt"))) {
                         fdjtUI.Highlight(range,"metabookhighlightexcerpt");}}}}
-        var slice=new MetaBookSlice(slicediv,glosses);
+        var slice=new MetaBookSlice(slicediv,glosses,sort_point_glosses);
         var hudwrapper=fdjtDOM("div.hudpanel#METABOOKPOINTGLOSSES",slicediv);
         if (point) {
             hudwrapper.style.display='block';
@@ -30730,8 +30746,9 @@ metaBook.Slice=(function () {
             if ((geom.height+15)>h/2) wh=h/2;
             else wh=geom.height+10;
             if ((!(metaBook.fullwidth))&&(wh>50))
-                hudwrapper.style.height=wh+'px';
-            slicediv.style.overflow='hidden';
+                hudwrapper.style.minHeight=wh+'px';
+            slicediv.style.overflowX='hidden';
+            slicediv.style.overflowY='auto';
             var above_point=pgeom.top-60, below_point=(h-60)-pgeom.bottom;
             var below_passage=(h-60)-tgeom.bottom;
             // If the glossmark is taller than the target, use the
@@ -30760,6 +30777,7 @@ metaBook.Slice=(function () {
             if (metaBook.fullwidth) {}
             else if (fdjtDOM.viewWidth()<300)
                 hudwrapper.style.minWidth=((fdjtDOM.viewWidth())-10)+"px";
+            else {}
             hudwrapper.style.display='';
             hudwrapper.style.opacity='';}
         else fdjtDOM.replace("METABOOKPOINTGLOSSES",hudwrapper);
@@ -30774,6 +30792,19 @@ metaBook.Slice=(function () {
         slice.update();
         metaBook.setMode("openglossmark");}
     metaBook.showGlossmark=showGlossmark;
+
+    function sort_point_glosses(g1,g2){
+        if ((g1.location)&&(g2.location)) {
+            if (g1.location>g2.location) return -1;
+            else if (g1.location<g2.location) return 1;
+            else return 0;}
+        else if ((g1.exoff)&&(g2.exoff)) {
+            if (g1.exoff>g2.exoff) return -1;
+            else if (g1.exoff<g2.exoff) return 1;
+            else return 0;}
+        else if (g1.created>g2.created) return -1;
+        else if (g1.created<g2.created) return 1;
+        else return 0;}
 
     function clearGlossmark() {
         if (metaBook.mode==="openglossmark") metaBook.setMode(false,true);
@@ -31533,7 +31564,9 @@ metaBook.Slice=(function () {
         // Reset this when we actually get a gloss
         metaBook.select_target=false;
         addClass(target,"metabookglosstarget");
-        metaBook.GoTo(target,"addgloss",true);
+        if (gloss.exoff)
+            metaBook.GoTo({target: target,offset: gloss.exoff},"addgloss",true);
+        else metaBook.GoTo(target,"addgloss",true);
         metaBook.setCloudCuesFromTarget(metaBook.gloss_cloud,target);
         setGlossForm(form);
         // Clear current selection and set up new selection
@@ -35246,8 +35279,7 @@ metaBook.Slice=(function () {
             focus: metabookfocus,
             blur: metabookblur},
          "#METABOOKBODY": {
-             mouseup: global_mouseup,
-             click: default_tap},
+             mouseup: global_mouseup},
          content: {tap: body_tapped,
                    taptap: body_taptap,
                    hold: body_held,
@@ -36720,7 +36752,7 @@ metaBook.Paginate=
                 if (typeof loc !== "number") return prev;
                 else if (loc===location) return next;
                 else if (loc>location) return prev;
-                else i++;}
+                else prev=next;}
             return page;}
         metaBook.getPage=getPage;
         
@@ -38190,15 +38222,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2354-ga268500';
+metaBook.version='v0.5-2362-gda4eb18';
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Mon Jan 19 18:10:25 UTC 2015';
-metaBook.buildid='587010ef-4428-460f-a30d-2a1283a71d5f';
+metaBook.buildtime='Tue Jan 20 21:38:10 UTC 2015';
+metaBook.buildid='ba36251d-4d2b-4f6b-ba49-68cc5c26ca00';
 
 Knodule.version='v0.8-140-g67ee601';
 // sBooks metaBook build information
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Mon Jan 19 19:15:34 UTC 2015';
-metaBook.buildid='1320a671-f4e3-4519-bcef-5d1f77964b7b';
+metaBook.buildtime='Tue Jan 20 21:38:13 UTC 2015';
+metaBook.buildid='9be5d04b-748c-48a6-b562-b9e023f1c90e';
 
 fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';
