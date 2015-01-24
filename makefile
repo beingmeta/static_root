@@ -37,7 +37,7 @@ SSC_HTML=showsomeclass/bigtextedit.html showsomeclass/savedialog.html \
 SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 
 METABOOK_FILES=\
-	metabook/metabook.js metabook/core.js metabook/config.js \
+	metabook/root.js metabook/core.js metabook/config.js \
 	metabook/nav.js metabook/domscan.js \
 	metabook/cover.js metabook/body.js metabook/tagindex.js \
 	metabook/syncstate.js metabook/user.js metabook/getglosses.js \
@@ -134,7 +134,7 @@ allhints: fdjt/fdjt.hints metabook/metabook.hints \
 
 cleanhints:
 	rm -f fdjt/*.hint fdjt/fdjt.hints
-	rm -f metabook/metabook.hints
+	rm -f metabook/root.hints
 	rm -f knodules/*.hint knodules/knodules.hints
 	rm -f sbooks/*.hint sbooks/sbooks.hints
 	rm -f showsomeclass/*.hint showsomeclass/sbooks.hints
