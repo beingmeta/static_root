@@ -1,8 +1,8 @@
 // FDJT build information
-var fdjt_revision='1.5-1245-g54b393c';
-var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Tue Jan 20 21:38:09 UTC 2015';
-var fdjt_builduuid='4dd21f71-1ddf-4ffe-b2b4-667a7606ad24';
+var fdjt_revision='1.5-1250-gc8d093d';
+var fdjt_buildhost='moby.dot.beingmeta.com';
+var fdjt_buildtime='Sat Jan 24 16:14:44 EST 2015';
+var fdjt_builduuid='a0aa2cc7-5b82-447a-b016-4a74e8a35371';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -7511,6 +7511,21 @@ fdjt.DOM=
                 results.push(input.value);}
             return results;}
         fdjtDOM.getInputValues=getInputValues;
+        function getInputValue(root,name,n){
+            var r=0;
+            var inputs=root.getElementsByTagName('input');
+            var i=0; var lim=inputs.length;
+            while (i<lim) {
+                var input=inputs[i++];
+                if (input.disabled) continue;
+                else if (input.name!==name) continue;
+                else if ((input.type==='checkbox')||(input.type==='radio')) {
+                    if (!(input.checked)) continue;}
+                if (!(n)) return input.value;
+                else if (r===n) return input.value;
+                else r++;}
+            return false;}
+        fdjtDOM.getInputValue=getInputValue;
 
         function getInputsFor(root,name,value){
             if (typeof root === 'string')
@@ -8909,22 +8924,41 @@ fdjt.DOM=
 
         /* Selection-y functions */
 
-        fdjtDOM.getSelectedRange=function(){
-            var sel;
-            if (window.getSelection)
+        fdjtDOM.getSelectedRange=function(sel){
+            if (sel) {}
+            else if (window.getSelection)
                 sel=window.getSelection();
             else if (document.selection)
                 sel=document.selection.createRange();
             else return false;
             if (!(sel)) return false;
-            if (sel.getRangeAt)
-                return sel.getRangeAt(0);
+            if (sel.getRangeAt) {
+                if (sel.rangeCount)
+                    return sel.getRangeAt(0);
+                else return false;}
             else if (document.createRange) {
                 var range=document.createRange();
                 range.setStart(sel.anchorNode,sel.anchorOffset);
                 range.setEnd(sel.focusNode,sel.focusOffset);
                 return range;}
             else return false;};
+
+        fdjtDOM.rangeIsEmpty=function(range){
+            if (range) {
+                if ((range.startContainer===range.endContainer)&&
+                    (range.startOffset===range.endOffset))
+                    return true;
+                else return false;}
+            else return true;};
+
+        fdjtDOM.clearSelection=function(sel){
+            if (!(sel))
+                sel=document.selection||window.getSelection();
+            if (sel.removeAllRanges) {
+                sel.removeAllRanges();}
+            else if (sel.empty) {
+                sel.empty();}
+            else {}};
 
         function node2text(node,accum){
             var i, lim;
@@ -10097,6 +10131,16 @@ if (!(fdjt.RefDB)) {
                 pos=this.loaded.indexOf(ref);
                 if (pos>=0) this.loaded.splice(pos);
                 delete refs[id];
+                if (this.storage instanceof Storage) {
+                    var storage=this.storage;
+                    var key="allids("+this.name+")";
+                    var allidsval=storage[key];
+                    var allids=((allidsval)&&(JSON.parse(allidsval)));
+                    var idpos=allids.indexOf(id);
+                    if (idpos>=0) {
+                        allids.splice(idpos);
+                        storage.setItem(key,JSON.stringify(allids));
+                        storage.removeItem(id);}}
                 if (aliases) {
                     var j=0, jlim=aliases.length;
                     while (j<jlim) {delete altrefs[aliases[j++]];}}}
@@ -10335,11 +10379,13 @@ if (!(fdjt.RefDB)) {
                                 this.dropIndexRef(key,drops,indices[key],db);}
                         if ((adds.length)&&(onadd[key])) {
                             var addfn=onadd[key];
-                            var addi=0, addlen=adds.length; while (addi<addlen) {
+                            var addi=0, addlen=adds.length;
+                            while (addi<addlen) {
                                 addfn(adds[addi++]);}}
                         if ((drops.length)&&(ondrop[key])) {
                             var dropfn=ondrop[key];
-                            var dropi=0, droplen=drops.length; while (dropi<droplen) {
+                            var dropi=0, droplen=drops.length;
+                            while (dropi<droplen) {
                                 dropfn(drops[dropi++]);}}}
                     else if ((value)&&(indexing)&&(indices[key])) 
                         this.indexRef(key,value,indices[key],db);}}
@@ -10432,8 +10478,10 @@ if (!(fdjt.RefDB)) {
                     setTimeout(function(){callback(refs);},10);
                 return refs;}
             else if (!(callback.call))
-                fdjtTime.slowmap(function(item){defImport(item,refs,db,rules,flags);},data);
-            else fdjtTime.slowmap(function(item){defImport(item,refs,db,rules,flags);},
+                fdjtTime.slowmap(function(item){
+                    defImport(item,refs,db,rules,flags);},data);
+            else fdjtTime.slowmap(function(item){
+                defImport(item,refs,db,rules,flags);},
                                   data,false,
                                   function(){callback(refs);});};
 
@@ -10553,7 +10601,8 @@ if (!(fdjt.RefDB)) {
                             content=storage[atid+"("+ref._id+")"];}
                         if (!(content))
                             warn("No item stored for %s",ref._id);
-                        else ref.Import(JSON.parse(content),false,REFLOAD|REFINDEX);},
+                        else ref.Import(
+                            JSON.parse(content),false,REFLOAD|REFINDEX);},
                                      needrefs,false,
                                      function(){if (callback) {
                                          if (args) callback.apply(null,args);
@@ -12199,20 +12248,24 @@ fdjt.UI.Highlight=(function(){
         if ((node.className)&&(node.className.search(classpat)>=0)) {
             into.push(node);}}
 
+    function unwrap_hnode(hnode){
+        var ch=hnode.childNodes;
+        if (ch) {
+            var frag=document.createDocumentFragment();
+            var tomove=[], j=0, n=((ch)&&(ch.length));
+            while (j<n) tomove.push(ch[j++]);
+            j=0; n=tomove.length;
+            while (j<n) frag.appendChild(tomove[j++]);
+            fdjtDOM.replace(hnode,frag);}
+        else fdjtDOM.remove(hnode);}
+    
     function clear_highlights(node,hclass){
-        var h=[]; gatherHighlights(node,new RegExp("\\b"+hclass+"\\b","g"),h);
+        var h=[];
+        if ((node===hclass)||(hasClass(node,hclass))) h=[node];
+        else gatherHighlights(node,new RegExp("\\b"+hclass+"\\b","g"),h);
         var i=0 , lim=h.length;
-        while (i<lim) {
-            var hnode=h[i++];
-            var ch=hnode.childNodes;
-            if (ch) {
-                var frag=document.createDocumentFragment();
-                var tomove=[], j=0, n=((ch)&&(ch.length));
-                while (j<n) tomove.push(ch[j++]);
-                j=0; n=tomove.length;
-                while (j<n) frag.appendChild(tomove[j++]);
-                fdjtDOM.replace(hnode,frag);}
-            else fdjtDOM.remove(hnode);}}
+        while (i<lim) unwrap_hnode(h[i++]);}
+
     function highlight_node(node,hclass,htitle,hattribs){
         if (!(hclass)) hclass=highlight_class;
         var hispan=false;
@@ -12321,6 +12374,7 @@ fdjt.UI.Highlight=(function(){
             return highlights;}}
 
     highlight_range.clear=clear_highlights;
+    highlight_range.remove=unwrap_hnode;
     highlight_range.highlight=highlight_range;
     return highlight_range;})();
 
@@ -16049,6 +16103,11 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 var wrapper=wrappers[j++];
                 delete alltapholds[wrapper.id];
                 delete selectors[wrapper.id];}
+            if (this.onclear) {
+                var onclear=this.onclear; this.onclear=false;
+                if (!(Array.isArray(onclear))) onclear=[onclear];
+                i=0; lim=onclear.length; while (i<lim) {
+                    onclear[i++]();}}
             delete selectors[this.prefix];
             delete this.wrapped; delete this.orig;
             delete this.wrappers; delete this.nodes;
