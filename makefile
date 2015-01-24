@@ -38,9 +38,9 @@ SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 
 METABOOK_FILES=\
 	metabook/metabook.js metabook/core.js metabook/config.js \
-	metabook/syncstate.js metabook/nav.js \
-	metabook/domscan.js metabook/user.js metabook/getglosses.js \
+	metabook/nav.js metabook/domscan.js \
 	metabook/cover.js metabook/body.js metabook/tagindex.js \
+	metabook/syncstate.js metabook/user.js metabook/getglosses.js \
 	metabook/startup.js \
 	metabook/preview.js metabook/hud.js metabook/toc.js metabook/resize.js \
 	metabook/slices.js metabook/clouds.js \
