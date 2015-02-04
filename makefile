@@ -11,6 +11,7 @@ FDJT_FILES=fdjt/header.js fdjt/charnames.js \
 	fdjt/syze.js fdjt/iscroll.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
+	fdjt/textindex.js \
 	fdjt/ui.js fdjt/dialog.js fdjt/completions.js \
 	fdjt/taphold.js fdjt/selecting.js fdjt/scrollever.js \
 	fdjt/globals.js
