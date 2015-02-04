@@ -81,7 +81,7 @@ METABOOK_CSS=\
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css    \
 	metabook/css/toc.css metabook/css/slices.css metabook/css/clouds.css \
 	metabook/css/card.css metabook/css/search.css \
-	metabook/css/addgloss.css metabook/css/flyleaf.css \
+	metabook/css/addgloss.css metabook/css/heart.css \
 	metabook/css/preview.css metabook/css/media.css \
 	metabook/css/debug.css
 
