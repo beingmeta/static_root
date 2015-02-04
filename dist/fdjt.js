@@ -1,8 +1,8 @@
 // FDJT build information
-var fdjt_revision='1.5-1251-gea06d59';
+var fdjt_revision='1.5-1253-gc1d0bf0';
 var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Thu Jan 29 13:28:26 EST 2015';
-var fdjt_builduuid='b9bc67c4-dfd8-456e-b381-a003fe7dcfbc';
+var fdjt_buildtime='Wed Feb 4 10:24:01 EST 2015';
+var fdjt_builduuid='812dd0c6-5ce2-4971-89c1-5dd0d4e135bf';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -9074,9 +9074,12 @@ fdjt.DOM=
                     starts_in: within.id,ends_in: ends_in.id,
                     end: end_edge+range.endOffset};};
 
-        function getRegexString(needle){
-            return needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
-                /\s+/g,"(\\s+)");}
+        function getRegexString(needle,shyphens){
+            if (shyphens)
+                return needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
+                        /\S/g,"$&­?").replace("­? "," ").replace(/\s+/g,"(\\s+)");
+            else return needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
+                    /\s+/g,"(\\s+)");}
         fdjtDOM.textRegExp=getRegexString;
 
         function findString(node,needle,off,count){
@@ -10125,11 +10128,11 @@ if (!(fdjt.RefDB)) {
                 if (!(ref)) continue; else count++;
                 var aliases=ref.aliases;
                 var pos=this.allrefs.indexOf(ref);
-                if (pos>=0) this.allrefs.splice(pos);
+                if (pos>=0) this.allrefs.splice(pos,1);
                 pos=this.changes.indexOf(ref);
-                if (pos>=0) this.changes.splice(pos);
+                if (pos>=0) this.changes.splice(pos,1);
                 pos=this.loaded.indexOf(ref);
-                if (pos>=0) this.loaded.splice(pos);
+                if (pos>=0) this.loaded.splice(pos,1);
                 delete refs[id];
                 if (this.storage instanceof Storage) {
                     var storage=this.storage;
@@ -10138,7 +10141,7 @@ if (!(fdjt.RefDB)) {
                     var allids=((allidsval)&&(JSON.parse(allidsval)));
                     var idpos=allids.indexOf(id);
                     if (idpos>=0) {
-                        allids.splice(idpos);
+                        allids.splice(idpos,1);
                         storage.setItem(key,JSON.stringify(allids));
                         storage.removeItem(id);}}
                 if (aliases) {
@@ -10660,14 +10663,14 @@ if (!(fdjt.RefDB)) {
                     that.changed=false;
                     that.changes=[];
                     var pos=changed_dbs.indexOf(that);
-                    if (pos>=0) changed_dbs.splice(pos);
+                    if (pos>=0) changed_dbs.splice(pos,1);
                     if (callback) callback();});}
             else if (!(refs)) {
                 return this.save(this.changes,function(){
                     that.changed=false;
                     that.changes=[];
                     var pos=changed_dbs.indexOf(that);
-                    if (pos>=0) changed_dbs.splice(pos);
+                    if (pos>=0) changed_dbs.splice(pos,1);
                     if (callback) callback();});}
             else if (this.storage instanceof Storage) {
                 var storage=this.storage;
@@ -10700,7 +10703,7 @@ if (!(fdjt.RefDB)) {
                     if (new_changes.length===0) {
                         this.changed=false;
                         var pos=changed_dbs.indexOf(that);
-                        if (pos>=0) changed_dbs.splice(pos);}}
+                        if (pos>=0) changed_dbs.splice(pos,1);}}
                 var allids=storage["allids("+this.name+")"];
                 if (allids) allids=JSON.parse(allids); else allids=[];
                 var n=allids.length;
@@ -10823,7 +10826,7 @@ if (!(fdjt.RefDB)) {
                     if (!(refs)) continue;
                     var pos=refs.indexOf(this._id);
                     if (pos<0) continue;
-                    else refs.splice(pos);
+                    else refs.splice(pos,1);
                     if (refs.length===0) delete index[keystring];
                     deleted++;}
                 return deleted;}
@@ -11310,7 +11313,7 @@ if (!(fdjt.RefDB)) {
                 else if (cur instanceof Array) {
                     var pos=cur.indexOf(val);
                     if (pos<0) return false;
-                    cur.splice(pos); if (cur._sortlen) cur._sortlen--;
+                    cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
                     if (cur.length===1) {
                         if (!(cur[0] instanceof Array))
                             this[keystring]=cur[0];}
