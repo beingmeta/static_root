@@ -32170,7 +32170,10 @@ metaBook.Slice=(function () {
         var splicepos=cur.indexOf(elt);
         if (splicepos<0) return;
         else cur.splice(splicepos,1);
-        setQuery(new metaBook.Query(cur));
+        if (cur.length===0) {
+            metaBook.empty_cloud.dom.style.fontSize="";
+            setQuery(metaBook.empty_query);}
+        else setQuery(new metaBook.Query(cur));
         fdjtUI.cancel(evt);}
     metaBook.searchTags_onclick=searchTags_onclick;
 
@@ -39421,15 +39424,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2423-g09eb3a7';
+metaBook.version='v0.5-2424-ge889ebc';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sat Feb  7 12:40:44 EST 2015';
-metaBook.buildid='3322ba70-7f21-4818-ba0d-531780e6f793';
+metaBook.buildtime='Sat Feb  7 14:11:09 EST 2015';
+metaBook.buildid='3f0aa8af-a212-4d9a-a154-56c1d74bcd08';
 
 Knodule.version='v0.8-144-gc96d4d4';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sat Feb  7 13:20:20 EST 2015';
-metaBook.buildid='0da0eea5-5dbe-4aef-9358-c1267867327e';
+metaBook.buildtime='Sat Feb  7 14:12:16 EST 2015';
+metaBook.buildid='308a119e-dcf5-4ebf-afd4-b1110ab9a312';
 
 fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';
