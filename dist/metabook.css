@@ -2030,6 +2030,35 @@ body._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
 #METABOOKBODY .fdjtselectwrap {
     background-color: transparent; }
 
+/* DTerms */
+
+.dterm {
+    padding-right: 0.2ex; padding-left: 0.35em; 
+    color: darkblue; background-color: gold;
+    border: solid yellow 2px;}
+.dterm, .rawterm {
+    white-space: nowrap;}
+.dterm sub, .dterm sup {padding-left: 0.1ex;}
+.dterm sup {
+    font-size: 100%; font-weight: bold; color: black;
+    top: -0.2ex;}
+
+.dterm.weak {
+    background-color: silver; rbga(0,0,0,0.8);}
+.rootform {
+    color: rbga(0,0,0,0.8); font-weight: bold;}
+.rawterm, .rootform {
+    color: black;}
+.rootform { font-weight: bold; }
+
+/*
+div.searchbox div.query span.dterm {
+    padding-right: 0.35em; padding-left: 1ex;
+    padding-top: 0px; padding-bottom: 0px;
+    border-top-left-radius: 1ex; border-bottom-left-radius: 1ex;
+    color: darkblue; background-color: gold; border: solid yellow 2px;}
+*/
+
 /* Other default rules */
 
 .tapholdtarget { border-color: blue;}
@@ -4756,7 +4785,7 @@ body.hudup #METABOOKHUD.overtoc div.hudpanel#METABOOKTOC { overflow: hidden; }
 body.hudup #METABOOKHUD.help div.helphud { display: block;}
 
 #METABOOKHUD .completions { line-height: 150%;}
-#METABOOKHUD .completions .weak, #METABOOKHUD .completions .words {
+#METABOOKHUD .completions .words {
     line-height: 150%; font-size: 80%;}
 #METABOOKHUD .completions .completion {
     white-space: nowrap;}
@@ -6791,9 +6820,9 @@ div.metabookslice div.metabookthread div.metabookcard:first-child div.locbar {
     display:block;}
 
 div.metabookslice div.metabookskimpoint {
-    border-left: solid red 16px;
-    border-top: solid red 4px;
-    border-bottom: solid red 4px;
+    border-left: solid darkblue 16px;
+    border-top: solid darkblue 4px;
+    border-bottom: solid darkblue 4px;
     margin-left: 0px;
     background-color: white;}
 div.metabookslice div.metabookskimpoint.metabookcard {}
@@ -6981,6 +7010,11 @@ div.completions.noinput .cloudtoggle {
 .cloud.showall .showless {display: inline;}
 .cloud.showall .showmore {display: none;}
 
+.completions.cloud .completion.selected {
+    text-decoration: none;
+    outline: solid rgba(128,0,128,0.7) 2px;
+    background-color: rgba(128,0,128,0.4);}
+
 .cloud span.sep { 
     font-size: 200%; font-weight: bold; 
     color: purple; vertical-align: middle;}
@@ -7029,21 +7063,8 @@ div.completions.noinput .cloudtoggle {
 
 .cloud .variation { 
     font-size: 70%; color: purple; font-style: italic;}
-.cloud .dterm {
-    padding-right: 0.2ex; padding-left: 0.35em; 
-    color: darkblue; background-color: gold;
-    border: solid yellow 2px;}
-.cloud .dterm sub, .cloud .dterm sup {padding-left: 0.1ex;}
-.cloud .dterm sup {
-    font-size: 100%; font-weight: bold; color: black;
-    top: -0.2ex;}
-
-.cloud > .dterm.weak, .cloud > .rawterm, .cloud > .rootform {
-    padding-right: 0em; padding-left: 0em; 
-    border-top-left-radius: 0px; border-bottom-left-radius: 0px;
-    color: gray; background-color: inherit; border: none;}
-.cloud > .rootform {
-    color: rbga(0,0,0,0.8); font-weight: bold;}
+.cloud > .rawterm > .text, .cloud > .rootform > .text {
+    font-size: 70%;}
 
 .cloud .nomatchmsg {
     text-align: center; font-size: 36px; font-size: 3rem; 
@@ -7192,24 +7213,6 @@ div.metabookcard > hr {
 .metabookcard a.ref span.title {}
 .metabookcard a.ref span.uri {
     font-family: courier,fixed;}
-.metabookcard span.oldterm {
-    color: blue; background-color: yellow;
-    padding: 2px; border: solid blue 1px;
-    border-top-left-radius: 6px; border-bottom-left-radius: 6px;
-    border-top-right-radius: 2px; border-bottom-right-radius: 2px;
-    -webkit-border-top-left-radius: 6px;
-    -webkit-border-bottom-left-radius: 6px;
-    -webkit-border-top-right-radius: 2px;
-    -webkit-border-bottom-right-radius: 2px;
-    -o-border-top-left-radius: 6px;
-    -o-border-bottom-left-radius: 6px;
-    -o-border-top-right-radius: 2px;
-    -o-border-bottom-right-radius: 2px;
-    -moz-border-radius-topleft: 6px;
-    -moz-border-radius-bottomleft: 6px;
-    -moz-border-radius-topright: 2px;
-    -moz-border-radius-bottomright: 2px;}
-#METABOOKHUD .metabookcard span.oldterm {color: blue; }
 .metabookcard span.user { 
     color: green; font-size: 125%; font-style: italic;}
 .metabookcard span.outlet { color: green;}
@@ -7261,8 +7264,6 @@ div.metabookcard > hr {
 .metabookcard span.tags { font-size: 80%; vertical-align: top;}
 .metabookcard span.tags img.tagicon { height: 3ex; width: auto;}
 .metabookcard span.tags span { vertical-align: top;}
-.metabookcard span.tags span.rawterm, .metabookcard span.tags span.dterm {
-    white-space: nowrap;}
 .metabookcard span.tags span.sectname {
     font-style: italic; color: purple;}
 .metabookcard span.tags span.sectname.longterm {
@@ -7407,12 +7408,6 @@ div.searchbox input[type='TEXT'][name='QTEXT'] {
 body._NOSVG div.searchbox input[type='TEXT'][name='QTEXT'] {
     background-image: url(g/metabook/tagicon64x64.png);}
 
-div.searchbox div.query span.dterm {
-    padding-right: 0.35em; padding-left: 1ex;
-    padding-top: 0px; padding-bottom: 0px;
-    border-top-left-radius: 1ex; border-bottom-left-radius: 1ex;
-    color: darkblue; background-color: gold; border: solid yellow 2px;}
-
 div.searchbox div.toolbox div.tags {
     min-height: 1ex; clear: both; text-align: center;}
 div.searchbox .completions div.tags {
@@ -7440,13 +7435,13 @@ div.resultinfo .stats > span > br { display: none; }
 
 div.resultinfo .noresults { display: none;}
 div.resultinfo.noresults .noresults { display: block;}
+div.resultinfo.noresults .stats { display: none;}
 #METABOOKHUD.emptysearch .resultinfo.noresults .noresults {
     display: none;}
 
 div.resultinfo .noquery { display: none;}
 #METABOOKHUD.emptysearch div.resultinfo .noquery { display: block;}
 
-div.resultinfo.noresults span { display: none;}
 #METABOOKHUD.emptysearch div.resultinfo span { display: none;}
 
 #METABOOKHUD div.resultinfo {
@@ -7470,6 +7465,24 @@ div.resultinfo.noresults span { display: none;}
     display: -moz-flex; display: flex;
     -webkit-flex-grow: 1; -moz-flex-grow: 1; -ms-flexbox-grow: 1;
     flex-grow: 1;}
+
+div.resultinfo .qtags .qelt { 
+    cursor: pointer; }
+div.resultinfo .qtags .qelt.dterm {
+    padding-top: 0.2ex;}
+
+div.resultinfo .qtags .qelt span.redx {
+    width: 1em; height: 1em; font-size: 120%; 
+    margin-left: 0.5ex;}
+div.resultinfo .qtags .qelt span.redx {
+    color: red; font-weight: bold;}
+div.resultinfo .qtags .qelt span.redx {
+    color: transparent; vertical-align: baseline;
+    background-position: left center;
+    background-repeat: no-repeat; background-size: contain;
+    background-image: url(g/metabook/redx.svgz);}
+._NOSVG div.resultinfo .qtags .qelt span.redx {
+    background-image: url(g/metabook/redx64x64.png);}
 
 #METABOOKHUD.refinesearch div.resultinfo span.refinecount, 
 #METABOOKHUD.expandsearch div.resultinfo span.showalltags,
@@ -7782,8 +7795,8 @@ div.metabookglossform form div.glossetc .tags {
 div.metabookglossform form div.glossetc .outlets { padding-left: 1px;}
 div.metabookglossform form div.glossetc .links { padding-left: 1px;}
 div.metabookglossform form div.glossetc .checkspan img {
-    height: 1.7ex; width: auto; vertical-align: baseline;
-    padding-left: 3px; padding-top: 2px;}
+    height: 1.7ex; width: auto; vertical-align: bottom;
+    padding-left: 0.8ex; padding-top: 2px;}
 div.metabookglossform form div.glossetc .checkspan input {
     margin-left: 0px;}
 div.metabookglossform form div.glossetc .checkspan.anchor input,
@@ -7801,17 +7814,8 @@ body.hudup div.metabookglossform form div.glossetc .tags.empty,
 body.hudup div.metabookglossform form div.glossetc .excerpt.empty {
     display: none;}
 
-div.metabookglossform form div.glossetc .arrow { font-size: 150%; }
-
-div.metabookglossform form div.glossetc .outlets { display: none; }
-div.metabookglossform form div.glossetc .networks {
-    margin-right: 60px;
-    display: none;}
-div.metabookglossform form.addoutlet div.glossetc .outlets,
-div.metabookglossform form.addoutlet div.glossetc .networks { display: inline; }
-div.metabookglossform form.addoutlet div.glossetc .tags,
-div.metabookglossform form.addoutlet div.glossetc .links {
-    display: none; }
+div.metabookglossform form div.glossetc .share { 
+    font-size: 150%; font-weight: bold; color: green;}
 
 div.metabookglossform form div.glossetc span.head {
     padding-left: 0.5ex; font-weight: bold; color: black;}
@@ -7928,7 +7932,7 @@ div.metabookglossform form .checkspan.tag {
 
 div.metabookglossform form span.source:before,
 .completions span.source:before {
-    content: '↣'; font-size: 150%;
+    content: '@'; font-size: 150%;
     color: darkblue;}
 
 div.metabookglossform .button.savebutton,
