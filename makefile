@@ -46,7 +46,8 @@ METABOOK_FILES=\
 	metabook/preview.js metabook/hud.js metabook/toc.js metabook/resize.js \
 	metabook/slices.js metabook/clouds.js \
 	metabook/social.js metabook/search.js metabook/glosses.js \
-	metabook/interaction.js metabook/layout.js metabook/debug.js \
+	metabook/interaction.js metabook/zoom.js \
+	metabook/layout.js metabook/debug.js \
 	metabook/autoload.js
 METABOOK_HINTS=\
 	metabook/core.hint metabook/config.hint metabook/syncstate.hint \
@@ -58,7 +59,8 @@ METABOOK_HINTS=\
 	metabook/resize.hint \
 	metabook/slices.hint metabook/clouds.hint \
 	metabook/social.hint metabook/search.hint metabook/glosses.hint \
-	metabook/interaction.hint metabook/layout.hint
+	metabook/interaction.hint metabook/zoom.hint \
+	metabook/layout.hint
 METABOOK_DERIVED_FILES=\
 	metabook/html/searchbox.js metabook/html/addgloss.js \
 	metabook/html/hud.js metabook/html/heart.js  \
