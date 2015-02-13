@@ -1,8 +1,8 @@
 // FDJT build information
-var fdjt_revision='1.5-1267-gb9af880';
-var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Sat Feb 7 13:16:35 EST 2015';
-var fdjt_builduuid='853a0762-a83c-4cd9-8f24-f313225b0b3c';
+var fdjt_revision='1.5-1268-ge428640';
+var fdjt_buildhost='dev.beingmeta.com';
+var fdjt_buildtime='Thu Feb 12 19:48:33 UTC 2015';
+var fdjt_builduuid='c7fce293-bb23-478d-95e7-f4673cff75bb';
 
 /* -*- Mode: Javascript; -*- */
 

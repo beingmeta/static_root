@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1267-gb9af880';
-var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Sat Feb 7 13:16:35 EST 2015';
-var fdjt_builduuid='853a0762-a83c-4cd9-8f24-f313225b0b3c';
+var fdjt_revision='1.5-1268-ge428640';
+var fdjt_buildhost='dev.beingmeta.com';
+var fdjt_buildtime='Thu Feb 12 19:48:33 UTC 2015';
+var fdjt_builduuid='c7fce293-bb23-478d-95e7-f4673cff75bb';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -23150,6 +23150,9 @@ var metaBook={
     Timeline: {},
     // Word/phrase indexing structures
     allterms: [], prefixes: {},
+    // These are prefixes or Regexps for URLs which should be opened "in the book"
+    //  when they're linked in glosses
+    openinbook: ["https://www.youtube.com/"],
     // These are functions to be called when everythings has been loaded
     //  to initialize local references to common metaBook functions
     inits: [],
@@ -23356,6 +23359,12 @@ fdjt.DOM.noautofontadjust=true;
                 var addTags=metaBook.addTags, addTag2Cloud=metaBook.addTag2Cloud;
                 var empty_cloud=metaBook.empty_cloud;
                 var maker=(item.maker)&&(metaBook.sourcedb.ref(item.maker));
+                if (item.links) {
+                    var links=item.links;
+                    for (var link in links) {
+                        if ((links.hasOwnProperty(link))&&
+                            (link.search("https://glossdata.sbooks.net/")===0))
+                            noteGlossdata(link);}}
                 if (maker) {
                     metaBook.addTag2Cloud(maker,metaBook.empty_cloud);
                     metaBook.UI.addGlossSource(maker,true);}
@@ -23513,6 +23522,23 @@ fdjt.DOM.noautofontadjust=true;
 
         if (Trace.start>1) fdjtLog("Initialized DB");}
     metaBook.initDB=initDB;
+
+    function noteGlossdata(link){
+        var key="cache("+link+")";
+        if (fdjtState.getLocal(key)) return;
+        else fdjtState.setLocal(key,"fetching");
+        var uri="https://glossdata.sbooks.net/U/"+
+            link.slice("https://glossdata.sbooks.net/".length);
+        var req=new XMLHttpRequest();
+        req.onreadystatechange=function () {
+            if ((req.readyState === 4) && (req.status === 200)) {
+                fdjtState.setLocal(key,req.responseText);}
+            else if (req.readyState === 4) {
+                fdjtState.dropLocal(key);}
+            else {}};
+        req.open("GET",uri);
+        req.withCredentials=true;
+        req.send(null);}
 
     function Query(tags,base_query){
         if (!(this instanceof Query))
@@ -27772,6 +27798,7 @@ metaBook.Startup=
             metaBook.initHUD();
             metaBook.setupCover();
             setupZoom();
+            setupMedia();
 
             if (metaBook.refuri) {
                 var refuris=document.getElementsByName("REFURI");
@@ -28484,6 +28511,15 @@ metaBook.Startup=
             zoom.metabookui=true;
             document.body.appendChild(zoom);}
         metaBook.setupZoom=setupZoom;
+        
+        function setupMedia(){
+            var media=metaBook.Media=fdjtDOM(
+                "div#METABOOKMEDIA.metabookmedia.metabookcontent",
+                fdjtDOM("div#METABOOKMEDIATARGET"),
+                fdjtDOM("div#METABOOKCLOSEMEDIA"));
+            media.metabookui=true;
+            document.body.appendChild(media);}
+        metaBook.setupMedia=setupMedia;
 
         metaBook.addConfig("uisound",function(name,value){
             metaBook.uisound=(value)&&(true);});
@@ -30395,16 +30431,52 @@ metaBook.Slice=(function () {
                          " ");
         for (url in refs) {
             if (url[0]==='_') continue;
-            var urlinfo=refs[url];
-            var title; var icon=mbicon("diaglink",64,64);
+            var urlinfo=refs[url], elt=false;
+            var openinbook=(url.search("https://glossdata.sbooks.net/")===0)||
+                (url.search("resources/")===0);
+            var title; var icon=false, type=false, useclass=false;
+            if (!(openinbook)) {
+                var inbookurls=metaBook.inbookurls;
+                var i=0, lim=inbookurls; while (i<lim) {
+                    var pat=inbookurls[i++];
+                    if (typeof pat === 'string') {
+                        if (url.search(pat)===0) {openinbook=true; break;}}
+                    else if (pat.exec(url)) {
+                        openinbook=true; break;}
+                    else {}}}
             if (typeof urlinfo === 'string') title=urlinfo;
             else {
                 title=urlinfo.title;
-                icon=urlinfo.icon;}
+                icon=urlinfo.icon;
+                type=urlinfo.type;}
+            if (type) {}
+            else if (url.search(/\.(jpg|jpeg)$/g)>0) type="image/jpeg";
+            else if (url.search(/\.png$/g)>0) type="image/png";
+            else if (url.search(/\.gif$/g)>0) type="image/gif";
+            else if (url.search(/\.wav$/g)>0) type="audio/wav";
+            else if (url.search(/\.ogg$/g)>0) type="audio/ogg";
+            else if (url.search(/\.mp3$/g)>0) type="audio/mpeg";
+            else if (url.search(/\.mp4$/g)>0) type="video/mp4";
+            else {}
+            if (icon) {}
+            else if (!(type)) icon=mbicon("diaglink",64,64);
+            else if (type==="audio/mpeg") {
+                icon=mbicon("music",64,64); useclass="musiclink";}
+            else if (type.slice(0,6)==="image/") {
+                icon=mbicon("photo",64,64); useclass="imagelink";}
+            else if (type.slice(0,6)==="audio/") {
+                icon=mbicon("sound",64,64); useclass="audiolink";}
+            else icon=mbicon("diaglink",64,64);
             var image=fdjtDOM.Image(icon);
-            var anchor=(fdjtDOM.Anchor(url,{title:"Link to "+url},image,title));
-            anchor.target='_blank';
-            fdjtDOM(span,anchor,"\n");}
+            if (openinbook) {
+                elt=fdjtDOM("span.mbmedia",image,title);
+                elt.setAttribute("data-src",url);
+                if (type) elt.setAttribute("data-type",type);
+                elt.title="Reveal "+title;}
+            else elt=fdjtDOM.Anchor(
+                url,{title:"Link to "+url,target:"_blank"},image,title);
+            if (useclass) addClass(elt,useclass);
+            fdjtDOM(span,elt,"\n");}
         return span;}
     function showexcerpts(excerpts){
         if (typeof excerpts==='string')
@@ -33863,6 +33935,7 @@ metaBook.Slice=(function () {
     var mB=metaBook;
     var Trace=mB.Trace;
     var fdjtString=fdjt.String;
+    var fdjtState=fdjt.State;
     var fdjtTime=fdjt.Time;
     var fdjtLog=fdjt.Log;
     var fdjtDOM=fdjt.DOM;
@@ -34805,6 +34878,19 @@ metaBook.Slice=(function () {
             metaBook.GoTOC(href);
             fdjtUI.cancel(evt);
             return;}
+        var link=getParent(target,".mbmedia");
+        if (link) {
+            var src=link.getAttribute("data-src"), cancel=false;
+            var type=link.getAttribute("data-type");
+            if (hasClass(link,"imagelink")) {
+                showMedia(src,type); cancel=true;}
+            else if ((hasClass(link,"audiolink"))||
+                     (hasClass(link,"musiclink"))) {
+                showMedia(src,type); cancel=true;}
+            else {}
+            if (cancel) {
+                fdjtUI.cancel(evt);
+                return;}}
         var card=getCard(target);
         var passage=mbID(card.getAttribute("data-passage"));
         var glossid=card.getAttribute("data-gloss");
@@ -34990,6 +35076,7 @@ metaBook.Slice=(function () {
                 metaBook.stopPreview("escape_key");
                 fdjtUI.TapHold.clear();}
             dropClass(document.body,"mbZOOM");
+            dropClass(document.body,"mbMEDIA");
             if (metaBook.mode==="addgloss") metaBook.cancelGloss();
             if (metaBook.mode) {
                 metaBook.last_mode=metaBook.mode;
@@ -35314,6 +35401,15 @@ metaBook.Slice=(function () {
         else dropClass(form,target.value);}
     metaBook.UI.changeAttachment=changeAttachment;
 
+    function setAttachType(newtype){
+        var livegloss=fdjtID("METABOOKLIVEGLOSS");
+        var form=fdjtDOM.getChild(livegloss,"FORM");
+        fdjtDOM.swapClass(form,attach_types,newtype);
+        var attachform=fdjtID("METABOOKATTACHFORM");
+        var input=fdjtDOM.getInputFor(attachform,"ATTACHTYPE",newtype);
+        fdjt.UI.CheckSpan.set(input,true);}
+    metaBook.setAttachType=setAttachType;
+
     function attach_action(evt){
         var linkinput=fdjtID("METABOOKATTACHURL");
         var titleinput=fdjtID("METABOOKATTACHTITLE");
@@ -35355,13 +35451,15 @@ metaBook.Slice=(function () {
             itemidinput.value=itemid;}
         else fdjtUI.cancel(evt);
         if (!(title)) {
-            var namestart=((path.indexOf('/')>=0)?(path.search(/\/[^\/]+$/)):(0));
+            var namestart=((path.indexOf('/')>=0)?
+                           (path.search(/\/[^\/]+$/)):(0));
             if (namestart<0) title="attachment";
             else title=path.slice(namestart);}
         if (!(livegloss)) return;
         var glossform=getChild(livegloss,"FORM");
         if (hasClass("METABOOKHUD","glossattach")) {
-            var glossdata_url="https://glossdata.sbooks.net/"+glossid+"/"+itemid+"/"+path;
+            var glossdata_url=
+                "https://glossdata.sbooks.net/"+glossid+"/"+itemid+"/"+path;
             var commframe=fdjtID("METABOOKGLOSSCOMM");
             var listener=function(evt){
                 evt=evt||window.event;
@@ -36287,6 +36385,82 @@ metaBook.Slice=(function () {
         if (evt) fdjt.UI.cancel(evt);}
     metaBook.stopZoom=stopZoom;
     
+    // Not yet implemented, but the idea is to save some number of
+    // audio/video/iframe elements to make restoring them faster.
+    // var saved_players=[];
+    // var n_players_to_save=7;
+    
+    function showMedia(url,type){
+        if (metaBook.showing===url) {
+            addClass(document.body,"mbMEDIA");
+            return;}
+        var media_target=fdjt.ID("METABOOKMEDIATARGET");
+        var media_elt=false, src_elt=false;
+        var use_src=url;
+        if (url.search("https://glossdata.sbooks.net/")===0) {
+            var cache_key="cache("+url+")";
+            var cache_val=fdjtState.getLocal(cache_key);
+            if ((cache_val)&&(cache_val.slice(0,5)==="data:"))
+                use_src=cache_val;}
+        if (type.search("image")===0) {
+            media_elt=fdjtDOM("IMG");
+            media_elt.src=use_src;}
+        else if (type.search("audio")===0) {
+            src_elt=fdjtDOM("SOURCE");
+            media_elt=fdjtDOM("AUDIO",src_elt);
+            media_elt.setAttribute("CONTROLS","CONTROLS");
+            media_elt.setAttribute("AUTOPLAY","AUTOPLAY");
+            src_elt.type=type;
+            src_elt.src=use_src;}
+        else if (type.search("video")===0) {
+            src_elt=fdjtDOM("SOURCE");
+            src_elt.type=type;
+            media_elt=fdjtDOM("VIDEO",src_elt);
+            media_elt.setAttribute("CONTROLS","CONTROLS");
+            media_elt.setAttribute("AUTOPLAY","AUTOPLAY");
+            src_elt.src=use_src;}
+        else if (url.search("https://www.youtube.com/embed/")===0) {
+            url="https://www.youtube-nocookie.com/"+
+                url.slice("https://www.youtube.com/".length);
+            if (url.indexOf("?")>0) 
+                url=url+"&rel=0";
+            else url=url+"?rel=0";}
+        else {
+            media_elt=fdjtDOM("IFRAME");
+            media_elt.src=use_src;}
+        media_elt.id="METABOOKMEDIATARGET";
+        metaBook.showing=url;
+        if (media_elt)
+            fdjt.DOM.replace(media_target,media_elt);
+        else fdjt.ID("METABOOKMEDIA").appendChild(media_target);
+        addClass(document.body,"mbMEDIA");}
+    metaBook.showMedia=showMedia;
+    function hideMedia(){
+        dropClass(document.body,"mbMEDIA");}
+    metaBook.hideMedia=hideMedia;
+
+    var pause_media_timeout=false;
+    function closeMedia_tapped(evt){
+        evt=evt||window.event;
+        var media_elt=fdjt.ID("METABOOKMEDIATARGET");
+        if (pause_media_timeout) {
+            clearTimeout(pause_media_timeout);
+            pause_media_timeout=false;
+            dropClass(document.body,"mbMEDIA");}
+        else if (evt.shiftKey) {
+            clearTimeout(pause_media_timeout);
+            pause_media_timeout=false;
+            dropClass(document.body,"mbMEDIA");}
+        else if ((media_elt)&&(media_elt.pause)&&
+                 (!(media_elt.paused))) {
+            pause_media_timeout=setTimeout(function(){
+                media_elt.pause();
+                pause_media_timeout=false;
+                dropClass(document.body,"mbMEDIA");},
+                                           1500);}
+        else dropClass(document.body,"mbMEDIA");}
+    metaBook.hideMedia=hideMedia;
+
     /* Rules */
 
     var noDefault=fdjt.UI.noDefault;
@@ -36395,6 +36569,45 @@ metaBook.Slice=(function () {
         fdjt.UI.cancel(evt);
         return false;}
     metaBook.lowerHUD=lowerHUD;
+
+    function addGlossDragOK(evt){
+        evt=evt||window.event;
+        var types=evt.dataTransfer.types;
+        if (!(types)) return;
+        else if (types.indexOf("text/uri-list")>=0)
+            fdjt.UI.cancel(evt);
+        else if (types.indexOf("text/plain")>=0) {
+            var text=evt.dataTransfer.getData("text/plain");
+            if (text.search(/^\s*https?:\/\//)===0)
+                fdjt.UI.cancel(evt);}
+        else {}}
+    function addGlossDrop(evt){
+        evt=evt||window.event;
+        var types=evt.dataTransfer.types;
+        if (!(types)) return;
+        else if (types.indexOf("text/uri-list")>=0) {
+            var url=evt.dataTransfer.getData("URL");
+            if (!(url)) return;
+            fdjt.UI.cancel(evt);
+            metaBook.setGlossMode("attach");
+            setAttachType("linking");
+            fdjt.ID("METABOOKATTACHURL").value=url;
+            fdjt.ID("METABOOKATTACHTITLE").focus();}
+        else if (types.indexOf("text/plain")>=0) {
+            var text=evt.dataTransfer.getData("text/plain");
+            fdjt.UI.cancel(evt);
+            if (text.search(/^\s*https?:\/\//)===0) {
+                metaBook.setGlossMode("attach");
+                setAttachType("linking");
+                fdjt.ID("METABOOKATTACHURL").value=text;
+                fdjt.ID("METABOOKATTACHTITLE").focus();}
+            else {
+                var livegloss=fdjt.ID("METABOOKLIVEGLOSS");
+                var input=fdjtDOM.getInput(livegloss,"NOTE");
+                metaBook.setGlossMode(false);
+                input.value=text;
+                input.focus();}}
+        else {}}
 
     function zoomIn(evt){
         evt=evt||window.event;
@@ -36517,6 +36730,10 @@ metaBook.Slice=(function () {
          "#METABOOKATTACHTITLE": {keydown: attach_keydown},
          "#METABOOKATTACHOK": {click: attach_action},
          "#METABOOKATTACHCANCEL": {click: attach_cancel},
+         "#METABOOKADDGLOSS": {
+             dragenter: addGlossDragOK,
+             dragover: addGlossDragOK,
+             drop: addGlossDrop},
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
@@ -36602,6 +36819,7 @@ metaBook.Slice=(function () {
                  evt=evt||window.event;
                  metaBook.UI.handlers.everyone_ontap(evt);
                  fdjt.UI.cancel(event);}},
+         "#METABOOKCLOSEMEDIA": {mousedown: closeMedia_tapped},
          "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
          "#METABOOKZOOMHELP": {click: toggleHelp},
          "#METABOOKZOOMIN": {click: zoomIn},
@@ -36706,6 +36924,10 @@ metaBook.Slice=(function () {
              touchstart: back_to_reading,
              touchmove: cancel,
              touchend: cancel},
+         "#METABOOKADDGLOSS": {
+             dragenter: addGlossDragOK,
+             dragover: addGlossDragOK,
+             drop: addGlossDrop},
          "#METABOOKGLOSSDETAIL": {
              touchend: metaBook.UI.dropHUD,click: cancel},
          ".hudmodebutton": {
@@ -36797,6 +37019,7 @@ metaBook.Slice=(function () {
                  evt=evt||window.event;
                  metaBook.UI.handlers.everyone_ontap(evt);
                  fdjt.UI.cancel(event);}},
+         "#METABOOKCLOSEMEDIA": {touchstart: closeMedia_tapped},
          "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
          "#METABOOKZOOMHELP": {click: toggleHelp},
          "#METABOOKZOOMIN": {click: zoomIn},
@@ -39424,15 +39647,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2424-ge889ebc';
-metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sat Feb  7 14:11:09 EST 2015';
-metaBook.buildid='3f0aa8af-a212-4d9a-a154-56c1d74bcd08';
+metaBook.version='v0.5-2429-g705dd23';
+metaBook.buildhost='dev.beingmeta.com';
+metaBook.buildtime='Thu Feb 12 19:48:33 UTC 2015';
+metaBook.buildid='72bebd71-0aaa-443e-9d40-a15fcceee0e6';
 
 Knodule.version='v0.8-144-gc96d4d4';
 // sBooks metaBook build information
-metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sat Feb  7 14:12:16 EST 2015';
-metaBook.buildid='308a119e-dcf5-4ebf-afd4-b1110ab9a312';
+metaBook.buildhost='dev.beingmeta.com';
+metaBook.buildtime='Thu Feb 12 19:48:42 UTC 2015';
+metaBook.buildid='c2c50cd3-1739-4d56-9ae3-b5d03a8a82f9';
 
 fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';

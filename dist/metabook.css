@@ -2792,8 +2792,9 @@ span.bma {
      #METABOOKFRAME
        #METABOOKHUD
        #METABOOKCOVER
+     #METABOOKZOOM
+     #METABOOKMEDIA
      #METABOOKBODY
-       #METABOOKZOOM
        #CODEXCONTENT
        #CODEXPAGE
          #METABOOKPAGES
@@ -2840,12 +2841,15 @@ body.openhud #METABOOKHUD, body.mbCOVER #METABOOKCOVER {
     top: 0px; bottom: 0px; left: 0px; right: 0px;
     height: 100%; width: 100%;
     display: block;}
-body.mbZOOM #METABOOKFRAME, body.mbZOOM #METABOOKBODY { 
-    opacity: 0.0; z-index: -500; pointer-events: none;}
+body.mbZOOM #METABOOKFRAME, body.mbZOOM #METABOOKBODY,
+body.mbMEDIA #METABOOKFRAME, body.hudup.mbMEDIA #METABOOKFRAME { 
+    opacity: 0.0; z-index: -100; pointer-events: none;}
+body.mbMEDIA #METABOOKBODY {
+    pointer-events: none;}
 
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.openhud #METABOOKFRAME, body.mbSKIMMING #METABOOKFRAME,
-body.mbSHOWHELP #METABOOKFRAME, body.mbZOOM #METABOOKFRAME {
+body.mbSHOWHELP #METABOOKFRAME {
     z-index: 50;}
 
 /* Override simple stylesheet definitions in the metaBook frame */
@@ -2985,6 +2989,46 @@ body.mbSHOWHELP #METABOOKZOOMHELP {
     text-align: center;
     display: none;}
 body.mbSHOWHELP.mbZOOM #METABOOKZOOMHELPTEXT { display: block; }
+
+#METABOOKMEDIA, #METABOOKMEDIABOX { 
+    position: absolute;
+    top: 0px; left: 0px; bottom: 0px; right: 0px;
+    text-align: center; vertical-align: middle;}
+
+#METABOOKMEDIA {
+    overflow-x: scroll; overflow-y: scroll;
+    display: none; }
+#METABOOKMEDIATARGET {
+    transform-origin: 0px 0px;
+    -webkit-transform-origin: 0px 0px;
+    -moz-transform-origin: 0px 0px;}
+
+body.mbMEDIA #METABOOKMEDIA {
+    min-width: 100%; min-height: 100%;
+    height: auto; width: auto; z-index: 100;
+    background-color: rgba(0,0,0,0.5);
+    display: block;}
+body.mbMEDIA #METABOOKMEDIA #METABOOKMEDIATARGET {
+    background-color: rgba(0,0,0,1); z-index: 150;}
+
+#METABOOKCLOSEMEDIA {
+    position: absolute;
+    top: 1em; top: 1rem; right: 1em; right: 1rem; 
+    width: 5em; width: 5rem; height: 5em; height: 5rem;
+    background-repeat: no-repeat; background-size: contain;
+    background-image: url(g/metabook/redx.svgz);}
+
+body.mbMEDIA #METABOOKMEDIA img {}
+body.mbMEDIA #METABOOKMEDIA audio {
+    position: absolute; bottom: 50%; right: 50px;}
+body.mbMEDIA #METABOOKMEDIA video {
+    position: absolute; 
+    left: auto; right: auto; 
+    top: 50px; height: auto;}
+body.mbMEDIA #METABOOKMEDIA iframe {
+    position: absolute; 
+    top: 50px; bottom: 50px;
+    left: 100px; right: 50px;}
 
 @media (orientation: landscape) {
     #METABOOKZOOM > img, #METABOOKZOOM > video, #METABOOKZOOM > audio {
@@ -7229,6 +7273,9 @@ div.metabookcard > hr {
     color: blue; text-decoration: underline;
     white-space: nowrap;}
 .metabookcard .links img { height: 2ex; width: auto; vertical-align: baseline;}
+.metabookcard .links span.mbmedia { 
+    display: inline-block; padding: 2px; border-radius: 0.5ex;
+    background-color: lightgray;}
 .metabookcard span.tribe { 
     color: darkblue; font-weight: bold; font-style: italic;}
 .metabookcard span.audience { font-weight: normal; }
