@@ -1,8 +1,8 @@
 // FDJT build information
-var fdjt_revision='1.5-1268-ge428640';
+var fdjt_revision='1.5-1274-gb7254f3';
 var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Thu Feb 12 19:48:33 UTC 2015';
-var fdjt_builduuid='c7fce293-bb23-478d-95e7-f4673cff75bb';
+var fdjt_buildtime='Sat Feb 14 13:21:52 UTC 2015';
+var fdjt_builduuid='f2a8cc05-a3c5-4221-9ac0-643aa80df4c6';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -1957,7 +1957,7 @@ fdjt.Time=
             return slicefn();}
         fdjtTime.timeslice=timeslice;
 
-        function slowmap(fn,vec,watch,done,slice,space,watch_slice){
+        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=fdjtTime();
             var timer=false;
@@ -1965,35 +1965,41 @@ fdjt.Time=
             if (!(space)) space=slice;
             if (!(watch_slice)) watch_slice=0;
             var stepfn=function(){
-                var started=fdjtTime(); var now=started;
-                var stopat=started+slice;
-                if (watch) watch(((i===0)?'start':'resume'),i,lim,chunks,used,
-                                 zerostart);
-                while ((i<lim)&&((now=fdjtTime())<stopat)) {
-                    var elt=vec[i];
-                    if ((watch)&&
-                        (((watch_slice)&&((i%watch_slice)===0))||(i+1===lim)))
-                        watch('element',i,lim,elt,used,now-zerostart);
-                    fn(elt);
-                    if ((watch)&&
-                        (((watch_slice)&&((i%watch_slice)===0))||(i+1===lim)))
-                        watch('after',i,lim,elt,used+(fdjtTime()-started),
-                              zerostart,fdjtTime()-now);
-                    i++;}
-                chunks=chunks+1;
-                if (i<lim) {
-                    used=used+(now-started);
-                    if (watch) watch('suspend',i,lim,chunks,used,
-                                     zerostart);
-                    timer=setTimeout(stepfn,space);}
-                else {
-                    now=fdjtTime(); used=used+(now-started);
-                    clearTimeout(timer); timer=false;
-                    if (watch) watch('finishing',i,lim,chunks,used,zerostart);
-                    var donetime=((done)&&(fdjtTime()-now));
-                    now=fdjtTime(); used=used+(now-started);
-                    if (watch) watch('done',i,lim,chunks,used,zerostart,donetime);
-                    if ((done)&&(done.call)) done(vec,now-zerostart,used);}};
+                try {
+                    var started=fdjtTime(); var now=started;
+                    var stopat=started+slice;
+                    if (watch)
+                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
+                              zerostart);
+                    while ((i<lim)&&((now=fdjtTime())<stopat)) {
+                        var elt=vec[i];
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('element',i,lim,elt,used,now-zerostart);
+                        fn(elt);
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('after',i,lim,elt,used+(fdjtTime()-started),
+                                  zerostart,fdjtTime()-now);
+                        i++;}
+                    chunks=chunks+1;
+                    if (i<lim) {
+                        used=used+(now-started);
+                        if (watch) watch('suspend',i,lim,chunks,used,
+                                         zerostart);
+                        timer=setTimeout(stepfn,space);}
+                    else {
+                        now=fdjtTime(); used=used+(now-started);
+                        clearTimeout(timer); timer=false;
+                        if (watch)
+                            watch('finishing',i,lim,chunks,used,zerostart);
+                        var donetime=((done)&&(fdjtTime()-now));
+                        now=fdjtTime(); used=used+(now-started);
+                        if (watch)
+                            watch('done',i,lim,chunks,used,zerostart,donetime);
+                        if ((done)&&(done.call)) 
+                            done(vec,now-zerostart,used);}}
+                catch (ex) {if (failed) failed();}};
             timer=setTimeout(stepfn,space);}
         fdjtTime.slowmap=slowmap;
 
@@ -6192,6 +6198,9 @@ fdjt.State=
 
         function setLocal(name,val,unparse){
             if (!(name)) throw { error: "bad name",name: name};
+            if (typeof val === "undefined")
+                throw { error: "undefined value", name: name};
+            if (!(val)) {dropLocal(name); return;}
             if (unparse) val=JSON.stringify(val);
             if (window.localStorage) {
                 if (name instanceof RegExp) {
@@ -6215,7 +6224,8 @@ fdjt.State=
                     while (i<lim) {
                         var key=storage.key(i++);
                         if (key.search(name)>=0) {
-                            return ((parse)?(JSON.parse(storage[key])):(storage[key]));}}
+                            return ((parse)?(JSON.parse(storage[key])):
+                                    (storage[key]));}}
                     return false;}
                 else {
                     var val=window.localStorage[name];
@@ -6224,6 +6234,33 @@ fdjt.State=
                     else return false;}}
             else return false;}
         fdjtState.getLocal=getLocal;
+
+        function pushLocal(name,val){
+            if (!(name)) throw { error: "bad name",name: name};
+            var fetched=window.localStorage[name], array=false;
+            if (fetched) {
+                array=JSON.parse(fetched);
+                if (!(Array.isArray(array))) array=[array];
+                if (array.indexOf(val)<0) array.push(val);
+                else return false;}
+            else array=[val];
+            window.localStorage[name]=JSON.stringify(array);
+            return true;}
+        fdjtState.pushLocal=pushLocal;
+
+        function removeLocal(name,val){
+            if (!(name)) throw { error: "bad name",name: name};
+            var fetched=window.localStorage[name];
+            if (fetched) {
+                var array=JSON.parse(fetched), loc;
+                if (array===val) {
+                    dropLocal(name); return;}
+                else if (!(Array.isArray(array))) return;
+                else loc=array.indexOf(val);
+                if (loc<0) return; else array.splice(loc,1);
+                window.localStorage[name]=JSON.stringify(array);}
+            return true;}
+        fdjtState.removeLocal=removeLocal;
 
         function existsLocal(name){
             if (!(name)) throw { error: "bad name",name: name};
@@ -8558,14 +8595,20 @@ fdjt.DOM=
         
         /* Removing IDs */
 
-        function stripIDs(node,nametoo){
-            if (node.id) node.id="";
+        function stripIDs(node,nametoo,moveto){
+            if (!(nametoo)) nametoo=false;
+            if (!(moveto)) moveto=false;
+            if (node.id) {
+                if (moveto) node.setAttribute(moveto,node.id);
+                node.id="";
+                node.removeAttribute("id");}
             if ((nametoo)&&(node.name)) node.name=null;
             if ((node.childNodes)&&(node.childNodes.length)) {
                 var children=node.childNodes, i=0, lim=children.length;
                 while (i<lim) {
                     var child=children[i++];
-                    if (child.nodeType===1) stripIDs(child,nametoo||false);}}}
+                    if (child.nodeType===1)
+                        stripIDs(child,nametoo,moveto);}}}
         fdjtDOM.stripIDs=stripIDs;
 
         /* Stylesheet manipulation */

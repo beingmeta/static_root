@@ -2731,6 +2731,9 @@ span.bma {
     font-variant: normal;
     color: blue; }
 
+div.fdjtdialog.metabooktaptap .choices button {
+    width: 12em;}
+
 /* Rules for page references */
 
 .staticpageref {
@@ -2919,6 +2922,14 @@ body.mbCOVER #METABOOKHUD, body.hudup.mbCOVER #METABOOKHUD {
     transform-origin: 0px 0px;
     -webkit-transform-origin: 0px 0px;
     -moz-transform-origin: 0px 0px;}
+#METABOOKZOOMTARGET {
+    display: inline-block; 
+    font-size: 2em; font-size: 2rem;}
+div#METABOOKZOOMTARGET, p#METABOOKZOOMTARGET {
+    margin-top: 2em; margin-bottom: 2em;
+    margin-left: 100px; margin-right: 100px;
+    padding-left: 1em; padding-right: 1em;
+    border: solid gray 3px;}
 
 body.mbZOOM #METABOOKZOOM {
     min-width: 100%; min-height: 100%;
@@ -8054,9 +8065,10 @@ body.hudup #METABOOKHUD.addgloss.glossattach {
 
 #METABOOKGLOSSATTACH table { color: black; }
 #METABOOKGLOSSATTACH table tr th:first-child {
-    width: 4em; padding-right: 0.5ex;}
+    width: 5em; padding-right: 0.5ex;
+    white-space: nowrap;}
 #METABOOKGLOSSATTACH th.headcell {
-    width: 4em; color: #4682b4;}
+    width: 5em; color: #4682b4;}
 #METABOOKGLOSSATTACH th.button { width: 5em;}
 #METABOOKGLOSSATTACH th.headcell img { height: 0.75em; width: auto;}
 

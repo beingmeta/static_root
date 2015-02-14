@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1268-ge428640';
+var fdjt_revision='1.5-1274-gb7254f3';
 var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Thu Feb 12 19:48:33 UTC 2015';
-var fdjt_builduuid='c7fce293-bb23-478d-95e7-f4673cff75bb';
+var fdjt_buildtime='Sat Feb 14 13:21:52 UTC 2015';
+var fdjt_builduuid='f2a8cc05-a3c5-4221-9ac0-643aa80df4c6';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -1984,7 +1984,7 @@ fdjt.Time=
             return slicefn();}
         fdjtTime.timeslice=timeslice;
 
-        function slowmap(fn,vec,watch,done,slice,space,watch_slice){
+        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=fdjtTime();
             var timer=false;
@@ -1992,35 +1992,41 @@ fdjt.Time=
             if (!(space)) space=slice;
             if (!(watch_slice)) watch_slice=0;
             var stepfn=function(){
-                var started=fdjtTime(); var now=started;
-                var stopat=started+slice;
-                if (watch) watch(((i===0)?'start':'resume'),i,lim,chunks,used,
-                                 zerostart);
-                while ((i<lim)&&((now=fdjtTime())<stopat)) {
-                    var elt=vec[i];
-                    if ((watch)&&
-                        (((watch_slice)&&((i%watch_slice)===0))||(i+1===lim)))
-                        watch('element',i,lim,elt,used,now-zerostart);
-                    fn(elt);
-                    if ((watch)&&
-                        (((watch_slice)&&((i%watch_slice)===0))||(i+1===lim)))
-                        watch('after',i,lim,elt,used+(fdjtTime()-started),
-                              zerostart,fdjtTime()-now);
-                    i++;}
-                chunks=chunks+1;
-                if (i<lim) {
-                    used=used+(now-started);
-                    if (watch) watch('suspend',i,lim,chunks,used,
-                                     zerostart);
-                    timer=setTimeout(stepfn,space);}
-                else {
-                    now=fdjtTime(); used=used+(now-started);
-                    clearTimeout(timer); timer=false;
-                    if (watch) watch('finishing',i,lim,chunks,used,zerostart);
-                    var donetime=((done)&&(fdjtTime()-now));
-                    now=fdjtTime(); used=used+(now-started);
-                    if (watch) watch('done',i,lim,chunks,used,zerostart,donetime);
-                    if ((done)&&(done.call)) done(vec,now-zerostart,used);}};
+                try {
+                    var started=fdjtTime(); var now=started;
+                    var stopat=started+slice;
+                    if (watch)
+                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
+                              zerostart);
+                    while ((i<lim)&&((now=fdjtTime())<stopat)) {
+                        var elt=vec[i];
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('element',i,lim,elt,used,now-zerostart);
+                        fn(elt);
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('after',i,lim,elt,used+(fdjtTime()-started),
+                                  zerostart,fdjtTime()-now);
+                        i++;}
+                    chunks=chunks+1;
+                    if (i<lim) {
+                        used=used+(now-started);
+                        if (watch) watch('suspend',i,lim,chunks,used,
+                                         zerostart);
+                        timer=setTimeout(stepfn,space);}
+                    else {
+                        now=fdjtTime(); used=used+(now-started);
+                        clearTimeout(timer); timer=false;
+                        if (watch)
+                            watch('finishing',i,lim,chunks,used,zerostart);
+                        var donetime=((done)&&(fdjtTime()-now));
+                        now=fdjtTime(); used=used+(now-started);
+                        if (watch)
+                            watch('done',i,lim,chunks,used,zerostart,donetime);
+                        if ((done)&&(done.call)) 
+                            done(vec,now-zerostart,used);}}
+                catch (ex) {if (failed) failed();}};
             timer=setTimeout(stepfn,space);}
         fdjtTime.slowmap=slowmap;
 
@@ -6219,6 +6225,9 @@ fdjt.State=
 
         function setLocal(name,val,unparse){
             if (!(name)) throw { error: "bad name",name: name};
+            if (typeof val === "undefined")
+                throw { error: "undefined value", name: name};
+            if (!(val)) {dropLocal(name); return;}
             if (unparse) val=JSON.stringify(val);
             if (window.localStorage) {
                 if (name instanceof RegExp) {
@@ -6242,7 +6251,8 @@ fdjt.State=
                     while (i<lim) {
                         var key=storage.key(i++);
                         if (key.search(name)>=0) {
-                            return ((parse)?(JSON.parse(storage[key])):(storage[key]));}}
+                            return ((parse)?(JSON.parse(storage[key])):
+                                    (storage[key]));}}
                     return false;}
                 else {
                     var val=window.localStorage[name];
@@ -6251,6 +6261,33 @@ fdjt.State=
                     else return false;}}
             else return false;}
         fdjtState.getLocal=getLocal;
+
+        function pushLocal(name,val){
+            if (!(name)) throw { error: "bad name",name: name};
+            var fetched=window.localStorage[name], array=false;
+            if (fetched) {
+                array=JSON.parse(fetched);
+                if (!(Array.isArray(array))) array=[array];
+                if (array.indexOf(val)<0) array.push(val);
+                else return false;}
+            else array=[val];
+            window.localStorage[name]=JSON.stringify(array);
+            return true;}
+        fdjtState.pushLocal=pushLocal;
+
+        function removeLocal(name,val){
+            if (!(name)) throw { error: "bad name",name: name};
+            var fetched=window.localStorage[name];
+            if (fetched) {
+                var array=JSON.parse(fetched), loc;
+                if (array===val) {
+                    dropLocal(name); return;}
+                else if (!(Array.isArray(array))) return;
+                else loc=array.indexOf(val);
+                if (loc<0) return; else array.splice(loc,1);
+                window.localStorage[name]=JSON.stringify(array);}
+            return true;}
+        fdjtState.removeLocal=removeLocal;
 
         function existsLocal(name){
             if (!(name)) throw { error: "bad name",name: name};
@@ -8585,14 +8622,20 @@ fdjt.DOM=
         
         /* Removing IDs */
 
-        function stripIDs(node,nametoo){
-            if (node.id) node.id="";
+        function stripIDs(node,nametoo,moveto){
+            if (!(nametoo)) nametoo=false;
+            if (!(moveto)) moveto=false;
+            if (node.id) {
+                if (moveto) node.setAttribute(moveto,node.id);
+                node.id="";
+                node.removeAttribute("id");}
             if ((nametoo)&&(node.name)) node.name=null;
             if ((node.childNodes)&&(node.childNodes.length)) {
                 var children=node.childNodes, i=0, lim=children.length;
                 while (i<lim) {
                     var child=children[i++];
-                    if (child.nodeType===1) stripIDs(child,nametoo||false);}}}
+                    if (child.nodeType===1)
+                        stripIDs(child,nametoo,moveto);}}}
         fdjtDOM.stripIDs=stripIDs;
 
         /* Stylesheet manipulation */
@@ -18900,6 +18943,9 @@ fdjt.CodexLayout=
         var toArray=fdjtDOM.toArray;
         var getElementValue=fdjtDOM.getElementValue;
         
+        var setLocal=fdjtState.setLocal, pushLocal=fdjtState.pushLocal;
+        var dropLocal=fdjtState.dropLocal, removeLocal=fdjtState.removeLocal;
+
         var floor=Math.floor;
 
         var layoutDB;
@@ -19545,6 +19591,8 @@ fdjt.CodexLayout=
             // Tracks text nodes which have been split, keyed by the
             // temporary IDs assigned to them
             var textsplits=this.textsplits={};
+            // Tracks split blocks
+            var splits=this.splits={};
 
             var page=this.page=init.page; // Contains the currently open page
 
@@ -20240,6 +20288,9 @@ fdjt.CodexLayout=
                         addClass(node,"codexcantsplit");
                         newPage(node);
                         return node;}
+                    if ((node.id)&&(node.id.search("CODEXTMP")!==0)) {
+                        if (!(splits[node.id]))
+                            splits[node.id]=node.cloneNode(true);}
                     // Otherwise, we remove all of the node's children
                     // and then add back just enough to reach the
                     // edge, potentially splitting some children to
@@ -20756,11 +20807,15 @@ fdjt.CodexLayout=
                     pg.style.display=''; pg.style.opacity='';}
                 if (trace) fdjtLog("Done restoring layout");
                 if (donefn) donefn();}
-            function setLayout(content,donefn){
-                if (typeof content === "string") 
-                    setSimpleLayout(content,donefn);
-                else if (!(content.hasOwnProperty('npages'))) 
-                    setSimpleLayout(content.layout,donefn);
+            function setLayout(content,donefn,failfn){
+                if (typeof content === "string") {
+                    try {
+                        setSimpleLayout(content,donefn);}
+                    catch (ex) {if (failfn) failfn();}}
+                else if (!(content.hasOwnProperty('npages'))) {
+                    try {
+                        setSimpleLayout(content.layout,donefn);}
+                    catch (ext) {if (failfn) failfn();}}
                 else {
                     container.innerHTML=content.layout;
                     var pagenodes=container.childNodes;
@@ -20830,7 +20885,6 @@ fdjt.CodexLayout=
                      layout.width+"x"+layout.height+"("+href+")");
                 if (!(CodexLayout.cache)) return;
                 // These will be used for per-page saved layouts
-                // var setLocal=fdjtState.setLocal, getLocal=fdjtState.getLocal;
                 var copy=container.cloneNode(true);
                 var pages=copy.childNodes, i=0, npages=pages.length;
                 var pageids=((separated)&&([])), pagecontent={};
@@ -21370,7 +21424,6 @@ fdjt.CodexLayout=
             if (doinit) doinit();}
 
         function cacheLayout(layout_id,content,pageids,pages,ondone){
-            var setLocal=fdjtState.setLocal;
             if (typeof layoutDB === "undefined") 
                 ondbinit=function(){cacheLayout(layout_id,content);};
             else if (!(layoutDB)) return;
@@ -21381,7 +21434,7 @@ fdjt.CodexLayout=
                     var i=0, lim=pageids.length;
                     while (i<lim) {
                         var id=pageids[i++];
-                        fdjtState.setLocal(layout_id+"#"+id,pages[id]);}}
+                        setLocal(layout_id+"#"+id,pages[id]);}}
                 if (ondone) ondone();}
             else if (window.indexedDB) {
                 var txn=layoutDB.transaction(["layouts"],"readwrite");
@@ -21426,14 +21479,7 @@ fdjt.CodexLayout=
                 var req=storage.get(layout_id);
                 var allDone=function allDone(event){
                     event=false; // ignored
-                    var layouts=fdjtState.getLocal("fdjtCodex.layouts",true);
-                    if (layouts) {
-                        var loc=layouts.indexOf(layout_id);
-                        if (loc>=0) {
-                            layouts.splice(loc,1);
-                            fdjtState.setLocal("fdjtCodex.layouts",layouts,true);}}
-                    if (CodexLayout.trace)
-                        fdjtLog("Layout %s removed",layout_id);};
+                    droppedLayout(layout_id);};
                 var whoops=function whoops(event) {
                     event=false; // ignored
                     fdjtLog("Error removing laytout %s",layout_id);};
@@ -21460,16 +21506,12 @@ fdjt.CodexLayout=
                 dropLocal(layout_id+".pageids");
                 var i=0, lim=pageids.length; while (i<lim) {
                     dropLocal(pageids[i++]);}
-                var layouts=fdjtState.getLocal("fdjtCodex.layouts",true);
-                if (layouts) {
-                    var loc=layouts.indexOf(layout_id);
-                    if (loc>=0) {
-                        layouts.splice(loc,1);
-                        fdjtState.setLocal("fdjtCodex.layouts",layouts,true);}}}}
+                droppedLayout(layout_id);}}
         CodexLayout.dropLayout=dropLayout;
         function fetchLayout(layout_id,callback,pageid){
             var getLocal=fdjtState.getLocal;
-            var content=false, layout_key=((pageid)?(layout_id+"#"+pageid):(layout_id));
+            var content=false, layout_key=
+                ((pageid)?(layout_id+"#"+pageid):(layout_id));
             if (typeof layoutDB === "undefined") 
                 ondbinit=function(){fetchLayout(layout_id,callback,pageid);};
             else if (!(layoutDB)) callback(false);
@@ -21549,12 +21591,12 @@ fdjt.CodexLayout=
                     fdjtLog.warn("Dropping layout %s",todrop[i]);
                     dropLayout(todrop[i++]);}});};
         function gotLayout(layout_id){
-            var layouts=fdjtState.getLocal("fdjtCodex.layouts",true);
-            if (!(layouts)) layouts=[layout_id];
-            else if (layouts.indexOf(layout_id)<0) 
-                layouts.push(layout_id);
-            else {}
-            fdjtState.setLocal("fdjtCodex.layouts",layouts,true);}
+            setLocal("fdjtCodex.layout("+layout_id+")",layout_id);
+            pushLocal("fdjtCodex.layouts",layout_id);}
+        function droppedLayout(layout_id){
+            dropLocal("fdjtCodex.layout("+layout_id+")",layout_id);
+            removeLocal("fdjtCodex.layouts",layout_id);
+            if (CodexLayout.trace) fdjtLog("Layout %s removed",layout_id);}
         
         return CodexLayout;})();
 
@@ -23132,7 +23174,7 @@ var metaBook={
     update_pause: 30*60*1000,   // Interval to sleep on error or timeout
     // State sync settings (in milliseconds):
     sync_interval: 60*1000, // Interval between sync checks
-    sync_timeout: 10000,    // Timeout on requests
+    sync_timeout: 10000,    // Timeout on sync requests
     sync_pause: 15*60*1000, // Interval to sleep on error or timeout
     // Various handlers, settings, and status information for the
     // metaBook interface
@@ -23153,6 +23195,9 @@ var metaBook={
     // These are prefixes or Regexps for URLs which should be opened "in the book"
     //  when they're linked in glosses
     openinbook: ["https://www.youtube.com/"],
+    // These are elements, indexed by URL, whose content is being
+    // loaded to cache locally
+    srcloading: {}, tmpurlcache: {},
     // These are functions to be called when everythings has been loaded
     //  to initialize local references to common metaBook functions
     inits: [],
@@ -23187,6 +23232,7 @@ var metaBook={
         savegloss: 0,     // When glosses are saved to the server
         glosses: 0,       // How much we're tracing gloss processing
         addgloss: 0,      // Note whenever a gloss post completes
+        glossdata: 0,     // Whether to trace caching/retrieval of glossdata
         layout: 0,        // How much to trace document layout
         knodules: 0,      // How much to trace knodule processing
         flips: false,     // Whether to trace page flips (movement by pages)
@@ -23271,6 +23317,7 @@ fdjt.DOM.noautofontadjust=true;
 
     var getLocal=fdjtState.getLocal;
     var setLocal=fdjtState.setLocal;
+    var dropLocal=fdjtState.dropLocal;
     
     var mB=metaBook;
     var Trace=metaBook.Trace;
@@ -23478,12 +23525,12 @@ fdjt.DOM.noautofontadjust=true;
             var dropLocal=fdjtState.dropLocal;
             if (!(uri)) {
                 dropLocal("metabook.user");
-                if (metaBook.user) {
-                    // For now, we clear layouts, because they might
-                    //  contain personalized information
-                    fdjt.CodexLayout.clearLayouts();}
+                // We clear layouts, because they might
+                //  contain personalized information
+                fdjt.CodexLayout.clearLayouts();
                 fdjtState.clearLocal();
-                fdjtState.clearSession();}
+                fdjtState.clearSession();
+                clearGlossData();}
             else {
                 if (typeof uri !== "string") uri=metaBook.docuri;
                 metaBook.sync=false;
@@ -23495,7 +23542,8 @@ fdjt.DOM.noautofontadjust=true;
                 // specific clearing because they might be shared
                 // between books.  This is a bug.
                 metaBook.glossdb.clearOffline(function(){
-                    clearLocal("metabook.sync("+uri+")");});}}
+                    clearLocal("metabook.sync("+uri+")");});
+                clearGlossData(uri);}}
         metaBook.clearOffline=clearOffline;
         
         function refreshOffline(){
@@ -23523,22 +23571,108 @@ fdjt.DOM.noautofontadjust=true;
         if (Trace.start>1) fdjtLog("Initialized DB");}
     metaBook.initDB=initDB;
 
+    /* Noting (and caching) glossdata */
+
     function noteGlossdata(link){
+        if (link.search("https://glossdata.sbooks.net/")!==0) return;
         var key="cache("+link+")";
         if (fdjtState.getLocal(key)) return;
         else fdjtState.setLocal(key,"fetching");
         var uri="https://glossdata.sbooks.net/U/"+
             link.slice("https://glossdata.sbooks.net/".length);
         var req=new XMLHttpRequest();
+        if (Trace.glossdata)
+            fdjtLog("Fetching glossdata %s to cache locally",link);
         req.onreadystatechange=function () {
-            if ((req.readyState === 4) && (req.status === 200)) {
-                fdjtState.setLocal(key,req.responseText);}
-            else if (req.readyState === 4) {
-                fdjtState.dropLocal(key);}
+            if (req.readyState === 4) {
+                if (Trace.glossdata)
+                    fdjtLog("Glossdata from %s status %d",req.status);
+                var use_data=((req.status===200)?(req.responseText):(link));
+                var waiting=mB.srcloading[link];
+                if (waiting) {
+                    var i=0, lim=waiting.length;
+                    if (Trace.glossdata)
+                        fdjtLog("Setting glossdata src for %d element(s)",lim);
+                    while (i<lim) waiting[i++].src=use_data;}
+                if (req.status === 200) 
+                    saveGlossData(link,req.responseText);
+                else fdjtState.dropLocal(key);}
             else {}};
         req.open("GET",uri);
         req.withCredentials=true;
         req.send(null);}
+
+    var urlCacheDB=false, urldbinit_timeout=false;
+    var tmpurlcache=metaBook.tmpurlcache;
+
+    if (window.indexedDB) {
+        var req=window.indexedDB.open("urlcache",1);
+        urldbinit_timeout=setTimeout(urldbinit_timeout,15000);
+        req.onerror=function(event){
+            fdjtLog("Error initializing indexedDB URL cache: %o",
+                    event.errorCode);
+            if (urldbinit_timeout) clearTimeout(urldbinit_timeout);};
+        req.onsuccess=function(event) {
+            var db=event.target.result;
+            if (urldbinit_timeout) clearTimeout(urldbinit_timeout);
+            fdjtLog("Using existing indexedDB url cache");
+            metaBook.urlCacheDB=urlCacheDB=db;};
+        req.onupgradeneeded=function(event) {
+            var db=event.target.result;
+            if (urldbinit_timeout) clearTimeout(urldbinit_timeout);
+            db.onerror=function(event){
+                fdjtLog("Unexpected error setting up URL data cache: %d",
+                        event.target.errorCode);
+                event=false;};
+            db.onsuccess=function(event){
+                var db=event.target.result;
+                fdjtLog("Initialized indexedDB url cache");
+                metaBook.urlCacheDB=urlCacheDB=db;};
+            db.createObjectStore("urlcache",{keyPath: "url"});};}
+
+    function saveGlossData(url,datauri){
+        var key="cache("+url+")";
+        if (urlCacheDB) {
+            var txn=urlCacheDB.transaction(["urlcache"],"readwrite");
+            var storage=txn.objectStore("urlcache");
+            tmpurlcache[url]=datauri;
+            var req=storage.put({url: url,datauri: datauri});
+            req.onerror=function(event){
+                fdjtLog("Error saving %s in indexedDB: %o",
+                        url,event.target.errorCode);};
+            req.onsuccess=function(event){
+                event=false; // ignored
+                fdjtState.setLocal(key,"cached");
+                if (Trace.glossdata)
+                    fdjtLog("Saved glossdata for %s in IndexedDB",url);
+                tmpurlcache[url]=false;
+                glossSaved(url);};}
+        else {
+            fdjtState.setLocal(key,datauri);
+            glossSaved(url);}}
+
+    function glossSaved(url){
+        fdjtState.pushLocal("glossdata("+mB.docuri+")",url);
+        fdjtState.pushLocal("glossdata()",url);}
+
+    function clearGlossData(url){
+        var urls=((url)?(getLocal("glossdata("+url+")",true)):
+                  (getLocal("glossdata()",true)));
+        if (urls) {
+            var i=0, lim=urls.length; while (i<lim) {
+                var gdurl=urls[i++]; dropLocal("cached("+gdurl+")");
+                if (urlCacheDB) clearGlossDataFor(gdurl);}}}
+
+    function clearGlossDataFor(url){
+        var txn=urlCacheDB.transaction(["urlcache"],"readwrite");
+        var storage=txn.objectStore("urlcache");
+        var req=storage['delete'](url);
+        req.onerror=function(event){
+            fdjtLog("Error clearing gloss data for %s: %s",
+                    url,event.target.errorCode);}; 
+        req.onsuccess=function(){
+            if (Trace.glossdata>1)
+                fdjtLog("Cleared gloss data for %s",url);};}
 
     function Query(tags,base_query){
         if (!(this instanceof Query))
@@ -26030,7 +26164,8 @@ metaBook.DOMScan=(function(){
             if (!(tag.weak)) {
                 addClass(elt,"cue");
                 addTag2Cloud(tag,gloss_cloud);}},
-                         searchtags,tagindex_progress,tagindex_done,
+                         searchtags,tagindex_progress,
+                         tagindex_done,false,
                          200,20);}
     
     function tagindex_done(searchtags){
@@ -26052,7 +26187,7 @@ metaBook.DOMScan=(function(){
         fdjtTime.slowmap(function(string){
             searchlist.appendChild(knodeToOption(string));},
                          metaBook.textindex.allterms,
-                         false,false,100,20);
+                         false,false,false,100,20);
         metaBook.sortCloud(empty_cloud);
         metaBook.sortCloud(gloss_cloud);
         metaBook.sizeCloud(empty_cloud,metaBook.tagfreqs,[]);
@@ -26166,6 +26301,7 @@ metaBook.DOMScan=(function(){
                 metaBook.tagminweight=minweight;
                 if (whendone) return whendone();
                 else return state;},
+            false,
             200,10);}
     metaBook.useIndexData=useIndexData;
     function indexProgress(state,i,lim){
@@ -26275,6 +26411,7 @@ metaBook.DOMScan=(function(){
                     fdjtLog("Finished indexing tag attributes for %d nodes",
                             tohandle.length);
                 if (whendone) whendone();},
+            false,
             200,5);}
     metaBook.applyTagAttributes=applyTagAttributes;
     
@@ -26596,12 +26733,13 @@ metaBook.DOMScan=(function(){
             catch (ex) {
                 try {
                     fdjtLog.warn(
-                        "Sync request %s returned status %d %j, pausing",
-                        uri,req.status,JSON.parse(req.responseText));}
+                        "Sync request %s returned status %d %j, pausing for %ds",
+                        uri,req.status,JSON.parse(req.responseText),
+                        metaBook.sync_pause/1000);}
                 catch (err) {
                     fdjtLog.warn(
-                        "Sync request %s returned status %d, pausing",
-                        uri,req.status);}
+                        "Sync request %s returned status %d, pausing for %ds",
+                        uri,req.status,metaBook.sync_pause/1000);}
                 metaBook.locsync=false;
                 setTimeout(function(){metaBook.locsync=true;},
                            metaBook.sync_pause);}}
@@ -26610,10 +26748,12 @@ metaBook.DOMScan=(function(){
 
     function syncTimeout(evt){
         evt=evt||window.event;
-        fdjtLog.warn("Sync request timed out, pausing");
+        fdjtLog.warn("Sync request timed out, pausing for %ds",
+                     metaBook.sync_pause/1000);
         metaBook.locsync=false;
         setTimeout(function(){
-            metaBook.locsync=true;},metaBook.sync_pause);}
+            metaBook.locsync=true;},
+                   metaBook.sync_pause);}
 
     var prompted=false;
 
@@ -27428,7 +27568,8 @@ metaBook.DOMScan=(function(){
                     saveItems(qids,name);}
                 else fdjtTime.slowmap(function(item){gotItem(item,qids);},
                                       info,false,
-                                      function(){saveItems(qids,name);});}
+                                      function(){saveItems(qids,name);},
+                                     false);}
             else {
                 var ref=metaBook.sourcedb.Import(
                     info,false,
@@ -29509,10 +29650,12 @@ metaBook.setMode=
                     var spellings=info.knodeterms;
                     i=0; lim=terms.length;
                     if (lim===0)
-                        addClass(metaBook.getDups(target),"metabookhighlightpassage");
+                        addClass(metaBook.getDups(target),
+                                 "metabookhighlightpassage");
                     else while (i<lim) {
                         var term=terms[i++];
-                        var h=metaBook.highlightTerm(term,target,info,spellings);
+                        var h=metaBook.highlightTerm(
+                            term,target,info,spellings);
                         highlights=highlights.concat(h);}}}
             delete metaBook.skimpoints;
             delete metaBook.skimoff;
@@ -30263,9 +30406,11 @@ metaBook.Slice=(function () {
     var fdjtString=fdjt.String;
     var fdjtTime=fdjt.Time;
     var fdjtDOM=fdjt.DOM;
+    var fdjtLog=fdjt.Log;
     var fdjtUI=fdjt.UI;
-    var mbID=metaBook.ID;
     var RefDB=fdjt.RefDB, Ref=RefDB.Ref;
+
+    var mB=metaBook, mbID=mB.ID, Trace=mB.Trace;
 
     var addClass=fdjtDOM.addClass;
     var dropClass=fdjtDOM.dropClass;
@@ -30275,6 +30420,29 @@ metaBook.Slice=(function () {
 
     var mbicon=metaBook.icon;
     var addListener=fdjtDOM.addListener;
+
+    var getParent=fdjtDOM.getParent;
+    var hasParent=fdjtDOM.hasParent;
+    var getChild=fdjtDOM.getChild;
+
+    var cancel=fdjtUI.cancel;
+    
+    function getTargetDup(scan,target){
+        var targetid=target.id;
+        while (scan) {
+            if (hasClass(scan,"codexpage")) return scan;
+            else if ((scan.getAttribute)&&
+                     ((scan.id===targetid)||
+                      (scan.getAttribute("data-baseid")===targetid))) 
+                return scan;
+            else scan=scan.parentNode;}
+        return target;}
+
+    function generic_cancel(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        if (fdjtUI.isClickable(target)) return;
+        else cancel(evt);}
 
     function renderCard(info,query,idprefix,standalone){
         var target_id=(info.frag)||(info.id);
@@ -30975,6 +31143,172 @@ metaBook.Slice=(function () {
             else cards.push(info);}
         if (this.live) this.update();
         else this.changed=true;};
+
+    /* Slice handlers */
+
+    function getCard(target){
+        return ((hasClass(target,"metabookcard"))?(target):
+                (getParent(target,".metabookcard")))||
+            getChild(target,".metabookcard");}
+
+    function slice_tapped(evt){
+        var target=fdjtUI.T(evt);
+        if (Trace.gestures)
+            fdjtLog("slice_tapped %o: %o",evt,target);
+        if (metaBook.previewing) {
+            // Because we're previewing, this slice is invisible, so
+            //  the user really meant to tap on the body underneath,
+            //  so we stop previewing and jump there We might try to
+            //  figure out exactly which element was tapped somehow
+            metaBook.stopPreview("slice_tapped",true);
+            fdjtUI.cancel(evt);
+            return;}
+        if ((getParent(target,".ellipsis"))&&
+            ((getParent(target,".elision"))||
+             (getParent(target,".delision")))){
+            fdjtUI.Ellipsis.toggle(target);
+            fdjtUI.cancel(evt);
+            return;}
+        if (getParent(target,".tochead")) {
+            var anchor=getParent(target,".tocref");
+            var href=(anchor)&&(anchor.getAttribute("data-tocref"));
+            metaBook.GoTOC(href);
+            fdjtUI.cancel(evt);
+            return;}
+        var link=getParent(target,".mbmedia");
+        if (link) {
+            var src=link.getAttribute("data-src"), cancel=false;
+            var type=link.getAttribute("data-type");
+            if (hasClass(link,"imagelink")) {
+                metaBook.showMedia(src,type); cancel=true;}
+            else if ((hasClass(link,"audiolink"))||
+                     (hasClass(link,"musiclink"))) {
+                metaBook.showMedia(src,type); cancel=true;}
+            else {}
+            if (cancel) {
+                fdjtUI.cancel(evt);
+                return;}}
+        var card=getCard(target);
+        var passage=mbID(card.getAttribute("data-passage"));
+        var glossid=card.getAttribute("data-gloss");
+        var gloss=((glossid)&&(metaBook.glossdb.ref(glossid)));
+        if (getParent(target,".glossbody")) {
+            var detail=((gloss)&&(gloss.detail));
+            if (!(detail)) return;
+            else if (detail[0]==='<')
+                fdjt.ID("METABOOKGLOSSDETAIL").innerHTML=gloss.detail;
+            else if (detail.search(/^{(md|markdown)}/)===0) {
+                var close=detail.indexOf('}');
+                fdjt.ID("METABOOKGLOSSDETAIL").innerHTML=
+                    metaBook.md2HTML(detail.slice(close+1));}
+            else fdjt.ID("METABOOKGLOSSDETAIL").innerHTML=
+                metaBook.md2HTML(detail);
+            metaBook.setMode("glossdetail");
+            return fdjtUI.cancel(evt);}
+        else if ((!(gloss))&&(passage)) {
+            metaBook.Skim(passage,card,0);
+            return fdjtUI.cancel(evt);}
+        else if ((gloss)&&(getParent(target,".tool"))) {
+            var form=metaBook.setGlossTarget(gloss);           
+            if (!(form)) return;
+            metaBook.setMode("addgloss");
+            return fdjtUI.cancel(evt);}
+        else if (gloss) {
+            metaBook.Skim(passage,card,0);
+            return fdjtUI.cancel(evt);}
+        else return;}
+    function slice_held(evt){
+        evt=evt||window.event;
+        var slice_target=fdjtUI.T(evt), card=getCard(slice_target);
+        if (Trace.gestures)
+            fdjtLog("slice_held %o: %o, skimming=%o",
+                    evt,card,metaBook.skimming);
+        if (!(card)) return;
+        // Put a clone of the card in the skimmer
+        var clone=card.cloneNode(true);
+        clone.id="METABOOKSKIM"; fdjtDOM.replace("METABOOKSKIM",clone);
+        // If we're currently previewing something, clear it
+        if (metaBook.previewTarget) {
+            var drop=metaBook.getDups(metaBook.previewTarget);
+            dropClass(drop,"metabookpreviewtarget");
+            metaBook.clearHighlights(drop);
+            metaBook.previewTarget=false;}
+
+        // Get the attributes of this card
+        var passageid=card.getAttribute("data-passage");
+        var glossid=card.getAttribute("data-gloss");
+        var gloss=((glossid)&&metaBook.glossdb.ref(glossid));
+        var passage=mbID(passageid), show_target=false;
+        var dups=metaBook.getDups(passageid);
+        // Set up for preview
+        metaBook.previewTarget=passage; addClass(dups,"metabookpreviewtarget");
+        if ((gloss)&&(gloss.excerpt)) {
+            // Highlight the gloss excerpt
+            var range=metaBook.findExcerpt(dups,gloss.excerpt,gloss.exoff);
+            if (range) {
+                var starts=range.startContainer;
+                if (!(getParent(starts,passage)))
+                    // This is the case where the glosses excerpt
+                    //  starts in a 'dup' generated by page layout
+                    show_target=getTargetDup(starts,passage);
+                fdjtUI.Highlight(range,"metabookhighlightexcerpt");}}
+
+        if (getParent(card,".sbookresults")) {
+            // It's a search result, so highlight any matching terms
+            var terms=metaBook.query.tags;
+            var info=metaBook.docinfo[passageid];
+            // knodeterms match tags to their originating strings
+            var spellings=info.knodeterms;
+            var i=0; var lim=terms.length; while (i<lim) {
+                var term=terms[i++];
+                var highlights=metaBook.highlightTerm(
+                    term,passage,info,spellings);
+                if (!(show_target))
+                    if ((highlights)&&(highlights.length)&&
+                        (!(getParent(highlights[0],passage))))
+                        show_target=getTargetDup(highlights[0],passage);}}
+        metaBook.startPreview(show_target||passage,"slice_held");
+        return fdjtUI.cancel(evt);}
+    function slice_released(evt){
+        var card=getCard(fdjtUI.T(evt||window.event));
+        if (Trace.gestures) {
+            fdjtLog("slice_released %o: %o, skimming=%o",evt,card);}
+        metaBook.stopPreview("slice_released");}
+    function slice_slipped(evt){
+        evt=evt||window.event;
+        var rel=evt.relatedTarget||fdjtUI.T(evt);
+        if (!(hasParent(rel,".metabookslice"))) {
+            metaBook.slipTimeout(function(){
+                if (Trace.gestures)
+                    fdjtLog("slice_slipped/timeout %o",evt);
+                metaBook.stopPreview("slice_slipped");});}}
+    function slice_touchtoo(evt){
+        evt=evt||window.event;
+        metaBook.previewTimeout(false);
+        if (!(metaBook.previewing)) return;
+        else if (Trace.gestures) {
+            fdjtLog("slice_touchtoo %o noabout",evt);
+            metaBook.stopPreview("toc_touchtoo",true);}
+        else {
+            metaBook.stopPreview("toc_touchtoo",true);}
+        fdjtUI.cancel(evt);}
+
+    metaBook.UI.getCard=getCard;
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.mouse,
+        {summary: {tap: slice_tapped, hold: slice_held,
+                   release: slice_released, click: generic_cancel,
+                   slip: slice_slipped}});
+
+   fdjt.DOM.defListeners(
+        metaBook.UI.handlers.touch,
+        {summary: {tap: slice_tapped,
+                   hold: slice_held,
+                   release: slice_released,
+                   touchtoo: slice_touchtoo,
+                   slip: slice_slipped}});
+
 
     return MetaBookSlice;
 
@@ -32540,6 +32874,7 @@ metaBook.Slice=(function () {
     var addClass=fdjtDOM.addClass;
     var hasClass=fdjtDOM.hasClass;
     var dropClass=fdjtDOM.dropClass;
+    var toggleClass=fdjtDOM.toggleClass;
     var swapClass=fdjtDOM.swapClass;
     var getParent=fdjtDOM.getParent;
     var hasParent=fdjtDOM.hasParent;
@@ -32548,6 +32883,10 @@ metaBook.Slice=(function () {
     var getInput=fdjtDOM.getInput;
     var getInputs=fdjtDOM.getInputs;
     var getInputFor=fdjtDOM.getInputFor;
+    var getInputsFor=fdjtDOM.getInputsFor;
+    var getInputValues=fdjtDOM.getInputValues;
+
+    var cancel=fdjtUI.cancel;
 
     var setCheckSpan=fdjtUI.CheckSpan.set;
 
@@ -32560,6 +32899,9 @@ metaBook.Slice=(function () {
     var getGlossTags=metaBook.getGlossTags;
 
     var uri_prefix=/(http:)|(https:)|(ftp:)|(urn:)/;
+    
+    var saving_dialog=false;
+    var selectors=[];
 
     // The gloss mode is stored in two places:
     //  * the class of the gloss FORM element
@@ -33237,7 +33579,7 @@ metaBook.Slice=(function () {
         if ((Trace.glossing)||(Trace.gestures))
             fdjtLog("glossinput_onfocus %o text=%o pos=%o taginfo=%o",
                     evt,text,pos,taginfo);
-        metaBook.UI.glossform_focus(evt);
+        glossform_focus(evt);
         if (!(taginfo)) return;
         if (glossinput_timer) clearTimeout(glossinput_timer);
         glossinput_timer=setTimeout(function(){
@@ -33799,7 +34141,9 @@ metaBook.Slice=(function () {
         if (evt) fdjtUI.cancel(evt);
         dropClass(form.parentNode,"submitting");
         /* Turn off the target lock */
-        setGlossTarget(false); metaBook.setTarget(false); metaBook.setMode(false);}
+        setGlossTarget(false);
+        metaBook.setTarget(false);
+        metaBook.setMode(false);}
 
     // Saves queued glosses
     function writeQueuedGlosses(){
@@ -33837,200 +34181,228 @@ metaBook.Slice=(function () {
                 catch (ex) {metaBook.setConnected(false);}}}}
     metaBook.writeQueuedGlosses=writeQueuedGlosses;
     
-})();
+    /* Glossform interaction */
 
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-*/
-/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
-
-/* ###################### metabook/interaction.js ###################### */
-
-/* Copyright (C) 2009-2014 beingmeta, inc.
-
-   This file implements most of the interaction handling for the
-   e-reader web application.
-
-   This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
-
-   For more information on sbooks, visit www.sbooks.net
-   For more information on knodules, visit www.knodules.net
-   For more information about beingmeta, visit www.beingmeta.com
-
-   This library uses the FDJT (www.fdjt.org) toolkit.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   Use and redistribution (especially embedding in other
-   CC licensed content) is permitted under the terms of the
-   Creative Commons "Attribution-NonCommercial" license:
-
-   http://creativecommons.org/licenses/by-nc/3.0/ 
-
-   Other uses may be allowed based on prior agreement with
-   beingmeta, inc.  Inquiries can be addressed to:
-
-   licensing@beingmeta.com
-
-   Enjoy!
-
-*/
-/* jshint browser: true */
-/* global metaBook: false */
-
-/* Initialize these here, even though they should always be
-   initialized before hand.  This will cause various code checkers to
-   not generate unbound variable warnings when called on individual
-   files. */
-// var fdjt=((typeof fdjt !== "undefined")?(fdjt):({}));
-// var metaBook=((typeof metaBook !== "undefined")?(metaBook):({}));
-// var Knodule=((typeof Knodule !== "undefined")?(Knodule):({}));
-// var iScroll=((typeof iScroll !== "undefined")?(iScroll):({}));
-
-/* There are four basic display modes:
-   reading (minimal decoration, with 'minimal' configurable)
-   skimming (card at top, buttons on upper edges)
-   addgloss (addgloss form at top, text highlighted)
-   tool (lots of tools unfaded)
-
-   Tap on content:
-   if not hudup and no mode, raise the HUD;
-   if not hudup and mode, clear the mode
-   if hudup, drop the HUD
-   Hold on content:
-   if adding gloss to target, raise the hud
-   otherwise, start adding gloss to target
-*/
-
-/* New content interaction rules, based on assuming taphold for content */
-/*
-  tap: if previewing, stop and jump to the previewed location
-  tap: if over anchor, detail, aside, etc, and fdjtselecting, treat it like a click below,
-  tap: if over fdjtselecting, go to addgloss mode with the hud up, and pass event
-  on to the fdjtselecting region
-  tap: if on anchor, detail, aside, etc, either treat it especially (and set clicked to
-  the current time) or ignore it (and let click handle it)
-  tap: otherwise, go forward or backward based on the x position
-
-  hold: if previewing, stop and jump to the previewed location
-  hold: if over fdjtselecting, switch to addgloss with HUD down and pass it on.
-  hold: if not over fdjtselecting:
-  if not over a passage, toggle the HUD
-  if over a passage, and no current glosstarget,
-  start selecting, fake a press, create a gloss;
-  if over a passage, and current glosstarget is a reply, retarget the reply;
-  if over a passage, and current glosstarget hasn't been modified or save,
-  retarget the gloss
-*/
-
-(function(){
-    "use strict";
-
-    var mB=metaBook;
-    var Trace=mB.Trace;
-    var fdjtString=fdjt.String;
-    var fdjtState=fdjt.State;
-    var fdjtTime=fdjt.Time;
-    var fdjtLog=fdjt.Log;
-    var fdjtDOM=fdjt.DOM;
-    var fdjtUI=fdjt.UI;
-    var RefDB=fdjt.RefDB;
-    var fdjtID=fdjt.ID;
-    var mbID=metaBook.ID;
-
-    // Imports (kind of )
-    var addClass=fdjtDOM.addClass;
-    var hasClass=fdjtDOM.hasClass;
-    var dropClass=fdjtDOM.dropClass;
-    var toggleClass=fdjtDOM.toggleClass;
-    var getTarget=metaBook.getTarget;
-    var getParent=fdjtDOM.getParent;
-    var hasParent=fdjtDOM.hasParent;
-    var isClickable=fdjtUI.isClickable;
-    var getChild=fdjtDOM.getChild;
-    var getChildren=fdjtDOM.getChildren;
-    var getInput=fdjtDOM.getInput;
-    var getInputsFor=fdjtDOM.getInputsFor;
-    var getInputValues=fdjtDOM.getInputValues;
-    var Selector=fdjtDOM.Selector;
-
-    var submitEvent=fdjtUI.submitEvent;
-
-    var reticle=fdjtUI.Reticle;
-
-    /* For tracking gestures */
-    var preview_timer=false;
-
-    metaBook.uiclasses=/\b(metabookui|glossmark)\b/gi;
-
-    metaBook.addConfig("controlc",function(key,val){metaBook.controlc=val;});
-
-    /* Setup for gesture handling */
-
-    function addHandlers(node,type){
-        var mode=metaBook.ui;
-        fdjtDOM.addListeners(node,metaBook.UI.handlers[mode][type]);}
-    metaBook.UI.addHandlers=addHandlers;
-
-    function externClickable(evt){
+    /**** Clicking on outlets *****/
+    
+    function glossform_outlets_tapped(evt){
+        evt=evt||window.event;
         var target=fdjtUI.T(evt);
-        var anchor=getParent(target,"A");
-        if ((anchor)&&(anchor.href)) {
-            if (anchor.href[0]==="#") return false;
-            else if (anchor.getAttribute("href")[0]==="#")
-                return false;
-            else return true;}
-        else return isClickable(evt);}
+        if (getParent(target,".checkspan"))
+            return fdjt.UI.CheckSpan.onclick(evt);
+        else if (getParent(target,".sharing"))
+            toggleClass(getParent(target,".sharing"),"expanded");
+        else {}}
+    metaBook.UI.glossform_outlets_tapped=glossform_outlets_tapped;
 
-    function setupGestures(domnode){
-        var mode=metaBook.ui;
-        if (!(mode)) metaBook.ui=mode="mouse";
-        if ((!(domnode))&&((Trace.startup>1)||(Trace.gestures)))
-            fdjtLog("Setting up basic handlers for %s UI",mode);
-        if ((domnode)&&(Trace.gestures))
-            fdjtLog("Setting up %s UI handlers for %o",mode,domnode);
-        if (!(domnode)) {
-            addHandlers(false,'window');
-            addHandlers(document,'document');
-            addHandlers(document.body,'body');
-            addHandlers(fdjtID("METABOOKBODY"),'content');
-            metaBook.TapHold.body=fdjtUI.TapHold(
-                fdjt.ID("METABOOKBODY"),
-                {override: true,noslip: true,id: "METABOOKBODY",
-                 maxtouches: 2,taptapthresh: 350,
-                 untouchable: externClickable,
-                 movethresh: 10});
-            addHandlers(metaBook.HUD,'hud');}
-        if (mode) {
-            var handlers=metaBook.UI.handlers[mode];
-            var keys=[], seen=[];
-            for (var key in handlers) {
-                if ((handlers.hasOwnProperty(key))&&
-                    ((key.indexOf('.')>=0)||(key.indexOf('#')>=0)))
-                    keys.push(key);}
-            // Appropximate sort for selector priority
-            keys=keys.sort(function(kx,ky){return ky.length-kx.length;});
-            var i=0, lim=keys.length;
-            while (i<lim) {
-                key=keys[i++];
-                var nodes=fdjtDOM.$(key,domnode);
-                var h=handlers[key], sel=new Selector(key);
-                if ((domnode)&&(sel.match(domnode)))
-                    fdjtDOM.addListeners(domnode,h);
-                var j=0, jlim=nodes.length;
-                while (j<jlim) {
-                    var node=nodes[j++];
-                    if (seen.indexOf(node)<0) { 
-                        seen.push(node);
-                        fdjtDOM.addListeners(node,h);}}}}
-        if (Trace.startup>2) fdjtLog("Done with handler setup");}
-    metaBook.setupGestures=setupGestures;
+    function outlet_select(evt){
+        var target=fdjtUI.T(evt);
+        var outletspan=getParent(target,'.outlet')||
+            getParent(target,'.source');
+        if (!(outletspan)) return;
+        var live=fdjtID("METABOOKLIVEGLOSS");
+        var form=((live)&&(getChild(live,"form")));
+        var outlet=metaBook.share_cloud.getValue(outletspan);
+        metaBook.addOutlet2Form(form,outlet);
+        fdjtUI.cancel(evt);}
+
+    /* The addgloss menu */
+
+    var slip_timeout=false;
+
+    function glossmode_tap(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var alt=target.alt;
+        
+        if (!(alt)) return;
+
+        var menu=getParent(target,'.addglossmenu');
+        var form=getParent(target,'form');
+        var div=getParent(form,"div.metabookglossform");
+        
+        if (alt==="downmenu") {
+            addClass(menu,"expanded");
+            dropClass(menu,"held");}
+        else if (alt==="upmenu") {
+            dropClass(menu,"expanded");
+            dropClass(menu,"held");}
+        else if (alt==="glossdelete") 
+            addgloss_delete(menu,form,false,true);
+        else if (alt==="glosscancel") 
+            addgloss_cancel(menu,form,div);
+        else if (alt==="glosspush") {
+            metaBook.submitGloss(form,false);
+            dropClass(menu,"expanded");}
+        else if (alt==="glossupdate") {
+            metaBook.submitGloss(form,false);
+            dropClass(menu,"expanded");}
+        else if (alt==="glossrespond") 
+            addgloss_respond(menu,form);
+        else if (alt==="glosscancel") {
+            addgloss_cancel(menu,form,div);}
+        else if (alt===form.className) {
+            metaBook.setGlossMode(false,form);
+            dropClass(menu,"expanded");}
+        else if (metaBook.glossmodes.exec(alt)) {
+            metaBook.setGlossMode(alt,form);
+            dropClass(menu,"expanded");}
+        else fdjtLog.warn("Bad alt=%s in glossmode_tap",alt);
+        fdjtUI.cancel(evt);
+        return;}
+
+    function glossmode_hold(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var alt=target.alt;
+        
+        if (!(alt)) return;
+
+        if (slip_timeout) {
+            clearTimeout(slip_timeout);
+            slip_timeout=false;}
+
+        var menu=getParent(target,'.addglossmenu');
+        
+        if (hasClass(menu,"expanded")) {
+            addClass(menu,"held");
+            addClass(target,"held");}
+        else {
+            addClass(menu,"expanded");
+            addClass(menu,"held");}}
+
+    function glossmode_release(evt) {
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var menu=getParent(target,'.addglossmenu');
+        var form=getParent(target,'form');
+        var div=getParent(form,"div.metabookglossform");
+        var alt=target.alt;
+        dropClass(target,"held");
+        if (hasClass(target,"menutop")) {
+            metaBook.setGlossMode(false,form);}
+        else if (alt==="glossdelete") 
+            addgloss_delete(menu,form);
+        else if (alt==="glosscancel") 
+            addgloss_cancel(menu,form,div);
+        else if (alt==="glosspush")
+            metaBook.submitGloss(form,false);
+        else if (alt==="glossupdate") {
+            metaBook.submitGloss(form,false);}
+        else if (alt==="glossrespond") 
+            addgloss_respond(menu,form);
+        else if (metaBook.glossmodes.exec(alt))
+            metaBook.setGlossMode(alt,form);
+        else fdjtLog.warn("Bad alt=%s in glossmode_release",alt);
+        dropClass(menu,"expanded");
+        dropClass(menu,"held");}
+
+    function glossmode_slip(evt) {
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var menu=getParent(target,'.addglossmenu');
+        dropClass(target,"held");
+        if (!(slip_timeout)) {
+            slip_timeout=setTimeout(function(){
+                dropClass(menu,"expanded");},
+                                    500);}}
+
+    function addgloss_delete(menu,form,div,noprompt){
+        if (!(form)) form=getParent(menu,"FORM");
+        if (!(div)) div=getParent(form,".metabookglossform");
+        var modified=fdjtDOM.hasClass(div,"modified");
+        // This keeps it from being saved when it loses the focus
+        dropClass(div,"modified");
+        dropClass(menu,"expanded");
+        var uuid=getInputValues(form,"UUID")[0];
+        var gloss=metaBook.glossdb.probe(uuid);
+        if ((!(gloss))||(!(gloss.created))) {
+            delete_gloss(uuid);
+            metaBook.setMode(false);
+            fdjtDOM.remove(div);
+            setGlossTarget(false);
+            metaBook.setTarget(false);
+            return;}
+        if (noprompt) {
+            delete_gloss(uuid);
+            metaBook.setMode(false);
+            fdjtDOM.remove(div);
+            setGlossTarget(false);
+            metaBook.setTarget(false);
+            return;}
+        fdjt.UI.choose([{label: "Delete",
+                         handler: function(){
+                             delete_gloss(uuid);
+                             metaBook.setMode(false);
+                             fdjtDOM.remove(div);
+                             setGlossTarget(false);
+                             metaBook.setTarget(false);},
+                         isdefault: true},
+                        {label: "Cancel"}],
+                       ((modified)?
+                        ("Delete this gloss?  Discard your changes?"):
+                        ("Delete this gloss?")),
+                       fdjtDOM(
+                           "div.smaller",
+                           "(Created ",
+                           fdjtTime.shortString(gloss.created),
+                           ")"));}
+
+    function addgloss_cancel(menu,form,div){
+        if (!(form)) form=getParent(menu,"FORM");
+        if (!(div)) div=getParent(form,".metabookglossform");
+        metaBook.cancelGloss();
+        metaBook.setMode(false);
+        fdjtDOM.remove(div);
+        setGlossTarget(false);
+        metaBook.setTarget(false);
+        return;}
+
+    function addgloss_respond(target){
+        var block=getParent(target,".metabookglossform");
+        if (!(block)) return;
+        var glosselt=getInput(block,'UUID');
+        if (!(glosselt)) return;
+        var qref=glosselt.value;
+        var gloss=metaBook.glossdb.probe(qref);
+        if (!(gloss)) return;
+        var form=setGlossTarget(gloss,metaBook.getGlossForm(gloss,true));
+        if (!(form)) return;
+        metaBook.setMode("addgloss");}
+    
+    /* Changing gloss networks */
+    
+    function changeGlossNetwork(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var alternate=fdjtID(
+            (fdjtDOM.hasParent(target,".metabookglossform"))?
+                ("METABOOKNETWORKBUTTONS"):(("METABOOKLIVEGLOSS")));
+        var doppels=getInputsFor(alternate,'NETWORK',target.value);
+        fdjtUI.CheckSpan.set(doppels,target.checked);}
+    metaBook.UI.changeGlossNetwork=changeGlossNetwork;
+
+    function changeGlossPosting(evt){
+        var target=fdjtUI.T(evt=(evt||window.event));
+        var glossdiv=getParent(target,".metabookglossform");
+        if (target.checked) fdjtDOM.addClass(glossdiv,"posted");
+        else fdjtDOM.dropClass(glossdiv,"posted");}
+    metaBook.UI.changeGlossPosting=changeGlossPosting;
+
+    function changeGlossPrivacy(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt=(evt||window.event));
+        var glossdiv=getParent(target,".metabookglossform");
+        var postgloss=getChild(glossdiv,".postgloss");
+        var postinput=(postgloss)&&(getInput(postgloss,"POSTGLOSS"));
+        if (postgloss) {
+            if (target.checked) {
+                if (postinput) postinput.disabled=true;}
+            else {
+                if (postinput) postinput.disabled=false;}}
+        if (target.checked) fdjtDOM.addClass(glossdiv,"private");
+        else fdjtDOM.dropClass(glossdiv,"private");}
+    metaBook.UI.changeGlossPrivacy=changeGlossPrivacy;
 
     /* New simpler UI */
 
@@ -34051,6 +34423,7 @@ metaBook.Slice=(function () {
         metaBook.setHUD(true);
         metaBook.freezelayout=true;
         gloss_focus=form;}
+    metaBook.UI.glossFormFocus=glossform_focus;
     function glossform_blur(evt){
         evt=evt||window.event;
         var target=fdjtUI.T(evt);
@@ -34102,1153 +34475,10 @@ metaBook.Slice=(function () {
             metaBook.setMode(true);}
         else if (passage) {
             fdjtUI.cancel(evt);
-            var form=metaBook.setGlossTarget(passage);
+            var form=setGlossTarget(passage);
             if (!(form)) return;
             metaBook.setMode("addgloss");
-            metaBook.setGlossForm(form);}}
-
-    /* Functionality:
-       on selection:
-       save but keep selection,
-       set target (if available)
-       if hud is down, raise it
-       on tap: (no selection)
-       if hud is down, set target and raise it
-       if no target, raise hud
-       if tapping target, lower HUD
-       if tapping other, set target, drop mode, and raise hud
-       (simpler) on tap:
-       if hudup, drop it
-       otherwise, set target and raise HUD
-    */
-
-    /*
-      Tap on content:
-      if not hudup and no mode, raise the HUD;
-      if not hudup and mode, clear the mode
-      if hudup, drop the HUD
-      Hold on content:
-      if adding gloss to target, raise the hud
-      otherwise, start adding gloss to target
-    */
-
-    /* Holding */
-
-    var held=false;
-
-    function clear_hold(caller){
-        if (held) {
-            clearTimeout(held); held=false;
-            if (Trace.gestures)
-                fdjtLog("clear_hold from %s",(caller||"somewhere"));}}
-
-    /* Generic content interaction handler */
-
-    var saving_dialog=false;
-    var gesture_start=false;
-    var clicked=false;
-
-    function body_tapped(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var sX=evt.screenX, sY=evt.screenY;
-        var cX=evt.clientX, cY=evt.clientY;
-        var now=fdjtTime(), touch=false;
-
-        if (Trace.gestures)
-            fdjtLog("body_tapped %o c=%d,%d now=%o p=%o",
-                    evt,cX,cY,now,metaBook.previewing);
-        
-        // If we're previewing, stop it and go to the page we're
-        //  previewing (which was touched)
-        if (metaBook.previewing) {
-            var jumpto=getTarget(target);
-            metaBook.stopPreview("body_tapped/stop_preview",jumpto||true);
-            fdjtUI.TapHold.clear();
-            fdjt.UI.cancel(evt);
-            return false;}
-
-        if (hasParent(target,".glossmark")) {
-            cancel(evt);
-            return false;}
-
-        if ((metaBook.touch)&&(metaBook.textinput)) {
-            metaBook.clearFocus(metaBook.textinput);
-            cancel(evt);
-            return;}
-
-        if (hasClass(document.body,"mbSHOWHELP")) {
-            dropClass(document.body,"mbSHOWHELP");
-            cancel(evt);
-            return;}
-
-        if (metaBook.glosstarget) {
-            var glossform=metaBook.glossform;
-            if (hasParent(target,metaBook.glosstarget)) {
-                metaBook.setMode("addgloss",false);}
-            else if (saving_dialog) {}
-            else if (glossform) {
-                if (!(hasClass(glossform,"modified")))
-                    metaBook.cancelGloss();
-                else if (hasClass(glossform,"glossadd")) 
-                    saveGlossDialog();
-                else metaBook.submitGloss(glossform);
-                fdjtUI.cancel(evt);
-                return;}}
-
-        if ((metaBook.hudup)||(metaBook.mode)) {
-            metaBook.setMode(false); metaBook.setHUD(false);
-            if (fdjtID("METABOOKOPENGLOSSMARK")) {
-                if (metaBook.target)
-                    metaBook.clearHighlights(metaBook.target);
-                fdjtID("METABOOKOPENGLOSSMARK").id="";}
-            fdjtUI.cancel(evt); gesture_start=false;
-            clicked=fdjtTime();
-            // if (getTarget(target)) metaBook.setTarget(false);
-            return false;}
-
-        // If we're in a glossmark, let its handler apply
-        if (hasParent(target,".glossmark")) {
-            fdjtUI.cancel(evt);
-            return false;}
-
-        // Various kinds of content click handling (anchors, details,
-        // asides, etc)
-        if (handle_body_click(target)) {
-            fdjtUI.cancel(evt);
-            return false;}
-
-        if (fdjtID("METABOOKOPENGLOSSMARK")) {
-            fdjtID("METABOOKOPENGLOSSMARK").id="";
-            if (metaBook.target) metaBook.clearHighlights(metaBook.target);
-            fdjtUI.cancel(evt); gesture_start=false;
-            return;}
-
-        // If we get here, we're doing a page flip
-        if ((evt.changedTouches)&&(evt.changedTouches.length)) {
-            touch=evt.changedTouches[0];
-            sX=touch.screenX; sY=touch.screenY;
-            cX=touch.clientX; cY=touch.clientY;}
-        if (Trace.gestures)
-            fdjtLog("body_tapped/fallthrough (%o) %o, m=%o, @%o,%o, vw=%o",
-                    evt,target,metaBook.mode,cX,cY,fdjtDOM.viewWidth());
-        if ((metaBook.fullheight)&&(!(metaBook.hudup))&&
-            ((cY<50)||(cY>(fdjtDOM.viewHeight()-50)))) 
-            metaBook.setHUD(true);
-        else if (cX<(fdjtDOM.viewWidth()/3))
-            metaBook.Backward(evt);
-        else metaBook.Forward(evt);
-        fdjtUI.cancel(evt); gesture_start=false;
-        return;}
-
-    function saveGlossDialog(){
-        // This prompts for updating the layout
-        var msg=fdjtDOM("div.message","Save gloss?");
-        saving_dialog=true;
-        // When a choice is made, it becomes the default
-        // When a choice is made to not resize, the
-        // choice timeout is reduced.
-        var choices=[
-            {label: "Save",
-             handler: function(){
-                 metaBook.submitGloss();
-                 saving_dialog=false;},
-             isdefault: true},
-            {label: "Discard",
-             handler: function(){
-                 metaBook.cancelGloss();
-                 saving_dialog=false;}}];
-        var spec={choices: choices,
-                  timeout: (metaBook.save_gloss_timeout||
-                            metaBook.choice_timeout||7),
-                  spec: "div.fdjtdialog.fdjtconfirm.savegloss"};
-        saving_dialog=fdjtUI.choose(spec,msg);
-        return saving_dialog;}
-    metaBook.saveGlossDialog=saveGlossDialog;
-
-    function resolve_anchor(ref){
-        var elt=mbID(ref);
-        if (elt) return elt;
-        var elts=document.getElementsByName(ref);
-        if (elts.length===0) return false;
-        else if (elts.length===1) return elts[0];
-        else {
-            var found=0; var i=0, lim=elts.length;
-            var metabook_page=metaBook.page;
-            while (i<lim) {
-                var r=elts[i++];
-                if (hasClass(r,"metabookdupstart")) return r;
-                else if (found) continue;
-                else if (hasParent(r,metabook_page)) found=4;
-                else {}}
-            if (!(found)) return elts[0];
-            else return found;}}
-
-    var MetaBookSlice=metaBook.Slice;
-
-    function handle_body_click(target){
-        // Assume 1s gaps are spurious
-        if ((clicked)&&((fdjtTime()-clicked)<1000)) return true;
-
-        // Handle various click-like operations, overriding to sBook
-        //  navigation where appropriate.  Set *clicked* to the
-        //  current time when you do so, letting the body_click handler
-        //  appropriately ignore its invocation.
-        var anchor=getParent(target,"A"), href, elt=false;
-        // If you tap on a relative anchor, move there using metaBook
-        // rather than the browser default
-        if ((anchor)&&(anchor.href)&&(href=anchor.getAttribute("href"))) {
-            if (Trace.gestures)
-                fdjtLog("ctouch: follow link %s",href);
-            var rel=anchor.rel, classname=anchor.className;
-            if ((href[0]==="#")&&
-                (((rel)&&
-                  (rel.search(/\b((sbooknote)|(footnote)|(endnote)|(note))\b/)>=0))||
-                 ((classname)&&
-                  (classname.search(/\b((sbooknote)|(sbooknoteref))\b/)>=0))||
-                 ((metaBook.sbooknoterefs)&&(metaBook.sbooknoterefs.match(anchor))))) {
-                var note_node=getNoteNode(href.slice(1));
-                var noteid=note_node.id;
-                metaBook.DOM.noteshud.innerHTML="";
-                var shownote=note_node.cloneNode(true);
-                fdjtDOM.stripIDs(shownote);
-                dropClass(shownote,/\bmetabook\S+/g);
-                addClass(shownote,"metabooknotebody");                
-                metaBook.DOM.noteshud.setAttribute("data-note",noteid||(href.slice(1)));
-                fdjtDOM.append(metaBook.DOM.noteshud,shownote);
-                metaBook.setMode("shownote");
-                gesture_start=false;
-                clicked=fdjtTime();
-                return true;}
-            else if ((href[0]==="#")&&(rel)&&
-                     (rel.search(/\b((sidebar)|(breakout)|(tangent))\b/)>=0)) {
-                var aside_target=fdjt.ID(href.slice(1));
-                fdjtDOM.removeChildren(metaBook.DOM.asidehud);
-                fdjtDOM.append(metaBook.DOM.asidehud,aside_target.cloneNode(true));
-                metaBook.setMode("showaside");
-                gesture_start=false;
-                clicked=fdjtTime();
-                return true;}
-            else if ((href[0]==='#')&&(fn=metaBook.xtargets[href.slice(1)])) {
-                var fn=metaBook.xtargets[href.slice(1)];
-                gesture_start=false;
-                clicked=fdjtTime();
-                fn();
-                return true;}
-            else if ((href[0]==='#')&&(elt=resolve_anchor(href.slice(1)))) {
-                // It's an internal jump, so we follow that
-                metaBook.JumpTo(elt);
-                gesture_start=false;
-                clicked=fdjtTime();
-                return true;}
-            else {
-                // We force links to leave the page, hoping people
-                //  won't find it obnoxious.  We could also open up
-                //  a little iframe in some circumstances
-                if (!(anchor.target)) anchor.target="_blank";
-                gesture_start=false;
-                clicked=fdjtTime();
-                return false;}}
-
-        var details=getParent(target,"details,.html5details,.sbookdetails");
-        if (details) {
-            fdjtDOM.removeChildren(metaBook.DOM.notehud);
-            metaBook.DOM.notehud.innerHTML=details.innerHTML;
-            metaBook.setMode("showdetails");
-            clicked=fdjtTime();
-            return true;}
-        
-        var aside=getParent(target,"aside,.html5aside,.sbookaside");
-        if (aside) {
-            fdjtDOM.removeChildren(metaBook.DOM.asidehud);
-            metaBook.DOM.asidehud.innerHTML=aside.innerHTML;
-            metaBook.setMode("showaside");
-            clicked=fdjtTime();
-            return true;}
-
-        var glossref=getParent(target,"[data-glossid]");
-        if (glossref) {
-            var glossid=glossref.getAttribute("data-glossid");
-            var gloss=metaBook.glossdb.ref(glossid);
-            if (!(gloss)) return false;
-            var slicediv=fdjtDOM("div.metabookglosses.metabookslice");
-            var slice=new MetaBookSlice(slicediv,[gloss]);
-            var hudwrapper=fdjtDOM("div.hudpanel#METABOOKPOINTGLOSSES",slicediv);
-            fdjtDOM.replace("METABOOKPOINTGLOSSES",hudwrapper);
-            metaBook.setTarget(target);
-            slice.update();
-            metaBook.setMode("openglossmark");
-            return true;}
-
-        return false;}
-
-    function getNoteNode(ref){
-        var elt=mbID(ref);
-        var body=fdjt.ID("METABOOKBODY"), db=document.body;
-        if (!(elt)) {
-            var elts=document.getElementsByName(ref);
-            if (!(body)) return false;
-            if (elts.length) {
-                var i=0, lim=elts.length; while (i<lim) {
-                    if (hasParent(elt[i],body)) {elt=elt[i]; break;}
-                    else i++;}}}
-        if (!(elt)) return;
-        var scan=elt, style=fdjtDOM.getStyle(elt), block=false;
-        var notespec=metaBook.sbooknotes;
-        while (scan) {
-            if (scan===body) break;
-            else if (scan===db) break;
-            else if ((notespec)&&(notespec.match(scan))) return scan;
-            else if (block) {}
-            else if (style.display==='block') {block=scan; style=false;}
-            else {}
-            scan=scan.parentNode;
-            style=fdjtDOM.getStyle(scan);}
-        if (block) return block; else return elt;
-        return elt;}
-
-    function jumpToNote(evt){
-        evt=evt||window.event;
-        var target=fdjt.UI.T(evt);
-        var anchor=getParent(target,"A[href]");
-        if (!(anchor)) {
-            fdjt.UI.cancel(evt);
-            var noteshud=metaBook.DOM.noteshud;
-            var jumpto=noteshud.getAttribute("data-note");
-            if (jumpto) {
-                noteshud.removeAttribute("data-note");
-                noteshud.innerHTML="";
-                metaBook.setMode(false);
-                metaBook.GoTo(jumpto,"jumpToNote",true,true);}
-            else metaBook.setMode(false);}}
-    
-    var selectors=[];
-    var slip_timer=false;
-    function body_held(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var passage=getTarget(target);
-        if (Trace.gestures) 
-            fdjtLog("body_held %o p=%o p.p=%o bc=%s hc=%s",
-                    evt,passage,((passage)&&(passage.parentNode)),
-                    document.body.className,
-                    metaBook.HUD.className);
-        if (metaBook.previewing) return;
-        else if (hasParent(target,"A")) {
-            var anchor=getParent(target,"A");
-            var href=((anchor)&&(anchor.getAttribute("href")));
-            fdjtUI.cancel(evt);
-            if ((href)&&(href[0]==="#")&&(mbID(href.slice(1)))) {
-                if (Trace.gestures) 
-                    fdjtLog("anchor_preview/body_held %o %o %o",
-                            evt,anchor,href);
-                metaBook.startPreview(href.slice(1),"content/anchor_held");
-                return;}}
-        if (!(passage)) return;
-        if (metaBook.glosstarget===passage) {
-            if (metaBook.mode!=="addgloss")
-                metaBook.setMode("addgloss",false);
-            return;}
-        // If the HUD is up, bring it down, but don't start a gloss
-        if (metaBook.hudup) {
-            fdjtUI.cancel(evt);
-            metaBook.setHUD(false);
-            return;}
-        var selecting=metaBook.UI.selectText(passage);
-        if ((metaBook.TapHold.page)&&(metaBook.TapHold.page.abort))
-            metaBook.TapHold.page.abort();
-        if ((metaBook.TapHold.content)&&(metaBook.TapHold.page.content))
-            metaBook.TapHold.content.abort();
-        metaBook.select_target=passage;
-        selectors.push(selecting);
-        selectors[passage.id]=selecting;
-        fdjtUI.TapHold.clear();
-        startAddGloss(passage,false,evt);
-        // This makes a selection start on the region we just created.
-        if ((Trace.gestures)||(Trace.selecting)) 
-            fdjtLog("body_held/select_wait %o %o %o",
-                    selecting,passage,evt);
-        setTimeout(function(){
-            if ((Trace.gestures)||(Trace.selecting)) 
-                fdjtLog("body_held/select_start %o %o %o",
-                        selecting,passage,evt);
-            selecting.startEvent(evt,250);},
-                   0);}
-    metaBook.getTextSelectors=function getTextSelectors(){return selectors;};
-
-    function body_taptap(evt){
-        var target=fdjtUI.T(evt);
-        var passage=getTarget(target);
-        if (Trace.gestures) 
-            fdjtLog("body_taptap %o p=%o p.p=%o bc=%s hc=%s t=%o gt=%o",
-                    evt,passage,((passage)&&(passage.parentNode)),
-                    document.body.className,metaBook.HUD.className,
-                    target,metaBook.glosstarget);
-        if (hasParent(target,"IMG,AUDIO,VIDEO,OBJECT")) {
-            metaBook.startZoom(getParent(target,"IMG,AUDIO,VIDEO,OBJECT"));
-            fdjt.UI.cancel(evt);
-            return;}
-        if (metaBook.glosstarget) {
-            if (hasParent(target,metaBook.glosstarget)) {
-                metaBook.setMode("addgloss",false);}
-            else if (saving_dialog) {}
-            else {
-                saveGlossDialog();
-                fdjtUI.cancel(evt);
-                return;}}
-        if (!(passage)) return;
-        if (metaBook.glosstarget===passage) {
-            if (metaBook.mode!=="addgloss")
-                metaBook.setMode("addgloss",false);
-            return;}
-        var choices=[
-            {label: "Add Gloss",
-             handler: function(){startGloss(passage);},
-             isdefault: true}];
-        if (window.ClipboardEvent) {
-            choices.push({label: "Copy link",
-                          handler: function(){copyURI(passage);}});
-            choices.push({label: "Copy content",
-                          handler: function(){copyContent(passage);}});}
-        addOptions(passage,choices);
-        if (choices.length===1) {
-            fdjtUI.cancel(evt);
-            startGloss(passage);
-            return;}
-        fdjtUI.cancel(evt);
-        choices.push(
-            {label: "Cancel",
-             handler: function(){
-                 metaBook.cancelGloss();
-                 saving_dialog=false;}});
-        var max=0, i=0, lim=choices.length;
-        while (i<lim) {
-            var ch=choices[i++];
-            var len=ch.label.length;
-            if (len>max) max=len;}
-        var spec={choices: choices,
-                  spec: "div.fdjtdialog",
-                  style: "width: "+(max*0.8)+"em"};
-        fdjtUI.choose(spec);}
-
-    function addOptions(passage,choices){
-        var scan=passage; while (scan) {
-            var link=passage.getAttribute("data-xref");
-            if (link) {
-                var space=link.indexOf(' ');
-                var label=((space>0)?(link.slice(space+1)):(link));
-                var href=((space>0)?(link.slice(0,space)):(link));
-                href=href.replace("{{ID}}",passage.id);
-                var opt={label: label, handler: makeOpener(href)};
-                choices.push(opt);}
-            scan=scan.parentNode;}}
-    
-    function makeOpener(url){
-        return function (){window.open(url);};}
-    function copyURI(passage){
-        var CE=window.ClipboardEvent;
-        var evt = new CE('copy',{ dataType: 'text/plain', 
-                                  data: metaBook.refuri+"#"+passage.id } );
-        document.dispatchEvent(evt);}
-    function copyContent(passage){
-        var CE=window.ClipboardEvent;
-        var evt = new CE('copy',{ dataType: 'text/html', 
-                                  data: passage.innerHTML } );
-        document.dispatchEvent(evt);}
-
-    function startGloss(passage){
-        var selecting=metaBook.UI.selectText(passage);
-        if ((metaBook.TapHold.page)&&(metaBook.TapHold.page.abort))
-            metaBook.TapHold.page.abort();
-        if ((metaBook.TapHold.content)&&(metaBook.TapHold.page.content))
-            metaBook.TapHold.content.abort();
-        metaBook.select_target=passage;
-        selectors.push(selecting);
-        selectors[passage.id]=selecting;
-        fdjtUI.TapHold.clear();
-        startAddGloss(passage,false,false);}
-
-    var body_tapstart=false;
-    function body_touchstart(evt){
-        evt=evt||window.event;
-        if (metaBook.zoomed) return;
-        var target=fdjtUI.T(evt);
-        if (target.id!=="METABOOKBODY") return;
-        body_tapstart=fdjtTime();}
-
-    function body_touchend(evt){
-        evt=evt||window.event;
-        if (metaBook.zoomed) return;
-        var target=fdjtUI.T(evt);
-        if (target.id!=="METABOOKBODY") return;
-        if ((body_tapstart)&&(true) //((fdjtTime()-body_tapstart)<1000)
-           ) {
-            if (metaBook.TapHold.body) metaBook.TapHold.body.abort();
-            fdjtUI.cancel(evt);
-            var x=(evt.clientX)||
-                ((evt.changedTouches)&&
-                 (evt.changedTouches.length)&&
-                 (evt.changedTouches[0].clientX));
-            var w=fdjtDOM.viewWidth();
-            if (x>(w/2)) pageForward(evt);
-            else pageBackward(evt);}}
-    
-    function abortSelect(except){
-        var i=0, lim=selectors.length;
-        while (i<lim) {
-            var sel=selectors[i++];
-            if (sel!==except) sel.clear();}
-        selectors=[];
-        metaBook.select_target=false;}
-
-    function body_released(evt){
-        evt=evt||window.event;
-        if (metaBook.zoomed) return;
-        var target=fdjtUI.T(evt), children=false;
-        if (Trace.gestures) fdjtLog("body_released %o",evt);
-        if (metaBook.previewing) {
-            metaBook.stopPreview("body_released");
-            fdjtUI.cancel(evt);
-            return;}
-        else if (hasParent(target,"A")) {
-            fdjtUI.cancel(evt);
-            return;}
-        var passage=((hasParent(target,".fdjtselecting"))&&
-                     (getTarget(target)));
-        if (!(passage)) {
-            children=getChildren(target,".fdjtselected");
-            if (children.length===0) {abortSelect(); return;}
-            target=children[0]; passage=getTarget(target);}
-        if (Trace.gestures)
-            fdjtLog("body_released %o p=%o gt=%o gf=%o",
-                    evt,passage,metaBook.glosstarget,metaBook.glossform);
-        if (metaBook.glosstarget===passage) {
-            if (metaBook.glossform)
-                metaBook.glossform.id="METABOOKLIVEGLOSS";
-            if (metaBook.mode!=="addgloss") metaBook.setMode("addgloss");}
-        else startAddGloss(passage,((evt.shiftKey)&&("addtag")),evt);}
-
-    function startAddGloss(passage,mode,evt){
-        if (metaBook.glosstarget===passage) {
-            if ((Trace.gestures)||(Trace.glossing))
-                fdjtLog("startAddGloss/resume %o %o form=%o",
-                        evt,passage,metaBook.glossform);
-            if (mode) metaBook.setGlossMode(mode,metaBook.glossform);
-            metaBook.setMode("addgloss",true);
-            if (evt) fdjtUI.cancel(evt);
-            return;}
-        var selecting=selectors[passage.id]; abortSelect(selecting);
-        var form_div=metaBook.setGlossTarget(
-            passage,((metaBook.mode==="addgloss")&&(metaBook.glossform)),selecting);
-        var form=getChild(form_div,"form");
-        if (!(form)) return;
-        else if (evt) fdjtUI.cancel(evt);
-        if ((Trace.gestures)||(Trace.glossing))
-            fdjtLog("startAddGloss (%o) %o f=%o/%o",
-                    evt,passage,form_div,form);
-        metaBook.setGlossForm(form_div);
-        if (mode) form.className=mode;
-        metaBook.setMode("addgloss",false);}
-    metaBook.startAddGloss=startAddGloss;
-
-    function body_swiped(evt){
-        if (metaBook.zoomed) return;
-        var dx=evt.deltaX, dy=evt.deltaY;
-        var vw=fdjtDOM.viewWidth();
-        var adx=((dx<0)?(-dx):(dx)), ady=((dy<0)?(-dy):(dy));
-        var head=metaBook.head;
-        var headinfo=((head)&&(head.id)&&(metaBook.docinfo[head.id]));
-        if (Trace.gestures)
-            fdjtLog("swiped d=%o,%o, ad=%o,%o, s=%o,%o vw=%o, n=%o",
-                    dx,dy,adx,ady,evt.startX,evt.startY,vw,evt.ntouches);
-        if (adx>(ady*2)) {
-            // Horizontal swipe
-            if (dx<-(metaBook.minswipe||10)) {
-                if ((evt.ntouches>1)&&
-                    (hasClass(document.body,"mbSKIMMING")))
-                    metaBook.skimForward(evt);
-                else if (evt.ntouches>1) {
-                    if (!(headinfo)) metaBook.Forward(evt);
-                    else if ((headinfo.sub)&&(headinfo.sub.length)) 
-                        metaBook.GoTo(headinfo.sub[0].frag,"doubleswipe");
-                    else if (headinfo.next)
-                        metaBook.GoTo(headinfo.next.frag,"doubleswipe");
-                    else if (headinfo.head)
-                        metaBook.GoTo(headinfo.head.frag,"doubleswipe");
-                    else metaBook.Forward(evt);}
-                else metaBook.Forward(evt);}
-            else if (dx>(metaBook.minswipe||10)) {
-                if ((evt.ntouches>1)&&
-                    (hasClass(document.body,"mbSKIMMING")))
-                    metaBook.skimBackward(evt);
-                else if (evt.ntouches>1) window.history.back();
-                else metaBook.Backward(evt);}}
-        else if (ady>(adx*2)) {
-            // Vertical swipe
-            if (!(metaBook.hudup)) {
-                if (ady<=(metaBook.minswipe||10)) return; // Ignore really short swipes 
-                else if ((evt.startX<(vw/5))&&(dy<0))
-                    // On the left, up, show help
-                    metaBook.setMode("help");
-                else if ((evt.startX<(vw/5))&&(dy>0))
-                    // On the left, down, show TOC
-                    metaBook.setMode("statictoc");
-                else if ((evt.startX>(vw*0.8))&&(dy>0))
-                    // On the right, down, show SEARCH
-                    metaBook.setMode("search");
-                else if ((evt.startX>(vw*0.8))&&(dy<0))
-                    // On the right, up, show GLOSSES
-                    metaBook.setMode("allglosses");
-                else if (dy>0) {
-                    metaBook.clearStateDialog();
-                    metaBook.showCover();}
-                else metaBook.setHUD(true);}
-            else if (dy<-(metaBook.minswipe||10)) metaBook.setMode("allglosses");
-            else if (dy>(metaBook.minswipe||10)) metaBook.setMode("search");}
-        else {}}
-
-    function initGlossMode(){
-        var form=getChild("METABOOKLIVEGLOSS","form");
-        if (form) {
-            var input=getInput(form,"NOTE");
-            if (input) metaBook.setFocus(input);
-            metaBook.setGlossMode(form.className);}}
-    metaBook.initGlossMode=initGlossMode;
-
-    function body_click(evt){
-        evt=evt||window.event;
-        if (metaBook.zoomed) return;
-        var target=fdjtUI.T(evt);
-        // This avoids double-handling of clicks
-        if ((clicked)&&((fdjtTime()-clicked)<3000))
-            fdjtUI.cancel(evt);
-        else if (handle_body_click(target)) {
-            fdjtUI.cancel(evt);
-            return;}
-        else if (isClickable(target)) return;
-        else fdjtUI.cancel(evt);}
-
-    /* TOC handlers */
-
-    function getAbout(elt){
-        var body=document.body;
-        while (elt) {
-            if (elt===body) return false;
-            else if (elt.nodeType!==1) return false;
-            else if ((elt.name)&&(elt.name.search("SBR")===0))
-                return elt;
-            else if ((elt.getAttribute("name"))&&
-                     (elt.getAttribute("name").search("SBR")===0))
-                return elt;                     
-            else elt=elt.parentNode;}
-        return false;}
-
-    function getTitleSpan(toc,ref){
-        var titles=getChildren(toc,".metabooktitle");
-        var i=0; var lim=titles.length;
-        while (i<lim) {
-            var title=titles[i++];
-            if (title.name===ref) return title;}
-        return false;}
-
-    function toc_tapped(evt){
-        evt=evt||window.event;
-        var tap_target=fdjtUI.T(evt);
-        if (metaBook.previewing) {
-            // Because we're previewing, this slice is invisible, so
-            //  the user really meant to tap on the body underneath,
-            //  so we stop previewing and jump there We might try to
-            //  figure out exactly which element was tapped somehow
-            metaBook.stopPreview("toc_tapped");
-            fdjtUI.cancel(evt);
-            return;}
-        var about=getAbout(tap_target);
-        if (about) {
-            var name=about.name||about.getAttribute("name");
-            var ref=name.slice(3);
-            var info=metaBook.docinfo[ref];
-            var target=info.elt||mbID(ref);
-            if (target.id!==ref) target=mbID(ref);
-            if (Trace.gestures)
-                fdjtLog("toc_tapped %o about=%o ref=%s target=%o",
-                        evt,about,ref,target);
-            metaBook.JumpTo(target);
-            fdjtUI.cancel(evt);}
-        else if (Trace.gestures) fdjtLog("toc_tapped %o noabout", evt);
-        else {}}
-    function toc_held(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt), about=getAbout(target);
-        if (preview_timer) {
-            clearTimeout(preview_timer); preview_timer=false;}
-        if (slip_timer) {
-            clearTimeout(slip_timer); slip_timer=false;}
-        if (about) {
-            var name=about.name||about.getAttribute("name");
-            var ref=name.slice(3);
-            var toc=getParent(about,".metabooktoc");
-            var title=getTitleSpan(toc,name);
-            if (Trace.gestures)
-                fdjtLog("toc_held %o about=%o ref=%s toc=%o title=%s",
-                        evt,about,ref,toc,title);
-            addClass(title,"metabookpreviewtitle");
-            addClass(about.parentNode,"metabookheld");
-            var spanbar=getParent(about,".spanbar")||getChild(toc,".spanbar");
-            addClass(spanbar,"metabookvisible");
-            addClass(toc,"metabookheld");
-            metaBook.startPreview(mbID(ref),"toc_held");
-            return fdjtUI.cancel(evt);}
-        else if (Trace.gestures) fdjtLog("toc_held %o noabout", evt);
-        else {}}
-    function toc_released(evt){
-        evt=evt||window.event;
-        var about=getAbout(fdjtUI.T(evt));
-        if (preview_timer) {
-            clearTimeout(preview_timer); preview_timer=false;}
-        if (about) {
-            var name=about.name||about.getAttribute("name");
-            var ref=name.slice(3);
-            var toc=getParent(about,".metabooktoc");
-            var title=getTitleSpan(toc,name);
-            if (Trace.gestures)
-                fdjtLog("toc_released %o ref=%o about=%o toc=%o title=%s",
-                        evt,ref,about,toc,title);
-            dropClass(title,"metabookpreviewtitle");
-            dropClass(about.parentNode,"metabookheld");
-            var spanbar=getParent(about,".spanbar")||getChild(toc,".spanbar");
-            dropClass(spanbar,"metabookvisible");
-            dropClass(toc,"metabookheld");
-            if (metaBook.previewing)
-                metaBook.stopPreview("toc_released");}
-        else if (Trace.gestures) {
-            fdjtLog("toc_released %o noabout",evt);
-            metaBook.stopPreview("toc_released");}
-        else {
-            metaBook.stopPreview("toc_released");}
-        fdjtUI.cancel(evt);}
-    function toc_touchtoo(evt){
-        evt=evt||window.event;
-        if (preview_timer) {
-            clearTimeout(preview_timer); preview_timer=false;}
-        if (!(metaBook.previewing)) return;
-        else if (Trace.gestures) {
-            fdjtLog("toc_touchtoo %o noabout",evt);
-            metaBook.stopPreview("toc_touchtoo",true);}
-        else {
-            metaBook.stopPreview("toc_touchtoo",true);}
-        fdjtUI.cancel(evt);}
-    function toc_slipped(evt){
-        evt=evt||window.event;
-        if (slip_timer) return;
-        slip_timer=setTimeout(function(){
-            slip_timer=false;
-            if (Trace.gestures)
-                fdjtLog("toc_slipped/timeout %o",evt);
-            metaBook.stopPreview("toc_slipped");},
-                              500);}
-
-    /* Slice handlers */
-
-    function getCard(target){
-        return ((hasClass(target,"metabookcard"))?(target):
-                (getParent(target,".metabookcard")))||
-            getChild(target,".metabookcard");}
-
-    function slice_tapped(evt){
-        var target=fdjtUI.T(evt);
-        if (Trace.gestures)
-            fdjtLog("slice_tapped %o: %o",evt,target);
-        if (metaBook.previewing) {
-            // Because we're previewing, this slice is invisible, so
-            //  the user really meant to tap on the body underneath,
-            //  so we stop previewing and jump there We might try to
-            //  figure out exactly which element was tapped somehow
-            metaBook.stopPreview("slice_tapped",true);
-            fdjtUI.cancel(evt);
-            return;}
-        if ((getParent(target,".ellipsis"))&&
-            ((getParent(target,".elision"))||
-             (getParent(target,".delision")))){
-            fdjtUI.Ellipsis.toggle(target);
-            fdjtUI.cancel(evt);
-            return;}
-        if (getParent(target,".tochead")) {
-            var anchor=getParent(target,".tocref");
-            var href=(anchor)&&(anchor.getAttribute("data-tocref"));
-            metaBook.GoTOC(href);
-            fdjtUI.cancel(evt);
-            return;}
-        var link=getParent(target,".mbmedia");
-        if (link) {
-            var src=link.getAttribute("data-src"), cancel=false;
-            var type=link.getAttribute("data-type");
-            if (hasClass(link,"imagelink")) {
-                showMedia(src,type); cancel=true;}
-            else if ((hasClass(link,"audiolink"))||
-                     (hasClass(link,"musiclink"))) {
-                showMedia(src,type); cancel=true;}
-            else {}
-            if (cancel) {
-                fdjtUI.cancel(evt);
-                return;}}
-        var card=getCard(target);
-        var passage=mbID(card.getAttribute("data-passage"));
-        var glossid=card.getAttribute("data-gloss");
-        var gloss=((glossid)&&(metaBook.glossdb.ref(glossid)));
-        if (getParent(target,".glossbody")) {
-            var detail=((gloss)&&(gloss.detail));
-            if (!(detail)) return;
-            else if (detail[0]==='<')
-                fdjt.ID("METABOOKGLOSSDETAIL").innerHTML=gloss.detail;
-            else if (detail.search(/^{(md|markdown)}/)===0) {
-                var close=detail.indexOf('}');
-                fdjt.ID("METABOOKGLOSSDETAIL").innerHTML=
-                    metaBook.md2HTML(detail.slice(close+1));}
-            else fdjt.ID("METABOOKGLOSSDETAIL").innerHTML=
-                metaBook.md2HTML(detail);
-            metaBook.setMode("glossdetail");
-            return fdjtUI.cancel(evt);}
-        else if ((!(gloss))&&(passage)) {
-            metaBook.Skim(passage,card,0);
-            return fdjtUI.cancel(evt);}
-        else if ((gloss)&&(getParent(target,".tool"))) {
-            var form=metaBook.setGlossTarget(gloss);           
-            if (!(form)) return;
-            metaBook.setMode("addgloss");
-            return fdjtUI.cancel(evt);}
-        else if (gloss) {
-            metaBook.Skim(passage,card,0);
-            return fdjtUI.cancel(evt);}
-        else return;}
-    function slice_held(evt){
-        evt=evt||window.event;
-        var slice_target=fdjtUI.T(evt), card=getCard(slice_target);
-        if (Trace.gestures)
-            fdjtLog("slice_held %o: %o, skimming=%o",
-                    evt,card,metaBook.skimming);
-        if (!(card)) return;
-        // Put a clone of the card in the skimmer
-        var clone=card.cloneNode(true);
-        clone.id="METABOOKSKIM"; fdjtDOM.replace("METABOOKSKIM",clone);
-        // If we're currently previewing something, clear it
-        if (metaBook.previewTarget) {
-            var drop=metaBook.getDups(metaBook.previewTarget);
-            dropClass(drop,"metabookpreviewtarget");
-            metaBook.clearHighlights(drop);
-            metaBook.previewTarget=false;}
-
-        // Get the attributes of this card
-        var passageid=card.getAttribute("data-passage");
-        var glossid=card.getAttribute("data-gloss");
-        var gloss=((glossid)&&metaBook.glossdb.ref(glossid));
-        var passage=mbID(passageid), show_target=false;
-        var dups=metaBook.getDups(passageid);
-        // Set up for preview
-        metaBook.previewTarget=passage; addClass(dups,"metabookpreviewtarget");
-        if ((gloss)&&(gloss.excerpt)) {
-            // Highlight the gloss excerpt
-            var range=metaBook.findExcerpt(dups,gloss.excerpt,gloss.exoff);
-            if (range) {
-                var starts=range.startContainer;
-                if (!(getParent(starts,passage)))
-                    // This is the case where the glosses excerpt
-                    //  starts in a 'dup' generated by page layout
-                    show_target=getTargetDup(starts,passage);
-                fdjtUI.Highlight(range,"metabookhighlightexcerpt");}}
-
-        if (getParent(card,".sbookresults")) {
-            // It's a search result, so highlight any matching terms
-            var terms=metaBook.query.tags;
-            var info=metaBook.docinfo[passageid];
-            // knodeterms match tags to their originating strings
-            var spellings=info.knodeterms;
-            var i=0; var lim=terms.length; while (i<lim) {
-                var term=terms[i++];
-                var highlights=highlightTerm(term,passage,info,spellings);
-                if (!(show_target))
-                    if ((highlights)&&(highlights.length)&&
-                        (!(getParent(highlights[0],passage))))
-                        show_target=getTargetDup(highlights[0],passage);}}
-        metaBook.startPreview(show_target||passage,"slice_held");
-        return fdjtUI.cancel(evt);}
-    function slice_released(evt){
-        var card=getCard(fdjtUI.T(evt||window.event));
-        if (Trace.gestures) {
-            fdjtLog("slice_released %o: %o, skimming=%o",evt,card);}
-        metaBook.stopPreview("slice_released");}
-    function slice_slipped(evt){
-        evt=evt||window.event;
-        var rel=evt.relatedTarget||fdjtUI.T(evt);
-        if (!(hasParent(rel,".metabookslice"))) {
-            if (slip_timer) return;
-            slip_timer=setTimeout(function(){
-                slip_timer=false;
-                if (Trace.gestures)
-                    fdjtLog("slice_slipped/timeout %o",evt);
-                metaBook.stopPreview("slice_slipped");},
-                                  500);}}
-    function slice_touchtoo(evt){
-        evt=evt||window.event;
-        if (preview_timer) {
-            clearTimeout(preview_timer); preview_timer=false;}
-        if (!(metaBook.previewing)) return;
-        else if (Trace.gestures) {
-            fdjtLog("slice_touchtoo %o noabout",evt);
-            metaBook.stopPreview("toc_touchtoo",true);}
-        else {
-            metaBook.stopPreview("toc_touchtoo",true);}
-        fdjtUI.cancel(evt);}
-
-    function getTargetDup(scan,target){
-        var targetid=target.id;
-        while (scan) {
-            if (hasClass(scan,"codexpage")) return scan;
-            else if ((scan.getAttribute)&&
-                     ((scan.id===targetid)||
-                      (scan.getAttribute("data-baseid")===targetid))) 
-                return scan;
-            else scan=scan.parentNode;}
-        return target;}
-
-    /* Highlighting terms in passages (for skimming, etc) */
-
-    function highlightTerm(term,target,info,spellings){
-        var words=[]; var highlights=[];
-        if (typeof term === 'string')
-            words=((spellings)&&(spellings[term]))||[term];
-        else {
-            var knodes=info.knodes;
-            if (!(knodes)) knodes=[];
-            else if (!(knodes instanceof Array)) knodes=[knodes];
-            var i=0; var lim=knodes.length;
-            while (i<lim) {
-                var knode=knodes[i++];
-                if ((knode===term)||(RefDB.contains(knode.allways,term))) {
-                    var qid=knode._qid; var dterm=knode.dterm;
-                    var spelling=
-                        ((spellings)&&
-                         ((spellings[qid])||(spellings[dterm])));
-                    if (!(spelling)) {
-                        var synonyms=knode.EN;
-                        if (!(synonyms)) {}
-                        else if (typeof synonyms === 'string')
-                            words.push(synonyms);
-                        else words=words.concat(synonyms);
-                        var hooks=knode.hooks;
-                        if (!(hooks)) {}
-                        else if (typeof hooks === 'string')
-                            words.push(hooks);
-                        else words=words.concat(hooks);}
-                    else if (typeof spelling === 'string')
-                        words.push(spelling);
-                    else words=words.concat(spelling);}}
-            if (words.length===0) words=false;}
-        if (!(words)) return [];
-        if (typeof words === 'string') words=[words];
-        var j=0; var jlim=words.length;
-        while (j<jlim) {
-            var word=words[j++];
-            var pattern=new fdjtDOM.textRegExp(word,true,true);
-            var dups=metaBook.getDups(target);
-            var ranges=fdjtDOM.findMatches(dups,pattern);
-            if (Trace.highlight)
-                fdjtLog("Trying to highlight %s (using %o) in %o, ranges=%o",
-                        word,pattern,target,ranges);
-            if ((ranges)&&(ranges.length)) {
-                var k=0; while (k<ranges.length) {
-                    var h=fdjtUI.Highlight(
-                        ranges[k++],"metabookhighlightsearch");
-                    highlights=highlights.concat(h);}}}
-        return highlights;}
-    metaBook.highlightTerm=highlightTerm;
-
-    /* Keyboard handlers */
-
-    // We use keydown to handle navigation functions and keypress
-    //  to handle mode changes
-    function onkeydown(evt){
-        evt=evt||window.event||null;
-        var kc=evt.keyCode;
-        var target=fdjtUI.T(evt);
-        // fdjtLog("sbook_onkeydown %o",evt);
-        if (evt.keyCode===27) { /* Escape works anywhere */
-            if (metaBook.previewing) {
-                metaBook.stopPreview("escape_key");
-                fdjtUI.TapHold.clear();}
-            dropClass(document.body,"mbZOOM");
-            dropClass(document.body,"mbMEDIA");
-            if (metaBook.mode==="addgloss") metaBook.cancelGloss();
-            if (metaBook.mode) {
-                metaBook.last_mode=metaBook.mode;
-                metaBook.setMode(false);
-                metaBook.setTarget(false);
-                fdjtID("METABOOKSEARCHINPUT").blur();}
-            else {}
-            return;}
-        else if ((target.tagName==="TEXTAREA")||
-                 (target.tagName==="INPUT")||
-                 (target.tagName==="BUTTON"))
-            return;
-        else if (hasClass(document.body,"mbZOOM"))
-            return;
-        else if ((metaBook.controlc)&&(evt.ctrlKey)&&((kc===99)||(kc===67))) {
-            if (metaBook.previewing) metaBook.stopPreview("onkeydown",true);
-            fdjtUI.TapHold.clear();
-            metaBook.setMode("console");
-            fdjt.UI.cancel(evt);}
-        else if ((evt.altKey)||(evt.ctrlKey)||(evt.metaKey)) return true;
-        else if (metaBook.previewing) {
-            // Any key stops a preview and goes to the target
-            metaBook.stopPreview("onkeydown",true);
-            fdjtUI.TapHold.clear();
-            metaBook.setHUD(false);
-            fdjt.UI.cancel(evt);
-            return false;}
-        else if (hasClass(document.body,"mbCOVER")) {
-            metaBook.clearStateDialog();
-            metaBook.hideCover();
-            fdjt.UI.cancel(evt);
-            return false;}
-        else if (metaBook.glossform) {
-            var input=fdjt.DOM.getInput(metaBook.glossform,"NOTE");
-            glossform_focus(metaBook.glossform);
-            metaBook.setFocus(input); input.focus();
-            var new_evt=document.createEvent("UIEvent");
-            new_evt.initUIEvent("keydown",true,true,window);
-            new_evt.keyCode=kc;
-            input.dispatchEvent(new_evt);
-            fdjtUI.cancel(evt);
-            return;}
-        else if (kc===34) metaBook.pageForward(evt);   /* page down */
-        else if (kc===33) metaBook.pageBackward(evt);  /* page up */
-        else if (kc===40) { /* arrow down */
-            metaBook.setHUD(false);
-            metaBook.pageForward(evt);}
-        else if (kc===38) {  /* arrow up */
-            metaBook.setHUD(false);
-            metaBook.pageBackward(evt);}
-        else if (kc===37) metaBook.skimBackward(evt); /* arrow left */
-        else if (kc===39) metaBook.skimForward(evt); /* arrow right */
-        // Don't interrupt text input for space, etc
-        else if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
-        else if (kc===32) // Space
-            metaBook.Forward(evt);
-        // backspace or delete
-        else if ((kc===8)||(kc===45))
-            metaBook.Backward(evt);
-        // Home goes to the current head.
-        else if (kc===36) metaBook.JumpTo(metaBook.head);
-        else if (metaBook.mode==="addgloss") {
-            var mode=metaBook.getGlossMode();
-            if (mode) return;
-            var formdiv=fdjtID("METABOOKLIVEGLOSS");
-            var form=(formdiv)&&(getChild(formdiv,"FORM"));
-            if (!(form)) return;
-            if (kc===13) { // return/newline
-                submitEvent(form);}
-            else if ((kc===35)||(kc===91)) // # or [
-                metaBook.setGlossMode("addtag",form);
-            else if (kc===32) // Space
-                metaBook.setGlossMode("editnote",form);
-            else if ((kc===47)||(kc===58)) // /or :
-                metaBook.setGlossMode("attach",form);
-            else if ((kc===64)) // @
-                metaBook.setGlossMode("addoutlet",form);
-            else {}}
-        else return;
-        fdjtUI.cancel(evt);}
-
-    // At one point, we had the shift key temporarily raise/lower the HUD.
-    //  We might do it again, so we keep this definition around
-    function onkeyup(evt){
-        evt=evt||window.event||null;
-        if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
-        else if ((evt.ctrlKey)||(evt.altKey)||(evt.metaKey)) return true;
-        else {}}
-    metaBook.UI.handlers.onkeyup=onkeyup;
-
-    /* Keypress handling */
-
-    // We have a big table of command characters which lead to modes
-    var modechars={
-        63: "searching",102: "searching",
-        65: "openheart", 97: "openheart",
-        83: "searching",115: "searching",
-        80: "gotopage",112: "gotopage",
-        76: "gotoloc",108: "gotoloc",
-        70: "searching",
-        100: "device",68: "device",
-        110: "overtoc",78: "overtoc",
-        116: "statictoc",84: "statictoc", 72: "help", 
-        103: "allglosses",71: "allglosses",
-        67: "console", 99: "console"};
-
-    // Handle mode changes
-    function onkeypress(evt){
-        var modearg=false; 
-        evt=evt||window.event||null;
-        var ch=evt.charCode||evt.keyCode;
-        // metaBook.trace("sbook_onkeypress",evt);
-        if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
-        else if ((evt.altKey)||(evt.ctrlKey)||(evt.metaKey)) return true;
-        else if ((ch===72)||(ch===104)) { // 'H' or 'h'
-            metaBook.clearStateDialog();
-            metaBook.hideCover();
-            fdjtDOM.toggleClass(document.body,'metabookhelp');
-            return false;}
-        else if ((ch===67)||(ch===99)) { // 'C' or 'c'
-            metaBook.clearStateDialog();
-            metaBook.toggleCover();
-            return false;}
-        else modearg=modechars[ch];
-        if (modearg==="openheart")
-            modearg=metaBook.last_heartmode||"about";
-        var mode=metaBook.setMode();
-        if (modearg) {
-            if (mode===modearg) {
-                metaBook.setMode(false); mode=false;}
-            else {
-                metaBook.setMode(modearg); mode=modearg;}}
-        else {}
-        if (mode==="searching")
-            metaBook.setFocus(fdjtID("METABOOKSEARCHINPUT"));
-        else metaBook.clearFocus(fdjtID("METABOOKSEARCHINPUT"));
-        fdjtDOM.cancel(evt);}
-    metaBook.UI.handlers.onkeypress=onkeypress;
-
-    function goto_keypress(evt){
-        evt=evt||window.event||null;
-        var target=fdjtUI.T(evt);
-        var ch=evt.charCode||evt.keyCode;
-        var max=false; var min=false;
-        var handled=false;
-        if (target.name==='GOTOLOC') {
-            min=0; max=Math.floor(metaBook.ends_at/128);}
-        else if (target.name==='GOTOPAGE') {
-            min=1; max=metaBook.pagecount;}
-        else if (ch===13) fdjtUI.cancel(evt);
-        if (ch===13) {
-            if (target.name==='GOTOPAGE') {
-                var num=parseInt(target.value,10);
-                if (typeof num === 'number') {
-                    handled=true; metaBook.GoToPage(num);}
-                else {}}
-            else if (target.name==='GOTOREF') {
-                var pagemap=metaBook.layout.pagemap;
-                var page=pagemap[target.value];
-                if (page) {
-                    metaBook.GoToPage(page); handled=true;}}
-            else if (target.name==='GOTOLOC') {
-                var locstring=target.value;
-                var loc=parseFloat(locstring);
-                if ((typeof loc === 'number')&&(loc>=0)&&(loc<=100)) {
-                    loc=Math.floor((loc/100)*metaBook.ends_at)+1;
-                    metaBook.JumpTo(loc); handled=true;}}
-            else {}
-            if (handled) {
-                target.value="";
-                metaBook.setMode(false);}}}
-    metaBook.UI.goto_keypress=goto_keypress;
+            setGlossForm(form);}}
 
     function glossdeleted(response,glossid,frag){
         if (response===glossid) {
@@ -35497,6 +34727,1331 @@ metaBook.Slice=(function () {
         linkinput.value="";
         titleinput.value="";
         metaBook.setGlossMode("editnote");}
+
+    function glossetc_touch(evt){
+        var target=fdjtUI.T(evt);
+        fdjtUI.CheckSpan.onclick(evt);
+        var form=getParent(target,"form");
+        var input=getInput(form,"NOTE");
+        input.focus();}
+
+    function addGlossDragOK(evt){
+        evt=evt||window.event;
+        var types=evt.dataTransfer.types;
+        if (!(types)) return;
+        else if (types.indexOf("text/uri-list")>=0)
+            fdjt.UI.cancel(evt);
+        else if (types.indexOf("text/plain")>=0) {
+            var text=evt.dataTransfer.getData("text/plain");
+            if (text.search(/^\s*https?:\/\//)===0)
+                fdjt.UI.cancel(evt);}
+        else {}}
+    function addGlossDrop(evt){
+        evt=evt||window.event;
+        var types=evt.dataTransfer.types;
+        if (!(types)) return;
+        else if (types.indexOf("text/uri-list")>=0) {
+            var url=evt.dataTransfer.getData("URL");
+            if (!(url)) return;
+            fdjt.UI.cancel(evt);
+            metaBook.setGlossMode("attach");
+            setAttachType("linking");
+            fdjt.ID("METABOOKATTACHURL").value=url;
+            fdjt.ID("METABOOKATTACHTITLE").focus();}
+        else if (types.indexOf("text/plain")>=0) {
+            var text=evt.dataTransfer.getData("text/plain");
+            fdjt.UI.cancel(evt);
+            if (text.search(/^\s*https?:\/\//)===0) {
+                metaBook.setGlossMode("attach");
+                setAttachType("linking");
+                fdjt.ID("METABOOKATTACHURL").value=text;
+                fdjt.ID("METABOOKATTACHTITLE").focus();}
+            else {
+                var livegloss=fdjt.ID("METABOOKLIVEGLOSS");
+                var input=fdjtDOM.getInput(livegloss,"NOTE");
+                metaBook.setGlossMode(false);
+                input.value=text;
+                input.focus();}}
+        else {}}
+
+    function editglossnote(evt){
+        evt=evt||window.event;
+        metaBook.setGlossMode("editnote");
+        fdjtUI.cancel(evt);}
+
+    function startGloss(passage){
+        var selecting=metaBook.UI.selectText(passage);
+        if ((metaBook.TapHold.page)&&(metaBook.TapHold.page.abort))
+            metaBook.TapHold.page.abort();
+        if ((metaBook.TapHold.content)&&(metaBook.TapHold.page.content))
+            metaBook.TapHold.content.abort();
+        metaBook.select_target=passage;
+        selectors.push(selecting);
+        selectors[passage.id]=selecting;
+        fdjtUI.TapHold.clear();
+        startAddGloss(passage,false,false);}
+    metaBook.startGloss=startGloss;
+
+    function startAddGloss(passage,mode,evt){
+        if (metaBook.glosstarget===passage) {
+            if ((Trace.gestures)||(Trace.glossing))
+                fdjtLog("startAddGloss/resume %o %o form=%o",
+                        evt,passage,metaBook.glossform);
+            if (mode) metaBook.setGlossMode(mode,metaBook.glossform);
+            metaBook.setMode("addgloss",true);
+            if (evt) fdjtUI.cancel(evt);
+            return;}
+        var selecting=selectors[passage.id]; abortSelect(selecting);
+        var form_div=setGlossTarget(
+            passage,((metaBook.mode==="addgloss")&&
+                     (metaBook.glossform)),selecting);
+        var form=getChild(form_div,"form");
+        if (!(form)) return;
+        else if (evt) fdjtUI.cancel(evt);
+        if ((Trace.gestures)||(Trace.glossing))
+            fdjtLog("startAddGloss (%o) %o f=%o/%o",
+                    evt,passage,form_div,form);
+        setGlossForm(form_div);
+        if (mode) form.className=mode;
+        metaBook.setMode("addgloss",false);}
+    metaBook.startAddGloss=startAddGloss;
+    
+    function saveGlossDialog(){
+        // This prompts for updating the layout
+        var msg=fdjtDOM("div.message","Save gloss?");
+        saving_dialog=true;
+        // When a choice is made, it becomes the default
+        // When a choice is made to not resize, the
+        // choice timeout is reduced.
+        var choices=[
+            {label: "Save",
+             handler: function(){
+                 metaBook.submitGloss();
+                 saving_dialog=false;},
+             isdefault: true},
+            {label: "Discard",
+             handler: function(){
+                 metaBook.cancelGloss();
+                 saving_dialog=false;}}];
+        var spec={choices: choices,
+                  timeout: (metaBook.save_gloss_timeout||
+                            metaBook.choice_timeout||7),
+                  spec: "div.fdjtdialog.fdjtconfirm.savegloss"};
+        saving_dialog=fdjtUI.choose(spec,msg);
+        return saving_dialog;}
+    metaBook.saveGlossDialog=saveGlossDialog;
+
+    function startSelect(passage,evt){
+        var selecting=metaBook.UI.selectText(passage);
+        if ((metaBook.TapHold.page)&&(metaBook.TapHold.page.abort))
+            metaBook.TapHold.page.abort();
+        if ((metaBook.TapHold.content)&&(metaBook.TapHold.page.content))
+            metaBook.TapHold.content.abort();
+        metaBook.select_target=passage;
+        selectors.push(selecting);
+        selectors[passage.id]=selecting;
+        fdjtUI.TapHold.clear();
+        // This makes a selection start on the region we just created.
+        if ((Trace.gestures)||(Trace.selecting)) 
+            fdjtLog("body_held/select_wait %o %o %o",
+                    selecting,passage,evt);
+        setTimeout(function(){
+            if ((Trace.gestures)||(Trace.selecting)) 
+                fdjtLog("body_held/select_start %o %o %o",
+                        selecting,passage,evt);
+            selecting.startEvent(evt,250);},
+                   0);}
+    metaBook.startSelect=startSelect;
+
+    function abortSelect(except){
+        var i=0, lim=selectors.length;
+        while (i<lim) {
+            var sel=selectors[i++];
+            if (sel!==except) sel.clear();}
+        selectors=[];
+        metaBook.select_target=false;}
+    metaBook.abortSelect=abortSelect;
+
+    metaBook.getTextSelectors=function getTextSelectors(){return selectors;};
+
+    function closeGlossForm(glossform,evt){
+        if (!(glossform)) glossform=metaBook.glossform;
+        if (!(glossform)) return;
+        if (saving_dialog) return;
+        if (!(hasClass(glossform,"modified")))
+            metaBook.cancelGloss();
+        else if (hasClass(glossform,"glossadd")) 
+            saveGlossDialog();
+        else metaBook.submitGloss(glossform);
+        if (evt) fdjtUI.cancel(evt);
+        return;}
+    metaBook.closeGlossForm=closeGlossForm;
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.mouse,
+        {".metabookglossform":
+         {click: glossform_touch,touchstart: glossform_touch},
+         glossbutton: {mouseup: glossbutton_ontap,mousedown: cancel},
+         "span.metabooksharegloss": {
+             tap: fdjt.UI.CheckSpan.onclick},
+         ".metabookglossform .response": {click: metaBook.toggleHUD},
+         ".addglossmenu": {
+             tap: glossmode_tap,
+             hold: glossmode_hold,
+             slip: glossmode_slip,
+             release: glossmode_release,
+             click: cancel},
+         "div.glossetc": {},
+         "div.glossetc div.sharing": {click: glossform_outlets_tapped},
+         "div.glossetc div.notetext": {click: editglossnote},
+         "#METABOOKADDGLOSS": {
+             dragenter: addGlossDragOK,
+             dragover: addGlossDragOK,
+             drop: addGlossDrop},
+         "#METABOOKADDTAGINPUT": {keydown: addtag_keydown},
+         "#METABOOKADDSHAREINPUT": {keydown: addoutlet_keydown},
+         "#METABOOKATTACHFORM": {submit: attach_submit},
+         "#METABOOKATTACHURL": {keydown: attach_keydown},
+         "#METABOOKATTACHTITLE": {keydown: attach_keydown},
+         "#METABOOKATTACHOK": {click: attach_action},
+         "#METABOOKATTACHCANCEL": {click: attach_cancel},
+         "#METABOOKGLOSSCLOUD": {
+             tap: metaBook.UI.handlers.glosscloud_select,
+             release: metaBook.UI.handlers.glosscloud_select},
+         "#METABOOKSHARECLOUD": {
+             tap: outlet_select,release: outlet_select}});
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.touch,
+        {".metabookglossform .response": {click: metaBook.toggleHUD},
+         ".addglossmenu": {
+             tap: glossmode_tap,
+             hold: glossmode_hold,
+             slip: glossmode_slip,
+             release: glossmode_release,
+             click: cancel},
+         "div.glossetc": {
+             touchstart: glossetc_touch,
+             touchend: cancel},
+         "div.glossetc div.sharing": {
+             touchend: glossform_outlets_tapped,
+             click: cancel},
+         "div.glossetc div.notetext": {
+             touchend: editglossnote,
+             click: cancel},
+         "#METABOOKADDTAGINPUT": {keydown: addtag_keydown},
+         "#METABOOKADDSHAREINPUT": {keydown: addoutlet_keydown},
+         "#METABOOKATTACHFORM": {submit: attach_submit},
+         "#METABOOKATTACHURL": {keydown: attach_keydown},
+         "#METABOOKATTACHTITLE": {keydown: attach_keydown},
+         "#METABOOKATTACHOK": {click: attach_action},
+         "#METABOOKATTACHCANCEL": {click: attach_cancel},
+         "#METABOOKGLOSSCLOUD": {
+             tap: metaBook.UI.handlers.glosscloud_select,
+             release: metaBook.UI.handlers.glosscloud_select},
+         "#METABOOKSHARECLOUD": {
+             tap: outlet_select,release: outlet_select}});
+
+})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ###################### metabook/interaction.js ###################### */
+
+/* Copyright (C) 2009-2014 beingmeta, inc.
+
+   This file implements most of the interaction handling for the
+   e-reader web application.
+
+   This file is part of metaBook, a Javascript/DHTML web application
+   for reading large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+/* global metaBook: false */
+
+/* Initialize these here, even though they should always be
+   initialized before hand.  This will cause various code checkers to
+   not generate unbound variable warnings when called on individual
+   files. */
+// var fdjt=((typeof fdjt !== "undefined")?(fdjt):({}));
+// var metaBook=((typeof metaBook !== "undefined")?(metaBook):({}));
+// var Knodule=((typeof Knodule !== "undefined")?(Knodule):({}));
+// var iScroll=((typeof iScroll !== "undefined")?(iScroll):({}));
+
+/* There are four basic display modes:
+   reading (minimal decoration, with 'minimal' configurable)
+   skimming (card at top, buttons on upper edges)
+   addgloss (addgloss form at top, text highlighted)
+   tool (lots of tools unfaded)
+
+   Tap on content:
+   if not hudup and no mode, raise the HUD;
+   if not hudup and mode, clear the mode
+   if hudup, drop the HUD
+   Hold on content:
+   if adding gloss to target, raise the hud
+   otherwise, start adding gloss to target
+*/
+
+/* New content interaction rules, based on assuming taphold for content */
+/*
+  tap: if previewing, stop and jump to the previewed location
+  tap: if over anchor, detail, aside, etc, and fdjtselecting, treat it like a click below,
+  tap: if over fdjtselecting, go to addgloss mode with the hud up, and pass event
+  on to the fdjtselecting region
+  tap: if on anchor, detail, aside, etc, either treat it especially (and set clicked to
+  the current time) or ignore it (and let click handle it)
+  tap: otherwise, go forward or backward based on the x position
+
+  hold: if previewing, stop and jump to the previewed location
+  hold: if over fdjtselecting, switch to addgloss with HUD down and pass it on.
+  hold: if not over fdjtselecting:
+  if not over a passage, toggle the HUD
+  if over a passage, and no current glosstarget,
+  start selecting, fake a press, create a gloss;
+  if over a passage, and current glosstarget is a reply, retarget the reply;
+  if over a passage, and current glosstarget hasn't been modified or save,
+  retarget the gloss
+*/
+
+(function(){
+    "use strict";
+
+    var mB=metaBook;
+    var Trace=mB.Trace;
+    var fdjtString=fdjt.String;
+    var fdjtTime=fdjt.Time;
+    var fdjtLog=fdjt.Log;
+    var fdjtDOM=fdjt.DOM;
+    var fdjtUI=fdjt.UI;
+    var RefDB=fdjt.RefDB;
+    var fdjtID=fdjt.ID;
+    var mbID=metaBook.ID;
+
+    // Imports (kind of )
+    var addClass=fdjtDOM.addClass;
+    var hasClass=fdjtDOM.hasClass;
+    var dropClass=fdjtDOM.dropClass;
+    var toggleClass=fdjtDOM.toggleClass;
+    var getTarget=metaBook.getTarget;
+    var getParent=fdjtDOM.getParent;
+    var hasParent=fdjtDOM.hasParent;
+    var isClickable=fdjtUI.isClickable;
+    var getChild=fdjtDOM.getChild;
+    var getChildren=fdjtDOM.getChildren;
+    var getInput=fdjtDOM.getInput;
+    var Selector=fdjtDOM.Selector;
+
+    var getCard=metaBook.UI.getCard;
+
+    var submitEvent=fdjtUI.submitEvent;
+
+    var reticle=fdjtUI.Reticle;
+
+    /* For tracking gestures */
+    var preview_timer=false;
+    function previewTimeout(fcn,interval){
+        if (fcn===true)
+            return preview_timer;
+        else if (fcn) {
+            if (preview_timer) return;
+            else setTimeout(function(){preview_timer=false; fcn();},
+                            interval||400);}
+        else if (preview_timer) {
+            clearTimeout(preview_timer);
+            preview_timer=false;}
+        else {}}
+    metaBook.previewTimeout=previewTimeout;
+
+    var slip_timer=false;
+    function slipTimeout(fcn,interval){
+        if (fcn===true)
+            return slip_timer;
+        else if (fcn) {
+            if (slip_timer) return;
+            else setTimeout(function(){slip_timer=false; fcn();},
+                            interval||500);}
+        else if (slip_timer) {
+            clearTimeout(slip_timer);
+            slip_timer=false;}
+        else {}}
+    metaBook.slipTimeout=slipTimeout;
+
+    metaBook.uiclasses=/\b(metabookui|glossmark)\b/gi;
+
+    metaBook.addConfig("controlc",function(key,val){metaBook.controlc=val;});
+
+    /* Setup for gesture handling */
+
+    function addHandlers(node,type){
+        var mode=metaBook.ui;
+        fdjtDOM.addListeners(node,metaBook.UI.handlers[mode][type]);}
+    metaBook.UI.addHandlers=addHandlers;
+
+    function externClickable(evt){
+        var target=fdjtUI.T(evt);
+        var anchor=getParent(target,"A");
+        if ((anchor)&&(anchor.href)) {
+            if (anchor.href[0]==="#") return false;
+            else if (anchor.getAttribute("href")[0]==="#")
+                return false;
+            else return true;}
+        else return isClickable(evt);}
+
+    function setupGestures(domnode){
+        var mode=metaBook.ui;
+        if (!(mode)) metaBook.ui=mode="mouse";
+        if ((!(domnode))&&((Trace.startup>1)||(Trace.gestures)))
+            fdjtLog("Setting up basic handlers for %s UI",mode);
+        if ((domnode)&&(Trace.gestures))
+            fdjtLog("Setting up %s UI handlers for %o",mode,domnode);
+        if (!(domnode)) {
+            addHandlers(false,'window');
+            addHandlers(document,'document');
+            addHandlers(document.body,'body');
+            addHandlers(fdjtID("METABOOKBODY"),'content');
+            metaBook.TapHold.body=fdjtUI.TapHold(
+                fdjt.ID("METABOOKBODY"),
+                {override: true,noslip: true,id: "METABOOKBODY",
+                 maxtouches: 2,taptapthresh: 350,
+                 untouchable: externClickable,
+                 movethresh: 10});
+            addHandlers(metaBook.HUD,'hud');}
+        if (mode) {
+            var handlers=metaBook.UI.handlers[mode];
+            var keys=[], seen=[];
+            for (var key in handlers) {
+                if ((handlers.hasOwnProperty(key))&&
+                    ((key.indexOf('.')>=0)||(key.indexOf('#')>=0)))
+                    keys.push(key);}
+            // Appropximate sort for selector priority
+            keys=keys.sort(function(kx,ky){return ky.length-kx.length;});
+            var i=0, lim=keys.length;
+            while (i<lim) {
+                key=keys[i++];
+                var nodes=fdjtDOM.$(key,domnode);
+                var h=handlers[key], sel=new Selector(key);
+                if ((domnode)&&(sel.match(domnode)))
+                    fdjtDOM.addListeners(domnode,h);
+                var j=0, jlim=nodes.length;
+                while (j<jlim) {
+                    var node=nodes[j++];
+                    if (seen.indexOf(node)<0) { 
+                        seen.push(node);
+                        fdjtDOM.addListeners(node,h);}}}}
+        if (Trace.startup>2) fdjtLog("Done with handler setup");}
+    metaBook.setupGestures=setupGestures;
+
+    /* Functionality:
+       on selection:
+       save but keep selection,
+       set target (if available)
+       if hud is down, raise it
+       on tap: (no selection)
+       if hud is down, set target and raise it
+       if no target, raise hud
+       if tapping target, lower HUD
+       if tapping other, set target, drop mode, and raise hud
+       (simpler) on tap:
+       if hudup, drop it
+       otherwise, set target and raise HUD
+    */
+
+    /*
+      Tap on content:
+      if not hudup and no mode, raise the HUD;
+      if not hudup and mode, clear the mode
+      if hudup, drop the HUD
+      Hold on content:
+      if adding gloss to target, raise the hud
+      otherwise, start adding gloss to target
+    */
+
+    /* Holding */
+
+    var held=false;
+
+    function clear_hold(caller){
+        if (held) {
+            clearTimeout(held); held=false;
+            if (Trace.gestures)
+                fdjtLog("clear_hold from %s",(caller||"somewhere"));}}
+
+    /* Generic content interaction handler */
+
+    var gesture_start=false;
+    var clicked=false;
+
+    function body_tapped(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var sX=evt.screenX, sY=evt.screenY;
+        var cX=evt.clientX, cY=evt.clientY;
+        var now=fdjtTime(), touch=false;
+
+        if (Trace.gestures)
+            fdjtLog("body_tapped %o c=%d,%d now=%o p=%o",
+                    evt,cX,cY,now,metaBook.previewing);
+        
+        // If we're previewing, stop it and go to the page we're
+        //  previewing (which was touched)
+        if (metaBook.previewing) {
+            var jumpto=getTarget(target);
+            metaBook.stopPreview("body_tapped/stop_preview",jumpto||true);
+            fdjtUI.TapHold.clear();
+            fdjt.UI.cancel(evt);
+            return false;}
+
+        if (hasParent(target,".glossmark")) {
+            cancel(evt);
+            return false;}
+
+        if ((metaBook.touch)&&(metaBook.textinput)) {
+            metaBook.clearFocus(metaBook.textinput);
+            cancel(evt);
+            return;}
+
+        if (hasClass(document.body,"mbSHOWHELP")) {
+            dropClass(document.body,"mbSHOWHELP");
+            cancel(evt);
+            return;}
+
+        if (metaBook.glosstarget) {
+            var glossform=metaBook.glossform;
+            if (hasParent(target,metaBook.glosstarget)) {
+                metaBook.setMode("addgloss",false);}
+            else metaBook.closeGlossForm(glossform);}
+
+        if ((metaBook.hudup)||(metaBook.mode)) {
+            metaBook.setMode(false); metaBook.setHUD(false);
+            if (fdjtID("METABOOKOPENGLOSSMARK")) {
+                if (metaBook.target)
+                    metaBook.clearHighlights(metaBook.target);
+                fdjtID("METABOOKOPENGLOSSMARK").id="";}
+            fdjtUI.cancel(evt); gesture_start=false;
+            clicked=fdjtTime();
+            // if (getTarget(target)) metaBook.setTarget(false);
+            return false;}
+
+        // If we're in a glossmark, let its handler apply
+        if (hasParent(target,".glossmark")) {
+            fdjtUI.cancel(evt);
+            return false;}
+
+        // Various kinds of content click handling (anchors, details,
+        // asides, etc)
+        if (handle_body_click(target)) {
+            fdjtUI.cancel(evt);
+            return false;}
+
+        if (fdjtID("METABOOKOPENGLOSSMARK")) {
+            fdjtID("METABOOKOPENGLOSSMARK").id="";
+            if (metaBook.target) metaBook.clearHighlights(metaBook.target);
+            fdjtUI.cancel(evt); gesture_start=false;
+            return;}
+
+        // If we get here, we're doing a page flip
+        if ((evt.changedTouches)&&(evt.changedTouches.length)) {
+            touch=evt.changedTouches[0];
+            sX=touch.screenX; sY=touch.screenY;
+            cX=touch.clientX; cY=touch.clientY;}
+        if (Trace.gestures)
+            fdjtLog("body_tapped/fallthrough (%o) %o, m=%o, @%o,%o, vw=%o",
+                    evt,target,metaBook.mode,cX,cY,fdjtDOM.viewWidth());
+        if ((metaBook.fullheight)&&(!(metaBook.hudup))&&
+            ((cY<50)||(cY>(fdjtDOM.viewHeight()-50)))) 
+            metaBook.setHUD(true);
+        else if (cX<(fdjtDOM.viewWidth()/3))
+            metaBook.Backward(evt);
+        else metaBook.Forward(evt);
+        fdjtUI.cancel(evt); gesture_start=false;
+        return;}
+
+    function resolve_anchor(ref){
+        var elt=mbID(ref);
+        if (elt) return elt;
+        var elts=document.getElementsByName(ref);
+        if (elts.length===0) return false;
+        else if (elts.length===1) return elts[0];
+        else {
+            var found=0; var i=0, lim=elts.length;
+            var metabook_page=metaBook.page;
+            while (i<lim) {
+                var r=elts[i++];
+                if (hasClass(r,"metabookdupstart")) return r;
+                else if (found) continue;
+                else if (hasParent(r,metabook_page)) found=4;
+                else {}}
+            if (!(found)) return elts[0];
+            else return found;}}
+
+    var MetaBookSlice=metaBook.Slice;
+
+    function handle_body_click(target){
+        // Assume 1s gaps are spurious
+        if ((clicked)&&((fdjtTime()-clicked)<1000)) return true;
+
+        // Handle various click-like operations, overriding to sBook
+        //  navigation where appropriate.  Set *clicked* to the
+        //  current time when you do so, letting the body_click handler
+        //  appropriately ignore its invocation.
+        var anchor=getParent(target,"A"), href, elt=false;
+        // If you tap on a relative anchor, move there using metaBook
+        // rather than the browser default
+        if ((anchor)&&(anchor.href)&&(href=anchor.getAttribute("href"))) {
+            if (Trace.gestures)
+                fdjtLog("ctouch: follow link %s",href);
+            var rel=anchor.rel, classname=anchor.className;
+            if ((href[0]==="#")&&
+                (((rel)&&
+                  (rel.search(/\b((sbooknote)|(footnote)|(endnote)|(note))\b/)>=0))||
+                 ((classname)&&
+                  (classname.search(/\b((sbooknote)|(sbooknoteref))\b/)>=0))||
+                 ((metaBook.sbooknoterefs)&&(metaBook.sbooknoterefs.match(anchor))))) {
+                var note_node=getNoteNode(href.slice(1));
+                var noteid=note_node.id;
+                metaBook.DOM.noteshud.innerHTML="";
+                var shownote=note_node.cloneNode(true);
+                fdjtDOM.stripIDs(shownote);
+                dropClass(shownote,/\bmetabook\S+/g);
+                addClass(shownote,"metabooknotebody");                
+                metaBook.DOM.noteshud.setAttribute("data-note",noteid||(href.slice(1)));
+                fdjtDOM.append(metaBook.DOM.noteshud,shownote);
+                metaBook.setMode("shownote");
+                gesture_start=false;
+                clicked=fdjtTime();
+                return true;}
+            else if ((href[0]==="#")&&(rel)&&
+                     (rel.search(/\b((sidebar)|(breakout)|(tangent))\b/)>=0)) {
+                var aside_target=fdjt.ID(href.slice(1));
+                fdjtDOM.removeChildren(metaBook.DOM.asidehud);
+                fdjtDOM.append(metaBook.DOM.asidehud,aside_target.cloneNode(true));
+                metaBook.setMode("showaside");
+                gesture_start=false;
+                clicked=fdjtTime();
+                return true;}
+            else if ((href[0]==='#')&&(fn=metaBook.xtargets[href.slice(1)])) {
+                var fn=metaBook.xtargets[href.slice(1)];
+                gesture_start=false;
+                clicked=fdjtTime();
+                fn();
+                return true;}
+            else if ((href[0]==='#')&&(elt=resolve_anchor(href.slice(1)))) {
+                // It's an internal jump, so we follow that
+                metaBook.JumpTo(elt);
+                gesture_start=false;
+                clicked=fdjtTime();
+                return true;}
+            else {
+                // We force links to leave the page, hoping people
+                //  won't find it obnoxious.  We could also open up
+                //  a little iframe in some circumstances
+                if (!(anchor.target)) anchor.target="_blank";
+                gesture_start=false;
+                clicked=fdjtTime();
+                return false;}}
+
+        var details=getParent(target,"details,.html5details,.sbookdetails");
+        if (details) {
+            fdjtDOM.removeChildren(metaBook.DOM.notehud);
+            metaBook.DOM.notehud.innerHTML=details.innerHTML;
+            metaBook.setMode("showdetails");
+            clicked=fdjtTime();
+            return true;}
+        
+        var aside=getParent(target,"aside,.html5aside,.sbookaside");
+        if (aside) {
+            fdjtDOM.removeChildren(metaBook.DOM.asidehud);
+            metaBook.DOM.asidehud.innerHTML=aside.innerHTML;
+            metaBook.setMode("showaside");
+            clicked=fdjtTime();
+            return true;}
+
+        var glossref=getParent(target,"[data-glossid]");
+        if (glossref) {
+            var glossid=glossref.getAttribute("data-glossid");
+            var gloss=metaBook.glossdb.ref(glossid);
+            if (!(gloss)) return false;
+            var slicediv=fdjtDOM("div.metabookglosses.metabookslice");
+            var slice=new MetaBookSlice(slicediv,[gloss]);
+            var hudwrapper=fdjtDOM("div.hudpanel#METABOOKPOINTGLOSSES",slicediv);
+            fdjtDOM.replace("METABOOKPOINTGLOSSES",hudwrapper);
+            metaBook.setTarget(target);
+            slice.update();
+            metaBook.setMode("openglossmark");
+            return true;}
+
+        return false;}
+
+    function getNoteNode(ref){
+        var elt=mbID(ref);
+        var body=fdjt.ID("METABOOKBODY"), db=document.body;
+        if (!(elt)) {
+            var elts=document.getElementsByName(ref);
+            if (!(body)) return false;
+            if (elts.length) {
+                var i=0, lim=elts.length; while (i<lim) {
+                    if (hasParent(elt[i],body)) {elt=elt[i]; break;}
+                    else i++;}}}
+        if (!(elt)) return;
+        var scan=elt, style=fdjtDOM.getStyle(elt), block=false;
+        var notespec=metaBook.sbooknotes;
+        while (scan) {
+            if (scan===body) break;
+            else if (scan===db) break;
+            else if ((notespec)&&(notespec.match(scan))) return scan;
+            else if (block) {}
+            else if (style.display==='block') {block=scan; style=false;}
+            else {}
+            scan=scan.parentNode;
+            style=fdjtDOM.getStyle(scan);}
+        if (block) return block; else return elt;
+        return elt;}
+
+    function jumpToNote(evt){
+        evt=evt||window.event;
+        var target=fdjt.UI.T(evt);
+        var anchor=getParent(target,"A[href]");
+        if (!(anchor)) {
+            fdjt.UI.cancel(evt);
+            var noteshud=metaBook.DOM.noteshud;
+            var jumpto=noteshud.getAttribute("data-note");
+            if (jumpto) {
+                noteshud.removeAttribute("data-note");
+                noteshud.innerHTML="";
+                metaBook.setMode(false);
+                metaBook.GoTo(jumpto,"jumpToNote",true,true);}
+            else metaBook.setMode(false);}}
+    
+    function body_held(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var passage=getTarget(target);
+        if (Trace.gestures) 
+            fdjtLog("body_held %o p=%o p.p=%o bc=%s hc=%s",
+                    evt,passage,((passage)&&(passage.parentNode)),
+                    document.body.className,
+                    metaBook.HUD.className);
+        if (metaBook.previewing) return;
+        else if (hasParent(target,"A")) {
+            var anchor=getParent(target,"A");
+            var href=((anchor)&&(anchor.getAttribute("href")));
+            fdjtUI.cancel(evt);
+            if ((href)&&(href[0]==="#")&&(mbID(href.slice(1)))) {
+                if (Trace.gestures) 
+                    fdjtLog("anchor_preview/body_held %o %o %o",
+                            evt,anchor,href);
+                metaBook.startPreview(href.slice(1),"content/anchor_held");
+                return;}}
+        if (!(passage)) return;
+        if (metaBook.glosstarget===passage) {
+            if (metaBook.mode!=="addgloss")
+                metaBook.setMode("addgloss",false);
+            return;}
+        // If the HUD is up, bring it down, but don't start a gloss
+        if (metaBook.hudup) {
+            fdjtUI.cancel(evt);
+            metaBook.setHUD(false);
+            return;}
+        metaBook.startSelect(passage,evt);
+        metaBook.startAddGloss(passage,false,evt);}
+
+    function body_taptap(evt){
+        var target=fdjtUI.T(evt);
+        var passage=getTarget(target);
+        if (Trace.gestures) 
+            fdjtLog("body_taptap %o p=%o p.p=%o bc=%s hc=%s t=%o gt=%o",
+                    evt,passage,((passage)&&(passage.parentNode)),
+                    document.body.className,metaBook.HUD.className,
+                    target,metaBook.glosstarget);
+        if (hasParent(target,"IMG,AUDIO,VIDEO,OBJECT")) {
+            metaBook.startZoom(getParent(target,"IMG,AUDIO,VIDEO,OBJECT"));
+            fdjt.UI.cancel(evt);
+            return;}
+        if (metaBook.glosstarget) {
+            if (hasParent(target,metaBook.glosstarget)) {
+                metaBook.setMode("addgloss",false);}
+            else metaBook.closeGlossForm();}
+        if (!(passage)) return;
+        if (metaBook.glosstarget===passage) {
+            if (metaBook.mode!=="addgloss")
+                metaBook.setMode("addgloss",false);
+            return;}
+        var choices=[
+            {label: "Add Gloss",
+             handler: function(){
+                 metaBook.startGloss(passage);},
+             isdefault: true}];
+        if (false) { /* (window.ClipboardEvent) */
+            choices.push({label: "Copy link",
+                          handler: function(){copyURI(passage);}});
+            choices.push({label: "Copy content",
+                          handler: function(){copyContent(passage);}});}
+        if (true) choices.push(
+            {label: "Zoom content",
+             handler: function(){
+                 metaBook.startZoom(passage);
+                 fdjt.UI.cancel(evt);
+                 return;}});
+        addOptions(passage,choices);
+        if (choices.length===1) {
+            fdjtUI.cancel(evt);
+            metaBook.startGloss(passage);
+            return;}
+        fdjtUI.cancel(evt);
+        choices.push(
+            {label: "Cancel",
+             handler: function(){
+                 metaBook.cancelGloss();}});
+        var max=0, i=0, lim=choices.length;
+        while (i<lim) {
+            var ch=choices[i++];
+            var len=ch.label.length;
+            if (len>max) max=len;}
+        var spec={choices: choices,
+                  spec: "div.fdjtdialog.metabooktaptap",
+                  style: "width: "+(max*0.8)+"em"};
+        fdjtUI.choose(spec);}
+
+    function addOptions(passage,choices){
+        var scan=passage; while (scan) {
+            var link=passage.getAttribute("data-xref");
+            if (link) {
+                var space=link.indexOf(' ');
+                var label=((space>0)?(link.slice(space+1)):(link));
+                var href=((space>0)?(link.slice(0,space)):(link));
+                href=href.replace("{{ID}}",passage.id);
+                var opt={label: label, handler: makeOpener(href)};
+                choices.push(opt);}
+            scan=scan.parentNode;}}
+    
+    function makeOpener(url){
+        return function (){window.open(url);};}
+    function copyURI(passage){
+        var ClipboardEvent=window.ClipboardEvent;
+        var evt = new ClipboardEvent(
+            'copy',{ dataType: 'text/plain', 
+                     data: metaBook.refuri+"#"+passage.id } );
+        document.dispatchEvent(evt);}
+    function copyContent(passage){
+        var ClipboardEvent=window.ClipboardEvent;
+        var evt = new ClipboardEvent(
+            'copy',{ dataType: 'text/html', data: passage.innerHTML } );
+        document.dispatchEvent(evt);}
+
+    var body_tapstart=false;
+    function body_touchstart(evt){
+        evt=evt||window.event;
+        if (metaBook.zoomed) return;
+        var target=fdjtUI.T(evt);
+        if (target.id!=="METABOOKBODY") return;
+        body_tapstart=fdjtTime();}
+
+    function body_touchend(evt){
+        evt=evt||window.event;
+        if (metaBook.zoomed) return;
+        var target=fdjtUI.T(evt);
+        if (target.id!=="METABOOKBODY") return;
+        if ((body_tapstart)&&(true) //((fdjtTime()-body_tapstart)<1000)
+           ) {
+            if (metaBook.TapHold.body) metaBook.TapHold.body.abort();
+            fdjtUI.cancel(evt);
+            var x=(evt.clientX)||
+                ((evt.changedTouches)&&
+                 (evt.changedTouches.length)&&
+                 (evt.changedTouches[0].clientX));
+            var w=fdjtDOM.viewWidth();
+            if (x>(w/2)) pageForward(evt);
+            else pageBackward(evt);}}
+    
+    function body_released(evt){
+        evt=evt||window.event;
+        if (metaBook.zoomed) return;
+        var target=fdjtUI.T(evt), children=false;
+        if (Trace.gestures) fdjtLog("body_released %o",evt);
+        if (metaBook.previewing) {
+            metaBook.stopPreview("body_released");
+            fdjtUI.cancel(evt);
+            return;}
+        else if (hasParent(target,"A")) {
+            fdjtUI.cancel(evt);
+            return;}
+        var passage=((hasParent(target,".fdjtselecting"))&&
+                     (getTarget(target)));
+        if (!(passage)) {
+            children=getChildren(target,".fdjtselected");
+            if (children.length===0) {
+                metaBook.abortSelect(); 
+                return;}
+            target=children[0]; passage=getTarget(target);}
+        if (Trace.gestures)
+            fdjtLog("body_released %o p=%o gt=%o gf=%o",
+                    evt,passage,metaBook.glosstarget,metaBook.glossform);
+        if (metaBook.glosstarget===passage) {
+            if (metaBook.glossform)
+                metaBook.glossform.id="METABOOKLIVEGLOSS";
+            if (metaBook.mode!=="addgloss") metaBook.setMode("addgloss");}
+        else metaBook.startAddGloss(passage,((evt.shiftKey)&&("addtag")),evt);}
+
+    function body_swiped(evt){
+        if (metaBook.zoomed) return;
+        var dx=evt.deltaX, dy=evt.deltaY;
+        var vw=fdjtDOM.viewWidth();
+        var adx=((dx<0)?(-dx):(dx)), ady=((dy<0)?(-dy):(dy));
+        var head=metaBook.head;
+        var headinfo=((head)&&(head.id)&&(metaBook.docinfo[head.id]));
+        if (Trace.gestures)
+            fdjtLog("swiped d=%o,%o, ad=%o,%o, s=%o,%o vw=%o, n=%o",
+                    dx,dy,adx,ady,evt.startX,evt.startY,vw,evt.ntouches);
+        if (adx>(ady*2)) {
+            // Horizontal swipe
+            if (dx<-(metaBook.minswipe||10)) {
+                if ((evt.ntouches>1)&&
+                    (hasClass(document.body,"mbSKIMMING")))
+                    metaBook.skimForward(evt);
+                else if (evt.ntouches>1) {
+                    if (!(headinfo)) metaBook.Forward(evt);
+                    else if ((headinfo.sub)&&(headinfo.sub.length)) 
+                        metaBook.GoTo(headinfo.sub[0].frag,"doubleswipe");
+                    else if (headinfo.next)
+                        metaBook.GoTo(headinfo.next.frag,"doubleswipe");
+                    else if (headinfo.head)
+                        metaBook.GoTo(headinfo.head.frag,"doubleswipe");
+                    else metaBook.Forward(evt);}
+                else metaBook.Forward(evt);}
+            else if (dx>(metaBook.minswipe||10)) {
+                if ((evt.ntouches>1)&&
+                    (hasClass(document.body,"mbSKIMMING")))
+                    metaBook.skimBackward(evt);
+                else if (evt.ntouches>1) window.history.back();
+                else metaBook.Backward(evt);}}
+        else if (ady>(adx*2)) {
+            // Vertical swipe
+            if (!(metaBook.hudup)) {
+                if (ady<=(metaBook.minswipe||10)) return; // Ignore really short swipes 
+                else if ((evt.startX<(vw/5))&&(dy<0))
+                    // On the left, up, show help
+                    metaBook.setMode("help");
+                else if ((evt.startX<(vw/5))&&(dy>0))
+                    // On the left, down, show TOC
+                    metaBook.setMode("statictoc");
+                else if ((evt.startX>(vw*0.8))&&(dy>0))
+                    // On the right, down, show SEARCH
+                    metaBook.setMode("search");
+                else if ((evt.startX>(vw*0.8))&&(dy<0))
+                    // On the right, up, show GLOSSES
+                    metaBook.setMode("allglosses");
+                else if (dy>0) {
+                    metaBook.clearStateDialog();
+                    metaBook.showCover();}
+                else metaBook.setHUD(true);}
+            else if (dy<-(metaBook.minswipe||10)) metaBook.setMode("allglosses");
+            else if (dy>(metaBook.minswipe||10)) metaBook.setMode("search");}
+        else {}}
+
+    function initGlossMode(){
+        var form=getChild("METABOOKLIVEGLOSS","form");
+        if (form) {
+            var input=getInput(form,"NOTE");
+            if (input) metaBook.setFocus(input);
+            metaBook.setGlossMode(form.className);}}
+    metaBook.initGlossMode=initGlossMode;
+
+    function body_click(evt){
+        evt=evt||window.event;
+        if (metaBook.zoomed) return;
+        var target=fdjtUI.T(evt);
+        // This avoids double-handling of clicks
+        if ((clicked)&&((fdjtTime()-clicked)<3000))
+            fdjtUI.cancel(evt);
+        else if (handle_body_click(target)) {
+            fdjtUI.cancel(evt);
+            return;}
+        else if (isClickable(target)) return;
+        else fdjtUI.cancel(evt);}
+
+    /* TOC handlers */
+
+    function getAbout(elt){
+        var body=document.body;
+        while (elt) {
+            if (elt===body) return false;
+            else if (elt.nodeType!==1) return false;
+            else if ((elt.name)&&(elt.name.search("SBR")===0))
+                return elt;
+            else if ((elt.getAttribute("name"))&&
+                     (elt.getAttribute("name").search("SBR")===0))
+                return elt;                     
+            else elt=elt.parentNode;}
+        return false;}
+
+    function getTitleSpan(toc,ref){
+        var titles=getChildren(toc,".metabooktitle");
+        var i=0; var lim=titles.length;
+        while (i<lim) {
+            var title=titles[i++];
+            if (title.name===ref) return title;}
+        return false;}
+
+    function toc_tapped(evt){
+        evt=evt||window.event;
+        var tap_target=fdjtUI.T(evt);
+        if (metaBook.previewing) {
+            // Because we're previewing, this slice is invisible, so
+            //  the user really meant to tap on the body underneath,
+            //  so we stop previewing and jump there We might try to
+            //  figure out exactly which element was tapped somehow
+            metaBook.stopPreview("toc_tapped");
+            fdjtUI.cancel(evt);
+            return;}
+        var about=getAbout(tap_target);
+        if (about) {
+            var name=about.name||about.getAttribute("name");
+            var ref=name.slice(3);
+            var info=metaBook.docinfo[ref];
+            var target=info.elt||mbID(ref);
+            if (target.id!==ref) target=mbID(ref);
+            if (Trace.gestures)
+                fdjtLog("toc_tapped %o about=%o ref=%s target=%o",
+                        evt,about,ref,target);
+            metaBook.JumpTo(target);
+            fdjtUI.cancel(evt);}
+        else if (Trace.gestures) fdjtLog("toc_tapped %o noabout", evt);
+        else {}}
+    function toc_held(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt), about=getAbout(target);
+        previewTimeout(false); slipTimeout(false);
+        if (about) {
+            var name=about.name||about.getAttribute("name");
+            var ref=name.slice(3);
+            var toc=getParent(about,".metabooktoc");
+            var title=getTitleSpan(toc,name);
+            if (Trace.gestures)
+                fdjtLog("toc_held %o about=%o ref=%s toc=%o title=%s",
+                        evt,about,ref,toc,title);
+            addClass(title,"metabookpreviewtitle");
+            addClass(about.parentNode,"metabookheld");
+            var spanbar=getParent(about,".spanbar")||getChild(toc,".spanbar");
+            addClass(spanbar,"metabookvisible");
+            addClass(toc,"metabookheld");
+            metaBook.startPreview(mbID(ref),"toc_held");
+            return fdjtUI.cancel(evt);}
+        else if (Trace.gestures) fdjtLog("toc_held %o noabout", evt);
+        else {}}
+    function toc_released(evt){
+        evt=evt||window.event;
+        var about=getAbout(fdjtUI.T(evt));
+        previewTimeout(false);
+        if (about) {
+            var name=about.name||about.getAttribute("name");
+            var ref=name.slice(3);
+            var toc=getParent(about,".metabooktoc");
+            var title=getTitleSpan(toc,name);
+            if (Trace.gestures)
+                fdjtLog("toc_released %o ref=%o about=%o toc=%o title=%s",
+                        evt,ref,about,toc,title);
+            dropClass(title,"metabookpreviewtitle");
+            dropClass(about.parentNode,"metabookheld");
+            var spanbar=getParent(about,".spanbar")||getChild(toc,".spanbar");
+            dropClass(spanbar,"metabookvisible");
+            dropClass(toc,"metabookheld");
+            if (metaBook.previewing)
+                metaBook.stopPreview("toc_released");}
+        else if (Trace.gestures) {
+            fdjtLog("toc_released %o noabout",evt);
+            metaBook.stopPreview("toc_released");}
+        else {
+            metaBook.stopPreview("toc_released");}
+        fdjtUI.cancel(evt);}
+    function toc_touchtoo(evt){
+        evt=evt||window.event;
+        previewTimeout(false);
+        if (!(metaBook.previewing)) return;
+        else if (Trace.gestures) {
+            fdjtLog("toc_touchtoo %o noabout",evt);
+            metaBook.stopPreview("toc_touchtoo",true);}
+        else {
+            metaBook.stopPreview("toc_touchtoo",true);}
+        fdjtUI.cancel(evt);}
+    function toc_slipped(evt){
+        evt=evt||window.event;
+        if (slip_timer) return;
+        slipTimeout(function(){
+            slip_timer=false;
+            if (Trace.gestures)
+                fdjtLog("toc_slipped/timeout %o",evt);
+            metaBook.stopPreview("toc_slipped");});}
+
+    /* Highlighting terms in passages (for skimming, etc) */
+
+    function highlightTerm(term,target,info,spellings){
+        var words=[]; var highlights=[];
+        if (typeof term === 'string')
+            words=((spellings)&&(spellings[term]))||[term];
+        else {
+            var knodes=info.knodes;
+            if (!(knodes)) knodes=[];
+            else if (!(knodes instanceof Array)) knodes=[knodes];
+            var i=0; var lim=knodes.length;
+            while (i<lim) {
+                var knode=knodes[i++];
+                if ((knode===term)||(RefDB.contains(knode.allways,term))) {
+                    var qid=knode._qid; var dterm=knode.dterm;
+                    var spelling=
+                        ((spellings)&&
+                         ((spellings[qid])||(spellings[dterm])));
+                    if (!(spelling)) {
+                        var synonyms=knode.EN;
+                        if (!(synonyms)) {}
+                        else if (typeof synonyms === 'string')
+                            words.push(synonyms);
+                        else words=words.concat(synonyms);
+                        var hooks=knode.hooks;
+                        if (!(hooks)) {}
+                        else if (typeof hooks === 'string')
+                            words.push(hooks);
+                        else words=words.concat(hooks);}
+                    else if (typeof spelling === 'string')
+                        words.push(spelling);
+                    else words=words.concat(spelling);}}
+            if (words.length===0) words=false;}
+        if (!(words)) return [];
+        if (typeof words === 'string') words=[words];
+        var j=0; var jlim=words.length;
+        while (j<jlim) {
+            var word=words[j++];
+            var pattern=new fdjtDOM.textRegExp(word,true,true);
+            var dups=metaBook.getDups(target);
+            var ranges=fdjtDOM.findMatches(dups,pattern);
+            if (Trace.highlight)
+                fdjtLog("Trying to highlight %s (using %o) in %o, ranges=%o",
+                        word,pattern,target,ranges);
+            if ((ranges)&&(ranges.length)) {
+                var k=0; while (k<ranges.length) {
+                    var h=fdjtUI.Highlight(
+                        ranges[k++],"metabookhighlightsearch");
+                    highlights=highlights.concat(h);}}}
+        return highlights;}
+    metaBook.highlightTerm=highlightTerm;
+
+    /* Keyboard handlers */
+
+    // We use keydown to handle navigation functions and keypress
+    //  to handle mode changes
+    function onkeydown(evt){
+        evt=evt||window.event||null;
+        var kc=evt.keyCode;
+        var target=fdjtUI.T(evt);
+        // fdjtLog("sbook_onkeydown %o",evt);
+        if (evt.keyCode===27) { /* Escape works anywhere */
+            if (metaBook.previewing) {
+                metaBook.stopPreview("escape_key");
+                fdjtUI.TapHold.clear();}
+            dropClass(document.body,"mbZOOM");
+            dropClass(document.body,"mbMEDIA");
+            if (metaBook.mode==="addgloss") metaBook.cancelGloss();
+            if (metaBook.mode) {
+                metaBook.last_mode=metaBook.mode;
+                metaBook.setMode(false);
+                metaBook.setTarget(false);
+                fdjtID("METABOOKSEARCHINPUT").blur();}
+            else {}
+            return;}
+        else if ((target.tagName==="TEXTAREA")||
+                 (target.tagName==="INPUT")||
+                 (target.tagName==="BUTTON"))
+            return;
+        else if (hasClass(document.body,"mbZOOM"))
+            return;
+        else if ((metaBook.controlc)&&(evt.ctrlKey)&&((kc===99)||(kc===67))) {
+            if (metaBook.previewing) metaBook.stopPreview("onkeydown",true);
+            fdjtUI.TapHold.clear();
+            metaBook.setMode("console");
+            fdjt.UI.cancel(evt);}
+        else if ((evt.altKey)||(evt.ctrlKey)||(evt.metaKey)) return true;
+        else if (metaBook.previewing) {
+            // Any key stops a preview and goes to the target
+            metaBook.stopPreview("onkeydown",true);
+            fdjtUI.TapHold.clear();
+            metaBook.setHUD(false);
+            fdjt.UI.cancel(evt);
+            return false;}
+        else if (hasClass(document.body,"mbCOVER")) {
+            metaBook.clearStateDialog();
+            metaBook.hideCover();
+            fdjt.UI.cancel(evt);
+            return false;}
+        else if (metaBook.glossform) {
+            var input=fdjt.DOM.getInput(metaBook.glossform,"NOTE");
+            metaBook.UI.glossFormFocus(metaBook.glossform);
+            metaBook.setFocus(input); input.focus();
+            var new_evt=document.createEvent("UIEvent");
+            new_evt.initUIEvent("keydown",true,true,window);
+            new_evt.keyCode=kc;
+            input.dispatchEvent(new_evt);
+            fdjtUI.cancel(evt);
+            return;}
+        else if (kc===34) metaBook.pageForward(evt);   /* page down */
+        else if (kc===33) metaBook.pageBackward(evt);  /* page up */
+        else if (kc===40) { /* arrow down */
+            metaBook.setHUD(false);
+            metaBook.pageForward(evt);}
+        else if (kc===38) {  /* arrow up */
+            metaBook.setHUD(false);
+            metaBook.pageBackward(evt);}
+        else if (kc===37) metaBook.skimBackward(evt); /* arrow left */
+        else if (kc===39) metaBook.skimForward(evt); /* arrow right */
+        // Don't interrupt text input for space, etc
+        else if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
+        else if (kc===32) // Space
+            metaBook.Forward(evt);
+        // backspace or delete
+        else if ((kc===8)||(kc===45))
+            metaBook.Backward(evt);
+        // Home goes to the current head.
+        else if (kc===36) metaBook.JumpTo(metaBook.head);
+        else if (metaBook.mode==="addgloss") {
+            var mode=metaBook.getGlossMode();
+            if (mode) return;
+            var formdiv=fdjtID("METABOOKLIVEGLOSS");
+            var form=(formdiv)&&(getChild(formdiv,"FORM"));
+            if (!(form)) return;
+            if (kc===13) { // return/newline
+                submitEvent(form);}
+            else if ((kc===35)||(kc===91)) // # or [
+                metaBook.setGlossMode("addtag",form);
+            else if (kc===32) // Space
+                metaBook.setGlossMode("editnote",form);
+            else if ((kc===47)||(kc===58)) // /or :
+                metaBook.setGlossMode("attach",form);
+            else if ((kc===64)) // @
+                metaBook.setGlossMode("addoutlet",form);
+            else {}}
+        else return;
+        fdjtUI.cancel(evt);}
+
+    // At one point, we had the shift key temporarily raise/lower the HUD.
+    //  We might do it again, so we keep this definition around
+    function onkeyup(evt){
+        evt=evt||window.event||null;
+        if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
+        else if ((evt.ctrlKey)||(evt.altKey)||(evt.metaKey)) return true;
+        else {}}
+    metaBook.UI.handlers.onkeyup=onkeyup;
+
+    /* Keypress handling */
+
+    // We have a big table of command characters which lead to modes
+    var modechars={
+        63: "searching",102: "searching",
+        65: "openheart", 97: "openheart",
+        83: "searching",115: "searching",
+        80: "gotopage",112: "gotopage",
+        76: "gotoloc",108: "gotoloc",
+        70: "searching",
+        100: "device",68: "device",
+        110: "overtoc",78: "overtoc",
+        116: "statictoc",84: "statictoc", 72: "help", 
+        103: "allglosses",71: "allglosses",
+        67: "console", 99: "console"};
+
+    // Handle mode changes
+    function onkeypress(evt){
+        var modearg=false; 
+        evt=evt||window.event||null;
+        var ch=evt.charCode||evt.keyCode;
+        // metaBook.trace("sbook_onkeypress",evt);
+        if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
+        else if ((evt.altKey)||(evt.ctrlKey)||(evt.metaKey)) return true;
+        else if ((ch===72)||(ch===104)) { // 'H' or 'h'
+            metaBook.clearStateDialog();
+            metaBook.hideCover();
+            fdjtDOM.toggleClass(document.body,'metabookhelp');
+            return false;}
+        else if ((ch===67)||(ch===99)) { // 'C' or 'c'
+            metaBook.clearStateDialog();
+            metaBook.toggleCover();
+            return false;}
+        else modearg=modechars[ch];
+        if (modearg==="openheart")
+            modearg=metaBook.last_heartmode||"about";
+        var mode=metaBook.setMode();
+        if (modearg) {
+            if (mode===modearg) {
+                metaBook.setMode(false); mode=false;}
+            else {
+                metaBook.setMode(modearg); mode=modearg;}}
+        else {}
+        if (mode==="searching")
+            metaBook.setFocus(fdjtID("METABOOKSEARCHINPUT"));
+        else metaBook.clearFocus(fdjtID("METABOOKSEARCHINPUT"));
+        fdjtDOM.cancel(evt);}
+    metaBook.UI.handlers.onkeypress=onkeypress;
+
+    function goto_keypress(evt){
+        evt=evt||window.event||null;
+        var target=fdjtUI.T(evt);
+        var ch=evt.charCode||evt.keyCode;
+        var max=false; var min=false;
+        var handled=false;
+        if (target.name==='GOTOLOC') {
+            min=0; max=Math.floor(metaBook.ends_at/128);}
+        else if (target.name==='GOTOPAGE') {
+            min=1; max=metaBook.pagecount;}
+        else if (ch===13) fdjtUI.cancel(evt);
+        if (ch===13) {
+            if (target.name==='GOTOPAGE') {
+                var num=parseInt(target.value,10);
+                if (typeof num === 'number') {
+                    handled=true; metaBook.GoToPage(num);}
+                else {}}
+            else if (target.name==='GOTOREF') {
+                var pagemap=metaBook.layout.pagemap;
+                var page=pagemap[target.value];
+                if (page) {
+                    metaBook.GoToPage(page); handled=true;}}
+            else if (target.name==='GOTOLOC') {
+                var locstring=target.value;
+                var loc=parseFloat(locstring);
+                if ((typeof loc === 'number')&&(loc>=0)&&(loc<=100)) {
+                    loc=Math.floor((loc/100)*metaBook.ends_at)+1;
+                    metaBook.JumpTo(loc); handled=true;}}
+            else {}
+            if (handled) {
+                target.value="";
+                metaBook.setMode(false);}}}
+    metaBook.UI.goto_keypress=goto_keypress;
 
     /* HUD button handling */
 
@@ -35962,9 +36517,7 @@ metaBook.Slice=(function () {
     function pagebar_hold(evt,target){
         evt=evt||window.event; if (!(target)) target=fdjtUI.T(evt);
         var pagebar=fdjtID("METABOOKPAGEBAR");
-        if (preview_timer) {
-            clearTimeout(preview_timer);
-            preview_timer=false;}
+        previewTimeout(false);
         if (((metaBook.hudup)||(metaBook.mode))&&
             (!(metaBook.fullheight))) {
             fdjtUI.cancel(evt);
@@ -35999,9 +36552,7 @@ metaBook.Slice=(function () {
         var pagebar=fdjtID("METABOOKPAGEBAR");
         if ((Trace.gestures)||(hasClass(pagebar,"metabooktrace")))
             fdjtLog("pagebar_tap %o",evt);
-        if (preview_timer) {
-            clearTimeout(preview_timer);
-            preview_timer=false;}
+        previewTimeout(false);
         if ((metaBook.previewing)&&(!(previewing_page))) {
             metaBook.stopPreview("pagebar_tap",true);
             return;}
@@ -36027,9 +36578,7 @@ metaBook.Slice=(function () {
             fdjtLog("pagebar_release %o, previewing=%o, ptarget=%o start=%o",
                     evt,metaBook.previewing,metaBook.previewTarget,
                     preview_start_page);
-        if (preview_timer) {
-            clearTimeout(preview_timer);
-            preview_timer=false;}
+        previewTimeout(false);
         if (target.nodeType===3) target=target.parentNode;
         if (!(metaBook.previewing)) {preview_start_page=false; return;}
         dropClass(target,"preview");
@@ -36043,26 +36592,22 @@ metaBook.Slice=(function () {
         evt=evt||window.event; if (!(target)) target=fdjtUI.T(evt);
         var rel=evt.relatedTarget;
         var pagebar=fdjtID("METABOOKPAGEBAR");
-        if (preview_timer) {
-            clearTimeout(preview_timer);
-            preview_timer=false;}
+        previewTimeout(false);
         if ((Trace.gestures)||(hasClass(pagebar,"metabooktrace")))
             fdjtLog("pagebar_slip %o, previewing=%o, target=%o start=%o",
                     evt,metaBook.previewing,metaBook.previewTarget,
                     preview_start_page);
         if (!(metaBook.previewing)) return;
         if ((rel)&&(hasParent(rel,metaBook.body)))
-            preview_timer=setTimeout(function(){
+            previewTimeout(function(){
                 var pagebar=fdjtID("METABOOKPAGEBAR");
                 pagebar.title=""; preview_timer=false;
-                metaBook.GoTo(rel,evt);},
-                                     400);
-        else preview_timer=setTimeout(function(){
+                metaBook.GoTo(rel,evt);});
+        else previewTimeout(function(){
             var pagebar=fdjtID("METABOOKPAGEBAR");
             pagebar.title=""; preview_timer=false;
             dropClass(target,"preview");
-            metaBook.stopPagePreview("pagebar_slip/timeout");},
-                                      400);
+            metaBook.stopPagePreview("pagebar_slip/timeout");});
         previewing_page=false;}
     function pagebar_touchtoo(evt,target){
         evt=evt||window.event; if (!(target)) target=fdjtUI.T(evt);
@@ -36073,238 +36618,6 @@ metaBook.Slice=(function () {
             fdjt.UI.cancel(evt);
             return false;}}
     
-    /* Gloss form handlers */
-
-    /**** Clicking on outlets *****/
-    
-    function glossform_outlets_tapped(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        if (getParent(target,".checkspan"))
-            return fdjt.UI.CheckSpan.onclick(evt);
-        else if (getParent(target,".sharing"))
-            toggleClass(getParent(target,".sharing"),"expanded");
-        else {}}
-    metaBook.UI.glossform_outlets_tapped=glossform_outlets_tapped;
-
-    function outlet_select(evt){
-        var target=fdjtUI.T(evt);
-        var outletspan=getParent(target,'.outlet')||
-            getParent(target,'.source');
-        if (!(outletspan)) return;
-        var live=fdjtID("METABOOKLIVEGLOSS");
-        var form=((live)&&(getChild(live,"form")));
-        var outlet=metaBook.share_cloud.getValue(outletspan);
-        metaBook.addOutlet2Form(form,outlet);
-        fdjtUI.cancel(evt);}
-
-    /* The addgloss menu */
-
-    var slip_timeout=false;
-
-    function glossmode_tap(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var alt=target.alt;
-        
-        if (!(alt)) return;
-
-        var menu=getParent(target,'.addglossmenu');
-        var form=getParent(target,'form');
-        var div=getParent(form,"div.metabookglossform");
-        
-        if (alt==="downmenu") {
-            addClass(menu,"expanded");
-            dropClass(menu,"held");}
-        else if (alt==="upmenu") {
-            dropClass(menu,"expanded");
-            dropClass(menu,"held");}
-        else if (alt==="glossdelete") 
-            addgloss_delete(menu,form,false,true);
-        else if (alt==="glosscancel") 
-            addgloss_cancel(menu,form,div);
-        else if (alt==="glosspush") {
-            metaBook.submitGloss(form,false);
-            dropClass(menu,"expanded");}
-        else if (alt==="glossupdate") {
-            metaBook.submitGloss(form,false);
-            dropClass(menu,"expanded");}
-        else if (alt==="glossrespond") 
-            addgloss_respond(menu,form);
-        else if (alt==="glosscancel") {
-            addgloss_cancel(menu,form,div);}
-        else if (alt===form.className) {
-            metaBook.setGlossMode(false,form);
-            dropClass(menu,"expanded");}
-        else if (metaBook.glossmodes.exec(alt)) {
-            metaBook.setGlossMode(alt,form);
-            dropClass(menu,"expanded");}
-        else fdjtLog.warn("Bad alt=%s in glossmode_tap",alt);
-        fdjtUI.cancel(evt);
-        return;}
-
-    function glossmode_hold(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var alt=target.alt;
-        
-        if (!(alt)) return;
-
-        if (slip_timeout) {
-            clearTimeout(slip_timeout);
-            slip_timeout=false;}
-
-        var menu=getParent(target,'.addglossmenu');
-        
-        if (hasClass(menu,"expanded")) {
-            addClass(menu,"held");
-            addClass(target,"held");}
-        else {
-            addClass(menu,"expanded");
-            addClass(menu,"held");}}
-
-    function glossmode_release(evt) {
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var menu=getParent(target,'.addglossmenu');
-        var form=getParent(target,'form');
-        var div=getParent(form,"div.metabookglossform");
-        var alt=target.alt;
-        dropClass(target,"held");
-        if (hasClass(target,"menutop")) {
-            metaBook.setGlossMode(false,form);}
-        else if (alt==="glossdelete") 
-            addgloss_delete(menu,form);
-        else if (alt==="glosscancel") 
-            addgloss_cancel(menu,form,div);
-        else if (alt==="glosspush")
-            metaBook.submitGloss(form,false);
-        else if (alt==="glossupdate") {
-            metaBook.submitGloss(form,false);}
-        else if (alt==="glossrespond") 
-            addgloss_respond(menu,form);
-        else if (metaBook.glossmodes.exec(alt))
-            metaBook.setGlossMode(alt,form);
-        else fdjtLog.warn("Bad alt=%s in glossmode_release",alt);
-        dropClass(menu,"expanded");
-        dropClass(menu,"held");}
-
-    function glossmode_slip(evt) {
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var menu=getParent(target,'.addglossmenu');
-        dropClass(target,"held");
-        if (!(slip_timeout)) {
-            slip_timeout=setTimeout(function(){
-                dropClass(menu,"expanded");},
-                                    500);}}
-
-    function addgloss_delete(menu,form,div,noprompt){
-        if (!(form)) form=getParent(menu,"FORM");
-        if (!(div)) div=getParent(form,".metabookglossform");
-        var modified=fdjtDOM.hasClass(div,"modified");
-        // This keeps it from being saved when it loses the focus
-        dropClass(div,"modified");
-        dropClass(menu,"expanded");
-        var uuid=getInputValues(form,"UUID")[0];
-        var gloss=metaBook.glossdb.probe(uuid);
-        if ((!(gloss))||(!(gloss.created))) {
-            delete_gloss(uuid);
-            metaBook.setMode(false);
-            fdjtDOM.remove(div);
-            metaBook.setGlossTarget(false);
-            metaBook.setTarget(false);
-            return;}
-        if (noprompt) {
-            delete_gloss(uuid);
-            metaBook.setMode(false);
-            fdjtDOM.remove(div);
-            metaBook.setGlossTarget(false);
-            metaBook.setTarget(false);
-            return;}
-        fdjt.UI.choose([{label: "Delete",
-                         handler: function(){
-                             delete_gloss(uuid);
-                             metaBook.setMode(false);
-                             fdjtDOM.remove(div);
-                             metaBook.setGlossTarget(false);
-                             metaBook.setTarget(false);},
-                         isdefault: true},
-                        {label: "Cancel"}],
-                       ((modified)?
-                        ("Delete this gloss?  Discard your changes?"):
-                        ("Delete this gloss?")),
-                       fdjtDOM(
-                           "div.smaller",
-                           "(Created ",
-                           fdjtTime.shortString(gloss.created),
-                           ")"));}
-
-    function addgloss_cancel(menu,form,div){
-        if (!(form)) form=getParent(menu,"FORM");
-        if (!(div)) div=getParent(form,".metabookglossform");
-        metaBook.cancelGloss();
-        metaBook.setMode(false);
-        fdjtDOM.remove(div);
-        metaBook.setGlossTarget(false);
-        metaBook.setTarget(false);
-        return;}
-
-    function addgloss_respond(target){
-        var block=getParent(target,".metabookglossform");
-        if (!(block)) return;
-        var glosselt=getInput(block,'UUID');
-        if (!(glosselt)) return;
-        var qref=glosselt.value;
-        var gloss=metaBook.glossdb.probe(qref);
-        if (!(gloss)) return;
-        var form=metaBook.setGlossTarget(gloss,metaBook.getGlossForm(gloss,true));
-        if (!(form)) return;
-        metaBook.setMode("addgloss");}
-    
-    /* Changing gloss networks */
-    
-    function changeGlossNetwork(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var alternate=fdjtID(
-            (fdjtDOM.hasParent(target,".metabookglossform"))?
-                ("METABOOKNETWORKBUTTONS"):(("METABOOKLIVEGLOSS")));
-        var doppels=getInputsFor(alternate,'NETWORK',target.value);
-        fdjtUI.CheckSpan.set(doppels,target.checked);}
-    metaBook.UI.changeGlossNetwork=changeGlossNetwork;
-
-    function changeGlossPosting(evt){
-        var target=fdjtUI.T(evt=(evt||window.event));
-        var glossdiv=getParent(target,".metabookglossform");
-        if (target.checked) fdjtDOM.addClass(glossdiv,"posted");
-        else fdjtDOM.dropClass(glossdiv,"posted");}
-    metaBook.UI.changeGlossPosting=changeGlossPosting;
-
-    function changeGlossPrivacy(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt=(evt||window.event));
-        var glossdiv=getParent(target,".metabookglossform");
-        var postgloss=getChild(glossdiv,".postgloss");
-        var postinput=(postgloss)&&(getInput(postgloss,"POSTGLOSS"));
-        if (postgloss) {
-            if (target.checked) {
-                if (postinput) postinput.disabled=true;}
-            else {
-                if (postinput) postinput.disabled=false;}}
-        if (target.checked) fdjtDOM.addClass(glossdiv,"private");
-        else fdjtDOM.dropClass(glossdiv,"private");}
-    metaBook.UI.changeGlossPrivacy=changeGlossPrivacy;
-
-    function exposureClicked(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var form=getParent(target,"FORM");
-        if (form.className==="addoutlet")
-            fdjt.UI.CheckSpan.onclick(evt);
-        else metaBook.setGlossMode("addoutlet");}
-    metaBook.UI.exposureClicked=exposureClicked;
-
     /* Back to the text */
 
     function back_to_reading(evt){
@@ -36362,116 +36675,11 @@ metaBook.Slice=(function () {
         clearFocus(input);}
     metaBook.UI.blur=metabookblur;
 
-    /* Full page zoom mode */
-    
-    function startZoom(node){
-        var zoom_target=fdjt.ID("METABOOKZOOMTARGET");
-        if (!(node)) return stopZoom();
-        if (metaBook.zoomtarget===node) {
-            metaBook.zoomed=node;
-            addClass(document.body,"mbZOOM");}
-        metaBook.zoomtarget=node;
-        var copy=node.cloneNode();
-        fdjtDOM.stripIDs(copy);
-        copy.setAttribute("style","");
-        copy.id="METABOOKZOOMTARGET";
-        fdjt.DOM.replace(zoom_target,copy);
-        addClass(document.body,"mbZOOM");}
-    metaBook.startZoom=startZoom;
-
-    function stopZoom(evt){
-        dropClass(document.body,"mbZOOM");
-        metaBook.zoomed=false;
-        if (evt) fdjt.UI.cancel(evt);}
-    metaBook.stopZoom=stopZoom;
-    
-    // Not yet implemented, but the idea is to save some number of
-    // audio/video/iframe elements to make restoring them faster.
-    // var saved_players=[];
-    // var n_players_to_save=7;
-    
-    function showMedia(url,type){
-        if (metaBook.showing===url) {
-            addClass(document.body,"mbMEDIA");
-            return;}
-        var media_target=fdjt.ID("METABOOKMEDIATARGET");
-        var media_elt=false, src_elt=false;
-        var use_src=url;
-        if (url.search("https://glossdata.sbooks.net/")===0) {
-            var cache_key="cache("+url+")";
-            var cache_val=fdjtState.getLocal(cache_key);
-            if ((cache_val)&&(cache_val.slice(0,5)==="data:"))
-                use_src=cache_val;}
-        if (type.search("image")===0) {
-            media_elt=fdjtDOM("IMG");
-            media_elt.src=use_src;}
-        else if (type.search("audio")===0) {
-            src_elt=fdjtDOM("SOURCE");
-            media_elt=fdjtDOM("AUDIO",src_elt);
-            media_elt.setAttribute("CONTROLS","CONTROLS");
-            media_elt.setAttribute("AUTOPLAY","AUTOPLAY");
-            src_elt.type=type;
-            src_elt.src=use_src;}
-        else if (type.search("video")===0) {
-            src_elt=fdjtDOM("SOURCE");
-            src_elt.type=type;
-            media_elt=fdjtDOM("VIDEO",src_elt);
-            media_elt.setAttribute("CONTROLS","CONTROLS");
-            media_elt.setAttribute("AUTOPLAY","AUTOPLAY");
-            src_elt.src=use_src;}
-        else if (url.search("https://www.youtube.com/embed/")===0) {
-            url="https://www.youtube-nocookie.com/"+
-                url.slice("https://www.youtube.com/".length);
-            if (url.indexOf("?")>0) 
-                url=url+"&rel=0";
-            else url=url+"?rel=0";}
-        else {
-            media_elt=fdjtDOM("IFRAME");
-            media_elt.src=use_src;}
-        media_elt.id="METABOOKMEDIATARGET";
-        metaBook.showing=url;
-        if (media_elt)
-            fdjt.DOM.replace(media_target,media_elt);
-        else fdjt.ID("METABOOKMEDIA").appendChild(media_target);
-        addClass(document.body,"mbMEDIA");}
-    metaBook.showMedia=showMedia;
-    function hideMedia(){
-        dropClass(document.body,"mbMEDIA");}
-    metaBook.hideMedia=hideMedia;
-
-    var pause_media_timeout=false;
-    function closeMedia_tapped(evt){
-        evt=evt||window.event;
-        var media_elt=fdjt.ID("METABOOKMEDIATARGET");
-        if (pause_media_timeout) {
-            clearTimeout(pause_media_timeout);
-            pause_media_timeout=false;
-            dropClass(document.body,"mbMEDIA");}
-        else if (evt.shiftKey) {
-            clearTimeout(pause_media_timeout);
-            pause_media_timeout=false;
-            dropClass(document.body,"mbMEDIA");}
-        else if ((media_elt)&&(media_elt.pause)&&
-                 (!(media_elt.paused))) {
-            pause_media_timeout=setTimeout(function(){
-                media_elt.pause();
-                pause_media_timeout=false;
-                dropClass(document.body,"mbMEDIA");},
-                                           1500);}
-        else dropClass(document.body,"mbMEDIA");}
-    metaBook.hideMedia=hideMedia;
-
     /* Rules */
 
     var noDefault=fdjt.UI.noDefault;
     var cancel=fdjtUI.cancel;
     
-    function generic_cancel(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        if (fdjtUI.isClickable(target)) return;
-        else cancel(evt);}
-
     function setHelp(flag){
         if (flag) {
             fdjtDOM.addClass(document.body,"mbSHOWHELP");
@@ -36494,11 +36702,6 @@ metaBook.Slice=(function () {
         return false;}
     metaBook.toggleHelp=toggleHelp;
 
-    function editglossnote(evt){
-        evt=evt||window.event;
-        metaBook.setGlossMode("editnote");
-        fdjtUI.cancel(evt);}
-
     function handleXTarget(evt){
         evt=evt||window.event;
         var anchor=fdjtUI.T(evt);
@@ -36509,19 +36712,23 @@ metaBook.Slice=(function () {
             fn();}}
 
     function unhighlightSettings(){
-        dropClass(fdjtDOM.$(".metabookhighlightsetting"),"metabookhighlightsetting");}
+        dropClass(fdjtDOM.$(".metabookhighlightsetting"),
+                  "metabookhighlightsetting");}
     function highlightSetting(id,evt){
         var setting=fdjtID(id);
         if (evt) fdjt.UI.cancel(evt);
         if (!(id)) {
             fdjtLog.warn("Couldn't resolve setting %s",id);
-            dropClass(fdjtDOM.$(".metabookhighlightsetting"),"metabookhighlightsetting");
+            dropClass(fdjtDOM.$(".metabookhighlightsetting"),
+                      "metabookhighlightsetting");
             metaBook.setMode("device");
             return;}
         addClass(setting,"metabookhighlightsetting");
         if (metaBook.mode!=="device") {
             if (metaBook.popmode) {
-                var fn=metaBook.popmode; metaBook.popmode=unhighlightSettings(); fn();}
+                var fn=metaBook.popmode;
+                metaBook.popmode=unhighlightSettings(); 
+                fn();}
             metaBook.setMode("device");}}
     metaBook.UI.highlightSetting=highlightSetting;
 
@@ -36529,7 +36736,10 @@ metaBook.Slice=(function () {
         evt=evt||window.event;
         if ((metaBook.touch)&&(!(metaBook.hudup))) return;
         if (!((evt.shiftKey)||((evt.touches)&&(evt.touches.length>=2)))) {
-            var opened=metaBook.readLocal("metabook.opened("+metaBook.docuri+")",true);
+            var opened=
+                metaBook.readLocal(
+                    "metabook.opened("+metaBook.docuri+")",
+                    true);
             if ((opened)&&((opened-fdjtTime())>(60*10*1000))) {
                 if (fdjtID("METABOOKCOVERHOLDER"))
                     fdjtID("METABOOKCOVER").className="bookcover";
@@ -36553,8 +36763,9 @@ metaBook.Slice=(function () {
             metaBook.page_turner=false;
             return;}
         if (metaBook.select_target) {
-            startAddGloss(metaBook.select_target,
-                          ((evt.shiftKey)&&("addtag")),evt);
+            metaBook.startAddGloss(
+                metaBook.select_target,
+                ((evt.shiftKey)&&("addtag")),evt);
             metaBook.select_target=false;}}
     
     function raiseHUD(evt){
@@ -36569,70 +36780,6 @@ metaBook.Slice=(function () {
         fdjt.UI.cancel(evt);
         return false;}
     metaBook.lowerHUD=lowerHUD;
-
-    function addGlossDragOK(evt){
-        evt=evt||window.event;
-        var types=evt.dataTransfer.types;
-        if (!(types)) return;
-        else if (types.indexOf("text/uri-list")>=0)
-            fdjt.UI.cancel(evt);
-        else if (types.indexOf("text/plain")>=0) {
-            var text=evt.dataTransfer.getData("text/plain");
-            if (text.search(/^\s*https?:\/\//)===0)
-                fdjt.UI.cancel(evt);}
-        else {}}
-    function addGlossDrop(evt){
-        evt=evt||window.event;
-        var types=evt.dataTransfer.types;
-        if (!(types)) return;
-        else if (types.indexOf("text/uri-list")>=0) {
-            var url=evt.dataTransfer.getData("URL");
-            if (!(url)) return;
-            fdjt.UI.cancel(evt);
-            metaBook.setGlossMode("attach");
-            setAttachType("linking");
-            fdjt.ID("METABOOKATTACHURL").value=url;
-            fdjt.ID("METABOOKATTACHTITLE").focus();}
-        else if (types.indexOf("text/plain")>=0) {
-            var text=evt.dataTransfer.getData("text/plain");
-            fdjt.UI.cancel(evt);
-            if (text.search(/^\s*https?:\/\//)===0) {
-                metaBook.setGlossMode("attach");
-                setAttachType("linking");
-                fdjt.ID("METABOOKATTACHURL").value=text;
-                fdjt.ID("METABOOKATTACHTITLE").focus();}
-            else {
-                var livegloss=fdjt.ID("METABOOKLIVEGLOSS");
-                var input=fdjtDOM.getInput(livegloss,"NOTE");
-                metaBook.setGlossMode(false);
-                input.value=text;
-                input.focus();}}
-        else {}}
-
-    function zoomIn(evt){
-        evt=evt||window.event;
-        var zb=fdjt.ID("METABOOKZOOMBOX");
-        var scale=metaBook.zoomscale;
-        if (!(scale)) scale=metaBook.zoomscale=1.0;
-        scale=scale*1.1;
-        metaBook.zoomscale=scale;
-        zb.style[fdjt.DOM.transform]="scale("+scale+")";
-        fdjt.UI.cancel(evt);}
-    function zoomOut(evt){
-        evt=evt||window.event;
-        var zb=fdjt.ID("METABOOKZOOMBOX");
-        var scale=metaBook.zoomscale;
-        if (!(scale)) scale=metaBook.zoomscale=1.0;
-        scale=scale/1.1;
-        metaBook.zoomscale=scale;
-        zb.style[fdjt.DOM.transform]="scale("+scale+")";
-        fdjt.UI.cancel(evt);}
-    function unZoom(evt){
-        evt=evt||window.event;
-        var zb=fdjt.ID("METABOOKZOOMBOX");
-        zb.style[fdjt.DOM.transform]="";
-        metaBook.zoomscale=false;
-        fdjt.UI.cancel(evt);}
 
     function saveGloss(evt){
         evt=evt||window.event; metaBook.submitGloss();}
@@ -36654,13 +36801,6 @@ metaBook.Slice=(function () {
         evt=evt||window.event; metaBook.UI.settingsReset(evt);}
     function updateSettings(evt){
         evt=evt||window.event; metaBook.UI.settingsUpdate(evt);}
-
-    function glossetc_touch(evt){
-        var target=fdjtUI.T(evt);
-        fdjtUI.CheckSpan.onclick(evt);
-        var form=getParent(target,"form");
-        var input=getInput(form,"NOTE");
-        input.focus();}
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.mouse,
@@ -36688,18 +36828,9 @@ metaBook.Slice=(function () {
                      click: cancel, mousedown: cancel,
                      mouseover: glossmark_hoverstart,
                      mouseout: glossmark_hoverdone},
-         glossbutton: {mouseup: glossbutton_ontap,mousedown: cancel},
-         summary: {tap: slice_tapped, hold: slice_held,
-                   release: slice_released, click: generic_cancel,
-                   slip: slice_slipped},
          hud: {click: handleXTarget, tap: handleXTarget},
          "#METABOOKSTARTPAGE": {click: metaBook.UI.dropHUD},
          "#METABOOKTOPBAR": {tap: raiseHUD},
-         /*
-         "#METABOOKTOOLTAB": {
-             mousedown: cancel,
-             mousemove: cancel,
-             mouseup: raiseHUD}, */
          "#METABOOKSHOWCOVER": {
              tap: showcover_tapped, release: showcover_released},
          "#METABOOKHUDHELP": {click: metaBook.UI.dropHUD},
@@ -36723,22 +36854,6 @@ metaBook.Slice=(function () {
          "#METABOOKTABS": {click: head_tap},
          "#METABOOKHEAD": {click: head_tap},
          "#METABOOKPAGEFOOT": {tap: foot_tap},
-         "#METABOOKADDTAGINPUT": {keydown: addtag_keydown},
-         "#METABOOKADDSHAREINPUT": {keydown: addoutlet_keydown},
-         "#METABOOKATTACHFORM": {submit: attach_submit},
-         "#METABOOKATTACHURL": {keydown: attach_keydown},
-         "#METABOOKATTACHTITLE": {keydown: attach_keydown},
-         "#METABOOKATTACHOK": {click: attach_action},
-         "#METABOOKATTACHCANCEL": {click: attach_cancel},
-         "#METABOOKADDGLOSS": {
-             dragenter: addGlossDragOK,
-             dragover: addGlossDragOK,
-             drop: addGlossDrop},
-         "#METABOOKGLOSSCLOUD": {
-             tap: metaBook.UI.handlers.glosscloud_select,
-             release: metaBook.UI.handlers.glosscloud_select},
-         "#METABOOKSHARECLOUD": {
-             tap: outlet_select,release: outlet_select},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
              release: metaBook.UI.handlers.searchcloud_select},
@@ -36765,27 +36880,14 @@ metaBook.Slice=(function () {
              slip: hudmodebutton,release: hudmodebutton},
          ".hudbutton[alt='save gloss']": {
              tap: saveGloss,hold: saveGloss},
-         // GLOSSFORM rules
-         ".metabookglossform": {click: glossform_touch,touchstart: glossform_touch},
-         "span.metabooksharegloss": {
-             tap: fdjt.UI.CheckSpan.onclick},
          ".metabookclosehud": {click: back_to_reading},
-         ".metabookglossform .response": {click: metaBook.toggleHUD},
-         ".addglossmenu": {
-             tap: glossmode_tap,
-             hold: glossmode_hold,
-             slip: glossmode_slip,
-             release: glossmode_release,
-             click: cancel},
-         "div.glossetc": {},
-         "div.glossetc div.sharing": {click: glossform_outlets_tapped},
-         "div.glossetc div.notetext": {click: editglossnote},
-         // For checkspans
-         ".metabookglossform, #METABOOKSETTINGS": {click: fdjt.UI.CheckSpan.onclick},
+         "#METABOOKSETTINGS": {click: fdjt.UI.CheckSpan.onclick},
          ".metabooktogglehelp": {click: toggleHelp},
          "#METABOOKCONSOLETEXTINPUT": {
-             focus: function(){fdjt.DOM.addClass('METABOOKCONSOLEINPUT','uptop');},
-             blur: function(){fdjt.DOM.dropClass('METABOOKCONSOLEINPUT','uptop');}},
+             focus: function(){
+                 fdjt.DOM.addClass('METABOOKCONSOLEINPUT','uptop');},
+             blur: function(){
+                 fdjt.DOM.dropClass('METABOOKCONSOLEINPUT','uptop');}},
          "#METABOOKCONSOLEBUTTON": {click: consolefn},
          "#METABOOKSAVESETTINGS": {click: saveSettings},
          "#METABOOKAPPLYSETTINGS": {click: applySettings},
@@ -36818,13 +36920,7 @@ metaBook.Slice=(function () {
              click: function(evt){
                  evt=evt||window.event;
                  metaBook.UI.handlers.everyone_ontap(evt);
-                 fdjt.UI.cancel(event);}},
-         "#METABOOKCLOSEMEDIA": {mousedown: closeMedia_tapped},
-         "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
-         "#METABOOKZOOMHELP": {click: toggleHelp},
-         "#METABOOKZOOMIN": {click: zoomIn},
-         "#METABOOKZOOMOUT": {click: zoomOut},
-         "#METABOOKUNZOOM": {click: unZoom}});
+                 fdjt.UI.cancel(event);}}});
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.touch,
@@ -36850,20 +36946,13 @@ metaBook.Slice=(function () {
                touchtoo: toc_touchtoo,
                touchmove: preview_touchmove_nodefault},
          glossmark: {touchstart: glossmark_tapped,touchend: cancel},
-         // glossbutton: {mouseup: glossbutton_ontap,mousedown: cancel},
-         summary: {tap: slice_tapped,
-                   hold: slice_held,
-                   release: slice_released,
-                   touchtoo: slice_touchtoo,
-                   touchmove: preview_touchmove_nodefault,
-                   slip: slice_slipped},
          "#METABOOKSTARTPAGE": {touchend: metaBook.UI.dropHUD},
          "#METABOOKTOPBAR": {tap: raiseHUD},
          /*
-         "#METABOOKTOOLTAB": {
-             touchstart: cancel,
-             touchmove: cancel,
-             touchend: raiseHUD}, */
+           "#METABOOKTOOLTAB": {
+           touchstart: cancel,
+           touchmove: cancel,
+           touchend: raiseHUD}, */
          "#METABOOKSHOWCOVER": {
              tap: showcover_tapped, release: showcover_released},
          "#METABOOKSOURCES": {
@@ -36890,18 +36979,8 @@ metaBook.Slice=(function () {
          "#METABOOKHEAD": {touchend: head_tap},
          "#METABOOKFOOT": {
              tap: foot_tap,touchstart: noDefault,touchmove: noDefault},
-         "#METABOOKADDTAGINPUT": {keydown: addtag_keydown},
-         "#METABOOKADDSHAREINPUT": {keydown: addoutlet_keydown},
-         "#METABOOKATTACHFORM": {submit: attach_submit},
-         "#METABOOKATTACHURL": {keydown: attach_keydown},
-         "#METABOOKATTACHTITLE": {keydown: attach_keydown},
-         "#METABOOKATTACHOK": {click: attach_action},
-         "#METABOOKATTACHCANCEL": {click: attach_cancel},
-         "#METABOOKGLOSSCLOUD": {
-             tap: metaBook.UI.handlers.glosscloud_select,
-             release: metaBook.UI.handlers.glosscloud_select},
-         "#METABOOKSHARECLOUD": {
-             tap: outlet_select,release: outlet_select},
+         "#METABOOKGLOSSDETAIL": {
+             touchend: metaBook.UI.dropHUD,click: cancel},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
              release: metaBook.UI.handlers.searchcloud_select},
@@ -36924,40 +37003,16 @@ metaBook.Slice=(function () {
              touchstart: back_to_reading,
              touchmove: cancel,
              touchend: cancel},
-         "#METABOOKADDGLOSS": {
-             dragenter: addGlossDragOK,
-             dragover: addGlossDragOK,
-             drop: addGlossDrop},
-         "#METABOOKGLOSSDETAIL": {
-             touchend: metaBook.UI.dropHUD,click: cancel},
          ".hudmodebutton": {
              tap: hudmodebutton,hold: hudmodebutton,release: hudmodebutton,
              slip: hudmodebutton},
          ".hudbutton[alt='save gloss']": {
              tap: saveGloss,hold: saveGloss},
          // GLOSSFORM rules
-         //".metabookglossform": {click: cancel,touchend: glossform_touch},
-         "span.metabooksharegloss": {},
          ".metabookclosehud": {
              click: back_to_reading,
              touchmove: cancel,
              touchend: cancel},
-         ".metabookglossform .response": {click: metaBook.toggleHUD},
-         ".addglossmenu": {
-             tap: glossmode_tap,
-             hold: glossmode_hold,
-             slip: glossmode_slip,
-             release: glossmode_release,
-             click: cancel},
-         "div.glossetc": {
-             touchstart: glossetc_touch,
-             touchend: cancel},
-         "div.glossetc div.sharing": {
-             touchend: glossform_outlets_tapped,
-             click: cancel},
-         "div.glossetc div.notetext": {
-             touchend: editglossnote,
-             click: cancel},
          "#METABOOKSETTINGS": {
              touchend: fdjt.UI.CheckSpan.onclick},
          ".metabooktogglehelp": {
@@ -37013,20 +37068,263 @@ metaBook.Slice=(function () {
                  metaBook.UI.handlers.clearSearch(evt);
                  fdjt.UI.cancel(evt);
                  return false;}},
+         summary: {touchmove: preview_touchmove_nodefault},
          "#METABOOKSOURCES .button.everyone": {
              touchstart: cancel,
              touchend: function(evt){
                  evt=evt||window.event;
                  metaBook.UI.handlers.everyone_ontap(evt);
-                 fdjt.UI.cancel(event);}},
-         "#METABOOKCLOSEMEDIA": {touchstart: closeMedia_tapped},
-         "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
-         "#METABOOKZOOMHELP": {click: toggleHelp},
+                 fdjt.UI.cancel(event);}}});
+    
+})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ###################### metabook/interaction.js ###################### */
+
+/* Copyright (C) 2009-2014 beingmeta, inc.
+
+   This file implements most of the interaction handling for the
+   e-reader web application.
+
+   This file is part of metaBook, a Javascript/DHTML web application for reading
+   large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+/* global metaBook: false */
+
+(function(){
+    "use strict";
+
+    var fdjtDOM=fdjt.DOM;
+    var fdjtState=fdjt.State;
+    var fdjtLog=fdjt.Log;
+    var mB=metaBook;
+
+    // Imports (kind of )
+    var addClass=fdjtDOM.addClass;
+    var dropClass=fdjtDOM.dropClass;
+
+    /* Full page zoom mode */
+    
+    function startZoom(node){
+        var zoom_target=fdjt.ID("METABOOKZOOMTARGET"), copy;
+        if (!(node)) return stopZoom();
+        if (metaBook.zoomtarget===node) {
+            metaBook.zoomed=node;
+            addClass(document.body,"mbZOOM");}
+        metaBook.zoomtarget=node;
+        if (!(metaBook.layout)) {}
+        else {
+            var layout=metaBook.layout;
+            var id=node.getAttribute("data-baseid")||node.id;
+            if ((layout.lostids)&&(layout.lostids[id]))
+                copy=layout.lostids[id].cloneNode(true);
+            else if (layout.splits[id])
+                copy=layout.splits[id].cloneNode(true);
+            else {}}
+        if (!(copy)) copy=node.cloneNode(true);
+        fdjtDOM.stripIDs(copy,false,"data-baseid");
+        copy.setAttribute("style","");
+        copy.id="METABOOKZOOMTARGET";
+        fdjt.DOM.replace(zoom_target,copy);
+        addClass(document.body,"mbZOOM");}
+    metaBook.startZoom=startZoom;
+
+    function stopZoom(evt){
+        dropClass(document.body,"mbZOOM");
+        metaBook.zoomed=false;
+        if (evt) fdjt.UI.cancel(evt);}
+    metaBook.stopZoom=stopZoom;
+
+    function zoomIn(evt){
+        evt=evt||window.event;
+        var zb=fdjt.ID("METABOOKZOOMBOX");
+        var scale=metaBook.zoomscale;
+        if (!(scale)) scale=metaBook.zoomscale=1.0;
+        scale=scale*1.1;
+        metaBook.zoomscale=scale;
+        zb.style[fdjt.DOM.transform]="scale("+scale+")";
+        fdjt.UI.cancel(evt);}
+    function zoomOut(evt){
+        evt=evt||window.event;
+        var zb=fdjt.ID("METABOOKZOOMBOX");
+        var scale=metaBook.zoomscale;
+        if (!(scale)) scale=metaBook.zoomscale=1.0;
+        scale=scale/1.1;
+        metaBook.zoomscale=scale;
+        zb.style[fdjt.DOM.transform]="scale("+scale+")";
+        fdjt.UI.cancel(evt);}
+    function unZoom(evt){
+        evt=evt||window.event;
+        var zb=fdjt.ID("METABOOKZOOMBOX");
+        zb.style[fdjt.DOM.transform]="";
+        metaBook.zoomscale=false;
+        fdjt.UI.cancel(evt);}
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.mouse,
+	{"#METABOOKZOOMCLOSE": {click: stopZoom},
+         "#METABOOKZOOMHELP": {click: metaBook.toggleHelp},
          "#METABOOKZOOMIN": {click: zoomIn},
          "#METABOOKZOOMOUT": {click: zoomOut},
          "#METABOOKUNZOOM": {click: unZoom}});
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.touch,
+        {"#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
+         "#METABOOKZOOMHELP": {click: metaBook.toggleHelp},
+         "#METABOOKZOOMIN": {click: zoomIn},
+         "#METABOOKZOOMOUT": {click: zoomOut},
+         "#METABOOKUNZOOM": {click: unZoom}});
+
+    // Not yet implemented, but the idea is to save some number of
+    // audio/video/iframe elements to make restoring them faster.
+    // var saved_players=[];
+    // var n_players_to_save=7;
     
+    function showMedia(url,type){
+        var media_target=fdjt.ID("METABOOKMEDIATARGET");
+        var media_elt=false, src_elt=false;
+        function placeMedia(){
+            if (media_elt) fdjt.DOM.replace(media_target,media_elt);
+            else fdjt.ID("METABOOKMEDIA").appendChild(media_target);
+            addClass(document.body,"mbMEDIA");}
+        if (metaBook.showing===url) {
+            addClass(document.body,"mbMEDIA");
+            return;}
+        else if (type.search("image")===0) {
+            src_elt=media_elt=fdjtDOM("IMG");}
+        else if (type.search("audio")===0) {
+            src_elt=fdjtDOM("SOURCE");
+            media_elt=fdjtDOM("AUDIO",src_elt);
+            media_elt.setAttribute("CONTROLS","CONTROLS");
+            media_elt.setAttribute("AUTOPLAY","AUTOPLAY");
+            src_elt.type=type;}
+        else if (type.search("video")===0) {
+            src_elt=fdjtDOM("SOURCE");
+            src_elt.type=type;
+            media_elt=fdjtDOM("VIDEO",src_elt);
+            media_elt.setAttribute("CONTROLS","CONTROLS");
+            media_elt.setAttribute("AUTOPLAY","AUTOPLAY");}
+        else if (url.search("https://www.youtube.com/embed/")===0) {
+            url="https://www.youtube-nocookie.com/"+
+                url.slice("https://www.youtube.com/".length);
+            if (url.indexOf("?")>0) 
+                url=url+"&rel=0";
+            else url=url+"?rel=0";}
+        else {
+            src_elt=media_elt=fdjtDOM("IFRAME");}
+        media_elt.id="METABOOKMEDIATARGET";
+        metaBook.showing=url;
+        if ((src_elt)&&(mB.tmpurlcache[url])) {
+            src_elt.src=mB.tmpurlcache[url];
+            placeMedia();}
+        else if (src_elt) {
+            var cache_key="cache("+url+")";
+            var cache_val=fdjtState.getLocal(cache_key);
+            if (cache_val) {
+                if (cache_val.slice(0,5)==="data:")
+                    src_elt.src=cache_val;
+                else if (cache_val==="cached") {
+                    addClass(fdjt.ID("METABOOKMEDIA"),"loadingcontent");
+                    addClass(src_elt,"loadingcontent");
+                    var txn=mB.urlCacheDB.transaction(["urlcache"]);
+                    var storage=txn.objectStore("urlcache");
+                    var req=storage.get(url);
+                    req.onsuccess=function(event){
+                        var target=event.target;
+                        var result=((target)&&(target.result));
+                        dropClass(fdjt.ID("METABOOKMEDIA"),"loadingcontent");
+                        dropClass(src_elt,"loadingcontent");
+                        if ((result)&&(result.datauri))
+                            src_elt.src=result.datauri;
+                        else src_elt.src=url;
+                        placeMedia();};
+                    req.onerror=function(event){
+                        fdjtLog("Retrieval of %s from indexedDB failed: %o",
+                                url,event.errorCode);
+                        dropClass(fdjt.ID("METABOOKMEDIA"),"loadingcontent");
+                        dropClass(src_elt,"loadingcontent");
+                        src_elt.src=url;
+                        placeMedia();};}
+                else if (metaBook.srcloading[url]) {
+                    metaBook.srcloading[url].push(src_elt); placeMedia();}
+                else {
+                    metaBook.srcloading[url]=[src_elt];
+                    placeMedia();}}
+            else {
+                src_elt.src=url;
+                placeMedia();}}
+        else placeMedia();}
+    metaBook.showMedia=showMedia;
+    function hideMedia(){
+        dropClass(document.body,"mbMEDIA");}
+    metaBook.hideMedia=hideMedia;
+
+    var pause_media_timeout=false;
+    function closeMedia_tapped(evt){
+        evt=evt||window.event;
+        var media_elt=fdjt.ID("METABOOKMEDIATARGET");
+        if (pause_media_timeout) {
+            clearTimeout(pause_media_timeout);
+            pause_media_timeout=false;
+            dropClass(document.body,"mbMEDIA");}
+        else if (evt.shiftKey) {
+            clearTimeout(pause_media_timeout);
+            pause_media_timeout=false;
+            dropClass(document.body,"mbMEDIA");}
+        else if ((media_elt)&&(media_elt.pause)&&
+                 (!(media_elt.paused))) {
+            pause_media_timeout=setTimeout(function(){
+                media_elt.pause();
+                pause_media_timeout=false;
+                dropClass(document.body,"mbMEDIA");},
+                                           1500);}
+        else dropClass(document.body,"mbMEDIA");}
+    metaBook.hideMedia=hideMedia;
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.mouse,
+        {"#METABOOKCLOSEMEDIA": {mousedown: closeMedia_tapped}});
+
+    fdjt.DOM.defListeners(
+        metaBook.UI.handlers.touch,
+        {"#METABOOKCLOSEMEDIA": {touchstart: closeMedia_tapped}});
+
 })();
+
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -39647,15 +39945,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2429-g705dd23';
+metaBook.version='v0.5-2435-g8945dff';
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Thu Feb 12 19:48:33 UTC 2015';
-metaBook.buildid='72bebd71-0aaa-443e-9d40-a15fcceee0e6';
+metaBook.buildtime='Sat Feb 14 13:21:53 UTC 2015';
+metaBook.buildid='a7f10174-1c08-4f6e-a973-2d262f4fc0a4';
 
 Knodule.version='v0.8-144-gc96d4d4';
 // sBooks metaBook build information
 metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Thu Feb 12 19:48:42 UTC 2015';
-metaBook.buildid='c2c50cd3-1739-4d56-9ae3-b5d03a8a82f9';
+metaBook.buildtime='Sat Feb 14 13:22:15 UTC 2015';
+metaBook.buildid='e8c7e945-6e93-4d14-b90c-06c1009b5157';
 
-fdjt.CodexLayout.sourcehash='7D7DDAF9A70B01CC870B5A133EB93775AD570B16';
+fdjt.CodexLayout.sourcehash='C4EE7DAFDAC80D577CAFF2D9C3BDF6B23A447EFD';
