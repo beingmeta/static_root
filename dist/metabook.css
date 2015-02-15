@@ -1833,7 +1833,7 @@ span.dterm.weak {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -2759,7 +2759,7 @@ div.fdjtdialog.metabooktaptap .choices button {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -3278,7 +3278,7 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -3337,7 +3337,7 @@ body._DYSLEXICAL #METABOOKBODY, .dyslexical {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -3958,7 +3958,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -5285,7 +5285,7 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -5590,7 +5590,7 @@ body._FULLHEIGHT #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT > span > span {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -5909,7 +5909,7 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -6407,7 +6407,7 @@ div.metabookhelp .glossbarbox {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6807,7 +6807,7 @@ body._TOUCH #METABOOKSTATICTOC div.metabooktoc div.head {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7013,7 +7013,7 @@ div.metabookslice div.metabookcard.slicenewpassage div.idhead {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7217,7 +7217,7 @@ span.completion.sectname.cue {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7417,7 +7417,7 @@ body._MOUSE .metabookcard .age:hover {text-decoration: underline;}
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7591,7 +7591,7 @@ body._ANIMATE .qtags {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -8255,7 +8255,7 @@ div.metabookglossform.submitclose form > div.messageoverlay {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -8311,7 +8311,7 @@ body._MOUSE #METABOOKHUD #METABOOKHEARTBODY .flyleafplate a:hover {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -8450,7 +8450,7 @@ div.metabookhelp .result span { display: none; }
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc. */
+/* Copyright (C) 2009-2015 beingmeta, inc. */
 
 /* Media rules for the web reader */
 

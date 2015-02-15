@@ -26,14 +26,14 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1274-gb7254f3';
-var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Sat Feb 14 13:21:52 UTC 2015';
-var fdjt_builduuid='f2a8cc05-a3c5-4221-9ac0-643aa80df4c6';
+var fdjt_revision='1.5-1276-g8417c56';
+var fdjt_buildhost='moby.dot.beingmeta.com';
+var fdjt_buildtime='Sun Feb 15 18:02:42 EST 2015';
+var fdjt_builduuid='df414b5d-16cd-440c-85f7-2d7aa38663d4';
 
 /* -*- Mode: Javascript; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files and is
    part of the FDJT web toolkit (www.fdjt.org)
 
@@ -97,7 +97,7 @@ fdjt.builduuid=fdjt_builduuid;
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -1134,7 +1134,7 @@ fdjt.charnames={"AElig": "Æ",
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -1771,11 +1771,13 @@ fdjt.String=
                     var propname=((bar>=0)?(prop.slice(0,bar)):(prop));
                     if ((done[prop])||(done[propname])) continue;
                     else if (data.hasOwnProperty(propname)) {
-                        var pat=new RegExp(
-                            "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
-                        var val=data[propname], stringval=val.toString();
+                        var val=data[propname];
                         done[propname]=prop;
-                        text=text.replace(pat,stringval);}
+                        if (val) {
+                            var pat=new RegExp(
+                                "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
+                            var stringval=val.toString();
+                            text=text.replace(pat,stringval);}}
                     else if (bar>0) {
                         var replace=prop.slice(bar+1);
                         text=text.replace("{{"+prop+"}}",replace);
@@ -1802,7 +1804,7 @@ fdjt.String=
 
 /* ######################### fdjt/time.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
     of various kinds.
@@ -2044,7 +2046,7 @@ fdjt.ET=fdjt.Time.ET;
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -2150,7 +2152,7 @@ fdjt.Template=(function(){
 
 /* ######################### fdjt/hash.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -5681,7 +5683,7 @@ window.IScroll=IScroll;
 
 /* ######################### fdjt/log.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -5842,7 +5844,7 @@ fdjt.Log=(function(){
 
 /* ######################### fdjt/init.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -6035,7 +6037,7 @@ fdjt.Log=(function(){
 
 /* ######################### fdjt/state.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -6586,7 +6588,7 @@ fdjt.State=
 
 /* ######################### fdjt/dom.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -10055,7 +10057,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
 /* ######################### fdjt/refdb.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -11750,7 +11752,7 @@ if (!(fdjt.RefDB)) {
 
 /* ######################### fdjt/ajax.js ###################### */
 
-/* Copyright (C) 2007-2014 beingmeta, inc.
+/* Copyright (C) 2007-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides an abstraction layer for Ajax calls
 
@@ -12076,7 +12078,7 @@ fdjt.Ajax=
 
 /* ######################### fdjt/wsn.js ###################### */
 
-/* Copyright (C) 2011-2014 beingmeta, inc.
+/* Copyright (C) 2011-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -12341,7 +12343,7 @@ fdjt.WSN=WSN;
 
 /* ######################### fdjt/textindex.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -12603,7 +12605,7 @@ fdjt.TextIndex=(function(){
 
 /* ######################### fdjt/ui.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -14052,7 +14054,7 @@ fdjt.disenableInputs=fdjt.UI.disenableInputs=
 
 /* ################# fdjt/dialog.js ###################### */
 
-/* Copyright (C) 2012-2014 beingmeta, inc.
+/* Copyright (C) 2012-2015 beingmeta, inc.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -14419,7 +14421,7 @@ fdjt.Dialog=(function(){
 
 /* ######################### fdjt/completions.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -15020,7 +15022,7 @@ if (!(fdjt.UI)) fdjt.UI={};
 
 /* ######################### fdjt/taphold.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
@@ -15990,7 +15992,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
 
 /* ######################### fdjt/selecting.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
@@ -16706,7 +16708,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 
 /* ######################### fdjt/scrollever.js ###################### */
 
-/* Copyright (C) 2011-2014 beingmeta, inc.
+/* Copyright (C) 2011-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file implements a simple version of infinite scrolling.
 
@@ -16852,7 +16854,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 /* -*- Mode: Javascript; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files and is
    part of the FDJT web toolkit (www.fdjt.org)
 
@@ -16905,7 +16907,7 @@ var fdjtDOM=fdjt.DOM;
 
 /* ##################### knodules/knodules.js ####################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file provides a Javascript/ECMAScript of KNODULES, 
    a lightweight knowledge representation facility.
 
@@ -17391,7 +17393,7 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
 
 /* ##################### knodules/knodules.js ####################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file provides a Javascript/ECMAScript of KNODULES, 
    a lightweight knowledge representation facility.
 
@@ -17658,7 +17660,7 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
 
 /* ##################### knodules/html.js ####################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file provides for HTML documents using KNODULES, including
    the extraction and processing of embedded KNODULE definitions
    or references and interaction with interactive parts of the
@@ -18883,7 +18885,7 @@ var idbModules = {};
 
 /* ######################### fdjt/codexlayout.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -23056,7 +23058,7 @@ else
 
 /* ###################### metabook/root.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -23260,7 +23262,7 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/core.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -24193,7 +24195,7 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/config.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -24463,7 +24465,7 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -24891,7 +24893,7 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/domscan.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements extraction of map and metadata from the loaded
    DOM.
@@ -25374,7 +25376,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/cover.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -25772,7 +25774,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -26056,7 +26058,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/tagindex.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -26472,7 +26474,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -26943,7 +26945,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/user.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -27270,7 +27272,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/getglosses.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -27667,7 +27669,7 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/startup.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file specifies the startup of the metaBook web application,
    initializing both internal data structures and the DOM.
@@ -28710,7 +28712,7 @@ metaBook.Setup=metaBook.StartupHandler;
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -28841,7 +28843,7 @@ metaBook.Setup=metaBook.StartupHandler;
 
 /* ###################### metabook/hud.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file provides initialization and some interaction for the
    metaBook HUD (Heads Up Display), an layer on the book content
@@ -29886,7 +29888,7 @@ metaBook.setMode=
 
 /* ###################### metabook/toc.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements the "dynamic table of contents" for the metaBook
    e-reader web application.
@@ -30201,7 +30203,7 @@ metaBook.TOC=
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
    large structured documents (sBooks).
 
@@ -30355,7 +30357,7 @@ metaBook.TOC=
 
 /* ###################### metabook/slices.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements the display of lists of glosses or summaries
    referring to book passages.
@@ -31324,7 +31326,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/clouds.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements the search component for the e-reader web
    application, and relies heavily on the Knodules module.
@@ -32017,7 +32019,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/social.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements basic features for browsing glosses based on
    their "sources" --- the reasons they're overlaid on the reader's
@@ -32371,7 +32373,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/search.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements the search component for the e-reader web
    application, and relies heavily on the Knodules module.
@@ -32810,7 +32812,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/glosses.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements the interface for adding and editing **glosses**,
    which are annotations associated with text passages in a document.
@@ -34964,7 +34966,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/interaction.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements most of the interaction handling for the
    e-reader web application.
@@ -37089,7 +37091,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/interaction.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements most of the interaction handling for the
    e-reader web application.
@@ -37337,7 +37339,7 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/layout.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file implements the layout component of metaBook, relying heavily
    on CodexLayout from the FDJT library.
@@ -39945,15 +39947,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2435-g8945dff';
-metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Sat Feb 14 13:21:53 UTC 2015';
-metaBook.buildid='a7f10174-1c08-4f6e-a973-2d262f4fc0a4';
+metaBook.version='v0.5-2436-g3baca3a';
+metaBook.buildhost='moby.dot.beingmeta.com';
+metaBook.buildtime='Sun Feb 15 18:02:50 EST 2015';
+metaBook.buildid='35d8ef8c-d37b-46ea-ba5e-cc9c9d1c3a75';
 
-Knodule.version='v0.8-144-gc96d4d4';
+Knodule.version='v0.8-145-gf3ac2cb';
 // sBooks metaBook build information
-metaBook.buildhost='dev.beingmeta.com';
-metaBook.buildtime='Sat Feb 14 13:22:15 UTC 2015';
-metaBook.buildid='e8c7e945-6e93-4d14-b90c-06c1009b5157';
+metaBook.buildhost='moby.dot.beingmeta.com';
+metaBook.buildtime='Sun Feb 15 18:02:50 EST 2015';
+metaBook.buildid='0ac61be0-7545-4391-9a7a-7091beafe553';
 
-fdjt.CodexLayout.sourcehash='C4EE7DAFDAC80D577CAFF2D9C3BDF6B23A447EFD';
+fdjt.CodexLayout.sourcehash='DA552448B72442456D4DEC77D1D3EE2F69EA0F1E';

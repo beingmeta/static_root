@@ -1,12 +1,12 @@
 // FDJT build information
-var fdjt_revision='1.5-1274-gb7254f3';
-var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Sat Feb 14 13:21:52 UTC 2015';
-var fdjt_builduuid='f2a8cc05-a3c5-4221-9ac0-643aa80df4c6';
+var fdjt_revision='1.5-1276-g8417c56';
+var fdjt_buildhost='moby.dot.beingmeta.com';
+var fdjt_buildtime='Sun Feb 15 18:02:42 EST 2015';
+var fdjt_builduuid='df414b5d-16cd-440c-85f7-2d7aa38663d4';
 
 /* -*- Mode: Javascript; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files and is
    part of the FDJT web toolkit (www.fdjt.org)
 
@@ -70,7 +70,7 @@ fdjt.builduuid=fdjt_builduuid;
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -1107,7 +1107,7 @@ fdjt.charnames={"AElig": "Æ",
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -1744,11 +1744,13 @@ fdjt.String=
                     var propname=((bar>=0)?(prop.slice(0,bar)):(prop));
                     if ((done[prop])||(done[propname])) continue;
                     else if (data.hasOwnProperty(propname)) {
-                        var pat=new RegExp(
-                            "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
-                        var val=data[propname], stringval=val.toString();
+                        var val=data[propname];
                         done[propname]=prop;
-                        text=text.replace(pat,stringval);}
+                        if (val) {
+                            var pat=new RegExp(
+                                "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
+                            var stringval=val.toString();
+                            text=text.replace(pat,stringval);}}
                     else if (bar>0) {
                         var replace=prop.slice(bar+1);
                         text=text.replace("{{"+prop+"}}",replace);
@@ -1775,7 +1777,7 @@ fdjt.String=
 
 /* ######################### fdjt/time.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
     of various kinds.
@@ -2017,7 +2019,7 @@ fdjt.ET=fdjt.Time.ET;
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -2123,7 +2125,7 @@ fdjt.Template=(function(){
 
 /* ######################### fdjt/hash.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -5654,7 +5656,7 @@ window.IScroll=IScroll;
 
 /* ######################### fdjt/log.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -5815,7 +5817,7 @@ fdjt.Log=(function(){
 
 /* ######################### fdjt/init.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -6008,7 +6010,7 @@ fdjt.Log=(function(){
 
 /* ######################### fdjt/state.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -6559,7 +6561,7 @@ fdjt.State=
 
 /* ######################### fdjt/dom.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -10028,7 +10030,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
 /* ######################### fdjt/refdb.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -11723,7 +11725,7 @@ if (!(fdjt.RefDB)) {
 
 /* ######################### fdjt/ajax.js ###################### */
 
-/* Copyright (C) 2007-2014 beingmeta, inc.
+/* Copyright (C) 2007-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides an abstraction layer for Ajax calls
 
@@ -12049,7 +12051,7 @@ fdjt.Ajax=
 
 /* ######################### fdjt/wsn.js ###################### */
 
-/* Copyright (C) 2011-2014 beingmeta, inc.
+/* Copyright (C) 2011-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -12314,7 +12316,7 @@ fdjt.WSN=WSN;
 
 /* ######################### fdjt/textindex.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -12576,7 +12578,7 @@ fdjt.TextIndex=(function(){
 
 /* ######################### fdjt/ui.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -14025,7 +14027,7 @@ fdjt.disenableInputs=fdjt.UI.disenableInputs=
 
 /* ################# fdjt/dialog.js ###################### */
 
-/* Copyright (C) 2012-2014 beingmeta, inc.
+/* Copyright (C) 2012-2015 beingmeta, inc.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -14392,7 +14394,7 @@ fdjt.Dialog=(function(){
 
 /* ######################### fdjt/completions.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -14993,7 +14995,7 @@ if (!(fdjt.UI)) fdjt.UI={};
 
 /* ######################### fdjt/taphold.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
@@ -15963,7 +15965,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
 
 /* ######################### fdjt/selecting.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
@@ -16679,7 +16681,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 
 /* ######################### fdjt/scrollever.js ###################### */
 
-/* Copyright (C) 2011-2014 beingmeta, inc.
+/* Copyright (C) 2011-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file implements a simple version of infinite scrolling.
 
@@ -16825,7 +16827,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 /* -*- Mode: Javascript; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files and is
    part of the FDJT web toolkit (www.fdjt.org)
 
