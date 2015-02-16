@@ -6,8 +6,9 @@
 ECHO=/bin/echo
 CLEAN=/bin/rm -f
 PATH:=/usr/local/bin:${PATH}
-FDJT_FILES=fdjt/header.js fdjt/charnames.js \
-	fdjt/string.js fdjt/promise.js fdjt/time.js \
+FDJT_FILES=fdjt/header.js \
+	fdjt/promise.js fdjt/async.js \
+	fdjt/charnames.js fdjt/string.js fdjt/time.js \
 	fdjt/template.js fdjt/hash.js \
 	fdjt/syze.js fdjt/iscroll.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
