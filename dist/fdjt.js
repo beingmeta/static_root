@@ -1,12 +1,12 @@
 // FDJT build information
-var fdjt_revision='1.5-1268-ge428640';
-var fdjt_buildhost='dev.beingmeta.com';
-var fdjt_buildtime='Thu Feb 12 19:48:33 UTC 2015';
-var fdjt_builduuid='c7fce293-bb23-478d-95e7-f4673cff75bb';
+var fdjt_revision='1.5-1276-g8417c56';
+var fdjt_buildhost='moby.dot.beingmeta.com';
+var fdjt_buildtime='Sun Feb 15 18:02:42 EST 2015';
+var fdjt_builduuid='df414b5d-16cd-440c-85f7-2d7aa38663d4';
 
 /* -*- Mode: Javascript; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files and is
    part of the FDJT web toolkit (www.fdjt.org)
 
@@ -70,7 +70,7 @@ fdjt.builduuid=fdjt_builduuid;
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -1107,7 +1107,7 @@ fdjt.charnames={"AElig": "Æ",
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -1744,11 +1744,13 @@ fdjt.String=
                     var propname=((bar>=0)?(prop.slice(0,bar)):(prop));
                     if ((done[prop])||(done[propname])) continue;
                     else if (data.hasOwnProperty(propname)) {
-                        var pat=new RegExp(
-                            "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
-                        var val=data[propname], stringval=val.toString();
+                        var val=data[propname];
                         done[propname]=prop;
-                        text=text.replace(pat,stringval);}
+                        if (val) {
+                            var pat=new RegExp(
+                                "\\{\\{"+propname+"(\\|[^\\}]*)?\\}\\}","gm");
+                            var stringval=val.toString();
+                            text=text.replace(pat,stringval);}}
                     else if (bar>0) {
                         var replace=prop.slice(bar+1);
                         text=text.replace("{{"+prop+"}}",replace);
@@ -1775,7 +1777,7 @@ fdjt.String=
 
 /* ######################### fdjt/time.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
     of various kinds.
@@ -1957,7 +1959,7 @@ fdjt.Time=
             return slicefn();}
         fdjtTime.timeslice=timeslice;
 
-        function slowmap(fn,vec,watch,done,slice,space,watch_slice){
+        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=fdjtTime();
             var timer=false;
@@ -1965,35 +1967,41 @@ fdjt.Time=
             if (!(space)) space=slice;
             if (!(watch_slice)) watch_slice=0;
             var stepfn=function(){
-                var started=fdjtTime(); var now=started;
-                var stopat=started+slice;
-                if (watch) watch(((i===0)?'start':'resume'),i,lim,chunks,used,
-                                 zerostart);
-                while ((i<lim)&&((now=fdjtTime())<stopat)) {
-                    var elt=vec[i];
-                    if ((watch)&&
-                        (((watch_slice)&&((i%watch_slice)===0))||(i+1===lim)))
-                        watch('element',i,lim,elt,used,now-zerostart);
-                    fn(elt);
-                    if ((watch)&&
-                        (((watch_slice)&&((i%watch_slice)===0))||(i+1===lim)))
-                        watch('after',i,lim,elt,used+(fdjtTime()-started),
-                              zerostart,fdjtTime()-now);
-                    i++;}
-                chunks=chunks+1;
-                if (i<lim) {
-                    used=used+(now-started);
-                    if (watch) watch('suspend',i,lim,chunks,used,
-                                     zerostart);
-                    timer=setTimeout(stepfn,space);}
-                else {
-                    now=fdjtTime(); used=used+(now-started);
-                    clearTimeout(timer); timer=false;
-                    if (watch) watch('finishing',i,lim,chunks,used,zerostart);
-                    var donetime=((done)&&(fdjtTime()-now));
-                    now=fdjtTime(); used=used+(now-started);
-                    if (watch) watch('done',i,lim,chunks,used,zerostart,donetime);
-                    if ((done)&&(done.call)) done(vec,now-zerostart,used);}};
+                try {
+                    var started=fdjtTime(); var now=started;
+                    var stopat=started+slice;
+                    if (watch)
+                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
+                              zerostart);
+                    while ((i<lim)&&((now=fdjtTime())<stopat)) {
+                        var elt=vec[i];
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('element',i,lim,elt,used,now-zerostart);
+                        fn(elt);
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('after',i,lim,elt,used+(fdjtTime()-started),
+                                  zerostart,fdjtTime()-now);
+                        i++;}
+                    chunks=chunks+1;
+                    if (i<lim) {
+                        used=used+(now-started);
+                        if (watch) watch('suspend',i,lim,chunks,used,
+                                         zerostart);
+                        timer=setTimeout(stepfn,space);}
+                    else {
+                        now=fdjtTime(); used=used+(now-started);
+                        clearTimeout(timer); timer=false;
+                        if (watch)
+                            watch('finishing',i,lim,chunks,used,zerostart);
+                        var donetime=((done)&&(fdjtTime()-now));
+                        now=fdjtTime(); used=used+(now-started);
+                        if (watch)
+                            watch('done',i,lim,chunks,used,zerostart,donetime);
+                        if ((done)&&(done.call)) 
+                            done(vec,now-zerostart,used);}}
+                catch (ex) {if (failed) failed();}};
             timer=setTimeout(stepfn,space);}
         fdjtTime.slowmap=slowmap;
 
@@ -2011,7 +2019,7 @@ fdjt.ET=fdjt.Time.ET;
 
 /* ######################### fdjt/string.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -2117,7 +2125,7 @@ fdjt.Template=(function(){
 
 /* ######################### fdjt/hash.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -5648,7 +5656,7 @@ window.IScroll=IScroll;
 
 /* ######################### fdjt/log.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -5809,7 +5817,7 @@ fdjt.Log=(function(){
 
 /* ######################### fdjt/init.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -6002,7 +6010,7 @@ fdjt.Log=(function(){
 
 /* ######################### fdjt/state.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -6192,6 +6200,9 @@ fdjt.State=
 
         function setLocal(name,val,unparse){
             if (!(name)) throw { error: "bad name",name: name};
+            if (typeof val === "undefined")
+                throw { error: "undefined value", name: name};
+            if (!(val)) {dropLocal(name); return;}
             if (unparse) val=JSON.stringify(val);
             if (window.localStorage) {
                 if (name instanceof RegExp) {
@@ -6215,7 +6226,8 @@ fdjt.State=
                     while (i<lim) {
                         var key=storage.key(i++);
                         if (key.search(name)>=0) {
-                            return ((parse)?(JSON.parse(storage[key])):(storage[key]));}}
+                            return ((parse)?(JSON.parse(storage[key])):
+                                    (storage[key]));}}
                     return false;}
                 else {
                     var val=window.localStorage[name];
@@ -6224,6 +6236,33 @@ fdjt.State=
                     else return false;}}
             else return false;}
         fdjtState.getLocal=getLocal;
+
+        function pushLocal(name,val){
+            if (!(name)) throw { error: "bad name",name: name};
+            var fetched=window.localStorage[name], array=false;
+            if (fetched) {
+                array=JSON.parse(fetched);
+                if (!(Array.isArray(array))) array=[array];
+                if (array.indexOf(val)<0) array.push(val);
+                else return false;}
+            else array=[val];
+            window.localStorage[name]=JSON.stringify(array);
+            return true;}
+        fdjtState.pushLocal=pushLocal;
+
+        function removeLocal(name,val){
+            if (!(name)) throw { error: "bad name",name: name};
+            var fetched=window.localStorage[name];
+            if (fetched) {
+                var array=JSON.parse(fetched), loc;
+                if (array===val) {
+                    dropLocal(name); return;}
+                else if (!(Array.isArray(array))) return;
+                else loc=array.indexOf(val);
+                if (loc<0) return; else array.splice(loc,1);
+                window.localStorage[name]=JSON.stringify(array);}
+            return true;}
+        fdjtState.removeLocal=removeLocal;
 
         function existsLocal(name){
             if (!(name)) throw { error: "bad name",name: name};
@@ -6522,7 +6561,7 @@ fdjt.State=
 
 /* ######################### fdjt/dom.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -8558,14 +8597,20 @@ fdjt.DOM=
         
         /* Removing IDs */
 
-        function stripIDs(node,nametoo){
-            if (node.id) node.id="";
+        function stripIDs(node,nametoo,moveto){
+            if (!(nametoo)) nametoo=false;
+            if (!(moveto)) moveto=false;
+            if (node.id) {
+                if (moveto) node.setAttribute(moveto,node.id);
+                node.id="";
+                node.removeAttribute("id");}
             if ((nametoo)&&(node.name)) node.name=null;
             if ((node.childNodes)&&(node.childNodes.length)) {
                 var children=node.childNodes, i=0, lim=children.length;
                 while (i<lim) {
                     var child=children[i++];
-                    if (child.nodeType===1) stripIDs(child,nametoo||false);}}}
+                    if (child.nodeType===1)
+                        stripIDs(child,nametoo,moveto);}}}
         fdjtDOM.stripIDs=stripIDs;
 
         /* Stylesheet manipulation */
@@ -9985,7 +10030,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
 /* ######################### fdjt/refdb.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -11680,7 +11725,7 @@ if (!(fdjt.RefDB)) {
 
 /* ######################### fdjt/ajax.js ###################### */
 
-/* Copyright (C) 2007-2014 beingmeta, inc.
+/* Copyright (C) 2007-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides an abstraction layer for Ajax calls
 
@@ -12006,7 +12051,7 @@ fdjt.Ajax=
 
 /* ######################### fdjt/wsn.js ###################### */
 
-/* Copyright (C) 2011-2014 beingmeta, inc.
+/* Copyright (C) 2011-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    It implements a method for breaking narrative HTML content
    across multiple pages, attempting to honor page break constraints,
@@ -12271,7 +12316,7 @@ fdjt.WSN=WSN;
 
 /* ######################### fdjt/textindex.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -12533,7 +12578,7 @@ fdjt.TextIndex=(function(){
 
 /* ######################### fdjt/ui.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -13982,7 +14027,7 @@ fdjt.disenableInputs=fdjt.UI.disenableInputs=
 
 /* ################# fdjt/dialog.js ###################### */
 
-/* Copyright (C) 2012-2014 beingmeta, inc.
+/* Copyright (C) 2012-2015 beingmeta, inc.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -14349,7 +14394,7 @@ fdjt.Dialog=(function(){
 
 /* ######################### fdjt/completions.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
@@ -14950,7 +14995,7 @@ if (!(fdjt.UI)) fdjt.UI={};
 
 /* ######################### fdjt/taphold.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
@@ -15920,7 +15965,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
 
 /* ######################### fdjt/selecting.js ###################### */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
 
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
@@ -16636,7 +16681,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 
 /* ######################### fdjt/scrollever.js ###################### */
 
-/* Copyright (C) 2011-2014 beingmeta, inc.
+/* Copyright (C) 2011-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file implements a simple version of infinite scrolling.
 
@@ -16782,7 +16827,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 /* -*- Mode: Javascript; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files and is
    part of the FDJT web toolkit (www.fdjt.org)
 
