@@ -65,7 +65,7 @@ METABOOK_HINTS=\
 	metabook/layout.hint
 METABOOK_DERIVED_FILES=\
 	metabook/html/searchbox.js metabook/html/addgloss.js \
-	metabook/html/hud.js metabook/html/heart.js  \
+	metabook/html/hud.js metabook/html/heart.js metabook/html/attach.js  \
 	metabook/html/help.js metabook/html/hudhelp.js     \
 	metabook/html/console.js metabook/html/messages.js     \
 	metabook/html/cover.js metabook/html/settings.js \
@@ -73,7 +73,7 @@ METABOOK_DERIVED_FILES=\
 
 METABOOK_HTML_FILES=\
 	metabook/html/searchbox.html metabook/html/addgloss.html \
-	metabook/html/hud.html metabook/html/heart.html \
+	metabook/html/hud.html metabook/html/heart.html metabook/html/attach.html \
 	metabook/html/help.html metabook/html/hudhelp.html \
 	metabook/html/console.html metabook/html/messages.html \
 	metabook/html/cover.html metabook/html/settings.html \
