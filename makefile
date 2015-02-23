@@ -121,6 +121,9 @@ metabook/%.hint: metabook/%.js
 metabook/html/%.js: metabook/html/%.html makefile
 	@./text2js metaBook.HTML.`basename $@ .js` $< $@
 
+dist/%.gz: dist/%
+	gzip $< -c > $@
+
 .SUFFIXES: .js .css
 
 all: allcode alltags allhints index.html
@@ -268,12 +271,6 @@ dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 dist/metabook.min.js: dist/metabook.js jsmin/jsmin
 	jsmin/jsmin < dist/metabook.js > dist/metabook.min.js
-dist/metabook.min.js.gz: dist/metabook.min.js
-	gzip dist/metabook.min.js -c > dist/metabook.min.js.gz
-dist/metabook.js.gz: dist/metabook.js
-	gzip -c dist/metabook.js > $@
-dist/metabook.css.gz: dist/metabook.css
-	gzip -c dist/metabook.css > $@
 
 fdjt/fdjt.min.js dist/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
 	jsmin/jsmin < fdjt/fdjt.js > $@
@@ -287,6 +284,21 @@ dist/fdjt.js: fdjt/fdjt.js
 	cp $< $@
 dist/fdjt.css: fdjt/fdjt.css
 	cp $< $@
+
+# Compiled
+
+dist/metabook.compiled.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
+	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
+	java -jar closure/compiler.jar \
+		--language_in ECMASCRIPT5 \
+		--create_source_map dist/metabook.source.json \
+		sbooks/amalgam.js fdjt/buildstamp.js \
+		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+		metabook/buildstamp.js knodules/buildstamp.js \
+		--js_output_file dist/metabook.compiled.js
+	#echo "//# sourceMappingURL=dist/metabook.source.json" >> dist/metabook.compiled.js
+
+compiled: dist/metabook.compiled.js dist/metabook.compiled.js.gz
 
 # Generating the HTML
 
