@@ -122,7 +122,9 @@ metabook/html/%.js: metabook/html/%.html makefile
 	@./text2js metaBook.HTML.`basename $@ .js` $< $@
 
 dist/%.gz: dist/%
-	gzip $< -c > $@
+	@gzip $< -c > $@
+fdjt/%.gz: fdjt/%
+	@gzip $< -c > $@
 
 .SUFFIXES: .js .css
 
@@ -133,7 +135,9 @@ allcode: fdjt knodules metabook webfontloader \
 
 dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
-	dist/metabook.js dist/metabook.min.js.gz \
+	dist/metabook.min.js dist/metabook.min.js.gz \
+	dist/metabook.uglify.js dist/metabook.uglify.js.gz \
+	dist/metabook.clean.css dist/metabook.clean.css.gz \
 	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz \
 	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css
 
@@ -202,10 +206,7 @@ clean:
 	rm -f metabook.js metabook.css fdjt.js fdjt.css
 
 undist:
-	git checkout dist/metabook.css dist/metabook.css.gz \
-		dist/metabook.js dist/metabook.min.js \
-		dist/metabook.js.gz dist/metabook.min.js.gz \
-		dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz
+	rm dist/*; git checkout dist
 
 fdjt/fdjt.js: $(FDJT_FILES)
 	cd fdjt; make all
@@ -243,8 +244,27 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 metabook.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
-	@cat $(METABOOK_CSS_BUNDLE) > $@
+	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o $@
 metabook.js: $(METABOOK_JS_BUNDLE) makefile \
+	fdjt/buildstamp.js knodules/buildstamp.js \
+	metabook/buildstamp.js metabook/tieoff.js etc/sha1
+	@echo Building ./metabook.js
+	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		> fdjt/codexlayouthash.js 
+	@uglifyjs2 \
+	  --source-map metabook.uglify.map \
+	    sbooks/amalgam.js fdjt/buildstamp.js \
+	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    fdjt/codexlayouthash.js \
+	    metabook/buildstamp.js knodules/buildstamp.js \
+	  > $@
+	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
+		>> $@
+
+metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
+	@echo Building ./metabook.css
+	@cat $(METABOOK_CSS_BUNDLE) > $@
+metabook.raw.js: $(METABOOK_JS_BUNDLE) makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.js
@@ -269,17 +289,30 @@ dist/metabook.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
 dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
+dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
+	@echo Rebuilding dist/metabook.clean.css
+	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+	@mv metabook.clean.css metabook.clean.css.map dist
 dist/metabook.min.js: dist/metabook.js jsmin/jsmin
-	jsmin/jsmin < dist/metabook.js > dist/metabook.min.js
+	@uglifyjs2 \
+	  --source-map dist/metabook.uglify.map \
+	    sbooks/amalgam.js fdjt/buildstamp.js \
+	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    metabook/buildstamp.js knodules/buildstamp.js \
+	  > $@
+dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
+	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    metabook/buildstamp.js knodules/buildstamp.js
+	@uglifyjs2 \
+	  --source-map dist/metabook.uglify.map \
+	  --source-map-root /static \
+	    sbooks/amalgam.js fdjt/buildstamp.js \
+	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    metabook/buildstamp.js knodules/buildstamp.js \
+	  > $@
 
 fdjt/fdjt.min.js dist/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
-	jsmin/jsmin < fdjt/fdjt.js > $@
-fdjt/fdjt.min.js.gz dist/fdjt.min.js.gz: fdjt/fdjt.min.js
-	gzip fdjt/fdjt.min.js -c > $@
-fdjt/fdjt.css.gz dist/fdjt.css.gz: fdjt/fdjt.css
-	gzip -c fdjt/fdjt.css > $@
-fdjt/fdjt.js.gz dist/fdjt.js.gz: fdjt/fdjt.js
-	gzip -c fdjt/fdjt.js > $@
+	uglifyjs2 $(FDJT_FILES) > $@
 dist/fdjt.js: fdjt/fdjt.js
 	cp $< $@
 dist/fdjt.css: fdjt/fdjt.css
@@ -291,12 +324,11 @@ dist/metabook.compiled.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE)
 	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
 	java -jar closure/compiler.jar \
 		--language_in ECMASCRIPT5 \
-		--create_source_map dist/metabook.source.json \
+		--create_source_map dist/metabook.closure.map \
 		sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js \
 		--js_output_file dist/metabook.compiled.js
-	#echo "//# sourceMappingURL=dist/metabook.source.json" >> dist/metabook.compiled.js
 
 compiled: dist/metabook.compiled.js dist/metabook.compiled.js.gz
 
