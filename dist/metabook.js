@@ -40616,13 +40616,13 @@ metaBook.HTML.pageright=
 // sBooks metaBook build information
 metaBook.version='v0.5-2468-g45706b9';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Mon Feb 23 09:51:50 EST 2015';
-metaBook.buildid='af97124e-192f-477f-95fd-c88096c5631d';
+metaBook.buildtime='Mon Feb 23 11:41:15 EST 2015';
+metaBook.buildid='843c8438-a9f3-44ce-bada-08b8d516ee53';
 
 Knodule.version='v0.8-145-gf3ac2cb';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Mon Feb 23 10:02:40 EST 2015';
-metaBook.buildid='06cec52f-0c69-4015-9f72-004c296a519c';
+metaBook.buildtime='Mon Feb 23 13:50:46 EST 2015';
+metaBook.buildid='11eef1bf-5361-4d62-89ff-4bed2b13a057';
 
 fdjt.CodexLayout.sourcehash='8292209924A0E47C7821197D225D2D5C32502A38';

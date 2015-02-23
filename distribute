@@ -112,6 +112,7 @@
 
 (define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
 (define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
+(define apps.maps {"metabook.uglify.map" "metabook.clean.css.map"})
 
 (define (main (arg #f))
   (when (and arg (has-prefix arg "+"))
@@ -123,23 +124,39 @@
   (distribute-web "dist/")
   (distribute-web "sbooks/")
   (distribute-web "fdjt/")
+  (distribute-web "metabook/")
+  (distribute-web "knodules/")
   (distribute-web "fonts/")
-  (let ((js (filedata "dist/metabook.min.js.gz"))
-	(css (filedata "dist/metabook.css.gz")))
-    (s3/put (s3/mkpath root "metabook.js") js "text/javascript" gzheaders #t)
+  (let ((js (filedata "dist/metabook.uglify.js.gz"))
+	(css (filedata "dist/metabook.clean.css.gz")))
+    (s3/put (s3/mkpath root "metabook.js") js "text/javascript"
+	    '("x-amz-acl: public-read"
+	      "Content-encoding\: gzip"
+	      "X-SourceMap\: metabook.uglify.map")
+	    #t)
+    (s3/put (s3/mkpath root "metabook.uglify.map")
+	    (filestring "dist/metabook.uglify.map") 
+	    "application/json" pubheaders #t)
     (message "Updated "
 	     (do-choices (p (s3/mkpath root "metabook.js"))
 	       (printout "\n\t" (gpath->string p)))
 	     " with " (length js) " bytes from "
-	     "dist/metabook.min.js.gz")
-    (s3/put (s3/mkpath root "metabook.css") css "text/css" gzheaders #t)
+	     "dist/metabook.uglify.js.gz")
+    (s3/put (s3/mkpath root "metabook.css") css "text/css"
+	    '("x-amz-acl: public-read"
+	      "Content-encoding\: gzip"
+	      "X-SourceMap\: metabook.clean.css.map")
+	    #t)
+    (s3/put (s3/mkpath root "metabook.clean.css.map")
+	    (filestring "dist/metabook.clean.css.map") 
+	    "application/json" pubheaders #t)
     (message "Updated "
 	     (do-choices (p (s3/mkpath root "metabook.css"))
 	       (printout "\n\t" (gpath->string p)))
 	     " with " (length css) " bytes from "
-	     "dist/metabook.css.gz")
+	     "dist/metabook.clean.css.gz")
     (dolist (r dist-targets)
-      (do-choices (path (choice apps.js apps.css))
+      (do-choices (path (choice apps.js apps.css apps.maps))
 	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
 	(message "Updated " (gpath->string (s3/mkpath r path))))))
   (do-choices (local graphics)
@@ -181,6 +198,8 @@
 			(qc (s3/mkpath root allfiles))
 			(qc changed-fonts))
 		    (if arg (list arg) dist-targets))))))
+
+
 
 
 

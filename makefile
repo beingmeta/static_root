@@ -205,7 +205,7 @@ clean:
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f metabook.js metabook.css fdjt.js fdjt.css
 
-undist:
+cleandist undist:
 	rm dist/*; git checkout dist
 
 fdjt/fdjt.js: $(FDJT_FILES)
@@ -293,23 +293,19 @@ dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.clean.css
 	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 	@mv metabook.clean.css metabook.clean.css.map dist
-dist/metabook.min.js: dist/metabook.js jsmin/jsmin
-	@uglifyjs2 \
-	  --source-map dist/metabook.uglify.map \
-	    sbooks/amalgam.js fdjt/buildstamp.js \
-	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-	    metabook/buildstamp.js knodules/buildstamp.js \
-	  > $@
 dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    metabook/buildstamp.js knodules/buildstamp.js
 	@uglifyjs2 \
-	  --source-map dist/metabook.uglify.map \
+	  --source-map metabook.uglify.map \
 	  --source-map-root /static \
 	    sbooks/amalgam.js fdjt/buildstamp.js \
 	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    metabook/buildstamp.js knodules/buildstamp.js \
 	  > $@
+	@mv metabook.uglify.map dist
+dist/metabook.min.js: dist/metabook.uglify.js
+	@cp dist/metabook.uglify.js dist/metabook.min.js
 
 fdjt/fdjt.min.js dist/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
 	uglifyjs2 $(FDJT_FILES) > $@
