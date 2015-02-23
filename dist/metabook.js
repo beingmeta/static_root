@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-var fdjt_revision='1.5-1276-g8417c56';
+var fdjt_revision='1.5-1296-g5043d74';
 var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Sun Feb 15 18:02:42 EST 2015';
-var fdjt_builduuid='df414b5d-16cd-440c-85f7-2d7aa38663d4';
+var fdjt_buildtime='Mon Feb 23 09:24:22 EST 2015';
+var fdjt_builduuid='b1823e5c-6d88-459a-9ac7-b443b6eef009';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -93,6 +93,343 @@ fdjt.revision=fdjt_revision;
 fdjt.buildhost=fdjt_buildhost;
 fdjt.buildtime=fdjt_buildtime;
 fdjt.builduuid=fdjt_builduuid;
+(function() {
+    "use strict";
+    /* For jshint */
+    /* global global: false, window: false, 
+              module: false, setTimeout: false */
+    var root;
+
+    if (typeof window === 'object' && window) {
+        root = window;
+    } else {
+        root = global;
+    }
+
+    // Use polyfill for setImmediate for performance gains
+    var asap = Promise.immediateFn || root.setImmediate || function(fn) { setTimeout(fn, 1); };
+
+    // Polyfill for Function.prototype.bind
+    function bind(fn, thisArg) {
+        return function() {
+            fn.apply(thisArg, arguments);
+        };
+    }
+
+    var isArray = Array.isArray || function(value) { return Object.prototype.toString.call(value) === "[object Array]"; };
+
+    function Promise(fn) {
+        if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+        if (typeof fn !== 'function') throw new TypeError('not a function');
+        this._state = null;
+        this._value = null;
+        this._deferreds = [];
+
+        doResolve(fn, bind(resolve, this), bind(reject, this));
+    }
+
+    function handle(deferred) {
+        var me = this;
+        if (this._state === null) {
+            this._deferreds.push(deferred);
+            return;
+        }
+        asap(function() {
+            var cb = me._state ? deferred.onFulfilled : deferred.onRejected;
+            if (cb === null) {
+                (me._state ? deferred.resolve : deferred.reject)(me._value);
+                return;
+            }
+            var ret;
+            try {
+                ret = cb(me._value);
+            }
+            catch (e) {
+                deferred.reject(e);
+                return;
+            }
+            deferred.resolve(ret);
+        });
+    }
+
+    function resolve(newValue) {
+        try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+            if (newValue === this) throw new TypeError('A promise cannot be resolved with itself.');
+            if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+                var then = newValue.then;
+                if (typeof then === 'function') {
+                    doResolve(bind(then, newValue), bind(resolve, this), bind(reject, this));
+                    return;
+                }
+            }
+            this._state = true;
+            this._value = newValue;
+            finale.call(this);
+        } catch (e) { reject.call(this, e); }
+    }
+
+    function reject(newValue) {
+        this._state = false;
+        this._value = newValue;
+        finale.call(this);
+    }
+
+    function finale() {
+        for (var i = 0, len = this._deferreds.length; i < len; i++) {
+            handle.call(this, this._deferreds[i]);
+        }
+        this._deferreds = null;
+    }
+
+    function Handler(onFulfilled, onRejected, resolve, reject){
+        this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+        this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+        this.resolve = resolve;
+        this.reject = reject;
+    }
+
+    /**
+     * Take a potentially misbehaving resolver function and make sure
+     * onFulfilled and onRejected are only called once.
+     *
+     * Makes no guarantees about asynchrony.
+     */
+    function doResolve(fn, onFulfilled, onRejected) {
+        var done = false;
+        try {
+            fn(function (value) {
+                if (done) return;
+                done = true;
+                onFulfilled(value);
+            }, function (reason) {
+                if (done) return;
+                done = true;
+                onRejected(reason);
+            });
+        } catch (ex) {
+            if (done) return;
+            done = true;
+            onRejected(ex);
+        }
+    }
+
+    Promise.prototype['catch'] = function (onRejected) {
+        return this.then(null, onRejected);
+    };
+
+    Promise.prototype.then = function(onFulfilled, onRejected) {
+        var me = this;
+        return new Promise(function(resolve, reject) {
+            handle.call(me, new Handler(onFulfilled, onRejected, resolve, reject));
+        });
+    };
+
+    Promise.all = function () {
+        var args = Array.prototype.slice.call(arguments.length === 1 && isArray(arguments[0]) ? arguments[0] : arguments);
+
+        return new Promise(function (resolve, reject) {
+            if (args.length === 0) return resolve([]);
+            var remaining = args.length;
+            function res(i, val) {
+                try {
+                    if (val && (typeof val === 'object' || typeof val === 'function')) {
+                        var then = val.then;
+                        if (typeof then === 'function') {
+                            then.call(val, function (val) { res(i, val); }, reject);
+                            return;
+                        }
+                    }
+                    args[i] = val;
+                    if (--remaining === 0) {
+                        resolve(args);
+                    }
+                } catch (ex) {
+                    reject(ex);
+                }
+            }
+            for (var i = 0; i < args.length; i++) {
+                res(i, args[i]);
+            }
+        });
+    };
+
+    Promise.resolve = function (value) {
+        if (value && typeof value === 'object' && value.constructor === Promise) {
+            return value;
+        }
+
+        return new Promise(function (resolve) {
+            resolve(value);
+        });
+    };
+
+    Promise.reject = function (value) {
+        return new Promise(function (resolve, reject) {
+            reject(value);
+        });
+    };
+
+    Promise.race = function (values) {
+        return new Promise(function (resolve, reject) {
+            for(var i = 0, len = values.length; i < len; i++) {
+                values[i].then(resolve, reject);
+            }
+        });
+    };
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = Promise;
+    } else if (!root.Promise) {
+        root.Promise = Promise;
+    }
+})();
+/* -*- Mode: Javascript; -*- */
+
+/* ######################### fdjt/async.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+    of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+    Use, modification, and redistribution of this program is permitted
+    under either the GNU General Public License (GPL) Version 2 (or
+    any later version) or under the GNU Lesser General Public License
+    (version 3 or later).
+
+    These licenses may be found at www.gnu.org, particularly:
+      http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+      http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+*/
+
+/* Time functions */
+
+// var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
+
+fdjt.Async=fdjt.ASync=fdjt.async=
+    (function (){
+        "use strict";
+        /* global
+           setTimeout: false, clearTimeout: false,
+           Promise: false */
+
+        function fdjtAsync(fn,args){
+            function async_call(resolve,reject){
+                function doit(){
+                    var value;
+                    try {
+                        if (args) value=fn.call(null,args);
+                        else value=fn();
+                        resolve(value);}
+                    catch (ex) {reject(ex);}}
+                setTimeout(doit,1);}
+            return new Promise(async_call);}
+
+        function getnow() {return (new Date()).getTime();}
+
+        function timeslice(fcns,slice,space,stop,done,fail){
+            var timer=false;
+            if (typeof slice !== 'number') slice=100;
+            if (typeof space !== 'number') space=100;
+            var i=0; var lim=fcns.length;
+            var slicefn=function(){
+                var timelim=getnow()+slice;
+                var nextspace=false;
+                while (i<lim) {
+                    var fcn=fcns[i++];
+                    if (!(fcn)) continue;
+                    else if (typeof fcn === 'number') {
+                        nextspace=fcn; break;}
+                    else {
+                        try {fcn();} catch (ex) {fail(ex);}}
+                    if (getnow()>timelim) break;}
+                if ((i<lim)&&((!(done))||(!(done()))))
+                    timer=setTimeout(slicefn,nextspace||space);
+                else {
+                    clearTimeout(timer); 
+                    timer=false;
+                    done(false);}};
+            return slicefn();}
+        fdjtAsync.timeslice=function(fcns,opts){
+            if (!(opts)) opts={};
+            var slice=opts.slice||100, space=opts.space||100;
+            var stop=opts.stop||false;
+            function timeslicing(success,failure){
+                timeslice(fcns,slice,space,stop,success,failure);}
+            return new Promise(timeslicing);};
+
+        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
+            var i=0; var lim=vec.length; var chunks=0;
+            var used=0; var zerostart=getnow();
+            var timer=false;
+            if (!(slice)) slice=100;
+            if (!(space)) space=slice;
+            if (!(watch_slice)) watch_slice=0;
+            var stepfn=function(){
+                try {
+                    var started=getnow(); var now=started;
+                    var stopat=started+slice;
+                    if (watch)
+                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
+                              zerostart);
+                    while ((i<lim)&&((now=getnow())<stopat)) {
+                        var elt=vec[i];
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('element',i,lim,elt,used,now-zerostart);
+                        fn(elt);
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('after',i,lim,elt,used+(getnow()-started),
+                                  zerostart,getnow()-now);
+                        i++;}
+                    chunks=chunks+1;
+                    if (i<lim) {
+                        used=used+(now-started);
+                        if (watch) watch('suspend',i,lim,chunks,used,
+                                         zerostart);
+                        timer=setTimeout(stepfn,space);}
+                    else {
+                        now=getnow(); used=used+(now-started);
+                        clearTimeout(timer); timer=false;
+                        if (watch)
+                            watch('finishing',i,lim,chunks,used,zerostart);
+                        var donetime=((done)&&(getnow()-now));
+                        now=getnow(); used=used+(now-started);
+                        if (watch)
+                            watch('done',i,lim,chunks,used,zerostart,donetime);
+                        if ((done)&&(done.call)) 
+                            done(vec,now-zerostart,used);}}
+                catch (ex) {if (failed) failed(ex);}};
+            timer=setTimeout(stepfn,space);}
+        fdjtAsync.slowmap=function(fcn,vec,opts){
+            if (!(opts)) opts={};
+            var slice=opts.slice, space=opts.space;
+            var watchfn=opts.watchfn, watch_slice=opts.watch;
+            var donefn=opts.done;
+            function slowmapping(resolve,reject){
+                slowmap(fcn,vec,watchfn,
+                        ((donefn)?(function(){
+                            donefn(); if (resolve) resolve(vec);}):
+                         (resolve)),
+                        reject,
+                        slice,space,watch_slice);}
+            if (watch_slice<1) watch_slice=vec.length*watch_slice;
+            return new Promise(slowmapping);};
+
+        return fdjtAsync;})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
 /* -*- Mode: Javascript; -*- */
 
 /* ######################### fdjt/string.js ###################### */
@@ -1831,7 +2168,6 @@ fdjt.String=
 fdjt.Time=
     (function (){
         "use strict";
-        /* global setTimeout: false, clearTimeout: false */
 
         function _(x){ return x; }
 
@@ -1952,85 +2288,21 @@ fdjt.Time=
                 report=report+"; "+phase+": "+
                     ((time.getTime()-point.getTime())/1000)+"s";
                 point=time;}
-            return pname+" "+((point.getTime()-start.getTime())/1000)+"s"+report;};
+            return pname+" "+
+                ((point.getTime()-start.getTime())/1000)+"s"+
+                report;};
 
         fdjtTime.diffTime=function(time1,time2){
             if (!(time2)) time2=new Date();
             var diff=time1.getTime()-time2.getTime();
-            if (diff>0) return diff/1000; else return -(diff/1000);
-        };
+            if (diff>0) return diff/1000; else return -(diff/1000);};
 
         fdjtTime.ET=function(arg){
             if (!(arg)) arg=new Date();
             return (arg.getTime()-loaded)/1000;};
 
-        function timeslice(fcns,slice,space,done){
-            var timer=false;
-            if (typeof slice !== 'number') slice=100;
-            if (typeof space !== 'number') space=100;
-            var i=0; var lim=fcns.length;
-            var slicefn=function(){
-                var timelim=fdjtTime()+slice;
-                var nextspace=false;
-                while (i<lim) {
-                    var fcn=fcns[i++];
-                    if (!(fcn)) continue;
-                    else if (typeof fcn === 'number') {
-                        nextspace=fcn; break;}
-                    else fcn();
-                    if (fdjtTime()>timelim) break;}
-                if ((i<lim)&&((!(done))||(!(done()))))
-                    timer=setTimeout(slicefn,nextspace||space);
-                else {
-                    clearTimeout(timer); timer=false;}};
-            return slicefn();}
-        fdjtTime.timeslice=timeslice;
-
-        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
-            var i=0; var lim=vec.length; var chunks=0;
-            var used=0; var zerostart=fdjtTime();
-            var timer=false;
-            if (!(slice)) slice=100;
-            if (!(space)) space=slice;
-            if (!(watch_slice)) watch_slice=0;
-            var stepfn=function(){
-                try {
-                    var started=fdjtTime(); var now=started;
-                    var stopat=started+slice;
-                    if (watch)
-                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
-                              zerostart);
-                    while ((i<lim)&&((now=fdjtTime())<stopat)) {
-                        var elt=vec[i];
-                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
-                                      (i+1===lim)))
-                            watch('element',i,lim,elt,used,now-zerostart);
-                        fn(elt);
-                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
-                                      (i+1===lim)))
-                            watch('after',i,lim,elt,used+(fdjtTime()-started),
-                                  zerostart,fdjtTime()-now);
-                        i++;}
-                    chunks=chunks+1;
-                    if (i<lim) {
-                        used=used+(now-started);
-                        if (watch) watch('suspend',i,lim,chunks,used,
-                                         zerostart);
-                        timer=setTimeout(stepfn,space);}
-                    else {
-                        now=fdjtTime(); used=used+(now-started);
-                        clearTimeout(timer); timer=false;
-                        if (watch)
-                            watch('finishing',i,lim,chunks,used,zerostart);
-                        var donetime=((done)&&(fdjtTime()-now));
-                        now=fdjtTime(); used=used+(now-started);
-                        if (watch)
-                            watch('done',i,lim,chunks,used,zerostart,donetime);
-                        if ((done)&&(done.call)) 
-                            done(vec,now-zerostart,used);}}
-                catch (ex) {if (failed) failed();}};
-            timer=setTimeout(stepfn,space);}
-        fdjtTime.slowmap=slowmap;
+        fdjtTime.timeslice=fdjt.Async.timeslice;
+        fdjtTime.slowmap=fdjt.Async.slowmap;
 
         return fdjtTime;})();
 
@@ -5874,6 +6146,7 @@ fdjt.Log=(function(){
     var init_names={};
 
     function addInit(fcn,name,runagain){
+        if (!(checkInit(fcn,name))) return;
         var replace=((name)&&(init_names[name]));
         var i=0, lim=inits.length;
         while (i<lim) {
@@ -5896,6 +6169,13 @@ fdjt.Log=(function(){
             fcn(); run.push(true);}
         else run.push(false);}
     fdjt.addInit=addInit;
+    
+    function checkInit(fcn,name){
+        if ((!(fcn))||(!(fcn.call))) {
+            fdjtLog.warn("Bad argument to addInit(): %s",
+                        name||"anonymous",fcn);
+            return false;}
+        else return true;}
     
     fdjt.Init=function fdjtInit(){
         var names=[];
@@ -8735,9 +9015,16 @@ fdjt.DOM=
 
         function defListeners(handlers,defs){
             if ((handlers)&&(defs))
-                for (var evtype in defs) {
-                    if (defs.hasOwnProperty(evtype))
-                        handlers[evtype]=defs[evtype];}}
+                for (var domspec in defs) {
+                    if (defs.hasOwnProperty(domspec)) {
+                        var evtable=defs[domspec];
+                        var addto=handlers[domspec];
+                        if ((!(addto))||
+                            (!(handlers.hasOwnProperty(domspec))))
+                            handlers[domspec]=addto={};
+                        for (var evtype in evtable) {
+                            if (evtable.hasOwnProperty(evtype))
+                                addto[evtype]=evtable[evtype];}}}}
         fdjtDOM.defListeners=defListeners;
 
         var events_pat=/^([^:]+)$/;
@@ -9176,20 +9463,21 @@ fdjt.DOM=
                     starts_in: within.id,ends_in: ends_in.id,
                     end: end_edge+range.endOffset};};
 
-        function getRegexString(needle,shyphens,word){
-            if (shyphens)
-                return (((word)?("\\b"):(""))+
+        function getRegexString(needle,shyphens,before,after){
+            if (shyphens) {
+                needle=needle.replace("­","");
+                return ((before||"")+
                         (needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
                                 /\S/g,"$&­?").replace("­? "," ").replace(/\s+/g,"(\\s+)"))+
-                        ((word)?("\\b"):("")));
-            else return (((word)?("\\b"):(""))+
+                        (after||""));}
+            else return (((before)||(""))+
                          (needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
                                  /\s+/g,"(\\s+)"))+
-                         ((word)?("\\b"):("")));}
+                         ((after)||("")));}
         fdjtDOM.getRegexString=getRegexString;
 
-        function textRegExp(needle){
-            return new RegExp(getRegexString(needle,true,true),"gm");}
+        function textRegExp(needle,before,after){
+            return new RegExp(getRegexString(needle,true,before,after),"gm");}
         fdjtDOM.textRegExp=textRegExp;
 
         function findString(node,needle,off,count){
@@ -9200,7 +9488,7 @@ fdjt.DOM=
             var sub=((off===0)?(fulltext):(fulltext.slice(off)));
             var scan=sub.replace(/­/mg,"");
             var pat=((typeof needle === 'string')?
-                     (new RegExp(getRegexString(needle,true),"gm")):
+                     (textRegExp(needle)):
                      (needle));
             while ((match=pat.exec(scan))) {
                 if (count===1) {
@@ -9218,7 +9506,11 @@ fdjt.DOM=
                     var end=get_text_pos(node,absloc+(match[0].length),0);
                     if ((!start)||(!end)) return false;
                     var range=document.createRange();
-                    range.setStart(start.node,start.off);
+                    if (start.atend) {
+                        var txt=firstText(start.node.nextSibling);
+                        if (txt) range.setStart(txt,0);
+                        else range.setStart(start.node,start.off);}
+                    else range.setStart(start.node,start.off);
                     range.setEnd(end.node,end.off);
                     return range;}
                 else {count--;
@@ -9236,13 +9528,17 @@ fdjt.DOM=
             var pat=((typeof needle === 'string')?(textRegExp(needle)):
                      (needle));
             while ((count!==0)&&(match=pat.exec(scan))) {
-                var loc=match.index;
+                var loc=match.index+off;
                 // var absloc=loc+off;
                 var start=get_text_pos(node,loc,0);
                 var end=get_text_pos(node,loc+match[0].length,0);
                 if ((!start)||(!end)) return false;
                 var range=document.createRange();
                 if (typeof start === "number") range.setStart(node,start);
+                else if (start.atend) {
+                    var txt=firstText(start.node.nextSibling);
+                    if (txt) range.setStart(txt,0);
+                    else range.setStart(start.node,start.off);}
                 else range.setStart(start.node,start.off);
                 if (typeof end === "number") range.setEnd(node,end);
                 else range.setEnd(end.node,end.off);
@@ -9251,6 +9547,13 @@ fdjt.DOM=
                 count--;} 
             return results;}
         fdjtDOM.findMatches=findMatches;
+
+        function firstText(node){
+            if (!(node)) return false;
+            else if (node.nodeType===3) return node;
+            else if (node.nodeType===1)
+                return firstText(node.firstChild);
+            else return false;}
 
         /* Paragraph hashes */
 
@@ -9355,6 +9658,7 @@ fdjt.DOM=
             fdjtDOM.addListener(window,"load",fdjtDOM.init);
         
         /* Playing audio */
+
         function playAudio(id){
             var elt=document.getElementById(id);
             if ((elt)&&(elt.play)) {
@@ -9362,6 +9666,8 @@ fdjt.DOM=
                     elt.pause(); elt.currentTime=0.0;}
                 elt.play();}}
         fdjtDOM.playAudio=playAudio;
+
+        /* Tweaking images */
 
         function tweakImage(elt,tw,th) {
             var style=elt.style;
@@ -9378,6 +9684,34 @@ fdjt.DOM=
                 style.height=Math.round(h*sh)+"px";
                 style.width="auto";}}
         fdjtDOM.tweakImage=tweakImage;
+
+        /* Blob/URL functions */
+
+        function makeBlob(string,type){
+            if ((typeof string === "string")&&
+                (string.search("data:")===0)) {
+                if (!(type)) {
+                    var typeinfo=/data:([^;]+);/.exec(string);
+                    if (typeinfo) type=(typeinfo[1]);}
+                var elts=string.split(',');
+                var byteString = atob(elts[1]);
+                if (elts[0].indexOf('base64') >= 0)
+                    byteString = atob(elts[1]);
+                else
+                    byteString = window.unescape(elts[1]);
+                var ab = new ArrayBuffer(byteString.length);
+                var ia = new Uint8Array(ab);
+                for (var i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);}
+                return new Blob([ab], { type: type||'application' });}
+            else return false;}
+        fdjtString.makeBlob=makeBlob;
+
+        function data2URL(datauri){
+            if ((URL)&&(URL.createObjectURL)) 
+                return URL.createObjectURL(makeBlob(datauri));
+            else return datauri;}
+        fdjtDOM.data2URL=data2URL;
 
         /* Tweaking fonts */
 
@@ -10092,618 +10426,603 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
    Import and Export takes a set of rules for particular slot/values.
    Import also takes some flags: 
-  
+   
 
 */
 
-if (!(fdjt.RefDB)) {
-    fdjt.RefDB=(function(){
-        "use strict";
-        var fdjtState=fdjt.State;
-        var fdjtTime=fdjt.Time;
-        var fdjtDOM=fdjt.DOM;
-        var JSON=fdjt.JSON;
-        var warn=fdjt.Log.warn;
+        if (!(fdjt.RefDB)) {
+            fdjt.RefDB=(function(){
+                "use strict";
+                var fdjtState=fdjt.State;
+                var fdjtTime=fdjt.Time;
+                var fdjtAsync=fdjt.Async;
+                var fdjtDOM=fdjt.DOM;
+                var JSON=fdjt.JSON;
+                var warn=fdjt.Log.warn;
 
-        var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
+                var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
 
-        function RefDB(name,init){
-            var db=this;
-            if (refdbs[name]) {
-                db=refdbs[name];
-                if ((init)&&(db.init)) {
-                    if (db.xinits) db.xinits.push(init);
-                    else db.xinits=[init];}
-                else if (init) db.init=init;
-                else init={};}
-            else if ((init)&&(init.aliases)&&(checkAliases(init.aliases))) {
-                db=checkAliases(init.aliases);
-                if (db.aliases.indexOf(db.name)>=0) db.name=name;
-                if ((init)&&(db.init)) {
-                    if (db.xinits) db.xinits.push(init);
-                    else db.xinits=[init];}
-                else if (init) db.init=init;
-                else init={};}
-            else {
-                if (!(init)) init={};
-                db.name=name; refdbs[name]=db; all_refdbs.push(db);
-                db.aliases=[];
-                db.complete=false; // Whether all valid refs are loaded
-                db.refs={}; // Mapping _ids to refs (unique within the DB)
-                db.altrefs={}; // Alternate unique IDs
-                // An array of all references to this DB
-                db.allrefs=[];
-                // All loaded refs. This is used when declaring an onLoad
-                //  method after some references have already been loaded
-                db.loaded=[];
-                // An array of changed references, together with the
-                //  timestamp of the earliest change
-                db.changes=[]; db.changed=false; 
-                // Where to persist the data from this database
-                db.storage=init.storage||false;
-                // Whether _id fields for this database are globally unique
-                db.absrefs=init.absrefs||false;
-                // Whether _id fields for this database are OIDs (e.g. @xxx/xxx)
-                db.oidrefs=init.oidrefs||false;
-                // Handlers for loading refs from memory or network
-                db.onload=[]; db.onloadnames={};
-                // Rules to run when adding or dropping fields of references
-                //  This doesn't happen on import, though.
-                db.onadd={}; db.ondrop={}; 
-                // This maps from field names to tables which map from
-                //  keys to reference ids.
-                db.indices={};}
-            if (init.hasOwnProperty("absrefs")) db.absrefs=init.absrefs;
-            if (init.aliases) {
-                var aliases=init.aliases;
-                var i=0, lim=aliases.length; while (i<lim) {
-                    var alias=aliases[i++];
+                function RefDB(name,init){
+                    var db=this;
+                    if (refdbs[name]) {
+                        db=refdbs[name];
+                        if ((init)&&(db.init)) {
+                            if (db.xinits) db.xinits.push(init);
+                            else db.xinits=[init];}
+                        else if (init) db.init=init;
+                        else init={};}
+                    else if ((init)&&(init.aliases)&&(checkAliases(init.aliases))) {
+                        db=checkAliases(init.aliases);
+                        if (db.aliases.indexOf(db.name)>=0) db.name=name;
+                        if ((init)&&(db.init)) {
+                            if (db.xinits) db.xinits.push(init);
+                            else db.xinits=[init];}
+                        else if (init) db.init=init;
+                        else init={};}
+                    else {
+                        if (!(init)) init={};
+                        db.name=name; refdbs[name]=db; all_refdbs.push(db);
+                        db.aliases=[];
+                        db.complete=false; // Whether all valid refs are loaded
+                        db.refs={}; // Mapping _ids to refs (unique within the DB)
+                        db.altrefs={}; // Alternate unique IDs
+                        // An array of all references to this DB
+                        db.allrefs=[];
+                        // All loaded refs. This is used when declaring an onLoad
+                        //  method after some references have already been loaded
+                        db.loaded=[];
+                        // An array of changed references, together with the
+                        //  timestamp of the earliest change
+                        db.changes=[]; db.changed=false; 
+                        // Where to persist the data from this database
+                        db.storage=init.storage||false;
+                        // Whether _id fields for this database are globally unique
+                        db.absrefs=init.absrefs||false;
+                        // Whether _id fields for this database are OIDs (e.g. @xxx/xxx)
+                        db.oidrefs=init.oidrefs||false;
+                        // Handlers for loading refs from memory or network
+                        db.onload=[]; db.onloadnames={};
+                        // Rules to run when adding or dropping fields of references
+                        //  This doesn't happen on import, though.
+                        db.onadd={}; db.ondrop={}; 
+                        // This maps from field names to tables which map from
+                        //  keys to reference ids.
+                        db.indices={};}
+                    if (init.hasOwnProperty("absrefs")) db.absrefs=init.absrefs;
+                    if (init.aliases) {
+                        var aliases=init.aliases;
+                        var i=0, lim=aliases.length; while (i<lim) {
+                            var alias=aliases[i++];
+                            if (aliases[alias]) {
+                                if (aliases[alias]!==db)
+                                    warn("Alias %s for %o already associated with %o",
+                                         alias,db,aliases[alias]);}
+                            else {
+                                aliases[alias]=db;
+                                db.aliases.push(alias);}}}
+                    if (init.onload) {
+                        var onload=init.onload;
+                        for (var methname in onload) {
+                            if (onload.hasOwnProperty(methname)) 
+                                db.onLoad(onload[methname],methname);}}
+                    if (init.indices) {
+                        var index_specs=init.indices;
+                        var j=0, jlim=index_specs.length; while (j<jlim) {
+                            var ix=index_specs[j++];
+                            if (typeof ix !== "string") 
+                                warn("Complex indices not yet handled!");
+                            else {
+                                var index=this.indices[ix]=new ObjectMap();
+                                index.fordb=db;}}}
+                    
+                    return db;}
+
+                var REFINDEX=RefDB.REFINDEX=2;
+                var REFLOAD=RefDB.REFLOAD=4;
+                var REFSTRINGS=RefDB.REFSTRINGS=8;
+                var default_flags=((REFINDEX)|(REFSTRINGS));
+
+                function checkAliases(aliases){
+                    var i=0, lim=aliases.length;
+                    while (i<lim) {
+                        var alias=aliases[i++];
+                        var db=refdbs[alias];
+                        if (db) return db;}
+                    return false;}
+
+                RefDB.open=function RefDBOpen(name,DBClass){
+                    if (!(DBClass)) DBClass=RefDB;
+                    return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
+                        ((aliases.hasOwnProperty(name))&&(aliases[name]))||
+                        (new DBClass(name));};
+                function refDBProbe(name){
+                    return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
+                        ((aliases.hasOwnProperty(name))&&(aliases[name]))||
+                        false;}
+                RefDB.probe=refDBProbe;
+                RefDB.prototype.addAlias=function DBaddAlias(alias){
                     if (aliases[alias]) {
-                        if (aliases[alias]!==db)
+                        if (aliases[alias]!==this) 
                             warn("Alias %s for %o already associated with %o",
-                                 alias,db,aliases[alias]);}
+                                 alias,this,aliases[alias]);}
                     else {
-                        aliases[alias]=db;
-                        db.aliases.push(alias);}}}
-            if (init.onload) {
-                var onload=init.onload;
-                for (var methname in onload) {
-                    if (onload.hasOwnProperty(methname)) 
-                        db.onLoad(onload[methname],methname);}}
-            if (init.indices) {
-                var index_specs=init.indices;
-                var j=0, jlim=index_specs.length; while (j<jlim) {
-                    var ix=index_specs[j++];
-                    if (typeof ix !== "string") 
-                        warn("Complex indices not yet handled!");
-                    else {
-                        var index=this.indices[ix]=new ObjectMap();
-                        index.fordb=db;}}}
-            
-            return db;}
+                        aliases[alias]=this;
+                        this.aliases.push(alias);}};
 
-        var REFINDEX=RefDB.REFINDEX=2;
-        var REFLOAD=RefDB.REFLOAD=4;
-        var REFSTRINGS=RefDB.REFSTRINGS=8;
-        var default_flags=((REFINDEX)|(REFSTRINGS));
+                RefDB.prototype.toString=function (){
+                    return "RefDB("+this.name+")";};
 
-        function checkAliases(aliases){
-            var i=0, lim=aliases.length;
-            while (i<lim) {
-                var alias=aliases[i++];
-                var db=refdbs[alias];
-                if (db) return db;}
-            return false;}
+                RefDB.prototype.ref=function DBref(id){
+                    if (typeof id !== "string") {
+                        if (id instanceof Ref) return id;
+                        else throw new Error("Not a reference");}
+                    else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
+                    var refs=this.refs;
+                    return ((refs.hasOwnProperty(id))&&(refs[id]))||
+                        ((this.refclass)&&(new (this.refclass)(id,this)))||
+                        (new Ref(id,this));};
+                RefDB.prototype.probe=function DBprobe(id){
+                    if (typeof id !== "string") {
+                        if (id instanceof Ref) return id;
+                        else return false;}
+                    else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
+                    var refs=this.refs;
+                    return ((refs.hasOwnProperty(id))&&(refs[id]));};
+                RefDB.prototype.drop=function DBdrop(refset){
+                    var count=0;
+                    var refs=this.refs; var altrefs=this.altrefs;
+                    if (!(id instanceof Array)) refset=[refset];
+                    var i=0, nrefs=refset.length; while (i<nrefs) {
+                        var ref=refset[i++]; var id;
+                        if (ref instanceof Ref) id=ref._id;
+                        else {id=ref; ref=this.probe(id);}
+                        if (!(ref)) continue; else count++;
+                        var aliases=ref.aliases;
+                        var pos=this.allrefs.indexOf(ref);
+                        if (pos>=0) this.allrefs.splice(pos,1);
+                        pos=this.changes.indexOf(ref);
+                        if (pos>=0) this.changes.splice(pos,1);
+                        pos=this.loaded.indexOf(ref);
+                        if (pos>=0) this.loaded.splice(pos,1);
+                        delete refs[id];
+                        if (this.storage instanceof Storage) {
+                            var storage=this.storage;
+                            var key="allids("+this.name+")";
+                            var allidsval=storage[key];
+                            var allids=((allidsval)&&(JSON.parse(allidsval)));
+                            var idpos=allids.indexOf(id);
+                            if (idpos>=0) {
+                                allids.splice(idpos,1);
+                                storage.setItem(key,JSON.stringify(allids));
+                                storage.removeItem(id);}}
+                        if (aliases) {
+                            var j=0, jlim=aliases.length;
+                            while (j<jlim) {delete altrefs[aliases[j++]];}}}
+                    return count;};
+                RefDB.prototype.clearOffline=function refDBclear(callback){
+                    if (!(this.storage)) return false;
+                    else if ((Storage)&&(this.storage instanceof Storage)) {
+                        var storage=this.storage;
+                        var key="allids("+this.name+")";
+                        var allids=this.storage[key];
+                        if (allids) allids=JSON.parse(allids);
+                        if (allids) {
+                            var i=0, lim=allids.length;
+                            while (i<lim) delete storage[allids[i++]];}
+                        delete storage[key];
+                        if (callback) setTimeout(callback,5);}
+                    else if (this.storage instanceof indexedDB) {
+                        // Not yet implemented
+                        return;}
+                    else return false;};
 
-        RefDB.open=function RefDBOpen(name,DBClass){
-            if (!(DBClass)) DBClass=RefDB;
-            return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
-                ((aliases.hasOwnProperty(name))&&(aliases[name]))||
-                (new DBClass(name));};
-        function refDBProbe(name){
-            return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
-                ((aliases.hasOwnProperty(name))&&(aliases[name]))||
-                false;}
-        RefDB.probe=refDBProbe;
-        RefDB.prototype.addAlias=function DBaddAlias(alias){
-            if (aliases[alias]) {
-                if (aliases[alias]!==this) 
-                    warn("Alias %s for %o already associated with %o",
-                         alias,this,aliases[alias]);}
-            else {
-                aliases[alias]=this;
-                this.aliases.push(alias);}};
-
-        RefDB.prototype.toString=function (){
-            return "RefDB("+this.name+")";};
-
-        RefDB.prototype.ref=function DBref(id){
-            if (typeof id !== "string") {
-                if (id instanceof Ref) return id;
-                else throw new Error("Not a reference");}
-            else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
-            var refs=this.refs;
-            return ((refs.hasOwnProperty(id))&&(refs[id]))||
-                ((this.refclass)&&(new (this.refclass)(id,this)))||
-                (new Ref(id,this));};
-        RefDB.prototype.probe=function DBprobe(id){
-            if (typeof id !== "string") {
-                if (id instanceof Ref) return id;
-                else return false;}
-            else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
-            var refs=this.refs;
-            return ((refs.hasOwnProperty(id))&&(refs[id]));};
-        RefDB.prototype.drop=function DBdrop(refset){
-            var count=0;
-            var refs=this.refs; var altrefs=this.altrefs;
-            if (!(id instanceof Array)) refset=[refset];
-            var i=0, nrefs=refset.length; while (i<nrefs) {
-                var ref=refset[i++]; var id;
-                if (ref instanceof Ref) id=ref._id;
-                else {id=ref; ref=this.probe(id);}
-                if (!(ref)) continue; else count++;
-                var aliases=ref.aliases;
-                var pos=this.allrefs.indexOf(ref);
-                if (pos>=0) this.allrefs.splice(pos,1);
-                pos=this.changes.indexOf(ref);
-                if (pos>=0) this.changes.splice(pos,1);
-                pos=this.loaded.indexOf(ref);
-                if (pos>=0) this.loaded.splice(pos,1);
-                delete refs[id];
-                if (this.storage instanceof Storage) {
-                    var storage=this.storage;
-                    var key="allids("+this.name+")";
-                    var allidsval=storage[key];
-                    var allids=((allidsval)&&(JSON.parse(allidsval)));
-                    var idpos=allids.indexOf(id);
-                    if (idpos>=0) {
-                        allids.splice(idpos,1);
-                        storage.setItem(key,JSON.stringify(allids));
-                        storage.removeItem(id);}}
-                if (aliases) {
-                    var j=0, jlim=aliases.length;
-                    while (j<jlim) {delete altrefs[aliases[j++]];}}}
-            return count;};
-        RefDB.prototype.clearOffline=function refDBclear(callback){
-            if (!(this.storage)) return false;
-            else if ((Storage)&&(this.storage instanceof Storage)) {
-                var storage=this.storage;
-                var key="allids("+this.name+")";
-                var allids=this.storage[key];
-                if (allids) allids=JSON.parse(allids);
-                if (allids) {
-                    var i=0, lim=allids.length;
-                    while (i<lim) delete storage[allids[i++]];}
-                delete storage[key];
-                if (callback) setTimeout(callback,5);}
-            else if (this.storage instanceof indexedDB) {
-                // Not yet implemented
-                return;}
-            else return false;};
-
-        RefDB.prototype.onLoad=function(method,name,noupdate){
-            if ((name)&&(this.onloadnames[name])) {
-                var cur=this.onloadnames[name];
-                if (cur===method) return;
-                var pos=this.onload.indexOf(cur);
-                if (cur<0) {
-                    warn("Couldn't replace named onload method %s for <RefDB %s>",
-                         name,this.name);
-                    return;}
-                else {
-                    this.onload[pos]=method;}}
-            else this.onload.push(method);
-            if (name) this.onloadnames[name]=method;
-            if (!(noupdate)) {
-                var loaded=[].concat(this.loaded);
-                fdjtTime.slowmap(method,loaded);}};
-
-        RefDB.prototype.onAdd=function(name,method){
-            this.onadd[name]=method;};
-
-        RefDB.prototype.onDrop=function(name,method){
-            this.ondrop[name]=method;};
-        
-        var refpat=/^(((:|)@(([0-9a-fA-F]+\/[0-9a-fA-F]+)|(\/\w+\/.*)|(@\d+\/.*)))|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}t[0-9a-zA-Z]+)|([^@]+@.+))$/;
-    
-        var getLocal=fdjtState.getLocal;
-
-        function resolveRef(arg,db,DBType,force){
-            if (typeof DBType !== "function") DBType=RefDB;
-            if (arg instanceof Ref) return arg;
-            else if ((typeof arg === "object")&&(arg.id))
-                return object2ref(arg,db);
-            else if ((db)&&(db.refs.hasOwnProperty(arg)))
-                return db.refs[arg];
-            // The case above catches direct references inline; the
-            // case below does a function call (probe) and catches
-            // aliases
-            else if ((db)&&(db.probe(arg))) return db.probe(arg);
-            else if ((typeof arg === "string")&&(refpat.exec(arg))) {
-                var at=arg.indexOf('@');
-                if ((at===1)&&(arg[0]===':')) {arg=arg.slice(1); at=0;}
-                if (at>0) {
-                    // this is the term@domain form
-                    var usedb=false, dbname=arg.slice(at+1), origin;
-                    if ((usedb=refDBProbe(dbname))) {}
-                    else if (refpat.exec(dbname)) {
-                        origin=resolveRef(dbname);
-                        if (origin) force=true;
-                        else dbname=arg.slice(at+1);}
-                    else dbname=arg.slice(at+1);
-                    if ((db)&&(db.name===dbname)) usedb=db;
-                    else usedb=refDBProbe(dbname);
-                    arg=arg.slice(0,at);
-                    if (usedb) db=usedb;
-                    else if (force) {
-                        warn("Creating forced RefDB domain %s for reference %s",dbname,arg);
-                        db=RefDB.open(dbname,DBType);}
-                    else db=refDBProbe(dbname);
-                    if ((db)&&(origin)) {
-                        db.origin=origin;
-                        if (origin.name) db.fullname=origin.name;}
-                    arg=arg.slice(0,at);}
-                else if (at<0) {
-                    var uuid;
-                    if (arg.search(":#U")===0) uuid=arg.slice(3);
-                    else if (arg.search("#U")===0) uuid=arg.slice(2);
-                    else if (arg.search("U")===0) uuid=arg.slice(1);
-                    else uuid=arg;
-                    var type=uuid.indexOf('t'), tail=arg.length-2;
-                    if (type>0) type="UUID"+uuid.slice(type); else type=false;
-                    if (tail>0) tail="-UUIDTYPE="+uuid.slice(tail);
-                    else tail=false;
-                    var known_db=((type)&&(refdbs[type]||aliases[type]))||
-                        ((tail)&&(refdbs[tail]||aliases[tail]));
-                    if (known_db) db=known_db;
-                    else if ((force)&&(type)&&(DBType)) {
-                        warn("Creating forced RefDB domain %s for reference %s",type,arg);
-                        db=new DBType(type);
-                        if (type) db.addAlias(type);}
-                    else {}}
-                else if (arg[1]==='@') {
-                    // This is for local references
-                    var idstart=arg.indexOf('/');
-                    var atid=arg.slice(0,idstart);
-                    var atdb=aliases[atid];
-                    if (atdb) db=atdb;
-                    else {
-                        var domain=getLocal(arg.slice(0,idstart),true);
-                        if (domain) {
-                            db=new RefDB(domain,{aliases: [atid]});}
+                RefDB.prototype.onLoad=function(method,name,noupdate){
+                    if ((name)&&(this.onloadnames[name])) {
+                        var cur=this.onloadnames[name];
+                        if (cur===method) return;
+                        var pos=this.onload.indexOf(cur);
+                        if (cur<0) {
+                            warn("Couldn't replace named onload method %s for <RefDB %s>",
+                                 name,this.name);
+                            return;}
                         else {
-                            warn("Can't find domain for atid %s when resolving %s",atid,arg);
-                            db=false;}}}
-                else {
-                    var atprefix, slash;
-                    // Find the slash before the ID
-                    if (arg[1]==='/') {
-                        slash=arg.slice(2).indexOf('/');
-                        if (slash>0) slash=slash+2;}
-                    else slash=arg.indexOf('/');
-                    atprefix=arg.slice(at,slash+1);
-                    db=refdbs[atprefix]||aliases[atprefix]||
-                        ((DBType)&&(new DBType(atprefix)));}}
-            if (!(db)) return false;
-            if (db.refs.hasOwnProperty(arg)) return (db.refs[arg]);
-            else if (force) return db.ref(arg);
-            else return false;}
-        RefDB.resolve=resolveRef;
-        RefDB.ref=resolveRef;
+                            this.onload[pos]=method;}}
+                    else this.onload.push(method);
+                    if (name) this.onloadnames[name]=method;
+                    if (!(noupdate)) {
+                        var loaded=[].concat(this.loaded);
+                        fdjtAsync.slowmap(method,loaded);}};
 
-        function Ref(id,db,instance){
-            // Just called for the prototype
-            if (arguments.length===0) return this;
-            var at=id.indexOf('@');
-            if ((at>1)&&(id[at-1]!=='\\')) {
-                var domain=id.slice(at+1);
-                if ((domain!==db.name)&&
-                    (db.aliases.indexOf(domain)<0))
-                    warn("Reference to %s being handled by %s",id,db);
-                id=id.slice(0,at);}
-            if (db.refs.hasOwnProperty(id)) return db.refs[id];
-            else if (instance) {
-                instance._id=id; instance._db=db;
-                if (!(db.absrefs)) instance._domain=db.name;
-                db.refs[id]=instance;
-                db.allrefs.push(instance);
-                return instance;}
-            else if ((db.refclass)&&(!(this instanceof db.refclass)))
-                return new (db.refclass)(id,db);
-            else {
-                this._id=id; this._db=db;
-                if (!(db.absrefs)) this._domain=db.name;
-                db.refs[id]=this;
-                db.allrefs.push(this);
-                return this;}}
-        fdjt.Ref=RefDB.Ref=Ref;
+                RefDB.prototype.onAdd=function(name,method){
+                    this.onadd[name]=method;};
 
-        Ref.prototype.toString=function(){
-            if (this._qid) return this._qid;
-            else if (this._domain)
-                return this._id+"@"+this._domain;
-            else if (this._db.absrefs) return this._id;
-            else return this._id+"@"+this._db.name;};
-        Ref.prototype.getQID=function getQID(){
-            var qid;
-            if (this._qid) return this._qid;
-            else if (this._domain) 
-                qid=this._qid=(this._id+"@"+this._domain);
-            else if (this._db.absrefs) 
-                qid=this._qid=this._id;
-            else {
-                qid=this._qid=(this._id+"@"+this._db.name);}
-            return qid;};
+                RefDB.prototype.onDrop=function(name,method){
+                    this.ondrop[name]=method;};
+                
+                var refpat=/^(((:|)@(([0-9a-fA-F]+\/[0-9a-fA-F]+)|(\/\w+\/.*)|(@\d+\/.*)))|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}t[0-9a-zA-Z]+)|([^@]+@.+))$/;
+                
+                var getLocal=fdjtState.getLocal;
 
-        Ref.prototype.addAlias=function addRefAlias(term){
-            var refs=this._db.refs;
-            if (refs.hasOwnProperty(term)) {
-                if (refs[term]===this) return false;
-                else throw {error: "Ref alias conflict"};}
-            else if (this._db.altrefs.hasOwnProperty(term)) {
-                if (this._db.altrefs[term]===this) return false;
-                else throw {error: "Ref alias conflict"};}
-            else {
-                this._db.altrefs[term]=this;
-                return true;}};
+                function resolveRef(arg,db,DBType,force){
+                    if (typeof DBType !== "function") DBType=RefDB;
+                    if (arg instanceof Ref) return arg;
+                    else if ((typeof arg === "object")&&(arg.id))
+                        return object2ref(arg,db);
+                    else if ((db)&&(db.refs.hasOwnProperty(arg)))
+                        return db.refs[arg];
+                    // The case above catches direct references inline; the
+                    // case below does a function call (probe) and catches
+                    // aliases
+                    else if ((db)&&(db.probe(arg))) return db.probe(arg);
+                    else if ((typeof arg === "string")&&(refpat.exec(arg))) {
+                        var at=arg.indexOf('@');
+                        if ((at===1)&&(arg[0]===':')) {arg=arg.slice(1); at=0;}
+                        if (at>0) {
+                            // this is the term@domain form
+                            var usedb=false, dbname=arg.slice(at+1), origin;
+                            if ((usedb=refDBProbe(dbname))) {}
+                            else if (refpat.exec(dbname)) {
+                                origin=resolveRef(dbname);
+                                if (origin) force=true;
+                                else dbname=arg.slice(at+1);}
+                            else dbname=arg.slice(at+1);
+                            if ((db)&&(db.name===dbname)) usedb=db;
+                            else usedb=refDBProbe(dbname);
+                            arg=arg.slice(0,at);
+                            if (usedb) db=usedb;
+                            else if (force) {
+                                warn("Creating forced RefDB domain %s for reference %s",dbname,arg);
+                                db=RefDB.open(dbname,DBType);}
+                            else db=refDBProbe(dbname);
+                            if ((db)&&(origin)) {
+                                db.origin=origin;
+                                if (origin.name) db.fullname=origin.name;}
+                            arg=arg.slice(0,at);}
+                        else if (at<0) {
+                            var uuid;
+                            if (arg.search(":#U")===0) uuid=arg.slice(3);
+                            else if (arg.search("#U")===0) uuid=arg.slice(2);
+                            else if (arg.search("U")===0) uuid=arg.slice(1);
+                            else uuid=arg;
+                            var type=uuid.indexOf('t'), tail=arg.length-2;
+                            if (type>0) type="UUID"+uuid.slice(type); else type=false;
+                            if (tail>0) tail="-UUIDTYPE="+uuid.slice(tail);
+                            else tail=false;
+                            var known_db=((type)&&(refdbs[type]||aliases[type]))||
+                                ((tail)&&(refdbs[tail]||aliases[tail]));
+                            if (known_db) db=known_db;
+                            else if ((force)&&(type)&&(DBType)) {
+                                warn("Creating forced RefDB domain %s for reference %s",type,arg);
+                                db=new DBType(type);
+                                if (type) db.addAlias(type);}
+                            else {}}
+                        else if (arg[1]==='@') {
+                            // This is for local references
+                            var idstart=arg.indexOf('/');
+                            var atid=arg.slice(0,idstart);
+                            var atdb=aliases[atid];
+                            if (atdb) db=atdb;
+                            else {
+                                var domain=getLocal(arg.slice(0,idstart),true);
+                                if (domain) {
+                                    db=new RefDB(domain,{aliases: [atid]});}
+                                else {
+                                    warn("Can't find domain for atid %s when resolving %s",atid,arg);
+                                    db=false;}}}
+                        else {
+                            var atprefix, slash;
+                            // Find the slash before the ID
+                            if (arg[1]==='/') {
+                                slash=arg.slice(2).indexOf('/');
+                                if (slash>0) slash=slash+2;}
+                            else slash=arg.indexOf('/');
+                            atprefix=arg.slice(at,slash+1);
+                            db=refdbs[atprefix]||aliases[atprefix]||
+                                ((DBType)&&(new DBType(atprefix)));}}
+                    if (!(db)) return false;
+                    if (db.refs.hasOwnProperty(arg)) return (db.refs[arg]);
+                    else if (force) return db.ref(arg);
+                    else return false;}
+                RefDB.resolve=resolveRef;
+                RefDB.ref=resolveRef;
 
-        function object2ref(value,db,dbtype) {
-            var ref, dbref=false; 
-            if (value._domain)
-                dbref=RefDB.probe(value._domain)||(new RefDB(value._domain));
-            if (dbref) ref=dbref.ref(value._id);
-            else ref=RefDB.resolve(value._id,db,(dbtype||RefDB),true);
-            return ref;}
+                function Ref(id,db,instance){
+                    // Just called for the prototype
+                    if (arguments.length===0) return this;
+                    var at=id.indexOf('@');
+                    if ((at>1)&&(id[at-1]!=='\\')) {
+                        var domain=id.slice(at+1);
+                        if ((domain!==db.name)&&
+                            (db.aliases.indexOf(domain)<0))
+                            warn("Reference to %s being handled by %s",id,db);
+                        id=id.slice(0,at);}
+                    if (db.refs.hasOwnProperty(id)) return db.refs[id];
+                    else if (instance) {
+                        instance._id=id; instance._db=db;
+                        if (!(db.absrefs)) instance._domain=db.name;
+                        db.refs[id]=instance;
+                        db.allrefs.push(instance);
+                        return instance;}
+                    else if ((db.refclass)&&(!(this instanceof db.refclass)))
+                        return new (db.refclass)(id,db);
+                    else {
+                        this._id=id; this._db=db;
+                        if (!(db.absrefs)) this._domain=db.name;
+                        db.refs[id]=this;
+                        db.allrefs.push(this);
+                        return this;}}
+                fdjt.Ref=RefDB.Ref=Ref;
 
-        Ref.prototype.Import=function refImport(data,rules,flags){
-            var db=this._db; var live=this._live;
-            var indices=db.indices; var onload=db.onload;
-            var onadd=((live)&&(db.onadd)), ondrop=((live)&&(db.ondrop));
-            var aliases=data.aliases;
-            if (typeof flags === "undefined") flags=default_flags;
-            if (typeof rules === "undefined")
-                rules=this.import_rules||db.import_rules;
-            var indexing=(((flags)&(REFINDEX))!==0);
-            var loading=(((flags)&(REFLOAD))!==0);
-            var refstrings=(((flags)&(REFSTRINGS))!==0);
-            if (aliases) {
-                var ai=0, alim=aliases.length; while (ai<alim) {
-                    var alias=aliases[ai++];
-                    var cur=((db.refs.hasOwnProperty(alias))&&
-                             (db.refs[alias]))||
-                        ((db.altrefs.hasOwnProperty(alias))&&
-                         (db.altrefs[alias]));
-                    if ((cur)&&(cur!==this))
-                        warn("Ambiguous ref %s in %s refers to both %o and %o",
-                             alias,db,cur.name,this.name);
-                    else aliases[alias]=this;}}
-            var run_inits=((loading)&&(!(this._live)));
-            if (run_inits) this._live=fdjtTime();
-            for (var key in data) {
-                if ((key==="aliases")||(key==="_id")) {}
-                else if (data.hasOwnProperty(key)) {
-                    var value=data[key]; var rule=((rules)&&(rules[key]));
-                    if (typeof value !== "undefined") {
-                        if (rule) value=(rule)(this,key,value,data,indexing);
-                        value=importValue(value,db,refstrings);}
-                    var oldval=((live)&&(this[key]));
-                    this[key]=value;
-                    if (oldval) {
-                        var drops=difference(oldval,value||[]);
-                        var adds=((value)?(difference(value,oldval)):([]));
-                        if ((indexing)&&(indices[key])) { 
-                            if (adds.length)
-                                this.indexRef(key,adds,indices[key],db);
-                            if (drops.length)
-                                this.dropIndexRef(key,drops,indices[key],db);}
-                        if ((adds.length)&&(onadd[key])) {
-                            var addfn=onadd[key];
-                            var addi=0, addlen=adds.length;
-                            while (addi<addlen) {
-                                addfn(adds[addi++]);}}
-                        if ((drops.length)&&(ondrop[key])) {
-                            var dropfn=ondrop[key];
-                            var dropi=0, droplen=drops.length;
-                            while (dropi<droplen) {
-                                dropfn(drops[dropi++]);}}}
-                    else if ((value)&&(indexing)&&(indices[key])) 
-                        this.indexRef(key,value,indices[key],db);}}
-            // These are run-once inits loaded on initial import
-            if (run_inits) {
-                // Run the db-specific inits for each reference
-                if (onload) {
-                    var i=0, lim=onload.length; while (i<lim) {
-                        var loadfn=onload[i++];
-                        loadfn(this);}}
-                // Run per-instance delayed inits
-                if (this._onload) {
-                    var onloads=this._onload, inits=onloads.fns;
-                    var j=0, jlim=inits.length; while (j<jlim) {
-                        inits[j++](this);}
-                    delete this._onload;}}
-            // Record a change if we're not loading and not already changed.
-            if ((!(loading))&&(!(this._changed))) {
-                var now=fdjtTime();
-                this._changed=now;
-                db.changes.push(this);
-                if (!(db.changed)) {
-                    db.changed=now; db.changes.push(db);}}};
-        function importValue(value,db,refstrings){
-            if ((typeof value === "undefined")||
-                (typeof value === "number")||
-                (value=== null))
-                return value;
-            else if (value instanceof Ref) return value;
-            else if (value instanceof Array) {
-                var i=0, lim=value.length; var copied=false;
-                while (i<lim) {
-                    var v=value[i++], nv=v;
-                    if (v===null) nv=undefined;
-                    else if (v instanceof Ref) nv=v;
-                    else if ((typeof v === "object")&&(v._id)) {
-                        var ref=object2ref(v,db);
-                        if (ref) {
-                            for (var slot in v) {
-                                if ((v.hasOwnProperty(slot))&&
-                                    (slot!=="_id")&&(slot!=="_db"))
-                                    ref[slot]=importValue(v[slot],db,refstrings);}
-                            nv=ref;}}
-                    else if ((refstrings)&&(typeof v === "string")&&
-                             (refpat.exec(v))) {
-                        nv=resolveRef(v,db)||v;}
-                    if (typeof nv === "undefined") {
-                        if (!(copied)) copied=value.slice(0,i-1);}
-                    else if (copied) copied.push(nv);
-                    else if (nv!==v) {
-                        copied=value.slice(0,i-1);
-                        copied.push(nv);}
-                    else {}}
-                if (copied) return copied; else return value;}
-            else if ((typeof value === "object")&&(value._id)) {
-                var refv=object2ref(value,db);
-                for (var vslot in value) {
-                    if ((value.hasOwnProperty(vslot))&&
-                        (vslot!=="_id")&&(vslot!=="_db"))
-                        refv[vslot]=importValue(value[vslot],db,refstrings);}
-                return refv;}
-            else if ((refstrings)&&(typeof value === "string")&&
-                     (refpat.exec(value)))
-                return resolveRef(value,db)||value;
-            else return value;}
-        Ref.prototype.importValue=function(value,refstrings){
-            return importValue(this._db,value,refstrings);};
-        RefDB.prototype.importValue=function(val,refstrings){
-            return importValue(val,this,refstrings);};
-        function defImport(item,refs,db,rules,flags){
-            var ref=resolveRef(item._id,item._domain||db,
-                               db.constructor,true);
-            if (!(ref)) warn("Couldn't resolve database for %o",item._id);
-            else {
-                refs.push(ref);
-                ref.Import(item,rules||false,flags);}}
+                Ref.prototype.toString=function(){
+                    if (this._qid) return this._qid;
+                    else if (this._domain)
+                        return this._id+"@"+this._domain;
+                    else if (this._db.absrefs) return this._id;
+                    else return this._id+"@"+this._db.name;};
+                Ref.prototype.getQID=function getQID(){
+                    var qid;
+                    if (this._qid) return this._qid;
+                    else if (this._domain) 
+                        qid=this._qid=(this._id+"@"+this._domain);
+                    else if (this._db.absrefs) 
+                        qid=this._qid=this._id;
+                    else {
+                        qid=this._qid=(this._id+"@"+this._db.name);}
+                    return qid;};
 
-        RefDB.prototype.Import=function refDBImport(data,rules,flags,callback){
-            var refs=[]; var db=this;
-            if (!(data instanceof Array)) {
-                defImport(data,refs,db,rules,flags);
-                if (callback) {
-                    if (callback.call) 
-                        setTimeout(function(){callback(refs[0]);});
-                    return refs[0];}
-                else return refs[0];}
-            if ((!(callback))||(data.length<=7)) {
-                var i=0, lim=data.length; while (i<lim) {
-                    defImport(data[i++],refs,db,rules,flags);}
-                if ((callback)&&(callback.call)) 
-                    setTimeout(function(){callback(refs);},10);
-                return refs;}
-            else if (!(callback.call))
-                fdjtTime.slowmap(function(item){
-                    defImport(item,refs,db,rules,flags);},data);
-            else fdjtTime.slowmap(function(item){
-                defImport(item,refs,db,rules,flags);},
-                                  data,false,
-                                  function(){callback(refs);});};
+                Ref.prototype.addAlias=function addRefAlias(term){
+                    var refs=this._db.refs;
+                    if (refs.hasOwnProperty(term)) {
+                        if (refs[term]===this) return false;
+                        else throw {error: "Ref alias conflict"};}
+                    else if (this._db.altrefs.hasOwnProperty(term)) {
+                        if (this._db.altrefs[term]===this) return false;
+                        else throw {error: "Ref alias conflict"};}
+                    else {
+                        this._db.altrefs[term]=this;
+                        return true;}};
 
-        Ref.prototype.onLoad=function(fn,name){
-            if (this._live) fn(this);
-            else if (this._onload) {
-                if (this._onload[name]) return;
-                if (name) this._onload[name]=fn;
-                this._onload.fns.push(fn);}
-            else {
-                this._onload={fns:[fn]};
-                if (name) this._onload[name]=fn;}};
-        
-        Ref.Export=Ref.prototype.Export=function refExport(xforms){
-            var db=this._id;
-            var exported={_id: this._id};
-            if (!(xforms)) xforms=this.export_rules||db.export_rules;
-            if (!(db.absrefs)) this._domain=db.name;
-            for (var key in this) {
-                if (key[0]==="_") continue;
-                else if (this.hasOwnProperty(key)) {
-                    var value=this[key];
-                    var xform=((xforms)&&(xforms[key]));
-                    if (xform) value=xform(value,key,exported);
-                    if (typeof value === "undefined") {}
-                    else if ((typeof value === "number")||
-                        (typeof value === "string"))
-                        exported[key]=value;
-                    else if (value instanceof Ref) {
-                        if (value._db.absrefs)
-                            exported[key]={_id: value._id};
-                        else exported[key]={
+                function object2ref(value,db,dbtype) {
+                    var ref, dbref=false; 
+                    if (value._domain)
+                        dbref=RefDB.probe(value._domain)||(new RefDB(value._domain));
+                    if (dbref) ref=dbref.ref(value._id);
+                    else ref=RefDB.resolve(value._id,db,(dbtype||RefDB),true);
+                    return ref;}
+
+                Ref.prototype.Import=function refImport(data,rules,flags){
+                    var db=this._db; var live=this._live;
+                    var indices=db.indices; var onload=db.onload;
+                    var onadd=((live)&&(db.onadd)), ondrop=((live)&&(db.ondrop));
+                    var aliases=data.aliases;
+                    if (typeof flags === "undefined") flags=default_flags;
+                    if (typeof rules === "undefined")
+                        rules=this.import_rules||db.import_rules;
+                    var indexing=(((flags)&(REFINDEX))!==0);
+                    var loading=(((flags)&(REFLOAD))!==0);
+                    var refstrings=(((flags)&(REFSTRINGS))!==0);
+                    if (aliases) {
+                        var ai=0, alim=aliases.length; while (ai<alim) {
+                            var alias=aliases[ai++];
+                            var cur=((db.refs.hasOwnProperty(alias))&&
+                                     (db.refs[alias]))||
+                                ((db.altrefs.hasOwnProperty(alias))&&
+                                 (db.altrefs[alias]));
+                            if ((cur)&&(cur!==this))
+                                warn("Ambiguous ref %s in %s refers to both %o and %o",
+                                     alias,db,cur.name,this.name);
+                            else aliases[alias]=this;}}
+                    var run_inits=((loading)&&(!(this._live)));
+                    if (run_inits) this._live=fdjtTime();
+                    for (var key in data) {
+                        if ((key==="aliases")||(key==="_id")) {}
+                        else if (data.hasOwnProperty(key)) {
+                            var value=data[key]; var rule=((rules)&&(rules[key]));
+                            if (typeof value !== "undefined") {
+                                if (rule) value=(rule)(this,key,value,data,indexing);
+                                value=importValue(value,db,refstrings);}
+                            var oldval=((live)&&(this[key]));
+                            this[key]=value;
+                            if (oldval) {
+                                var drops=difference(oldval,value||[]);
+                                var adds=((value)?(difference(value,oldval)):([]));
+                                if ((indexing)&&(indices[key])) { 
+                                    if (adds.length)
+                                        this.indexRef(key,adds,indices[key],db);
+                                    if (drops.length)
+                                        this.dropIndexRef(key,drops,indices[key],db);}
+                                if ((adds.length)&&(onadd[key])) {
+                                    var addfn=onadd[key];
+                                    var addi=0, addlen=adds.length;
+                                    while (addi<addlen) {
+                                        addfn(adds[addi++]);}}
+                                if ((drops.length)&&(ondrop[key])) {
+                                    var dropfn=ondrop[key];
+                                    var dropi=0, droplen=drops.length;
+                                    while (dropi<droplen) {
+                                        dropfn(drops[dropi++]);}}}
+                            else if ((value)&&(indexing)&&(indices[key])) 
+                                this.indexRef(key,value,indices[key],db);}}
+                    // These are run-once inits loaded on initial import
+                    if (run_inits) {
+                        // Run the db-specific inits for each reference
+                        if (onload) {
+                            var i=0, lim=onload.length; while (i<lim) {
+                                var loadfn=onload[i++];
+                                loadfn(this);}}
+                        // Run per-instance delayed inits
+                        if (this._onload) {
+                            var onloads=this._onload, inits=onloads.fns;
+                            var j=0, jlim=inits.length; while (j<jlim) {
+                                inits[j++](this);}
+                            delete this._onload;}}
+                    // Record a change if we're not loading and not already changed.
+                    if ((!(loading))&&(!(this._changed))) {
+                        var now=fdjtTime();
+                        this._changed=now;
+                        db.changes.push(this);
+                        if (!(db.changed)) {
+                            db.changed=now; db.changes.push(db);}}};
+                function importValue(value,db,refstrings){
+                    if ((typeof value === "undefined")||
+                        (typeof value === "number")||
+                        (value=== null))
+                        return value;
+                    else if (value instanceof Ref) return value;
+                    else if (value instanceof Array) {
+                        var i=0, lim=value.length; var copied=false;
+                        while (i<lim) {
+                            var v=value[i++], nv=v;
+                            if (v===null) nv=undefined;
+                            else if (v instanceof Ref) nv=v;
+                            else if ((typeof v === "object")&&(v._id)) {
+                                var ref=object2ref(v,db);
+                                if (ref) {
+                                    for (var slot in v) {
+                                        if ((v.hasOwnProperty(slot))&&
+                                            (slot!=="_id")&&(slot!=="_db"))
+                                            ref[slot]=importValue(v[slot],db,refstrings);}
+                                    nv=ref;}}
+                            else if ((refstrings)&&(typeof v === "string")&&
+                                     (refpat.exec(v))) {
+                                nv=resolveRef(v,db)||v;}
+                            if (typeof nv === "undefined") {
+                                if (!(copied)) copied=value.slice(0,i-1);}
+                            else if (copied) copied.push(nv);
+                            else if (nv!==v) {
+                                copied=value.slice(0,i-1);
+                                copied.push(nv);}
+                            else {}}
+                        if (copied) return copied; else return value;}
+                    else if ((typeof value === "object")&&(value._id)) {
+                        var refv=object2ref(value,db);
+                        for (var vslot in value) {
+                            if ((value.hasOwnProperty(vslot))&&
+                                (vslot!=="_id")&&(vslot!=="_db"))
+                                refv[vslot]=importValue(value[vslot],db,refstrings);}
+                        return refv;}
+                    else if ((refstrings)&&(typeof value === "string")&&
+                             (refpat.exec(value)))
+                        return resolveRef(value,db)||value;
+                    else return value;}
+                Ref.prototype.importValue=function(value,refstrings){
+                    return importValue(this._db,value,refstrings);};
+                RefDB.prototype.importValue=function(val,refstrings){
+                    return importValue(val,this,refstrings);};
+                function defImport(item,refs,db,rules,flags){
+                    var ref=resolveRef(item._id,item._domain||db,
+                                       db.constructor,true);
+                    if (!(ref)) warn("Couldn't resolve database for %o",item._id);
+                    else {
+                        refs.push(ref);
+                        ref.Import(item,rules||false,flags);}}
+
+                RefDB.prototype.Import=function refDBImport(data,rules,flags,callback){
+                    var refs=[]; var db=this;
+                    if (!(data instanceof Array)) {
+                        defImport(data,refs,db,rules,flags);
+                        if (callback) {
+                            if (callback.call) 
+                                setTimeout(function(){callback(refs[0]);});
+                            return refs[0];}
+                        else return refs[0];}
+                    if ((!(callback))||(data.length<=7)) {
+                        var i=0, lim=data.length; while (i<lim) {
+                            defImport(data[i++],refs,db,rules,flags);}
+                        if ((callback)&&(callback.call)) 
+                            setTimeout(function(){callback(refs);},10);
+                        return refs;}
+                    else if (!(callback.call))
+                        fdjtAsync.slowmap(function(item){
+                            defImport(item,refs,db,rules,flags);},data);
+                    else fdjtAsync.slowmap(function(item){
+                        defImport(item,refs,db,rules,flags);},
+                                           data,
+                                           {done: function(){callback(refs);}});};
+
+                Ref.prototype.onLoad=function(fn,name){
+                    if (this._live) fn(this);
+                    else if (this._onload) {
+                        if (this._onload[name]) return;
+                        if (name) this._onload[name]=fn;
+                        this._onload.fns.push(fn);}
+                    else {
+                        this._onload={fns:[fn]};
+                        if (name) this._onload[name]=fn;}};
+                
+                Ref.Export=Ref.prototype.Export=function refExport(xforms){
+                    var db=this._id;
+                    var exported={_id: this._id};
+                    if (!(xforms)) xforms=this.export_rules||db.export_rules;
+                    if (!(db.absrefs)) this._domain=db.name;
+                    for (var key in this) {
+                        if (key[0]==="_") continue;
+                        else if (this.hasOwnProperty(key)) {
+                            var value=this[key];
+                            var xform=((xforms)&&(xforms[key]));
+                            if (xform) value=xform(value,key,exported);
+                            if (typeof value === "undefined") {}
+                            else if ((typeof value === "number")||
+                                     (typeof value === "string"))
+                                exported[key]=value;
+                            else if (value instanceof Ref) {
+                                if (value._db.absrefs)
+                                    exported[key]={_id: value._id};
+                                else exported[key]={
+                                    _id: value._id,
+                                    _domain: value._domain||value._db.name};}
+                            else exported[key]=exportValue(value,this._db);}}
+                    return exported;};
+
+                function exportValue(value,db){
+                    if (value instanceof Ref) {
+                        if (value._db===db) return {_id: value._id};
+                        else if (value._db.absrefs) return {_id: value._id};
+                        else return {
                             _id: value._id,
                             _domain: value._domain||value._db.name};}
-                    else exported[key]=exportValue(value,this._db);}}
-            return exported;};
-
-        function exportValue(value,db){
-            if (value instanceof Ref) {
-                if (value._db===db) return {_id: value._id};
-                else if (value._db.absrefs) return {_id: value._id};
-                else return {
-                    _id: value._id,
-                    _domain: value._domain||value._db.name};}
-            else if (value instanceof Array) {
-                var i=0, lim=value.length; var exports=false;
-                while (i<lim) {
-                    var elt=value[i++];
-                    var exported=exportValue(elt,db);
-                    if (elt!==exported) {
-                        if (exports) exports.push(exported);
-                        else {
-                            exports=value.slice(0,i-1);
-                            exports.push(exported);}}
-                    else if (exports) exports.push(elt);
-                    else {}}
-                return exports||value;}
-            else if (typeof value === "object") {
-                var copied=false, fields=[];
-                for (var field in value) {
-                    if (value.hasOwnProperty(field)) {
-                        var fieldval=value[field];
-                        var exportval=exportValue(fieldval,db);
-                        if (fieldval!==exportval) {
-                            if (!(copied)) {
-                                copied={};
-                                if (fields.length) {
-                                    var j=0, jlim=fields.length;
-                                    while (j<jlim) {
-                                        var f=fields[j++];
-                                        copied[f]=value[f];}}}
-                            copied[field]=exportval;}
-                        else if (copied) copied[field]=fieldval;
-                        else fields.push(field);}}
-                return copied||value;}
-            else return value;}
-        Ref.exportValue=exportValue;
-        RefDB.prototype.exportValue=function(val){
-            return exportValue(val,this);};
-        
-        RefDB.prototype.load=function loadRefs(refs,callback,args){
-            if (!(this.storage)) return;
-            else if (this.storage instanceof Storage) {
-                if (!(refs)) refs=[].concat(this.allrefs);
-                else if (refs===true) {
-                    var all=this.storage["allids("+this.name+")"];
-                    if (all) refs=JSON.parse(all).concat(this.allrefs);
-                    else refs=[].concat(this.allrefs);}
-                else if (refs instanceof Ref) refs=[refs];
-                else if (typeof refs === "string") refs=[refs];
-                else if (typeof refs.length === "undefined") refs=[refs];
-                else {}
-                var storage=this.storage; var loaded=this.loaded;
-                var db=this, absrefs=this.absrefs, refmap=this.refs;
-                var atid=false; var needrefs=[];
-                var i=0, lim=refs.length; while (i<lim) {
-                    var refid=refs[i++], ref=refid;
-                    if (typeof refid === "string") ref=refmap[refid];
-                    if (!((ref instanceof Ref)&&(ref._live)))
-                        needrefs.push(refid);}
-                if (needrefs.length) {
-                    fdjtTime.slowmap(function(arg){
+                    else if (value instanceof Array) {
+                        var i=0, lim=value.length; var exports=false;
+                        while (i<lim) {
+                            var elt=value[i++];
+                            var exported=exportValue(elt,db);
+                            if (elt!==exported) {
+                                if (exports) exports.push(exported);
+                                else {
+                                    exports=value.slice(0,i-1);
+                                    exports.push(exported);}}
+                            else if (exports) exports.push(elt);
+                            else {}}
+                        return exports||value;}
+                    else if (typeof value === "object") {
+                        var copied=false, fields=[];
+                        for (var field in value) {
+                            if (value.hasOwnProperty(field)) {
+                                var fieldval=value[field];
+                                var exportval=exportValue(fieldval,db);
+                                if (fieldval!==exportval) {
+                                    if (!(copied)) {
+                                        copied={};
+                                        if (fields.length) {
+                                            var j=0, jlim=fields.length;
+                                            while (j<jlim) {
+                                                var f=fields[j++];
+                                                copied[f]=value[f];}}}
+                                    copied[field]=exportval;}
+                                else if (copied) copied[field]=fieldval;
+                                else fields.push(field);}}
+                        return copied||value;}
+                    else return value;}
+                Ref.exportValue=exportValue;
+                RefDB.prototype.exportValue=function(val){
+                    return exportValue(val,this);};
+                
+                RefDB.prototype.load=function loadRefs(refs,callback,args){
+                    function docallback(){
+                        if (callback) {
+                            if (args) callback.apply(null,args);
+                            else callback();}}
+                    function load_ref(arg,loaded,storage){
                         var ref=arg, content;
                         if (typeof ref === "string")
                             ref=db.ref(ref,false,true);
@@ -10722,1025 +11041,1050 @@ if (!(fdjt.RefDB)) {
                         if (!(content))
                             warn("No item stored for %s",ref._id);
                         else ref.Import(
-                            JSON.parse(content),false,REFLOAD|REFINDEX);},
-                                     needrefs,false,
-                                     function(){if (callback) {
-                                         if (args) callback.apply(null,args);
-                                         else callback();}});}
-                else if (callback) {
-                    if (args) callback.apply(null,args);
-                    else callback();}
-                else {}}
-            else if (this.storage instanceof indexedDB) {}
-            else {}};
-        RefDB.prototype.loadref=function loadRef(ref,callback,args){
-            if (typeof ref === "string") ref=this.ref(ref);
-            if (ref._live) {
-                if (callback) {
-                    if (args) callback.call(null,args);
-                    else callback();}}
-            else this.load(ref,callback,args);
-            return ref;};
-        Ref.prototype.load=function loadRef(callback,args) {
-            if (this._live) return this;
-            else {
-                this._db.load(this,callback,args);
-                return this;}};
-        RefDB.load=function RefDBload(spec,dbtype,callback,args){
-            if (typeof spec === "string") {
-                var ref=RefDB.resolve(spec,false,(dbtype||RefDB),true);
-                if (ref) return ref.load(callback,args);
-                else throw {error: "Couldn't resolve "+spec};}
-            else if (spec instanceof Ref)
-                return spec.load(callback,args);
-            else if (spec instanceof Array) {
-                var loads={}, dbs=[]; var i=0, lim=spec.length;
-                while (i<lim) {
-                    var s=spec[i++]; var r=false;
-                    if (typeof s === "string")
-                        r=RefDB.resolve(s,false,dbtype||RefDB,true);
-                    else if (s instanceof Ref) r=s;
-                    if (!(r)||(r._live)) continue;
-                    var db=r._db, name=db.name;
-                    if (loads[name]) loads[name].push(r);
-                    else {
-                        loads[name]=[r];
-                        dbs.push(db);}}
-                i=0; lim=dbs.length; while (i<lim) {
-                    var loadfrom=dbs[i++];
-                    loadfrom.load(loads[loadfrom.name],args);}
-                return loads;}
-            else return false;};
-        
-        RefDB.prototype.save=function saveRefs(refs,callback,updatechanges){
-            var that=this;
-            if (!(this.storage)) return;
-            else if (refs===true) {
-                return this.save(this.allrefs,function(){
-                    that.changed=false;
-                    that.changes=[];
-                    var pos=changed_dbs.indexOf(that);
-                    if (pos>=0) changed_dbs.splice(pos,1);
-                    if (callback) callback();});}
-            else if (!(refs)) {
-                return this.save(this.changes,function(){
-                    that.changed=false;
-                    that.changes=[];
-                    var pos=changed_dbs.indexOf(that);
-                    if (pos>=0) changed_dbs.splice(pos,1);
-                    if (callback) callback();});}
-            else if (this.storage instanceof Storage) {
-                var storage=this.storage;
-                var atid=this.atid;
-                var ids=[];
-                var i=0, lim=refs.length; while (i<lim) {
-                    var ref=refs[i++];
+                            JSON.parse(content),false,REFLOAD|REFINDEX);}
+                    if (!(this.storage)) return;
+                    else if (this.storage instanceof Storage) {
+                        if (!(refs)) refs=[].concat(this.allrefs);
+                        else if (refs===true) {
+                            var all=this.storage["allids("+this.name+")"];
+                            if (all) refs=JSON.parse(all).concat(this.allrefs);
+                            else refs=[].concat(this.allrefs);}
+                        else if (refs instanceof Ref) refs=[refs];
+                        else if (typeof refs === "string") refs=[refs];
+                        else if (typeof refs.length === "undefined") refs=[refs];
+                        else {}
+                        var storage=this.storage; var loaded=this.loaded;
+                        var db=this, absrefs=this.absrefs, refmap=this.refs;
+                        var atid=false; var needrefs=[];
+                        var i=0, lim=refs.length; while (i<lim) {
+                            var refid=refs[i++], ref=refid;
+                            if (typeof refid === "string") ref=refmap[refid];
+                            if (!((ref instanceof Ref)&&(ref._live)))
+                                needrefs.push(refid);}
+                        if (needrefs.length) {
+                            var opts=((!(callback))?(false):
+                                      (args)?{done: docallback}:{done: callback});
+                            return fdjtAsync.slowmap(
+                                function(arg){load_ref(arg,loaded,storage);},
+                                needrefs,opts);}
+                        else {
+                            docallback();
+                            return new Promise(function(resolve){
+                                resolve(refs);});}}
+                    else if (this.storage instanceof indexedDB) {
+                        // Not yet implemented
+                        return;}
+                    else {}};
+                RefDB.prototype.loadref=function loadRef(ref,callback,args){
                     if (typeof ref === "string") ref=this.ref(ref);
-                    if (!(ref._live)) continue;
-                    if ((ref._saved)&&(!(ref._changed))) continue;
-                    var exported=ref.Export();
-                    exported._saved=fdjtTime.tick();
-                    if (this.absrefs) {
-                        ids.push(ref._id);
-                        storage.setItem(ref._id,JSON.stringify(exported));}
+                    if (ref._live) {
+                        if (callback) {
+                            if (args) callback.call(null,args);
+                            else callback();}}
+                    else this.load(ref,callback,args);
+                    return ref;};
+                Ref.prototype.load=function loadRef(callback,args) {
+                    if (this._live) return this;
                     else {
-                        if (atid) {}
-                        else if (ref.atid) atid=ref.atid;
-                        else atid=ref.atid=getatid(storage,ref);
-                        var id=atid+"("+ref._id+")"; ids.push(id);
-                        storage.setItem(id,JSON.stringify(exported));}
-                    ref._changed=false;}
-                if (updatechanges) {
-                    var changes=this.changes, new_changes=[];
-                    var j=0, n_changed=changes.length;
-                    while (j<n_changed) {
-                        var c=changes[j++];
-                        if (c._changed) new_changes.push(c);}
-                    this.changes=new_changes;
-                    if (new_changes.length===0) {
-                        this.changed=false;
-                        var pos=changed_dbs.indexOf(that);
-                        if (pos>=0) changed_dbs.splice(pos,1);}}
-                var allids=storage["allids("+this.name+")"];
-                if (allids) allids=JSON.parse(allids); else allids=[];
-                var n=allids.length;
-                allids=merge(allids,ids);
-                if (allids.length!==n) 
-                    storage.setItem("allids("+this.name+")",
-                                    JSON.stringify(allids));
-                if (callback) setTimeout(callback,5);}
-            else if (this.storage instanceof indexedDB) {}
-            else {}};
-        Ref.prototype.save=function(callback){
-            if (!(this._changed)) return this;
-            else this._db.save([this],callback);};
+                        this._db.load(this,callback,args);
+                        return this;}};
+                RefDB.load=function RefDBload(spec,dbtype,callback,args){
+                    if (typeof spec === "string") {
+                        var ref=RefDB.resolve(spec,false,(dbtype||RefDB),true);
+                        if (ref) return ref.load(callback,args);
+                        else throw {error: "Couldn't resolve "+spec};}
+                    else if (spec instanceof Ref)
+                        return spec.load(callback,args);
+                    else if (spec instanceof Array) {
+                        var loads={}, dbs=[]; var i=0, lim=spec.length;
+                        while (i<lim) {
+                            var s=spec[i++]; var r=false;
+                            if (typeof s === "string")
+                                r=RefDB.resolve(s,false,dbtype||RefDB,true);
+                            else if (s instanceof Ref) r=s;
+                            if (!(r)||(r._live)) continue;
+                            var db=r._db, name=db.name;
+                            if (loads[name]) loads[name].push(r);
+                            else {
+                                loads[name]=[r];
+                                dbs.push(db);}}
+                        i=0; lim=dbs.length; while (i<lim) {
+                            var loadfrom=dbs[i++];
+                            loadfrom.load(loads[loadfrom.name],args);}
+                        return loads;}
+                    else return false;};
+                
+                RefDB.prototype.save=function saveRefs(refs,callback,updatechanges){
+                    var that=this;
+                    if (!(this.storage)) return;
+                    else if (refs===true) {
+                        return this.save(this.allrefs,function(){
+                            that.changed=false;
+                            that.changes=[];
+                            var pos=changed_dbs.indexOf(that);
+                            if (pos>=0) changed_dbs.splice(pos,1);
+                            if (callback) callback();});}
+                    else if (!(refs)) {
+                        return this.save(this.changes,function(){
+                            that.changed=false;
+                            that.changes=[];
+                            var pos=changed_dbs.indexOf(that);
+                            if (pos>=0) changed_dbs.splice(pos,1);
+                            if (callback) callback();});}
+                    else if (this.storage instanceof Storage) {
+                        var storage=this.storage;
+                        var atid=this.atid;
+                        var ids=[];
+                        var i=0, lim=refs.length; while (i<lim) {
+                            var ref=refs[i++];
+                            if (typeof ref === "string") ref=this.ref(ref);
+                            if (!(ref._live)) continue;
+                            if ((ref._saved)&&(!(ref._changed))) continue;
+                            var exported=ref.Export();
+                            exported._saved=fdjtTime.tick();
+                            if (this.absrefs) {
+                                ids.push(ref._id);
+                                storage.setItem(ref._id,JSON.stringify(exported));}
+                            else {
+                                if (atid) {}
+                                else if (ref.atid) atid=ref.atid;
+                                else atid=ref.atid=getatid(storage,ref);
+                                var id=atid+"("+ref._id+")"; ids.push(id);
+                                storage.setItem(id,JSON.stringify(exported));}
+                            ref._changed=false;}
+                        if (updatechanges) {
+                            var changes=this.changes, new_changes=[];
+                            var j=0, n_changed=changes.length;
+                            while (j<n_changed) {
+                                var c=changes[j++];
+                                if (c._changed) new_changes.push(c);}
+                            this.changes=new_changes;
+                            if (new_changes.length===0) {
+                                this.changed=false;
+                                var pos=changed_dbs.indexOf(that);
+                                if (pos>=0) changed_dbs.splice(pos,1);}}
+                        var allids=storage["allids("+this.name+")"];
+                        if (allids) allids=JSON.parse(allids); else allids=[];
+                        var n=allids.length;
+                        allids=merge(allids,ids);
+                        if (allids.length!==n) 
+                            storage.setItem("allids("+this.name+")",
+                                            JSON.stringify(allids));
+                        if (callback) setTimeout(callback,5);}
+                    else if (this.storage instanceof indexedDB) {
+                        // Not yet implemented
+                        return;}
+                    else {}};
+                Ref.prototype.save=function(callback){
+                    if (!(this._changed)) return this;
+                    else this._db.save([this],callback);};
 
-        function getatid(storage,db){
-            if (db.atid) return db.atid;
-            var atid=storage["atid("+db.name+")"];
-            if (atid) {
-                db.atid=atid;
-                return atid;}
-            else {
-                var count=storage["atid.count"];
-                if (!(count)) {
-                    atid=count=1; storage["atid.count"]="2";}
-                else {
-                    count=parseInt(count,10);
-                    atid=db.atid="@@"+count;
-                    storage["atid("+db.name+")"]=atid;
-                    storage["atid.count"]=count+1;}
-                return atid;}}
-        
-        function getKeyString(val,db){
-            if (val instanceof Ref) {
-                if (val._db===db) return "@"+val._id;
-                else if (val._domain) return "@"+val._id+"@"+val._domain;
-                else return "@"+val._id;}
-            else if (typeof val === "number") 
-                return "#"+val;
-            else if (typeof val === "string")
-                return "\""+val;
-            else if (val.toJSON)
-                return "{"+val.toJSON();
-            else return "&"+val.toString();}
-        RefDB.getKeyString=getKeyString;
-        
-        Ref.prototype.indexRef=function indexRef(key,val,index,db){
-            var keystrings=[]; var rdb=this._db;
-            var refstring=
-                (((!(db))||(rdb===db)||(rdb.absrefs))?(this._id):
-                 ((this._qid)||((this.getQID)&&(this.getQID()))));
-            if (!(db)) db=rdb;
-            var indices=db.indices;
-            if (!(index))
-                index=((indices.hasOwnProperty(key))&&(indices[key]));
-            if (!(index)) {
-                warn("No index on %s for %o in %o",key,this,db);
-                return false;}
-            if (val instanceof Ref) {
-                if (rdb===val._db) keystrings=["@"+val._id];
-                else keystrings=["@"+(val._qid||val.getQID())];}
-            else if (val instanceof Array) {
-                db=this._db;
-                var i=0, lim=val.length; while (i<lim) {
-                    var elt=val[i++];
-                    if (elt instanceof Ref)
-                        keystrings.push("@"+(elt._qid||elt.getQID()));
-                    else if (typeof elt === "number") 
-                        keystrings=["#"+elt];
-                    else if (typeof elt === "string")
-                        keystrings=["\""+elt];
-                    else if (elt._qid)
-                        keystrings.push("@"+(elt._qid||elt.getQID()));
-                    else if (elt.getQID)
-                        keystrings.push("@"+(elt.getQID()));
-                    else {}}}
-            else if (typeof val === "number") 
-                keystrings=["#"+val];
-            else if (typeof val === "string")
-                keystrings=["\""+val];
-            else keystrings=["?"+val.toString()];
-            if (keystrings.length) {
-                var j=0, jlim=keystrings.length; while (j<jlim) {
-                    var keystring=keystrings[j++];
-                    var refs=index[keystring];
-                    if (refs) refs.push(refstring);
-                    else index[keystring]=[refstring];}
-                return keystrings.length;}
-            else return false;};
-        Ref.prototype.dropIndexRef=function dropIndexRef(key,val,index,db){
-            if (!(db)) db=this._db;
-            if (!(index)) index=db.indices[key];
-            if (!(index)) return false;
-            var keystrings=[];
-            if (val instanceof Ref) {
-                if (this._db===val._db) keystrings=["@"+val._id];
-                else keystrings=["@"+(val._qid||val.getQID())];}
-            else if (val instanceof Array) {
-                var i=0, lim=val.length; while (i<lim) {
-                    var elt=val[i++];
-                    if (elt instanceof Ref) 
-                        keystrings.push("@"+(elt._qid||elt.getQID()));
-                    else if (typeof elt === "number") 
+                function getatid(storage,db){
+                    if (db.atid) return db.atid;
+                    var atid=storage["atid("+db.name+")"];
+                    if (atid) {
+                        db.atid=atid;
+                        return atid;}
+                    else {
+                        var count=storage["atid.count"];
+                        if (!(count)) {
+                            atid=count=1; storage["atid.count"]="2";}
+                        else {
+                            count=parseInt(count,10);
+                            atid=db.atid="@@"+count;
+                            storage["atid("+db.name+")"]=atid;
+                            storage["atid.count"]=count+1;}
+                        return atid;}}
+                
+                function getKeyString(val,db){
+                    if (val instanceof Ref) {
+                        if (val._db===db) return "@"+val._id;
+                        else if (val._domain) return "@"+val._id+"@"+val._domain;
+                        else return "@"+val._id;}
+                    else if (typeof val === "number") 
+                        return "#"+val;
+                    else if (typeof val === "string")
+                        return "\""+val;
+                    else if (val.toJSON)
+                        return "{"+val.toJSON();
+                    else return "&"+val.toString();}
+                RefDB.getKeyString=getKeyString;
+                
+                Ref.prototype.indexRef=function indexRef(key,val,index,db){
+                    var keystrings=[]; var rdb=this._db;
+                    var refstring=
+                        (((!(db))||(rdb===db)||(rdb.absrefs))?(this._id):
+                         ((this._qid)||((this.getQID)&&(this.getQID()))));
+                    if (!(db)) db=rdb;
+                    var indices=db.indices;
+                    if (!(index))
+                        index=((indices.hasOwnProperty(key))&&(indices[key]));
+                    if (!(index)) {
+                        warn("No index on %s for %o in %o",key,this,db);
+                        return false;}
+                    if (val instanceof Ref) {
+                        if (rdb===val._db) keystrings=["@"+val._id];
+                        else keystrings=["@"+(val._qid||val.getQID())];}
+                    else if (val instanceof Array) {
+                        db=this._db;
+                        var i=0, lim=val.length; while (i<lim) {
+                            var elt=val[i++];
+                            if (elt instanceof Ref)
+                                keystrings.push("@"+(elt._qid||elt.getQID()));
+                            else if (typeof elt === "number") 
+                                keystrings=["#"+elt];
+                            else if (typeof elt === "string")
+                                keystrings=["\""+elt];
+                            else if (elt._qid)
+                                keystrings.push("@"+(elt._qid||elt.getQID()));
+                            else if (elt.getQID)
+                                keystrings.push("@"+(elt.getQID()));
+                            else {}}}
+                    else if (typeof val === "number") 
                         keystrings=["#"+val];
-                    else if (typeof elt === "string")
+                    else if (typeof val === "string")
                         keystrings=["\""+val];
-                    else if (elt._qid)
-                        keystrings.push("@"+(elt._qid||elt.getQID()));
-                    else if (elt.getQID)
-                        keystrings.push("@"+(elt.getQID()));
-                    else {}}}
-            else if (typeof val === "number") 
-                keystrings=["#"+val];
-            else if (typeof val === "string")
-                keystrings=["\""+val];
-            else {}
-            if (keystrings.length) {
-                var deleted=0;
-                var j=0, jlim=keystrings.length; while (j<jlim) {
-                    var keystring=keystrings[j++]; var refs=index[keystring];
-                    if (!(refs)) continue;
-                    var pos=refs.indexOf(this._id);
-                    if (pos<0) continue;
-                    else refs.splice(pos,1);
-                    if (refs.length===0) delete index[keystring];
-                    deleted++;}
-                return deleted;}
-            else return false;};
+                    else keystrings=["?"+val.toString()];
+                    if (keystrings.length) {
+                        var j=0, jlim=keystrings.length; while (j<jlim) {
+                            var keystring=keystrings[j++];
+                            var refs=index[keystring];
+                            if (refs) refs.push(refstring);
+                            else index[keystring]=[refstring];}
+                        return keystrings.length;}
+                    else return false;};
+                Ref.prototype.dropIndexRef=function dropIndexRef(key,val,index,db){
+                    if (!(db)) db=this._db;
+                    if (!(index)) index=db.indices[key];
+                    if (!(index)) return false;
+                    var keystrings=[];
+                    if (val instanceof Ref) {
+                        if (this._db===val._db) keystrings=["@"+val._id];
+                        else keystrings=["@"+(val._qid||val.getQID())];}
+                    else if (val instanceof Array) {
+                        var i=0, lim=val.length; while (i<lim) {
+                            var elt=val[i++];
+                            if (elt instanceof Ref) 
+                                keystrings.push("@"+(elt._qid||elt.getQID()));
+                            else if (typeof elt === "number") 
+                                keystrings=["#"+val];
+                            else if (typeof elt === "string")
+                                keystrings=["\""+val];
+                            else if (elt._qid)
+                                keystrings.push("@"+(elt._qid||elt.getQID()));
+                            else if (elt.getQID)
+                                keystrings.push("@"+(elt.getQID()));
+                            else {}}}
+                    else if (typeof val === "number") 
+                        keystrings=["#"+val];
+                    else if (typeof val === "string")
+                        keystrings=["\""+val];
+                    else {}
+                    if (keystrings.length) {
+                        var deleted=0;
+                        var j=0, jlim=keystrings.length; while (j<jlim) {
+                            var keystring=keystrings[j++]; var refs=index[keystring];
+                            if (!(refs)) continue;
+                            var pos=refs.indexOf(this._id);
+                            if (pos<0) continue;
+                            else refs.splice(pos,1);
+                            if (refs.length===0) delete index[keystring];
+                            deleted++;}
+                        return deleted;}
+                    else return false;};
 
-        RefDB.prototype.find=function findIDs(key,value){
-            var index=this.indices[key];
-            if (index) {
-                var items=index.getItem(value,this);
-                if (items) return setify(items);
-                else return [];}
-            else return [];};
-        RefDB.prototype.findRefs=function findRefs(key,value){
-            var index=this.indices[key];
-            if (index) {
-                var items=index.getItem(value,this), results=[];
-                if (items) {
-                    var i=0, lim=items.length;
-                    while (i<lim) {
-                        var item=items[i++];
-                        if (!(item)) {}
-                        else if (typeof item === "string") {
-                            var ref=this.probe(item);
-                            if (ref) results.push(ref);}
-                        else results.push(item);}}
-                return fdjtSet(results);}
-            else return [];};
-        RefDB.prototype.count=function countRefs(key,value){
-            var index=this.indices[key];
-            if (index) {
-                var vals=index.getItem(value,this);
-                return ((vals)?(vals.length||0):(0));}
-            else return 0;};
-        RefDB.prototype.addIndex=function addIndex(key,Constructor){
-            if (!(Constructor)) Constructor=ObjectMap;
-            if (!(this.indices.hasOwnProperty(key))) {
-                var index=this.indices[key]=new Constructor();
-                index.fordb=this;
-                return index;}
-            else return this.indices[key];};
-        
-        // Array utility functions
-        function arr_contains(arr,val,start){
-            return (arr.indexOf(val,start||0)>=0);}
-        function arr_position(arr,val,start){
-            return arr.indexOf(val,start||0);}
+                RefDB.prototype.find=function findIDs(key,value){
+                    var index=this.indices[key];
+                    if (index) {
+                        var items=index.getItem(value,this);
+                        if (items) return setify(items);
+                        else return [];}
+                    else return [];};
+                RefDB.prototype.findRefs=function findRefs(key,value){
+                    var index=this.indices[key];
+                    if (index) {
+                        var items=index.getItem(value,this), results=[];
+                        if (items) {
+                            var i=0, lim=items.length;
+                            while (i<lim) {
+                                var item=items[i++];
+                                if (!(item)) {}
+                                else if (typeof item === "string") {
+                                    var ref=this.probe(item);
+                                    if (ref) results.push(ref);}
+                                else results.push(item);}}
+                        return fdjtSet(results);}
+                    else return [];};
+                RefDB.prototype.count=function countRefs(key,value){
+                    var index=this.indices[key];
+                    if (index) {
+                        var vals=index.getItem(value,this);
+                        return ((vals)?(vals.length||0):(0));}
+                    else return 0;};
+                RefDB.prototype.addIndex=function addIndex(key,Constructor){
+                    if (!(Constructor)) Constructor=ObjectMap;
+                    if (!(this.indices.hasOwnProperty(key))) {
+                        var index=this.indices[key]=new Constructor();
+                        index.fordb=this;
+                        return index;}
+                    else return this.indices[key];};
+                
+                // Array utility functions
+                function arr_contains(arr,val,start){
+                    return (arr.indexOf(val,start||0)>=0);}
+                function arr_position(arr,val,start){
+                    return arr.indexOf(val,start||0);}
 
-        var id_counter=1;
+                var id_counter=1;
 
-        /* Fast sets */
-        function set_sortfn(a,b) {
-            if (a===b) return 0;
-            else if (typeof a === typeof b) {
-                if (typeof a === "number")
-                    return a-b;
-                else if (typeof a === "string") {
-                    if (a<b) return -1;
+                /* Fast sets */
+                function set_sortfn(a,b) {
+                    if (a===b) return 0;
+                    else if (typeof a === typeof b) {
+                        if (typeof a === "number")
+                            return a-b;
+                        else if (typeof a === "string") {
+                            if (a<b) return -1;
+                            else return 1;}
+                        else if (a._qid) {
+                            if (b._qid) {
+                                if (a._qid<b._qid) return -1;
+                                else return 1;}
+                            else return -1;}
+                        else if (b._qid) return 1;
+                        else if ((a._fdjtid)&&(b._fdjtid)) {
+                            if ((a._fdjtid)<(b._fdjtid)) return -1;
+                            else return 1;}
+                        else return 0;}
+                    else if (typeof a < typeof b) return -1;
                     else return 1;}
-                else if (a._qid) {
-                    if (b._qid) {
-                        if (a._qid<b._qid) return -1;
-                        else return 1;}
-                    else return -1;}
-                else if (b._qid) return 1;
-                else if ((a._fdjtid)&&(b._fdjtid)) {
-                    if ((a._fdjtid)<(b._fdjtid)) return -1;
-                    else return 1;}
-                else return 0;}
-            else if (typeof a < typeof b) return -1;
-            else return 1;}
-        RefDB.compare=set_sortfn;
+                RefDB.compare=set_sortfn;
 
-        function intersection(set1,set2){
-            if (typeof set1 === 'string') set1=[set1];
-            if (typeof set2 === 'string') set2=[set2];
-            if ((!(set1))||(set1.length===0)) return [];
-            if ((!(set2))||(set2.length===0)) return [];
-            if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-            if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-            var results=[];
-            var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-            var allstrings=set1._allstrings&&set2._allstrings;
-            var new_allstrings=true;
-            while ((i<len1) && (j<len2))
-                if (set1[i]===set2[j]) {
-                    if ((new_allstrings)&&(typeof set1[i] !== 'string'))
-                        new_allstrings=false;
-                    results.push(set1[i]);
-                    i++; j++;}
-            else if ((allstrings)?
-                     (set1[i]<set2[j]):
-                     (set_sortfn(set1[i],set2[j])<0)) i++;
-            else j++;
-            results._allstrings=new_allstrings;
-            results._sortlen=results.length;
-            return results;}
-        RefDB.intersection=intersection;
+                function intersection(set1,set2){
+                    if (typeof set1 === 'string') set1=[set1];
+                    if (typeof set2 === 'string') set2=[set2];
+                    if ((!(set1))||(set1.length===0)) return [];
+                    if ((!(set2))||(set2.length===0)) return [];
+                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+                    var results=[];
+                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+                    var allstrings=set1._allstrings&&set2._allstrings;
+                    var new_allstrings=true;
+                    while ((i<len1) && (j<len2))
+                        if (set1[i]===set2[j]) {
+                            if ((new_allstrings)&&(typeof set1[i] !== 'string'))
+                                new_allstrings=false;
+                            results.push(set1[i]);
+                            i++; j++;}
+                    else if ((allstrings)?
+                             (set1[i]<set2[j]):
+                             (set_sortfn(set1[i],set2[j])<0)) i++;
+                    else j++;
+                    results._allstrings=new_allstrings;
+                    results._sortlen=results.length;
+                    return results;}
+                RefDB.intersection=intersection;
 
-        function difference(set1,set2){
-            if (typeof set1 === 'string') set1=[set1];
-            if (typeof set2 === 'string') set2=[set2];
-            if ((!(set1))||(set1.length===0)) return [];
-            if ((!(set2))||(set2.length===0)) return set1;
-            if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-            if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-            var results=[];
-            var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-            var allstrings=set1._allstrings&&set2._allstrings;
-            var new_allstrings=true;
-            while ((i<len1) && (j<len2)) {
-                if (set1[i]===set2[j]) {
-                    i++; j++;}
-                else if ((allstrings)?
-                         (set1[i]<set2[j]):
-                         (set_sortfn(set1[i],set2[j])<0)) {
-                    if ((new_allstrings)&&(typeof set1[i] !== 'string'))
-                        new_allstrings=false;
-                    results.push(set1[i]);
-                    i++;}
-                else j++;}
-            results._allstrings=new_allstrings;
-            results._sortlen=results.length;
-            return results;}
-        RefDB.difference=difference;
-        
-        function union(set1,set2){
-            if (typeof set1 === 'string') set1=[set1];
-            if (typeof set2 === 'string') set2=[set2];
-            if ((!(set1))||(set1.length===0)) return set2;
-            if ((!(set2))||(set2.length===0)) return set1;
-            if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-            if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-            var results=[];
-            var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-            var allstrings=set1._allstrings&&set2._allstrings;
-            while ((i<len1) && (j<len2))
-                if (set1[i]===set2[j]) {
-                    results.push(set1[i]); i++; j++;}
-            else if ((allstrings)?
-                     (set1[i]<set2[j]):
-                     (set_sortfn(set1[i],set2[j])<0))
-                results.push(set1[i++]);
-            else results.push(set2[j++]);
-            while (i<len1) results.push(set1[i++]);
-            while (j<len2) results.push(set2[j++]);
-            results._allstrings=allstrings;
-            results._sortlen=results.length;
-            return results;}
-        RefDB.union=union;
+                function difference(set1,set2){
+                    if (typeof set1 === 'string') set1=[set1];
+                    if (typeof set2 === 'string') set2=[set2];
+                    if ((!(set1))||(set1.length===0)) return [];
+                    if ((!(set2))||(set2.length===0)) return set1;
+                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+                    var results=[];
+                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+                    var allstrings=set1._allstrings&&set2._allstrings;
+                    var new_allstrings=true;
+                    while ((i<len1) && (j<len2)) {
+                        if (set1[i]===set2[j]) {
+                            i++; j++;}
+                        else if ((allstrings)?
+                                 (set1[i]<set2[j]):
+                                 (set_sortfn(set1[i],set2[j])<0)) {
+                            if ((new_allstrings)&&(typeof set1[i] !== 'string'))
+                                new_allstrings=false;
+                            results.push(set1[i]);
+                            i++;}
+                        else j++;}
+                    results._allstrings=new_allstrings;
+                    results._sortlen=results.length;
+                    return results;}
+                RefDB.difference=difference;
+                
+                function union(set1,set2){
+                    if (typeof set1 === 'string') set1=[set1];
+                    if (typeof set2 === 'string') set2=[set2];
+                    if ((!(set1))||(set1.length===0)) return set2;
+                    if ((!(set2))||(set2.length===0)) return set1;
+                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+                    var results=[];
+                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+                    var allstrings=set1._allstrings&&set2._allstrings;
+                    while ((i<len1) && (j<len2))
+                        if (set1[i]===set2[j]) {
+                            results.push(set1[i]); i++; j++;}
+                    else if ((allstrings)?
+                             (set1[i]<set2[j]):
+                             (set_sortfn(set1[i],set2[j])<0))
+                        results.push(set1[i++]);
+                    else results.push(set2[j++]);
+                    while (i<len1) results.push(set1[i++]);
+                    while (j<len2) results.push(set2[j++]);
+                    results._allstrings=allstrings;
+                    results._sortlen=results.length;
+                    return results;}
+                RefDB.union=union;
 
-        function merge(set1,set2){
-            var merged=[]; merged._sortlen=0;
-            if (!(set1 instanceof Array)) set1=[set1];
-            if (!(set2 instanceof Array)) set2=[set2];
-            if ((!(set1))||(set1.length===0)) {
-                if ((!(set2))||(set2.length===0)) return merged;
-                merged=merged.concat(set2);
-                if (set2._sortlen) {
-                    merged._sortlen=set2._sortlen;
-                    merged._allstrings=set2._allstrings;
+                function merge(set1,set2){
+                    var merged=[]; merged._sortlen=0;
+                    if (!(set1 instanceof Array)) set1=[set1];
+                    if (!(set2 instanceof Array)) set2=[set2];
+                    if ((!(set1))||(set1.length===0)) {
+                        if ((!(set2))||(set2.length===0)) return merged;
+                        merged=merged.concat(set2);
+                        if (set2._sortlen) {
+                            merged._sortlen=set2._sortlen;
+                            merged._allstrings=set2._allstrings;
+                            return merged;}
+                        else return setify(merged);}
+                    else if ((!(set2))||(set2.length===0))
+                        return merge(set2,set1);
+                    if (set1._sortlen!==set1.length) set1=setify(set1);
+                    if (set2._sortlen!==set2.length) set2=setify(set2);
+                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+                    var allstrings=set1._allstrings&&set2._allstrings;
+                    while ((i<len1) && (j<len2))
+                        if (set1[i]===set2[j]) {
+                            merged.push(set1[i]); i++; j++;}
+                    else if ((allstrings)?
+                             (set1[i]<set2[j]):
+                             (set_sortfn(set1[i],set2[j])<0))
+                        merged.push(set1[i++]);
+                    else merged.push(set2[j++]);
+                    while (i<len1) merged.push(set1[i++]);
+                    while (j<len2) merged.push(set2[j++]);
+                    merged._allstrings=allstrings;
+                    merged._sortlen=merged.length;
                     return merged;}
-                else return setify(merged);}
-            else if ((!(set2))||(set2.length===0))
-                return merge(set2,set1);
-            if (set1._sortlen!==set1.length) set1=setify(set1);
-            if (set2._sortlen!==set2.length) set2=setify(set2);
-            var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-            var allstrings=set1._allstrings&&set2._allstrings;
-            while ((i<len1) && (j<len2))
-                if (set1[i]===set2[j]) {
-                    merged.push(set1[i]); i++; j++;}
-            else if ((allstrings)?
-                     (set1[i]<set2[j]):
-                     (set_sortfn(set1[i],set2[j])<0))
-                merged.push(set1[i++]);
-            else merged.push(set2[j++]);
-            while (i<len1) merged.push(set1[i++]);
-            while (j<len2) merged.push(set2[j++]);
-            merged._allstrings=allstrings;
-            merged._sortlen=merged.length;
-            return merged;}
-        RefDB.merge=merge;
+                RefDB.merge=merge;
 
-        function overlaps(set1,set2){
-            if (typeof set1 === 'string') set1=[set1];
-            if (typeof set2 === 'string') set2=[set2];
-            if ((!(set1))||(set1.length===0)) return false;
-            if ((!(set2))||(set2.length===0)) return false;
-            if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-            if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-            var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-            var allstrings=set1._allstrings&&set2._allstrings;
-            while ((i<len1) && (j<len2))
-                if (set1[i]===set2[j]) return true;
-            else if ((allstrings)?
-                     (set1[i]<set2[j]):
-                     (set_sortfn(set1[i],set2[j])<0)) i++;
-            else j++;
-            return false;}
-        RefDB.overlaps=overlaps;
+                function overlaps(set1,set2){
+                    if (typeof set1 === 'string') set1=[set1];
+                    if (typeof set2 === 'string') set2=[set2];
+                    if ((!(set1))||(set1.length===0)) return false;
+                    if ((!(set2))||(set2.length===0)) return false;
+                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+                    var allstrings=set1._allstrings&&set2._allstrings;
+                    while ((i<len1) && (j<len2))
+                        if (set1[i]===set2[j]) return true;
+                    else if ((allstrings)?
+                             (set1[i]<set2[j]):
+                             (set_sortfn(set1[i],set2[j])<0)) i++;
+                    else j++;
+                    return false;}
+                RefDB.overlaps=overlaps;
 
-        /* Sets */
-        /* sets are really arrays that are sorted to simplify set operations.
-           the ._sortlen property tells how much of the array is sorted */
-        function fdjtSet(arg){
-            var result=[]; result._sortlen=0;
-            if (arguments.length===0) return result;
-            else if (arguments.length===1) {
-                if (!(arg)) return result;
-                else if (arg instanceof Array) {
-                    if ((!(arg.length))||(arg._sortlen===arg.length))
-                        return arg;
-                    else if (typeof arg._sortlen === "number")
-                        return setify(arg);
-                    else return setify([].concat(arg));}
-                else {
-                    result=[arg]; 
-                    if (typeof arg === 'string') result._allstrings=true;
-                    result._sortlen=1;
-                    return result;}}
-            else {
-                result=[];
-                for (arg in arguments)
-                    if (!(arg)) {}
-                else if (arg instanceof Array)
-                    result=result.concat(arg);
-                else result.push(arg);
-                return setify(result);}}
-        RefDB.Set=fdjtSet;
-        fdjt.Set=fdjtSet;
-        RefDB.toSet=fdjtSet;
-
-        function setify(array) {
-            var len;
-            if (array._sortlen===(len=array.length)) return array;
-            // else if ((array._sortlen)&&(array._sortlen>1))
-            else if (len===0) {
-                array._sortlen=0;
-                return array;}
-            else if (len===1) {
-                var elt1=array[0];
-                array._sortlen=1;
-                array._allstrings=(typeof elt1 === 'string');
-                if (typeof elt === "object") {
-                    if ((elt1._qid)||(elt1._fdjtid)) {}
-                    else if (elt1.getQID) elt1._qid=elt1.getQID();
-                    else elt1._fdjtid=++id_counter;}
-                return array;}
-            else {
-                var allstrings=true;
-                var i=0, lim=array.length;
-                while (i<lim) {
-                    var elt=array[i++];
-                    if ((allstrings)&&(typeof elt !== 'string')) {
-                        allstrings=false;
-                        if (typeof elt === "object") {
-                            if ((elt._qid)||(elt._fdjtid)) {}
-                            else if (elt.getQID) elt._qid=elt.getQID();
-                            else elt._fdjtid=++id_counter;}}}
-                array._allstrings=allstrings;
-                if (lim===1) return array;
-                if (allstrings) array.sort();
-                else array.sort(set_sortfn);
-                // Now remove duplicates
-                var read=1; var write=1; var readlim=array.length;
-                var cur=array[0];
-                while (read<readlim) {
-                    if (array[read]!==cur) {
-                        array[write++]=cur=array[read++];}
-                    else read++;}
-                array._sortlen=array.length=write;
-                return array;}}
-        
-        function set_add(set,val) {
-            if (val instanceof Array) {
-                var changed=false;
-                for (var elt in val) 
-                    if (set_add(set,elt)) changed=true;
-                return changed;}
-            else if (set.indexOf) {
-                var pos=set.indexOf(val);
-                if (pos>=0) return false;
-                else set.push(val);
-                return true;}
-            else {
-                var i=0; var lim=set.length;
-                while (i<lim)
-                    if (set[i]===val) return false; else i++;
-                if (typeof val !== 'string') set._allstrings=false;
-                set.push(val);
-                return true;}}
-        
-        function set_drop(set,val) {
-            if (val instanceof Array) {
-                var changed=false;
-                for (var elt in val)
-                    if (set_drop(set,elt)) changed=true;
-                return changed;}
-            else if (set.indexOf) {
-                var pos=set.indexOf(val);
-                if (pos<0) return false;
-                else set.splice(pos,1);
-                return true;}
-            else {
-                var i=0; var lim=set.length;
-                while (i<lim)
-                    if (set[i]===val) {
-                        set.splice(i,1);
-                        return true;}
-                else i++;
-                return false;}}
-        
-        /* Refs */
-
-        Ref.prototype.get=function refGet(prop){
-            if (this.hasOwnProperty(prop)) return this[prop];
-            else if (this._live) return false;
-            else return undefined;};
-        Ref.prototype.getSet=function refGetSet(prop){
-            if (this.hasOwnProperty(prop)) {
-                var val=this[prop];
-                if (val instanceof Array) {
-                    if (val._sortlen===val.length) return val;
-                    else return setify(val);}
-                else return setify([val]);}
-            else if (this._live) return [];
-            else return undefined;};
-        Ref.prototype.getArray=function refGetArray(prop){
-            if (this.hasOwnProperty(prop)) {
-                var val=this[prop];
-                if (val instanceof Array) return val;
-                else return [val];}
-            else if (this._live) return [];
-            else return undefined;};
-        Ref.prototype.add=function refAdd(prop,val,index){
-            var db=this._db;
-            if (typeof index === "undefined") {
-                if (db.indices.hasOwnProperty(prop)) index=true;
-                else index=false;}
-            else if ((index)&&(!(db.indices.hasOwnProperty(prop)))) {
-                // fdjtLog("Creating index on %s for %o",prop,db);
-                db.addIndex(prop);}
-            else {}
-            if ((val instanceof Array)&&(val._sortlen===0))
-                return;
-            else if ((!(this._live))&&(this._db.storage)) {
-                var that=this;
-                if (this._onload)
-                    this._onload.push(function(){that.add(prop,val);});
-                else this._onload=[function(){that.add(prop,val);}];
-                return this;}
-            else if ((val instanceof Array)&&
-                     (typeof val._sortlen === "number")) {
-                var i=0, lim=val.length; while (i<lim) {
-                    this.add(prop,val[i++],index);}
-                return;}
-            else if (prop==="aliases") {
-                if (db.refs[val]===this) return false;
-                else if (db.altrefs[val]===this) return false;
-                else {
-                    db.altrefs[val]=this;
-                    if (this.aliases) this.aliases.push(val);
-                    else this.aliases=[val];}}
-            else if (this.hasOwnProperty(prop)) {
-                var cur=this[prop];
-                if (cur===val) return false;
-                else if (cur instanceof Array) {
-                    if (!(set_add(cur,val))) return false;
-                    else {}}
-                else this[prop]=fdjtSet([cur,val]);}
-            else if ((val instanceof Array)&&
-                     (typeof val._sortlen !== "number"))
-                this[prop]=fdjtSet([val]);
-            else this[prop]=val;
-            // If we've gotten through to here, we've made a change,
-            //  so we update the change structures, run any add methods
-            //  and index if appropriate
-            if (!(this._changed)) {
-                var now=fdjtTime();
-                if (db.changed) {
-                    db.changed=now;
-                    changed_dbs.push(db);}
-                this._changed=now;
-                db.changes.push(this);}
-            if (db.onadd.hasOwnProperty(prop))
-                (db.onadd[prop])(this,prop,val);
-            if ((index)&&(db.indices[prop]))
-                this.indexRef(prop,this[prop],db.indices[prop]);
-            return true;};
-        Ref.prototype.drop=function refDrop(prop,val,dropindex){
-            var db=this._db;
-            if (typeof dropindex === "undefined")
-                dropindex=true;
-            if (prop==='_id') return false;
-            else if ((!(this._live))&&(this._db.storage)) {
-                if (db.storage instanceof Storage) {
-                    this.load(); return this.drop(prop,val);}
-                else {
-                    return undefined;}}
-            else if (this.hasOwnProperty(prop)) {
-                var cur=this[prop];
-                if (cur===val) delete this[prop];
-                else if (cur instanceof Array) {
-                    if (!(set_drop(cur,val))) return false;
-                    if (cur.length===0) delete this[prop];}
-                else return false;
-                if (db.ondrop.hasOwnProperty(prop)) 
-                    (db.ondrop[prop])(this,prop,val);
-                if (!(this._changed)) {
-                    var now=fdjtTime();
-                    if (db.changed) {db.changed=now; changed_dbs.push(db);}
-                    this._changed=now;
-                    db.changes.push(this);}
-                if ((dropindex)&&(db.indices[prop])) 
-                    this.indexRefDrop(prop,db.indices[prop]);
-                return true;}
-            else return false;};
-        Ref.prototype.test=function(prop,val){
-            if (this.hasOwnProperty(prop)) {
-                if (typeof val === 'undefined') return true;
-                var cur=this[prop];
-                if (cur===val) return true;
-                else if (cur instanceof Array) {
-                    if (arr_contains(cur,val)) return true;
-                    else if (this._live) return false;
-                    else return undefined;}
-                else if (this._live) return false;
-                else return undefined;}
-            else if (this._live) return false;
-            else return undefined;};
-        Ref.prototype.store=function(prop,val){
-            var toadd=[], todrop=[];
-            if (this.hasOwnProperty(prop)) {
-                var cur=this[prop];
-                if (cur===val) return false;
-                else {
-                    toadd=difference(val,cur);
-                    todrop=difference(cur,val);}}
-            else if (val instanceof Array)
-                toadd=val;
-            else toadd=[val];
-            var i=0, lim=todrop.length;
-            while (i<lim) this.drop(prop,todrop[i++]);
-            i=0; lim=toadd.length; while (i<lim) this.add(prop,toadd[i++]);
-            return true;};
-
-        Ref.prototype.toHTML=function(){
-            var dom=false;
-            return ((this._db.forHTML)&&(this._db.forHTML(this)))||
-                ((this._db.forDOM)&&(dom=this._db.forDOM(this))&&
-                 (dom.outerHTML))||
-                this._id||this.oid||this.uuid;};
-        Ref.prototype.toDOM=function(){
-            return ((this._db.forDOM)&&(this._db.forDOM(this)))||
-                ((this._db.forHTML)&&(fdjtDOM(this._db.forHTML(this))))||
-                (fdjtDOM("span.fdjtref",this._id||this.oid||this.uuid));};
-
-        /* Maps */
-
-        function ObjectMap() {return this;}
-        ObjectMap.prototype.get=function ObjectMapGet(key) {
-            var keystring=getKeyString(key,this.fordb);
-            if (this.hasOwnProperty(keystring))
-                return this[keystring];
-            else if (typeof key === "string")
-                // This is helpful for debugging
-                return this[key]||this["@"+key];
-            else return undefined;};
-        ObjectMap.prototype.getItem=ObjectMap.prototype.get;
-        ObjectMap.prototype.set=function(key,val) {
-            var keystring=getKeyString(key,this.fordb);
-            if (val instanceof Array)
-                this[keystring]=[val];
-            else this[keystring]=val;};
-        ObjectMap.prototype.setItem=ObjectMap.prototype.set;
-        ObjectMap.prototype.increment=function(key,delta) {
-            var keystring=getKeyString(key,this.fordb);
-            var cur=this[keystring], next;
-            if (cur) this[keystring]=next=cur+delta;
-            else this[keystring]=next=delta;
-            return next;};
-        ObjectMap.prototype.add=function(key,val) {
-            var keystring=getKeyString(key,this.fordb);
-            if (this.hasOwnProperty(keystring)) {
-                var cur=this[keystring];
-                if (cur===val) return false;
-                else if (cur instanceof Array) {
-                    if (arr_contains(cur,val)) return false;
-                    else {cur.push(val); return true;}}
-                else if (val instanceof Array) {
-                    this[keystring]=setify([cur,val]);
-                    return true;}
-                else {
-                    this[keystring]=setify([cur,val]);
-                    return true;}}
-            else if (val instanceof Array) 
-                this[keystring]=setify([val]);
-            else this[keystring]=val;};
-        ObjectMap.prototype.drop=function(key,val) {
-            var keystring=getKeyString(key,this.fordb);
-            if (this.hasOwnProperty(keystring)) {
-                var cur=this[keystring];
-                if (cur===val) {
-                    delete this[keystring];
-                    return true;}
-                else if (cur instanceof Array) {
-                    var pos=cur.indexOf(val);
-                    if (pos<0) return false;
-                    cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
-                    if (cur.length===1) {
-                        if (!(cur[0] instanceof Array))
-                            this[keystring]=cur[0];}
-                    return true;}
-                else return false;}
-            else return false;};
-        fdjt.Map=ObjectMap;
-        RefDB.ObjectMap=ObjectMap;
-        RefDB.fdjtMap=ObjectMap;
-
-        function StringMap() {return this;}
-        StringMap.prototype.get=function StringMapGet(keystring) {
-            if (typeof keystring !== "string") return undefined;
-            if (this.hasOwnProperty(keystring))
-                return this[keystring];
-            else return undefined;};
-        StringMap.prototype.getItem=StringMap.prototype.get;
-        StringMap.prototype.set=function(keystring,val) {
-            if (typeof keystring !== "string") return;
-            if (val instanceof Array)
-                this[keystring]=[val];
-            else this[keystring]=val;};
-        StringMap.prototype.setItem=StringMap.prototype.set;
-        StringMap.prototype.increment=function(keystring,delta) {
-            if (typeof keystring !== "string") return;
-            var cur=this[keystring], next;
-            if (cur) this[keystring]=next=cur+delta;
-            else this[keystring]=next=delta;
-            return next;};
-        StringMap.prototype.add=function(keystring,val) {
-            if (typeof keystring !== "string") return;
-            if (this.hasOwnProperty(keystring)) {
-                var cur=this[keystring];
-                if (cur===val) return false;
-                else if (cur instanceof Array) {
-                    if (arr_contains(cur,val)) return false;
-                    else {cur.push(val); return true;}}
-                else if (val instanceof Array) {
-                    this[keystring]=setify([cur,val]);
-                    return true;}
-                else {
-                    this[keystring]=setify([cur,val]);
-                    return true;}}
-            else if (val instanceof Array) 
-                this[keystring]=setify([val]);
-            else this[keystring]=val;};
-        StringMap.prototype.drop=function(keystring,val) {
-            if (typeof keystring !== "string") return;
-            if (this.hasOwnProperty(keystring)) {
-                var cur=this[keystring];
-                if (cur===val) {
-                    delete this[keystring];
-                    return true;}
-                else if (cur instanceof Array) {
-                    var pos=cur.indexOf(val);
-                    if (pos<0) return false;
-                    cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
-                    if (cur.length===1) {
-                        if (!(cur[0] instanceof Array))
-                            this[keystring]=cur[0];}
-                    return true;}
-                else return false;}
-            else return false;};
-        fdjt.StringMap=StringMap;
-        RefDB.StringMap=StringMap;
-
-        function RefMap(db) {this._db=db; return this;}
-        RefMap.prototype.get=function(key){
-            if (typeof key === "string") {
-                if (this.hasOwnProperty(key)) return this[key];
-                else return undefined;}
-            else if (key instanceof Ref) {
-                var id=((this.uniqueids)&&key._id)||key._qid||key.getQID();
-                return this[id];}
-            else return undefined;};
-        RefMap.prototype.set=function(key,val){
-            if (typeof key === "string") this[key]=val;
-            else if (key instanceof Ref) {
-                var id=key._qid||((this.uniqueid)&&key._id)||key.getQID();
-                this[id]=val;}
-            else return false;};
-        RefMap.prototype.increment=function(key,delta){
-            if (typeof key === "string") {
-                if (this.hasOwnProperty(key))
-                    this[key]=this[key]+delta;
-                else this[key]=delta;}
-            else if (key instanceof Ref) {
-                var id=key._qid||((this.uniqueids)&&key._id)||key.getQID();
-                this[id]=(this[id]||0)+delta;}
-            else return false;};
-        fdjt.RefMap=RefDB.RefMap=RefMap;
-        
-        /* Miscellaneous array and table functions */
-
-        RefDB.add=function(obj,field,val,nodup){
-            if (arguments.length===2)
-                return set_add(obj,field);
-            else if (obj instanceof Ref)
-                return obj.add.apply(obj,arguments);
-            else if (nodup) 
-                if (obj.hasOwnProperty(field)) {
-                    var vals=obj[field];
-                    if (!(arr_contains(vals,val))) obj[field].push(val);
-                    else {}}
-            else obj[field]=new Array(val);
-            else if (obj.hasOwnProperty(field))
-                obj[field].push(val);
-            else obj[field]=new Array(val);
-            if ((obj._all) && (!(arr_contains(obj._all,field))))
-                obj._all.push(field);};
-
-        RefDB.drop=function(obj,field,val){
-            if (arguments.length===2)
-                return set_drop(obj,field);
-            else if (obj instanceof Ref)
-                return obj.drop.apply(obj,arguments);
-            else if (!(val))
-                /* Drop all vals */
-                obj[field]=[];
-            else if (obj.hasOwnProperty(field)) {
-                var vals=obj[field];
-                var pos=arr_position(vals,val);
-                if (pos<0) return;
-                else vals.splice(pos,1);}
-            else {}};
-
-        RefDB.test=function(obj,field,val){
-            if (arguments.length===2)
-                return arr_contains(obj,field);
-            else if (obj instanceof Ref)
-                return obj.test.apply(obj,arguments);
-            else if (typeof val === "undefined")
-                return (((obj.hasOwnProperty) ?
-                         (obj.hasOwnProperty(field)) : (obj[field])) &&
-                        ((obj[field].length)>0));
-            else if (obj.hasOwnProperty(field)) { 
-                if (arr_position(obj[field],val)<0)
-                    return false;
-                else return true;}
-            else return false;};
-
-        RefDB.insert=function(array,value){
-            if (arr_position(array,value)<0) array.push(value);};
-
-        RefDB.remove=function(array,value,count){
-            var pos=arr_position(array,value);
-            if (pos<0) return array;
-            array.splice(pos,1);
-            if (count) {
-                count--;
-                while ((count>0) &&
-                       ((pos=arr_position(array,value,pos))>=0)) {
-                    array.splice(pos,1); count--;}}
-            return array;};
-
-        RefDB.indexOf=function(array,elt,pos){
-            if (pos) return array.indexOf(elt,pos);
-            else return array.indexOf(elt);};
-
-        RefDB.contains=arr_contains;
-        RefDB.position=arr_position;
-
-        function Query(dbs,clauses,weights){
-            if (arguments.length===0) return this;
-            if (dbs) this.dbs=dbs;
-            if (clauses) {
-                if (clauses instanceof Array)
-                    this.clauses=clauses;
-                else this.clauses=[clauses];}
-            if (weights) this.weights=weights;
-            // Figure out if references can be unique IDs
-            var i=0, n_dbs=dbs.length;
-            if (n_dbs>1) while (i<n_dbs) {
-                if (!(dbs[i].absrefs)) return this;
-                else i++;}
-            this.uniqueids=true;
-            return this;}
-        RefDB.Query=Query;
-        Query.prototype.uniqueids=false;
-        
-        function sortbyweight(f1,f2){return f2.weight-f1.weight;}
-
-        Query.prototype.execute=function executeQuery(){
-            if (this.scores) return this;
-            var dbs=this.dbs;
-            var clauses=this.clauses;
-            if (!((dbs)&&(dbs.length))) {
-                var empty_result=this.results=fdjtSet();
-                warn("No dbs for query %o!",this);
-                return empty_result;}
-            else if (!((clauses)&&(clauses.length))) {
-                var full_result=fdjtSet();
-                var i=0, lim=dbs.length;
-                while (i<lim) full_result=
-                    merge(full_result,setify(dbs[i++].allrefs));
-                this.results=full_result;
-                return full_result;}
-            var query_weights=this._weights||this.weights;
-            var uniqueids=((dbs.length===1)||(this.uniqueids));
-            var scores=new RefMap();
-            var counts=new RefMap();
-            var matches=fdjtSet();
-            var match_seen={};
-            // This makes these go faster because they don't bother
-            // disambiguting _id fields.
-            counts.uniqueids=scores.uniqueids=uniqueids;
-            var i_clause=0, n_clauses=clauses.length;
-            while (i_clause<n_clauses) {
-                var clause=clauses[i_clause++];
-                var fields=clause.fields;
-                var values=clause.values;
-                var clause_weights=clause.weights;
-                var findings=[];
-                if (!(fields instanceof Array)) fields=[fields];
-                if (!(values instanceof Array)) values=[values];
-                var i_field=0; var n_fields=fields.length;
-                while (i_field<n_fields) {
-                    var field=fields[i_field++];
-                    var weight=((clause_weights)&&(clause_weights[field]))||
-                        ((query_weights)&&(query_weights[field]))||
-                        (this.default_weight)||1;
-                    var i_value=0, n_values=values.length;
-                    while (i_value<n_values) {
-                        var value=values[i_value++];
-                        var i_db=0, n_dbs=dbs.length;
-                        while (i_db<n_dbs) {
-                            var db=dbs[i_db++];
-                            var hits=db.find(field,value);
-                            if ((hits)&&(hits.length)) {
-                                findings.push({
-                                    field: field, hits: setify(hits),
-                                    weight: weight, value: value,
-                                    db: db});}}}}
-                // Sort so the highest scoring findings go first
-                findings.sort(sortbyweight);
-                var finding_i=0, n_findings=findings.length; var seen={};
-                while (finding_i<n_findings) {
-                    var finding=findings[finding_i++];
-                    var hit_ids=finding.hits, fdb=finding.db, abs=fdb.absrefs;
-                    var i_hit=0, n_hits=hit_ids.length, hit_id, ref;
-                    if ((uniqueids)||(abs)) while (i_hit<n_hits) {
-                        hit_id=hit_ids[i_hit++];
-                        if (seen[hit_id]) continue;
-                        else seen[hit_id]=hit_id;
-                        if (!(match_seen[hit_id])) {
-                            matches.push(fdb.ref(hit_id));
-                            match_seen[hit_id]=hit_id;}
-                        counts[hit_id]=(counts[hit_id]||0)+1;
-                        scores[hit_id]=(scores[hit_id]||0)+finding.weight;}
+                /* Sets */
+                /* sets are really arrays that are sorted to simplify set operations.
+                   the ._sortlen property tells how much of the array is sorted */
+                function fdjtSet(arg){
+                    var result=[]; result._sortlen=0;
+                    if (arguments.length===0) return result;
+                    else if (arguments.length===1) {
+                        if (!(arg)) return result;
+                        else if (arg instanceof Array) {
+                            if ((!(arg.length))||(arg._sortlen===arg.length))
+                                return arg;
+                            else if (typeof arg._sortlen === "number")
+                                return setify(arg);
+                            else return setify([].concat(arg));}
+                        else {
+                            result=[arg]; 
+                            if (typeof arg === 'string') result._allstrings=true;
+                            result._sortlen=1;
+                            return result;}}
                     else {
-                        hit_id=hit_ids[i_hit++]; ref=fdb.ref(hit_id);
-                        var fullid=ref._qid||((abs)&&(ref._id))||ref.getQID();
-                        if (seen[fullid]) continue;
-                        else seen[fullid]=fullid;
-                        if (!(match_seen[fullid])) {
-                            matches.push(ref);
-                            match_seen[fullid]=fullid;}
-                        counts[fullid]=(counts[fullid]||0)+1;
-                        scores[fullid]=(scores[fullid]||0)+finding.weight;}}}
-            if (n_clauses>1) {
-                var results=this.results=[];
-                var new_scores=new RefMap(), new_counts=new RefMap();
-                var i_matches=0, n_matches=matches.length;
-                while (i_matches<n_matches) {
-                    var match=matches[i_matches++];
-                    var count=counts.get(match);
-                    // If there are just two clauses, score their
-                    // intersection; If there are more than two
-                    // clauses (count>=2), score the union of their
-                    // pairwise intersections.
-                    if (count>=2) { /* ((n_clauses===2)||(count>=2)) */
-                        var score=scores.get(match);
-                        new_scores.set(match,score);
-                        new_counts.set(match,count);
-                        results.push(match);}}
-                results._allstrings=false;
-                results._sortlen=results.length;
-                this.results=results;
-                this.scores=new_scores;
-                this.counts=new_counts;}
-            else {
-                this.results=setify(matches);
-                this.scores=scores;
-                this.counts=counts;}
-            
-            return this;};
+                        result=[];
+                        for (arg in arguments)
+                            if (!(arg)) {}
+                        else if (arg instanceof Array)
+                            result=result.concat(arg);
+                        else result.push(arg);
+                        return setify(result);}}
+                RefDB.Set=fdjtSet;
+                fdjt.Set=fdjtSet;
+                RefDB.toSet=fdjtSet;
 
-        return RefDB;})();}
+                function setify(array) {
+                    var len;
+                    if (array._sortlen===(len=array.length)) return array;
+                    // else if ((array._sortlen)&&(array._sortlen>1))
+                    else if (len===0) {
+                        array._sortlen=0;
+                        return array;}
+                    else if (len===1) {
+                        var elt1=array[0];
+                        array._sortlen=1;
+                        array._allstrings=(typeof elt1 === 'string');
+                        if (typeof elt === "object") {
+                            if ((elt1._qid)||(elt1._fdjtid)) {}
+                            else if (elt1.getQID) elt1._qid=elt1.getQID();
+                            else elt1._fdjtid=++id_counter;}
+                        return array;}
+                    else {
+                        var allstrings=true;
+                        var i=0, lim=array.length;
+                        while (i<lim) {
+                            var elt=array[i++];
+                            if ((allstrings)&&(typeof elt !== 'string')) {
+                                allstrings=false;
+                                if (typeof elt === "object") {
+                                    if ((elt._qid)||(elt._fdjtid)) {}
+                                    else if (elt.getQID) elt._qid=elt.getQID();
+                                    else elt._fdjtid=++id_counter;}}}
+                        array._allstrings=allstrings;
+                        if (lim===1) return array;
+                        if (allstrings) array.sort();
+                        else array.sort(set_sortfn);
+                        // Now remove duplicates
+                        var read=1; var write=1; var readlim=array.length;
+                        var cur=array[0];
+                        while (read<readlim) {
+                            if (array[read]!==cur) {
+                                array[write++]=cur=array[read++];}
+                            else read++;}
+                        array._sortlen=array.length=write;
+                        return array;}}
+                
+                function set_add(set,val) {
+                    if (val instanceof Array) {
+                        var changed=false;
+                        for (var elt in val) 
+                            if (set_add(set,elt)) changed=true;
+                        return changed;}
+                    else if (set.indexOf) {
+                        var pos=set.indexOf(val);
+                        if (pos>=0) return false;
+                        else set.push(val);
+                        return true;}
+                    else {
+                        var i=0; var lim=set.length;
+                        while (i<lim)
+                            if (set[i]===val) return false; else i++;
+                        if (typeof val !== 'string') set._allstrings=false;
+                        set.push(val);
+                        return true;}}
+                
+                function set_drop(set,val) {
+                    if (val instanceof Array) {
+                        var changed=false;
+                        for (var elt in val)
+                            if (set_drop(set,elt)) changed=true;
+                        return changed;}
+                    else if (set.indexOf) {
+                        var pos=set.indexOf(val);
+                        if (pos<0) return false;
+                        else set.splice(pos,1);
+                        return true;}
+                    else {
+                        var i=0; var lim=set.length;
+                        while (i<lim)
+                            if (set[i]===val) {
+                                set.splice(i,1);
+                                return true;}
+                        else i++;
+                        return false;}}
+                
+                /* Refs */
+
+                Ref.prototype.get=function refGet(prop){
+                    if (this.hasOwnProperty(prop)) return this[prop];
+                    else if (this._live) return false;
+                    else return undefined;};
+                Ref.prototype.getSet=function refGetSet(prop){
+                    if (this.hasOwnProperty(prop)) {
+                        var val=this[prop];
+                        if (val instanceof Array) {
+                            if (val._sortlen===val.length) return val;
+                            else return setify(val);}
+                        else return setify([val]);}
+                    else if (this._live) return [];
+                    else return undefined;};
+                Ref.prototype.getArray=function refGetArray(prop){
+                    if (this.hasOwnProperty(prop)) {
+                        var val=this[prop];
+                        if (val instanceof Array) return val;
+                        else return [val];}
+                    else if (this._live) return [];
+                    else return undefined;};
+                Ref.prototype.add=function refAdd(prop,val,index){
+                    var db=this._db;
+                    if (typeof index === "undefined") {
+                        if (db.indices.hasOwnProperty(prop)) index=true;
+                        else index=false;}
+                    else if ((index)&&(!(db.indices.hasOwnProperty(prop)))) {
+                        // fdjtLog("Creating index on %s for %o",prop,db);
+                        db.addIndex(prop);}
+                    else {}
+                    if ((val instanceof Array)&&(val._sortlen===0))
+                        return;
+                    else if ((!(this._live))&&(this._db.storage)) {
+                        var that=this;
+                        if (this._onload)
+                            this._onload.push(function(){that.add(prop,val);});
+                        else this._onload=[function(){that.add(prop,val);}];
+                        return this;}
+                    else if ((val instanceof Array)&&
+                             (typeof val._sortlen === "number")) {
+                        var i=0, lim=val.length; while (i<lim) {
+                            this.add(prop,val[i++],index);}
+                        return;}
+                    else if (prop==="aliases") {
+                        if (db.refs[val]===this) return false;
+                        else if (db.altrefs[val]===this) return false;
+                        else {
+                            db.altrefs[val]=this;
+                            if (this.aliases) this.aliases.push(val);
+                            else this.aliases=[val];}}
+                    else if (this.hasOwnProperty(prop)) {
+                        var cur=this[prop];
+                        if (cur===val) return false;
+                        else if (cur instanceof Array) {
+                            if (!(set_add(cur,val))) return false;
+                            else {}}
+                        else this[prop]=fdjtSet([cur,val]);}
+                    else if ((val instanceof Array)&&
+                             (typeof val._sortlen !== "number"))
+                        this[prop]=fdjtSet([val]);
+                    else this[prop]=val;
+                    // If we've gotten through to here, we've made a change,
+                    //  so we update the change structures, run any add methods
+                    //  and index if appropriate
+                    if (!(this._changed)) {
+                        var now=fdjtTime();
+                        if (db.changed) {
+                            db.changed=now;
+                            changed_dbs.push(db);}
+                        this._changed=now;
+                        db.changes.push(this);}
+                    if (db.onadd.hasOwnProperty(prop))
+                        (db.onadd[prop])(this,prop,val);
+                    if ((index)&&(db.indices[prop]))
+                        this.indexRef(prop,this[prop],db.indices[prop]);
+                    return true;};
+                Ref.prototype.drop=function refDrop(prop,val,dropindex){
+                    var db=this._db;
+                    if (typeof dropindex === "undefined")
+                        dropindex=true;
+                    if (prop==='_id') return false;
+                    else if ((!(this._live))&&(this._db.storage)) {
+                        if (db.storage instanceof Storage) {
+                            this.load().then(function(){return this.drop(prop,val);});}
+                        else {
+                            return undefined;}}
+                    else if (this.hasOwnProperty(prop)) {
+                        var cur=this[prop];
+                        if (cur===val) delete this[prop];
+                        else if (cur instanceof Array) {
+                            if (!(set_drop(cur,val))) return false;
+                            if (cur.length===0) delete this[prop];}
+                        else return false;
+                        if (db.ondrop.hasOwnProperty(prop)) 
+                            (db.ondrop[prop])(this,prop,val);
+                        if (!(this._changed)) {
+                            var now=fdjtTime();
+                            if (db.changed) {db.changed=now; changed_dbs.push(db);}
+                            this._changed=now;
+                            db.changes.push(this);}
+                        if ((dropindex)&&(db.indices[prop])) 
+                            this.indexRefDrop(prop,db.indices[prop]);
+                        return true;}
+                    else return false;};
+                Ref.prototype.test=function(prop,val){
+                    if (this.hasOwnProperty(prop)) {
+                        if (typeof val === 'undefined') return true;
+                        var cur=this[prop];
+                        if (cur===val) return true;
+                        else if (cur instanceof Array) {
+                            if (arr_contains(cur,val)) return true;
+                            else if (this._live) return false;
+                            else return undefined;}
+                        else if (this._live) return false;
+                        else return undefined;}
+                    else if (this._live) return false;
+                    else return undefined;};
+                Ref.prototype.store=function(prop,val){
+                    var toadd=[], todrop=[];
+                    if (this.hasOwnProperty(prop)) {
+                        var cur=this[prop];
+                        if (cur===val) return false;
+                        else {
+                            toadd=difference(val,cur);
+                            todrop=difference(cur,val);}}
+                    else if (val instanceof Array)
+                        toadd=val;
+                    else toadd=[val];
+                    var i=0, lim=todrop.length;
+                    while (i<lim) this.drop(prop,todrop[i++]);
+                    i=0; lim=toadd.length; while (i<lim) this.add(prop,toadd[i++]);
+                    return true;};
+
+                Ref.prototype.toHTML=function(){
+                    var dom=false;
+                    return ((this._db.forHTML)&&(this._db.forHTML(this)))||
+                        ((this._db.forDOM)&&(dom=this._db.forDOM(this))&&
+                         (dom.outerHTML))||
+                        this._id||this.oid||this.uuid;};
+                Ref.prototype.toDOM=function(){
+                    return ((this._db.forDOM)&&(this._db.forDOM(this)))||
+                        ((this._db.forHTML)&&(fdjtDOM(this._db.forHTML(this))))||
+                        (fdjtDOM("span.fdjtref",this._id||this.oid||this.uuid));};
+
+                /* Maps */
+
+                function ObjectMap() {return this;}
+                ObjectMap.prototype.get=function ObjectMapGet(key) {
+                    var keystring=getKeyString(key,this.fordb);
+                    if (this.hasOwnProperty(keystring))
+                        return this[keystring];
+                    else if (typeof key === "string")
+                        // This is helpful for debugging
+                        return this[key]||this["@"+key];
+                    else return undefined;};
+                ObjectMap.prototype.getItem=ObjectMap.prototype.get;
+                ObjectMap.prototype.set=function(key,val) {
+                    var keystring=getKeyString(key,this.fordb);
+                    if (val instanceof Array)
+                        this[keystring]=[val];
+                    else this[keystring]=val;};
+                ObjectMap.prototype.setItem=ObjectMap.prototype.set;
+                ObjectMap.prototype.increment=function(key,delta) {
+                    var keystring=getKeyString(key,this.fordb);
+                    var cur=this[keystring], next;
+                    if (cur) this[keystring]=next=cur+delta;
+                    else this[keystring]=next=delta;
+                    return next;};
+                ObjectMap.prototype.add=function(key,val) {
+                    var keystring=getKeyString(key,this.fordb);
+                    if (this.hasOwnProperty(keystring)) {
+                        var cur=this[keystring];
+                        if (cur===val) return false;
+                        else if (cur instanceof Array) {
+                            if (arr_contains(cur,val)) return false;
+                            else {cur.push(val); return true;}}
+                        else if (val instanceof Array) {
+                            this[keystring]=setify([cur,val]);
+                            return true;}
+                        else {
+                            this[keystring]=setify([cur,val]);
+                            return true;}}
+                    else if (val instanceof Array) 
+                        this[keystring]=setify([val]);
+                    else this[keystring]=val;};
+                ObjectMap.prototype.drop=function(key,val) {
+                    var keystring=getKeyString(key,this.fordb);
+                    if (this.hasOwnProperty(keystring)) {
+                        var cur=this[keystring];
+                        if (cur===val) {
+                            delete this[keystring];
+                            return true;}
+                        else if (cur instanceof Array) {
+                            var pos=cur.indexOf(val);
+                            if (pos<0) return false;
+                            cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
+                            if (cur.length===1) {
+                                if (!(cur[0] instanceof Array))
+                                    this[keystring]=cur[0];}
+                            return true;}
+                        else return false;}
+                    else return false;};
+                fdjt.Map=ObjectMap;
+                RefDB.ObjectMap=ObjectMap;
+                RefDB.fdjtMap=ObjectMap;
+
+                function StringMap() {return this;}
+                StringMap.prototype.get=function StringMapGet(keystring) {
+                    if (typeof keystring !== "string") return undefined;
+                    if (this.hasOwnProperty(keystring))
+                        return this[keystring];
+                    else return undefined;};
+                StringMap.prototype.getItem=StringMap.prototype.get;
+                StringMap.prototype.set=function(keystring,val) {
+                    if (typeof keystring !== "string") return;
+                    if (val instanceof Array)
+                        this[keystring]=[val];
+                    else this[keystring]=val;};
+                StringMap.prototype.setItem=StringMap.prototype.set;
+                StringMap.prototype.increment=function(keystring,delta) {
+                    if (typeof keystring !== "string") return;
+                    var cur=this[keystring], next;
+                    if (cur) this[keystring]=next=cur+delta;
+                    else this[keystring]=next=delta;
+                    return next;};
+                StringMap.prototype.add=function(keystring,val) {
+                    if (typeof keystring !== "string") return;
+                    if (this.hasOwnProperty(keystring)) {
+                        var cur=this[keystring];
+                        if (cur===val) return false;
+                        else if (cur instanceof Array) {
+                            if (arr_contains(cur,val)) return false;
+                            else {cur.push(val); return true;}}
+                        else if (val instanceof Array) {
+                            this[keystring]=setify([cur,val]);
+                            return true;}
+                        else {
+                            this[keystring]=setify([cur,val]);
+                            return true;}}
+                    else if (val instanceof Array) 
+                        this[keystring]=setify([val]);
+                    else this[keystring]=val;};
+                StringMap.prototype.drop=function(keystring,val) {
+                    if (typeof keystring !== "string") return;
+                    if (this.hasOwnProperty(keystring)) {
+                        var cur=this[keystring];
+                        if (cur===val) {
+                            delete this[keystring];
+                            return true;}
+                        else if (cur instanceof Array) {
+                            var pos=cur.indexOf(val);
+                            if (pos<0) return false;
+                            cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
+                            if (cur.length===1) {
+                                if (!(cur[0] instanceof Array))
+                                    this[keystring]=cur[0];}
+                            return true;}
+                        else return false;}
+                    else return false;};
+                fdjt.StringMap=StringMap;
+                RefDB.StringMap=StringMap;
+
+                function RefMap(db) {this._db=db; return this;}
+                RefMap.prototype.get=function(key){
+                    if (typeof key === "string") {
+                        if (this.hasOwnProperty(key)) return this[key];
+                        else return undefined;}
+                    else if (key instanceof Ref) {
+                        var id=((this.uniqueids)&&key._id)||key._qid||key.getQID();
+                        return this[id];}
+                    else return undefined;};
+                RefMap.prototype.set=function(key,val){
+                    if (typeof key === "string") this[key]=val;
+                    else if (key instanceof Ref) {
+                        var id=key._qid||((this.uniqueid)&&key._id)||key.getQID();
+                        this[id]=val;}
+                    else return false;};
+                RefMap.prototype.increment=function(key,delta){
+                    if (typeof key === "string") {
+                        if (this.hasOwnProperty(key))
+                            this[key]=this[key]+delta;
+                        else this[key]=delta;}
+                    else if (key instanceof Ref) {
+                        var id=key._qid||((this.uniqueids)&&key._id)||key.getQID();
+                        this[id]=(this[id]||0)+delta;}
+                    else return false;};
+                fdjt.RefMap=RefDB.RefMap=RefMap;
+                
+                /* Miscellaneous array and table functions */
+
+                RefDB.add=function(obj,field,val,nodup){
+                    if (arguments.length===2)
+                        return set_add(obj,field);
+                    else if (obj instanceof Ref)
+                        return obj.add.apply(obj,arguments);
+                    else if (nodup) 
+                        if (obj.hasOwnProperty(field)) {
+                            var vals=obj[field];
+                            if (!(arr_contains(vals,val))) obj[field].push(val);
+                            else {}}
+                    else obj[field]=new Array(val);
+                    else if (obj.hasOwnProperty(field))
+                        obj[field].push(val);
+                    else obj[field]=new Array(val);
+                    if ((obj._all) && (!(arr_contains(obj._all,field))))
+                        obj._all.push(field);};
+
+                RefDB.drop=function(obj,field,val){
+                    if (arguments.length===2)
+                        return set_drop(obj,field);
+                    else if (obj instanceof Ref)
+                        return obj.drop.apply(obj,arguments);
+                    else if (!(val))
+                        /* Drop all vals */
+                        obj[field]=[];
+                    else if (obj.hasOwnProperty(field)) {
+                        var vals=obj[field];
+                        var pos=arr_position(vals,val);
+                        if (pos<0) return;
+                        else vals.splice(pos,1);}
+                    else {}};
+
+                RefDB.test=function(obj,field,val){
+                    if (arguments.length===2)
+                        return arr_contains(obj,field);
+                    else if (obj instanceof Ref)
+                        return obj.test.apply(obj,arguments);
+                    else if (typeof val === "undefined")
+                        return (((obj.hasOwnProperty) ?
+                                 (obj.hasOwnProperty(field)) : (obj[field])) &&
+                                ((obj[field].length)>0));
+                    else if (obj.hasOwnProperty(field)) { 
+                        if (arr_position(obj[field],val)<0)
+                            return false;
+                        else return true;}
+                    else return false;};
+
+                RefDB.insert=function(array,value){
+                    if (arr_position(array,value)<0) array.push(value);};
+
+                RefDB.remove=function(array,value,count){
+                    var pos=arr_position(array,value);
+                    if (pos<0) return array;
+                    array.splice(pos,1);
+                    if (count) {
+                        count--;
+                        while ((count>0) &&
+                               ((pos=arr_position(array,value,pos))>=0)) {
+                            array.splice(pos,1); count--;}}
+                    return array;};
+
+                RefDB.indexOf=function(array,elt,pos){
+                    if (pos) return array.indexOf(elt,pos);
+                    else return array.indexOf(elt);};
+
+                RefDB.contains=arr_contains;
+                RefDB.position=arr_position;
+
+                function Query(dbs,clauses,weights){
+                    if (arguments.length===0) return this;
+                    if (dbs) this.dbs=dbs;
+                    if (clauses) {
+                        if (clauses instanceof Array)
+                            this.clauses=clauses;
+                        else this.clauses=[clauses];}
+                    if (weights) this.weights=weights;
+                    // Figure out if references can be unique IDs
+                    var i=0, n_dbs=dbs.length;
+                    if (n_dbs>1) while (i<n_dbs) {
+                        if (!(dbs[i].absrefs)) return this;
+                        else i++;}
+                    this.uniqueids=true;
+                    return this;}
+                RefDB.Query=Query;
+                Query.prototype.uniqueids=false;
+                
+                function sortbyweight(f1,f2){return f2.weight-f1.weight;}
+
+                Query.prototype.execute=function executeQuery(){
+                    if (this.scores) return this;
+                    var dbs=this.dbs;
+                    var clauses=this.clauses;
+                    if (!((dbs)&&(dbs.length))) {
+                        var empty_result=this.results=fdjtSet();
+                        warn("No dbs for query %o!",this);
+                        return empty_result;}
+                    else if (!((clauses)&&(clauses.length))) {
+                        var full_result=fdjtSet();
+                        var i=0, lim=dbs.length;
+                        while (i<lim) full_result=
+                            merge(full_result,setify(dbs[i++].allrefs));
+                        this.results=full_result;
+                        return full_result;}
+                    var query_weights=this._weights||this.weights;
+                    var uniqueids=((dbs.length===1)||(this.uniqueids));
+                    var scores=new RefMap();
+                    var counts=new RefMap();
+                    var matches=fdjtSet();
+                    var match_seen={};
+                    // This makes these go faster because they don't bother
+                    // disambiguting _id fields.
+                    counts.uniqueids=scores.uniqueids=uniqueids;
+                    var i_clause=0, n_clauses=clauses.length;
+                    while (i_clause<n_clauses) {
+                        var clause=clauses[i_clause++];
+                        var fields=clause.fields;
+                        var values=clause.values;
+                        var clause_weights=clause.weights;
+                        var findings=[];
+                        if (!(fields instanceof Array)) fields=[fields];
+                        if (!(values instanceof Array)) values=[values];
+                        var i_field=0; var n_fields=fields.length;
+                        while (i_field<n_fields) {
+                            var field=fields[i_field++];
+                            var weight=((clause_weights)&&(clause_weights[field]))||
+                                ((query_weights)&&(query_weights[field]))||
+                                (this.default_weight)||1;
+                            var i_value=0, n_values=values.length;
+                            while (i_value<n_values) {
+                                var value=values[i_value++];
+                                var i_db=0, n_dbs=dbs.length;
+                                while (i_db<n_dbs) {
+                                    var db=dbs[i_db++];
+                                    var hits=db.find(field,value);
+                                    if ((hits)&&(hits.length)) {
+                                        findings.push({
+                                            field: field, hits: setify(hits),
+                                            weight: weight, value: value,
+                                            db: db});}}}}
+                        // Sort so the highest scoring findings go first
+                        findings.sort(sortbyweight);
+                        var finding_i=0, n_findings=findings.length; var seen={};
+                        while (finding_i<n_findings) {
+                            var finding=findings[finding_i++];
+                            var hit_ids=finding.hits, fdb=finding.db, abs=fdb.absrefs;
+                            var i_hit=0, n_hits=hit_ids.length, hit_id, ref;
+                            if ((uniqueids)||(abs)) while (i_hit<n_hits) {
+                                hit_id=hit_ids[i_hit++];
+                                if (seen[hit_id]) continue;
+                                else seen[hit_id]=hit_id;
+                                if (!(match_seen[hit_id])) {
+                                    matches.push(fdb.ref(hit_id));
+                                    match_seen[hit_id]=hit_id;}
+                                counts[hit_id]=(counts[hit_id]||0)+1;
+                                scores[hit_id]=(scores[hit_id]||0)+finding.weight;}
+                            else {
+                                hit_id=hit_ids[i_hit++]; ref=fdb.ref(hit_id);
+                                var fullid=ref._qid||((abs)&&(ref._id))||ref.getQID();
+                                if (seen[fullid]) continue;
+                                else seen[fullid]=fullid;
+                                if (!(match_seen[fullid])) {
+                                    matches.push(ref);
+                                    match_seen[fullid]=fullid;}
+                                counts[fullid]=(counts[fullid]||0)+1;
+                                scores[fullid]=(scores[fullid]||0)+finding.weight;}}}
+                    if (n_clauses>1) {
+                        var results=this.results=[];
+                        var new_scores=new RefMap(), new_counts=new RefMap();
+                        var i_matches=0, n_matches=matches.length;
+                        while (i_matches<n_matches) {
+                            var match=matches[i_matches++];
+                            var count=counts.get(match);
+                            // If there are just two clauses, score their
+                            // intersection; If there are more than two
+                            // clauses (count>=2), score the union of their
+                            // pairwise intersections.
+                            if (count>=2) { /* ((n_clauses===2)||(count>=2)) */
+                                var score=scores.get(match);
+                                new_scores.set(match,score);
+                                new_counts.set(match,count);
+                                results.push(match);}}
+                        results._allstrings=false;
+                        results._sortlen=results.length;
+                        this.results=results;
+                        this.scores=new_scores;
+                        this.counts=new_counts;}
+                    else {
+                        this.results=setify(matches);
+                        this.scores=scores;
+                        this.counts=counts;}
+                    
+                    return this;};
+
+                return RefDB;})();}
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -12122,13 +12466,15 @@ var WSN=(function(){
     var fdjtHash=fdjt.Hash;
     var fdjtString=fdjt.String;
 
+    /*
     function get_punct_regex(){
         try { return (/(\pM)/g);}
         catch (ex1) {
             try { return (/(\pP)/g); }
             catch (ex2) {return (/[.,?!-_@&%$#\\\/\^()]/);}}}
+    */
     
-    var punct_regex=get_punct_regex();
+    var punct_regex=/(\pM)/g;
     var decodeEntities=fdjtString.decodeEntities;
     
     function WSN(arg,sortfn,wordfn,keepdup){
@@ -12785,7 +13131,8 @@ fdjt.UI.Highlight=(function(){
             end=stringval.length;
         if (start===end) return;
         var beginning=((start>0)&&(textnode(stringval.slice(0,start))));
-        var middle=highlight_text(stringval.slice(start,end),hclass,htitle,hattribs);
+        var middle=highlight_text(
+            stringval.slice(start,end),hclass,htitle,hattribs);
         var ending=((end<stringval.length)&&
                     (textnode(stringval.slice(end))));
         if ((beginning)&&(ending)) {
@@ -12823,14 +13170,16 @@ fdjt.UI.Highlight=(function(){
                     while ((next)&&(!(next.nextSibling)))
                         next=next.parentNode;
                     next=next.nextSibling;
-                    highlights.push(highlight_node(scan,hclass,htitle,hattribs));
+                    highlights.push(
+                        highlight_node(scan,hclass,htitle,hattribs));
                     scan=next;}}
             // Do the ends
             highlights.push(
                 highlight_node_range(
                     starts_in,range.startOffset,false,hclass,htitle,hattribs));
             highlights.push(
-                highlight_node_range(ends_in,0,range.endOffset,hclass,htitle,hattribs));
+                highlight_node_range(
+                    ends_in,0,range.endOffset,hclass,htitle,hattribs));
             return highlights;}}
 
     highlight_range.clear=clear_highlights;
@@ -16475,12 +16824,13 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             else return;
             if ((start)&&(end)) this.setRange(start,end);};
 
-        TextSelect.prototype.getString=function(start,end){
+        TextSelect.prototype.getString=function(start,end,rawtext){
             if (!(start)) start=this.start; if (!(end)) end=this.end;
             var wrappers=this.wrappers; 
             var combine=[]; var prefix=this.prefix; var wpos=-1;
             var scan=start; while (scan) {
-                if (scan.nodeType===1) {
+                if (rawtext) {}
+                else if (scan.nodeType===1) {
                     var style=getStyle(scan);
                     if ((style.position==='static')&&
                         (style.display!=='inline')&&
@@ -16489,7 +16839,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 if ((scan.nodeType===1)&&(scan.tagName==='SPAN')&&
                     (scan.id)&&(scan.id.search(prefix)===0)) {
                     var txt=scan.innerText||textify(scan);
-                    combine.push(txt);
+                    combine.push(txt.replace("­",""));
                     if (scan===end) break;}
                 if ((scan.firstChild)&&
                     (scan.className!=="fdjtselectloupe")&&
@@ -16518,8 +16868,8 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     return false;
                 while ((i<lim)&&(!(hasParent(first_word,under))))
                     first_word=words[i++];}
-            var selected=this.getString();
-            var preselected=this.getString(first_word,this.end);
+            var selected=this.getString(false,false,true);
+            var preselected=this.getString(first_word,this.end,true);
             return preselected.length-selected.length;};
         
         TextSelect.prototype.getInfo=function(under){
@@ -16534,13 +16884,15 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     return false;
                 while ((i<lim)&&(!(hasParent(first_word,under))))
                     first_word=words[i++];}
-            var preselected=this.getString(first_word,this.end);
+            var rawselect=this.getString(false,false,true);
+            var preselected=this.getString(first_word,this.end,true);
             if ((trace)||(traceall)) 
                 fdjtLog("GetInfo %o: start=%o, end=%o, off=%o, string=%o",
                         this,this.start,this.end,
-                        preselected.length-selected.length,selected);
+                        preselected.length-rawselect.length,
+                        selected);
             return { start: this.start, end: this.end,
-                     off: preselected.length-selected.length,
+                     off: preselected.length-rawselect.length,
                      string: selected};};
         
         TextSelect.prototype.setAdjust=function(val){
@@ -18928,8 +19280,11 @@ var idbModules = {};
 fdjt.CodexLayout=
     (function(){
         "use strict";
+        /* globals Promise: false */
+
         var fdjtDOM=fdjt.DOM;
         var fdjtLog=fdjt.Log;
+        var fdjtAsync=fdjt.Async;
         var fdjtTime=fdjt.Time;
         var fdjtState=fdjt.State;
         var fdjtID=fdjt.ID;
@@ -18949,6 +19304,8 @@ fdjt.CodexLayout=
         var dropLocal=fdjtState.dropLocal, removeLocal=fdjtState.removeLocal;
 
         var floor=Math.floor;
+
+        var root_namespace=document.body.namespaceURI;
 
         var layoutDB;
 
@@ -19349,6 +19706,9 @@ fdjt.CodexLayout=
         
         function markPageTop(node,force){
             if ((!force)&&(hasClass(node,"codexpagetop"))) return;
+            if ((node.namespaceURI)&&
+                (node.namespaceURI!==root_namespace))
+                return;
             var nodestyle=node.getAttribute("style")||"";
             var newstyle=nodestyle+((nodestyle)?("; "):(""))+
                 "margin-top: 0px !important;";
@@ -19507,6 +19867,7 @@ fdjt.CodexLayout=
             var layout=this;
 
             this.init=init;
+            this.thenfns=[];
 
             // Layout rules
             var fullpages=this.fullpages=
@@ -20440,20 +20801,7 @@ fdjt.CodexLayout=
                     else if ((!(page_break.childNodes))||
                              (page_break.childNodes.length===0))
                         return children.slice(breakpos);
-                    else if (true)
-                        return children.slice(breakpos);
-                    // We could call splitChildren recursively, but
-                    // we're not currently doing so
-                    else {
-                        /*
-                        var grandchildren=toArray(page_break.childNodes);
-                        var push=splitChildren();
-                        if ((!(push))||(push===page_break))
-                            return children.slice(i-1);
-                        else {
-                            // This should reproduce the logic below
-                            var clone_break=page_break.cloneNode(true);}
-                        */}
+                    else return children.slice(breakpos);
                     // If it's text, split it into words, then try to
                     // find the length at which one more word pushes
                     // it over the edge.
@@ -20694,144 +21042,151 @@ fdjt.CodexLayout=
                especially the dups for split nodes and the saved_ids
                for restoring unique IDs.
             */
-            function setSimpleLayout(content,donefn){
-                var frag=document.createElement("div");
-                var all_ids=[], saved_ids={};
-                var dupids=[], dupstarts={}, restoremap={};
-                var curnodes=[], newdups={}, pagescales=[];
-                if (trace)
-                    fdjtLog("Setting layout to %d characters of HTML",
-                            content.length);
-                frag.innerHTML=content;
-                var newpages=frag.childNodes, addpages=[];
-                if (trace) fdjtLog("Gathering layout info");
-                var i=0, lim=newpages.length; while (i<lim) {
-                    var page=newpages[i++];
-                    addpages.push(page);
-                    if (page.nodeType===1) {
-                        if ((page.className)&&(page.className.search)&&
-                            (page.className.search(/\bcurpage\b/)>=0))
-                            dropClass(page,"curpage");
-                        gatherLayoutInfo(page,all_ids,newdups,
-                                         dupids,dupstarts,restoremap);}}
-                var idmap={};
-                if (trace) fdjtLog("Getting originals by ID");
-                i=0; lim=all_ids.length; while (i<lim) {
-                    var idkey=all_ids[i++];
-                    idmap[idkey]=document.getElementById(idkey);}
-                var bcrumb=false, ccrumb=false;
-                if (trace)
-                    fdjtLog("Moving body and container out of document");
-                if ((origin)&&(origin.parentNode)) {
-                    bcrumb=document.createTextNode("");
-                    origin.parentNode.replaceChild(bcrumb,origin);}
-                if (container.parentNode) {
-                    ccrumb=document.createTextNode("");
-                    container.parentNode.replaceChild(ccrumb,container);}
-                if (trace) fdjtLog("Moving originals into layout");
-                i=0; lim=all_ids.length; while (i<lim) {
-                    var id=all_ids[i++];
-                    var original=idmap[id];
-                    var restore=restoremap[id];
-                    // The restoremap contains content references
-                    //  which are unmodified from the original
-                    //  content, making them a lot smaller and easier
-                    //  to keep around.
-                    if ((restore)&&(original)) {
-                        var classname=restore.className;
-                        var style=restore.getAttribute("style");
-                        var ostyle=original.getAttribute("style");
-                        var oclass=original.className;
-                        var crumb=document.createTextNode("");
-                        classname=classname.replace(/\bcodexrestore\b/,"");
-                        replaceNode(original,crumb);
-                        crumbs[id]=crumb;
-                        replaceNode(restore,original);
-                        if ((classname)&&(classname!==oclass)) {
-                            if ((oclass)&&(typeof oclass === "string"))
-                                original.setAttribute("data-savedclass",oclass);
-                            original.className=classname;}
-                        if (style!==ostyle) {
-                            if (ostyle) original.setAttribute(
-                                "data-savedstyle",ostyle);
-                            original.setAttribute("style",style);}
-                        if (classname.search(/\bcodexpagetop\b/)>=0) {
-                            markPageTop(original,true);}}
-                    else if (original) {
-                        saved_ids[id]=original;
-                        if (original.id) original.removeAttribute("id");}}
-                if (trace) fdjtLog("Gathering lostids");
-                var lostids=layout.lostids={};
-                var really_lost=lostids._all_ids=[];
-                i=0; lim=dupids.length; while (i<lim) {
-                    var dupid=dupids[i++];
-                    var orig=idmap[dupid];
-                    if (orig) {
-                        lostids[dupid]=orig;
-                        really_lost.push(dupid);
-                        if (orig.id) orig.removeAttribute("id");}}
-                if (trace) fdjtLog("Moving nodes around");
-                var cur=container.childNodes;
-                i=0; lim=cur.length; while (i<lim) curnodes.push(cur[i++]);
-                i=0; while (i<lim) container.removeChild(curnodes[i++]);
-                i=0; lim=addpages.length;
-                while (i<lim) {
-                    var addpage=addpages[i++];
-                    var scale_elts=
-                        getChildren(addpage,"[pagescale],[data-pagescale]");
-                    if (scale_elts.length) 
-                        pagescales.push({page: addpage, toscale: scale_elts});
-                    container.appendChild(addpage);}
-                layout.pages=addpages;
-                dups=layout.dups=newdups;
-                saved_ids._all_ids=all_ids;
-                layout.saved_ids=saved_ids;
-                layout.page=addpages[0];
-                layout.pagenum=parseInt(
-                    layout.page.getAttribute("data-pagenum"),10);
-                if (trace)
-                    fdjtLog("Moving origin/container back to document");
-                if (ccrumb)
-                    ccrumb.parentNode.replaceChild(container,ccrumb);
-                if (bcrumb)
-                    bcrumb.parentNode.replaceChild(origin,bcrumb);
-                var splits=getChildren(container,".codexsplitstart");
-                var s=0, n_splits=splits.length; while (s<n_splits) {
-                    var split=splits[s++], splitid=split.id;
-                    var text=split.getAttribute("data-textsplit");
-                    if ((splitid)&&(text)) {
-                        textsplits[splitid]=document.createTextNode(text);
-                        split.removeAttribute("data-textsplit");}}
-                i=0; lim=pagescales.length; while (i<lim) {
-                    var ps=pagescales[i++]; var pg=ps.page;
-                    pg.style.opacity=0; pg.style.display='block';
-                    scaleToPage(ps.toscale,page_width,page_height);
-                    pg.style.display=''; pg.style.opacity='';}
-                if (trace) fdjtLog("Done restoring layout");
-                if (donefn) donefn();}
-            function setLayout(content,donefn,failfn){
-                if (typeof content === "string") {
+            function setSimpleLayout(content){
+                function setting_layout(resolve,reject){
                     try {
-                        setSimpleLayout(content,donefn);}
-                    catch (ex) {if (failfn) failfn();}}
-                else if (!(content.hasOwnProperty('npages'))) {
-                    try {
-                        setSimpleLayout(content.layout,donefn);}
-                    catch (ext) {if (failfn) failfn();}}
+                        var frag=document.createElement("div");
+                        var all_ids=[], saved_ids={};
+                        var dupids=[], dupstarts={}, restoremap={};
+                        var curnodes=[], newdups={}, pagescales=[];
+                        if (trace)
+                            fdjtLog("Setting layout to %d characters of HTML",
+                                    content.length);
+                        frag.innerHTML=content;
+                        var newpages=frag.childNodes, addpages=[];
+                        if (trace) fdjtLog("Gathering layout info");
+                        var i=0, lim=newpages.length; while (i<lim) {
+                            var page=newpages[i++];
+                            addpages.push(page);
+                            if (page.nodeType===1) {
+                                if ((page.className)&&(page.className.search)&&
+                                    (page.className.search(/\bcurpage\b/)>=0))
+                                    dropClass(page,"curpage");
+                                gatherLayoutInfo(page,all_ids,newdups,
+                                                 dupids,dupstarts,restoremap);}}
+                        var idmap={};
+                        if (trace) fdjtLog("Getting originals by ID");
+                        i=0; lim=all_ids.length; while (i<lim) {
+                            var idkey=all_ids[i++];
+                            idmap[idkey]=document.getElementById(idkey);}
+                        var bcrumb=false, ccrumb=false;
+                        if (trace)
+                            fdjtLog("Moving body and container out of document");
+                        if ((origin)&&(origin.parentNode)) {
+                            bcrumb=document.createTextNode("");
+                            origin.parentNode.replaceChild(bcrumb,origin);}
+                        if (container.parentNode) {
+                            ccrumb=document.createTextNode("");
+                            container.parentNode.replaceChild(ccrumb,container);}
+                        if (trace) fdjtLog("Moving originals into layout");
+                        i=0; lim=all_ids.length; while (i<lim) {
+                            var id=all_ids[i++];
+                            var original=idmap[id];
+                            var restore=restoremap[id];
+                            // The restoremap contains content references
+                            //  which are unmodified from the original
+                            //  content, making them a lot smaller and easier
+                            //  to keep around.
+                            if ((restore)&&(original)) {
+                                var classname=restore.className;
+                                var style=restore.getAttribute("style");
+                                var ostyle=original.getAttribute("style");
+                                var oclass=original.className;
+                                var crumb=document.createTextNode("");
+                                classname=classname.replace(/\bcodexrestore\b/,"");
+                                replaceNode(original,crumb);
+                                crumbs[id]=crumb;
+                                replaceNode(restore,original);
+                                if ((classname)&&(classname!==oclass)) {
+                                    if ((oclass)&&(typeof oclass === "string"))
+                                        original.setAttribute("data-savedclass",oclass);
+                                    original.className=classname;}
+                                if (style!==ostyle) {
+                                    if (ostyle) original.setAttribute(
+                                        "data-savedstyle",ostyle);
+                                    original.setAttribute("style",style);}
+                                if (classname.search(/\bcodexpagetop\b/)>=0) {
+                                    markPageTop(original,true);}}
+                            else if (original) {
+                                saved_ids[id]=original;
+                                if (original.id) original.removeAttribute("id");}}
+                        if (trace) fdjtLog("Gathering lostids");
+                        var lostids=layout.lostids={};
+                        var really_lost=lostids._all_ids=[];
+                        i=0; lim=dupids.length; while (i<lim) {
+                            var dupid=dupids[i++];
+                            var orig=idmap[dupid];
+                            if (orig) {
+                                lostids[dupid]=orig;
+                                really_lost.push(dupid);
+                                if (orig.id) orig.removeAttribute("id");}}
+                        if (trace) fdjtLog("Moving nodes around");
+                        var cur=container.childNodes;
+                        i=0; lim=cur.length; while (i<lim) curnodes.push(cur[i++]);
+                        i=0; while (i<lim) container.removeChild(curnodes[i++]);
+                        i=0; lim=addpages.length;
+                        while (i<lim) {
+                            var addpage=addpages[i++];
+                            var scale_elts=
+                                getChildren(addpage,"[pagescale],[data-pagescale]");
+                            if (scale_elts.length) 
+                                pagescales.push({page: addpage, toscale: scale_elts});
+                            container.appendChild(addpage);}
+                        layout.pages=addpages;
+                        dups=layout.dups=newdups;
+                        saved_ids._all_ids=all_ids;
+                        layout.saved_ids=saved_ids;
+                        layout.page=addpages[0];
+                        layout.pagenum=parseInt(
+                            layout.page.getAttribute("data-pagenum"),10);
+                        if (trace)
+                            fdjtLog("Moving origin/container back to document");
+                        if (ccrumb)
+                            ccrumb.parentNode.replaceChild(container,ccrumb);
+                        if (bcrumb)
+                            bcrumb.parentNode.replaceChild(origin,bcrumb);
+                        var splits=getChildren(container,".codexsplitstart");
+                        var s=0, n_splits=splits.length; while (s<n_splits) {
+                            var split=splits[s++], splitid=split.id;
+                            var text=split.getAttribute("data-textsplit");
+                            if ((splitid)&&(text)) {
+                                textsplits[splitid]=document.createTextNode(text);
+                                split.removeAttribute("data-textsplit");}}
+                        i=0; lim=pagescales.length; while (i<lim) {
+                            var ps=pagescales[i++]; var pg=ps.page;
+                            pg.style.opacity=0; pg.style.display='block';
+                            scaleToPage(ps.toscale,page_width,page_height);
+                            pg.style.display=''; pg.style.opacity='';}}
+                    catch (ex) {
+                        if (reject) reject(ex); return;}
+                    if (trace) fdjtLog("Done restoring layout");
+                    if (resolve) return resolve(layout);
+                    else return layout;}
+                return new Promise(setting_layout);}
+
+            function setLayout(content){
+                if (typeof content === "string") 
+                    return setSimpleLayout(content);
+                else if (!(content.hasOwnProperty('npages'))) 
+                    return setSimpleLayout(content.layout);
                 else {
+                    // Page-by-page layout
+                    // !!! This hasn't been tested
                     container.innerHTML=content.layout;
                     var pagenodes=container.childNodes;
-                    fdjtTime.slowmap(function(pagenode){
-                        restorePage(pagenode,content);},
-                                     pagenodes,false,donefn,
-                                     layout.timeslice,
-                                     layout.timeskip);}}
+                    return fdjtAsync.slowmap(
+                        function(pagenode){
+                            restorePage(pagenode,content);},
+                        pagenodes,
+                        {slice: layout.timeslice,
+                         space: layout.timeskip});}}
             layout.setLayout=setLayout;
 
             function restorePage(pagenode,content){
-                fetchLayout(content.layout_id,function(pagedata){
-                    pagenode.innerHTML=pagedata.content;},
-                            pagenode.id);}
+                fetchLayout(content.layout_id,pagenode.id).
+                    then(function(pagedata){
+                        pagenode.innerHTML=pagedata.content;},
+                         pagenode.id);}
 
             function dropSelected(node,dropsel){
                 if (!(dropsel)) return;
@@ -20877,7 +21232,7 @@ fdjt.CodexLayout=
                 i=0; n=todrop.length; while (i<n) {
                     node.removeChild(todrop[i++]);}}
             
-            function saveLayout(callback,layout_id,separated){
+            function saveLayout(callback,layout_id){
                 var href=window.location.href;
                 var qpos=href.indexOf("?"), hashpos=href.indexOf("#");
                 var endpos=((qpos>=hashpos)?(qpos):(hashpos));
@@ -20889,7 +21244,6 @@ fdjt.CodexLayout=
                 // These will be used for per-page saved layouts
                 var copy=container.cloneNode(true);
                 var pages=copy.childNodes, i=0, npages=pages.length;
-                var pageids=((separated)&&([])), pagecontent={};
                 while (i<npages) {
                     var page=pages[i++];
                     if (page.nodeType===1) {
@@ -20898,11 +21252,7 @@ fdjt.CodexLayout=
                         while (j<n) {
                             var node=content[j++];
                             if (node.nodeType===1) {
-                                prepForRestore(node,layout.dontsave||false);
-                                if ((node.id)&&(pageids)) {
-                                    pageids.push(node.id);
-                                    pagecontent[node.id]=node.innerHTML;
-                                    node.innerHTML="";}}}}}
+                                prepForRestore(node,layout.dontsave||false);}}}}
                 var splits=getChildren(copy,".codexsplitstart");
                 var s=0, n_splits=splits.length; while (s<n_splits) {
                     var split=splits[s++], splitid=split.id;
@@ -20911,39 +21261,44 @@ fdjt.CodexLayout=
                         split.setAttribute("data-textsplit",text.nodeValue);}
                 var html=copy.innerHTML;
                 try {
-                    if (pageids)
-                        cacheLayout(layout_id,html,pageids,pagecontent,
-                                    function(){gotLayout(layout_id);});
-                    else cacheLayout(layout_id,html,false,false,
-                                    function(){gotLayout(layout_id);});
+                    cacheLayout(layout_id,html,false,false,
+                                function(){cachedLayout(layout_id);});
                     callback(layout);}
                 catch (ex) {
                     fdjtLog.warn("Couldn't save layout %s: %s",layout_id,ex);
                     return false;}
                 return layout_id;}
             this.saveLayout=saveLayout;
-            function restoreLayout(arg,donefn){
+            function restoreLayout(arg,donefn,failfn){
                 function whendone(){
                     layout.done=fdjtTime();
-                    if (donefn) donefn(layout);}
+                    if (donefn) donefn(layout);
+                    if ((layout.thenfns)&&(layout.thenfns.length)) {
+                        var thenfns=layout.thenfns;
+                        var f=0, nfns=thenfns.length; while (f<nfns) {
+                            thenfns[f++](layout);}}
+                    return layout;}
+                var setting=false;
                 if (!(arg)) {
                     fdjtLog.warn("Falsy arg %s to restoreLayout",arg);
-                    return;}
-                else if (arg.hasOwnProperty('npages')) {
-                    layout.setLayout(arg,whendone);
-                    return true;}
-                else if (arg.hasOwnProperty('layout')) {
-                    layout.setLayout(arg.layout,whendone);
-                    return true;}
-                else if (arg.indexOf("<")>=0) {
-                    layout.setLayout(arg,whendone);
-                    return true;}
-                var saved_layout=fdjtState.getLocal(arg);
-                if (layout) {
-                    layout.setLayout(saved_layout,whendone);
-                    return true;}
-                else return false;}
-            this.restoreLayout=restoreLayout;
+                    failfn(new Error("Falsy arg to restoreLayout"));
+                    return layout;}
+                else if (arg.hasOwnProperty('npages')) 
+                    setting=layout.setLayout(arg);
+                else if (arg.hasOwnProperty('layout'))
+                    setting=layout.setLayout(arg.layout);
+                else if (arg.indexOf("<")>=0) 
+                    setting=layout.setLayout(arg);
+                else {
+                    var saved_layout=fdjtState.getLocal(arg);
+                    if (layout) {
+                        return layout.setLayout(saved_layout,whendone);}
+                    else return false;}
+                return setting.then(whendone).catch(failfn);}
+            this.restoreLayout=function(arg){
+                function restoring_layout(resolve,reject){
+                    restoreLayout(arg,resolve,reject);}
+                return new Promise(restoring_layout);};
 
             /*
               layout.savePages=function(){
@@ -21044,7 +21399,11 @@ fdjt.CodexLayout=
                 while (i<lim) {
                     var p=pages[i++];
                     this.finishPage(p);}
-                layout.done=fdjtTime();}
+                layout.done=fdjtTime();
+                if ((layout.thenfns)&&(layout.thenfns.length)) {
+                    var thenfns=layout.thenfns;
+                    var f=0, nfns=thenfns.length; while (f<nfns) {
+                        thenfns[f++](layout);}}}
             this.Finish=Finish;
 
             function fixOrderedList(ol){
@@ -21365,6 +21724,11 @@ fdjt.CodexLayout=
                     height: this.height, width: this.width,
                     break_blocks: this.break_blocks};};
 
+        /*
+        CodexLayout.prototype.then=function(callback){
+            if (this.done) return callback(this);
+            else this.thenfns.push(callback);}; */
+
         CodexLayout.cache=2;
 
         var ondbinit=false;
@@ -21379,8 +21743,9 @@ fdjt.CodexLayout=
 
         var doinit=false;
 
-        if (window.indexedDB) {
-            var req=window.indexedDB.open("codexlayout",1);
+        function useIndexedDB(dbname){
+            var req=window.indexedDB.open(dbname,1);
+            CodexLayout.dbname=dbname;
             dbinit_timeout=setTimeout(indexedDB_timeout,15000);
             req.onerror=function(event){
                 fdjtLog("Error initializing indexedDB layout cache: %o",
@@ -21416,7 +21781,16 @@ fdjt.CodexLayout=
                 CodexLayout.layoutDB=layoutDB=window.localStorage;
                 doinit=ondbinit; ondbinit=false;
                 if (doinit) doinit();};}
-        else if (window.localStorage) {
+        CodexLayout.useIndexedDB=useIndexedDB;
+        
+        if (window.indexedDB) {
+            fdjt.addInit(function(){
+                if (!(CodexLayout.dbname)) {
+                    CodexLayout.dbname="codexlayout";
+                    useIndexedDB("codexlayout");}},
+                         "CodexLayoutCache");}
+        
+        if (window.localStorage) {
             doinit=ondbinit; ondbinit=false;
             CodexLayout.layoutDB=layoutDB=window.localStorage;
             if (doinit) doinit();}
@@ -21424,58 +21798,36 @@ fdjt.CodexLayout=
             CodexLayout.layoutDB=layoutDB=false;
             doinit=ondbinit; ondbinit=false;
             if (doinit) doinit();}
-
-        function cacheLayout(layout_id,content,pageids,pages,ondone){
+     
+        function cacheLayout(layout_id,content,pages,ondone){
             if (typeof layoutDB === "undefined") 
                 ondbinit=function(){cacheLayout(layout_id,content);};
             else if (!(layoutDB)) return;
             else if ((window.Storage)&&(layoutDB instanceof window.Storage)) {
                 setLocal(layout_id,content);
-                if (pageids) {
-                    setLocal(layout_id+".pageids",pageids);
-                    var i=0, lim=pageids.length;
-                    while (i<lim) {
-                        var id=pageids[i++];
-                        setLocal(layout_id+"#"+id,pages[id]);}}
                 if (ondone) ondone();}
             else if (window.indexedDB) {
                 var txn=layoutDB.transaction(["layouts"],"readwrite");
                 var storage=txn.objectStore("layouts"), req;
-                if (!(pageids)) {
-                    req=storage.put({layout_id: layout_id,layout: content});
-                    req.onerror=function(event){
-                        fdjtLog("Error saving layout %s: %o",
-                                layout_id,event.target.errorCode);};
-                    req.onsuccess=function(event){
-                        event=false; // ignored
-                        if (ondone) ondone();
-                        fdjtLog("Layout %s cached",layout_id);};}
-                else {
-                    var n=0, npages=pageids.length;
-                    var putIDs=function putIDs(event){
-                        event=false; // ignored
-                        if (n<npages) {
-                            var pageid=pageids[n++];
-                            var pagecontent=pages[pageid];
-                            storage.put(pageid,
-                                        {layout_id: layout_id+"#"+pageid,
-                                         content: pagecontent,
-                                         pageno: n-1})
-                                .onsuccess=putIDs;}
-                        if (ondone) ondone();
-                        fdjtLog("Layout %s cached",layout_id);};
-                    req=storage.put({layout_id: layout_id,layout: content,
-                                     pageids: pageids,npages: pageids.length});
-                    req.onerror=function(event){
-                        event=false; // ignored
-                        fdjtLog("Error saving layout %s: %o",
-                                layout_id,event.target.errorCode);};
-                    req.onsucess=putIDs;}}
+                req=storage.put({layout_id: layout_id,layout: content});
+                req.onerror=function(event){
+                    fdjtLog("Error saving layout %s: %o",
+                            layout_id,event.target.errorCode);};
+                req.onsuccess=function(event){
+                    event=false; // ignored
+                    if (ondone) ondone();
+                    fdjtLog("Layout %s cached",layout_id);};}
             else CodexLayout.layoutDB=layoutDB=window.localStorage||false;}
         CodexLayout.cacheLayout=cacheLayout;
         function dropLayout(layout_id){
-            var layout=false, pageids=false, npages=false, n=0;
-            if (layoutDB) {
+            var layout=false;
+            if (!(layoutDB)) {}
+            else if ((window.Storage)&&
+                     (layoutDB instanceof window.Storage)) {
+                var dropLocal=fdjtState.dropLocal;
+                dropLocal(layout_id);
+                droppedLayout(layout_id);}
+            else {
                 var txn=layoutDB.transaction(["layouts"],"readwrite");
                 var storage=txn.objectStore("layouts");
                 var req=storage.get(layout_id);
@@ -21488,54 +21840,24 @@ fdjt.CodexLayout=
                 var dropRoot=function dropRoot(){
                     req=storage['delete'](layout_id);
                     req.onerror=whoops; req.onsuccess=allDone;};
-                var dropPages=function dropPages(){
-                    if ((npages)&&(n<npages)) {
-                        var id=pageids[n++];
-                        storage['delete'](id).onsuccess=dropPages;}
-                    else dropRoot();};
                 req.onerror=whoops;
                 req.onsuccess=function(evt){
                     layout=((evt.target)&&(evt.target.result));
-                    if ((layout)&&(layout.hasOwnProperty('pageids'))) {
-                        pageids=layout.pageids;
-                        npages=layout.npages;}
-                    if (npages) dropPages();
-                    else dropRoot();};}
-            else {
-                var dropLocal=fdjtState.dropLocal;
-                pageids=fdjtState.listLocal(layout_id+"#");
-                dropLocal(layout_id);
-                dropLocal(layout_id+".pageids");
-                var i=0, lim=pageids.length; while (i<lim) {
-                    dropLocal(pageids[i++]);}
-                droppedLayout(layout_id);}}
+                    dropRoot();};}}
         CodexLayout.dropLayout=dropLayout;
-        function fetchLayout(layout_id,callback,pageid){
+        function fetchLayout(layout_id,callback,onerr){
             var getLocal=fdjtState.getLocal;
-            var content=false, layout_key=
-                ((pageid)?(layout_id+"#"+pageid):(layout_id));
+            var content=false, layout_key=layout_id;
             if (typeof layoutDB === "undefined") 
-                ondbinit=function(){fetchLayout(layout_id,callback,pageid);};
-            else if (!(layoutDB)) callback(false);
+                ondbinit=function(){fetchLayout(layout_id,callback,onerr);};
+            else if (!(layoutDB)) { 
+                if (onerr) return onerr(false);
+                else if (callback) return callback(false);
+                else return false;}
             else if ((window.Storage)&&(layoutDB instanceof window.Storage)) {
-                var pageids=getLocal(layout_id+".pageids",true);
-                if (pageids) {
-                    gotLayout(layout_id);
-                    content=getLocal(layout_id)||false;
-                    if (pageid) {
-                        var pnpos=layout_id.search(/\d+$/g);
-                        var pagenum=parseInt(layout_id.slice(pnpos),10);
-                        setTimeout(function(){
-                            callback({content: content,pagenum: pagenum});},
-                                   1);}
-                    else setTimeout(function(){
-                        callback({layout_id: layout_id,layout: content,
-                                  pageids: pageids,npages: pageids.length});},
-                                    1);}
-                else {
-                    content=getLocal(layout_id)||false;
-                    if (content) gotLayout(layout_id);
-                    setTimeout(function(){callback(content);},1);}}
+                content=getLocal(layout_id)||false;
+                if (content) cachedLayout(layout_id);
+                setTimeout(function(){callback(content);},1);}
             else if (layoutDB) {
                 var txn=layoutDB.transaction(["layouts"]);
                 var storage=txn.objectStore("layouts");
@@ -21543,16 +21865,23 @@ fdjt.CodexLayout=
                 req.onsuccess=function(evt){
                     var target=evt.target;
                     var result=((target)&&(target.result));
-                    if (result) gotLayout(layout_id);
-                    if (!(result)) callback(false);
-                    else if (result.hasOwnProperty('npages'))
-                        callback(result);
-                    else callback(result.layout);};}
+                    if (result) cachedLayout(layout_id);
+                    if (!(result)) onerr(false);
+                    else callback(result.layout);};
+                req.onerror=function(event){onerr(event);};}
             else if (window.localStorage) {
                 content=fdjtState.getLocal(layout_key)||false;
-                if (content) gotLayout(layout_id);
-                setTimeout(function(){callback(content);},0);}}
-        CodexLayout.fetchLayout=fetchLayout;
+                if (content) cachedLayout(layout_id);
+                setTimeout(function(){callback(content);},0);}
+            else if (onerr)
+                return onerr(false);
+            else if (callback)
+                return callback(false);
+            else return false;}
+        CodexLayout.fetchLayout=function(layout_id){
+            function fetching_layout(resolve,reject){
+                return fetchLayout(layout_id,resolve,reject);}
+            return new Promise(fetching_layout);};
         
         CodexLayout.clearLayouts=function(){
             var layouts=fdjtState.getLocal("fdjtCodex.layouts",true);
@@ -21592,7 +21921,7 @@ fdjt.CodexLayout=
                 i=0; lim=todrop.length; while (i<lim) {
                     fdjtLog.warn("Dropping layout %s",todrop[i]);
                     dropLayout(todrop[i++]);}});};
-        function gotLayout(layout_id){
+        function cachedLayout(layout_id){
             setLocal("fdjtCodex.layout("+layout_id+")",layout_id);
             pushLocal("fdjtCodex.layouts",layout_id);}
         function droppedLayout(layout_id){
@@ -21600,6 +21929,8 @@ fdjt.CodexLayout=
             removeLocal("fdjtCodex.layouts",layout_id);
             if (CodexLayout.trace) fdjtLog("Layout %s removed",layout_id);}
         
+        CodexLayout.dbname="codexlayout";
+
         return CodexLayout;})();
 
 
@@ -23199,7 +23530,7 @@ var metaBook={
     openinbook: ["https://www.youtube.com/"],
     // These are elements, indexed by URL, whose content is being
     // loaded to cache locally
-    srcloading: {}, tmpurlcache: {},
+    srcloading: {}, glossdata: {},
     // These are functions to be called when everythings has been loaded
     //  to initialize local references to common metaBook functions
     inits: [],
@@ -23306,6 +23637,7 @@ fdjt.DOM.noautofontadjust=true;
 
     var fdjtString=fdjt.String;
     var fdjtState=fdjt.State;
+    var fdjtAsync=fdjt.Async;
     var fdjtLog=fdjt.Log;
     var fdjtDOM=fdjt.DOM;
     var fdjtUI=fdjt.UI;
@@ -23349,6 +23681,43 @@ fdjt.DOM.noautofontadjust=true;
         // document.body.focus();
     };
     
+    /* Initialize the indexedDB database, when used */
+
+    var metaBookDB=false;
+
+    if (window.indexedDB) {
+        var req=window.indexedDB.open("metaBook",1);
+        req.onerror=function(event){
+            fdjtLog("Error initializing the metaBook IndexedDB: %o",
+                    event.errorCode);};
+        req.onsuccess=function(event) {
+            var db=event.target.result;
+            fdjtLog("Using existing metaBook IndexedDB");
+            fdjtAsync(function(){
+                fdjt.CodexLayout.useIndexedDB("metaBook");});
+            metaBook.metaBookDB=metaBookDB=db;};
+        req.onupgradeneeded=function(event) {
+            var db=event.target.result;
+            db.onerror=function(event){
+                fdjtLog("Unexpected error setting up glossdata cache: %d",
+                        event.target.errorCode);
+                event=false;};
+            db.onsuccess=function(event){
+                var db=event.target.result;
+                fdjtLog("Initialized metaBook indexedDB");
+                fdjtAsync(function(){
+                    fdjt.CodexLayout.useIndexedDB("metaBook");});
+                metaBook.metaBookDB=metaBookDB=db;};
+            db.createObjectStore("glossdata",{keyPath: "url"});
+            db.createObjectStore("layouts",{keyPath: "layout_id"});
+            db.createObjectStore("sources",{keyPath: "_id"});
+            db.createObjectStore("docs",{keyPath: "_id"});
+            db.createObjectStore("glosses",{keyPath: "glossid"});
+            fdjtAsync(function(){
+                fdjt.CodexLayout.useIndexedDB("metaBook");});};}
+
+    /* Initialize the runtime for the core databases */
+
     function initDB() {
         if (Trace.start>1) fdjtLog("Initializing DB");
         var refuri=(metaBook.refuri||document.location.href);
@@ -23413,7 +23782,7 @@ fdjt.DOM.noautofontadjust=true;
                     for (var link in links) {
                         if ((links.hasOwnProperty(link))&&
                             (link.search("https://glossdata.sbooks.net/")===0))
-                            noteGlossdata(link);}}
+                            cacheGlossData(link);}}
                 if (maker) {
                     metaBook.addTag2Cloud(maker,metaBook.empty_cloud);
                     metaBook.UI.addGlossSource(maker,true);}
@@ -23486,10 +23855,7 @@ fdjt.DOM.noautofontadjust=true;
                 var name=source.name||source.oid||source.uuid||source.uuid;
                 var span=fdjtDOM(spec,name);
                 if (source.about) span.title=source.about;
-                return span;};
-            var anonymous=metaBook.sourcedb.ref("@1961/0");
-            metaBook.anonymous=anonymous;
-            anonymous.name="anonymous";}
+                return span;};}
 
         metaBook.queued=((metaBook.cacheglosses)&&
                          (getLocal("metabook.queued("+metaBook.refuri+")",true)))||[];
@@ -23575,9 +23941,11 @@ fdjt.DOM.noautofontadjust=true;
 
     /* Noting (and caching) glossdata */
 
-    function noteGlossdata(link){
+    var glossdata=metaBook.glossdata;
+
+    function cacheGlossData(link){
         if (link.search("https://glossdata.sbooks.net/")!==0) return;
-        var key="cache("+link+")";
+        var key="glossdata("+link+")";
         if (fdjtState.getLocal(key)) return;
         else fdjtState.setLocal(key,"fetching");
         var uri="https://glossdata.sbooks.net/U/"+
@@ -23589,7 +23957,9 @@ fdjt.DOM.noautofontadjust=true;
             if (req.readyState === 4) {
                 if (Trace.glossdata)
                     fdjtLog("Glossdata from %s status %d",req.status);
-                var use_data=((req.status===200)?(req.responseText):(link));
+                var use_data=((req.status===200)?
+                              (gotGlossData(link,req.responseText)):
+                              (link));
                 var waiting=mB.srcloading[link];
                 if (waiting) {
                     var i=0, lim=waiting.length;
@@ -23597,47 +23967,24 @@ fdjt.DOM.noautofontadjust=true;
                         fdjtLog("Setting glossdata src for %d element(s)",lim);
                     while (i<lim) waiting[i++].src=use_data;}
                 if (req.status === 200) 
-                    saveGlossData(link,req.responseText);
+                    storeGlossData(link,req.responseText);
                 else fdjtState.dropLocal(key);}
             else {}};
         req.open("GET",uri);
         req.withCredentials=true;
         req.send(null);}
 
-    var urlCacheDB=false, urldbinit_timeout=false;
-    var tmpurlcache=metaBook.tmpurlcache;
+    function gotGlossData(link,datauri){
+        var url=fdjtDOM.data2URL(datauri);
+        glossdata[link]=url;
+        return url;}
+    metaBook.gotGlossData=gotGlossData;
 
-    if (window.indexedDB) {
-        var req=window.indexedDB.open("urlcache",1);
-        urldbinit_timeout=setTimeout(urldbinit_timeout,15000);
-        req.onerror=function(event){
-            fdjtLog("Error initializing indexedDB URL cache: %o",
-                    event.errorCode);
-            if (urldbinit_timeout) clearTimeout(urldbinit_timeout);};
-        req.onsuccess=function(event) {
-            var db=event.target.result;
-            if (urldbinit_timeout) clearTimeout(urldbinit_timeout);
-            fdjtLog("Using existing indexedDB url cache");
-            metaBook.urlCacheDB=urlCacheDB=db;};
-        req.onupgradeneeded=function(event) {
-            var db=event.target.result;
-            if (urldbinit_timeout) clearTimeout(urldbinit_timeout);
-            db.onerror=function(event){
-                fdjtLog("Unexpected error setting up URL data cache: %d",
-                        event.target.errorCode);
-                event=false;};
-            db.onsuccess=function(event){
-                var db=event.target.result;
-                fdjtLog("Initialized indexedDB url cache");
-                metaBook.urlCacheDB=urlCacheDB=db;};
-            db.createObjectStore("urlcache",{keyPath: "url"});};}
-
-    function saveGlossData(url,datauri){
-        var key="cache("+url+")";
-        if (urlCacheDB) {
-            var txn=urlCacheDB.transaction(["urlcache"],"readwrite");
-            var storage=txn.objectStore("urlcache");
-            tmpurlcache[url]=datauri;
+    function storeGlossData(url,datauri){
+        var key="glossdata("+url+")";
+        if (metaBookDB) {
+            var txn=metaBookDB.transaction(["glossdata"],"readwrite");
+            var storage=txn.objectStore("glossdata");
             var req=storage.put({url: url,datauri: datauri});
             req.onerror=function(event){
                 fdjtLog("Error saving %s in indexedDB: %o",
@@ -23647,13 +23994,12 @@ fdjt.DOM.noautofontadjust=true;
                 fdjtState.setLocal(key,"cached");
                 if (Trace.glossdata)
                     fdjtLog("Saved glossdata for %s in IndexedDB",url);
-                tmpurlcache[url]=false;
-                glossSaved(url);};}
+                glossDataSaved(url);};}
         else {
             fdjtState.setLocal(key,datauri);
-            glossSaved(url);}}
+            glossDataSaved(url);}}
 
-    function glossSaved(url){
+    function glossDataSaved(url){
         fdjtState.pushLocal("glossdata("+mB.docuri+")",url);
         fdjtState.pushLocal("glossdata()",url);}
 
@@ -23663,11 +24009,11 @@ fdjt.DOM.noautofontadjust=true;
         if (urls) {
             var i=0, lim=urls.length; while (i<lim) {
                 var gdurl=urls[i++]; dropLocal("cached("+gdurl+")");
-                if (urlCacheDB) clearGlossDataFor(gdurl);}}}
+                if (metaBookDB) clearGlossDataFor(gdurl);}}}
 
     function clearGlossDataFor(url){
-        var txn=urlCacheDB.transaction(["urlcache"],"readwrite");
-        var storage=txn.objectStore("urlcache");
+        var txn=metaBookDB.transaction(["glossdata"],"readwrite");
+        var storage=txn.objectStore("glossdata");
         var req=storage['delete'](url);
         req.onerror=function(event){
             fdjtLog("Error clearing gloss data for %s: %s",
@@ -23675,6 +24021,8 @@ fdjt.DOM.noautofontadjust=true;
         req.onsuccess=function(){
             if (Trace.glossdata>1)
                 fdjtLog("Cleared gloss data for %s",url);};}
+
+    /* Queries */
 
     function Query(tags,base_query){
         if (!(this instanceof Query))
@@ -23768,6 +24116,7 @@ fdjt.DOM.noautofontadjust=true;
              ((((width)&&(height))?(width+"x"+height):
                (width)?(width+"w"):(height)?(height+"h"):"")+
               ".png"));};
+    var mbicon=metaBook.icon;
 
     function getRefURI(target){
         var scan=target;
@@ -24179,6 +24528,38 @@ fdjt.DOM.noautofontadjust=true;
         "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Book<sub>β</sub></span>";
     fdjtString.entities.metaBook=
         "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Book</span>";
+
+    function urlType(url){
+        if (url.search(/\.(jpg|jpeg)$/g)>0) return "image/jpeg";
+        else if (url.search(/\.png$/g)>0) return "image/png";
+        else if (url.search(/\.gif$/g)>0) return "image/gif";
+        else if (url.search(/\.wav$/g)>0) return "audio/wav";
+        else if (url.search(/\.ogg$/g)>0) return "audio/ogg";
+        else if (url.search(/\.mp3$/g)>0) return "audio/mpeg";
+        else if (url.search(/\.mp4$/g)>0) return "video/mp4";
+        else return false;}
+    metaBook.urlType=urlType;
+    function typeIcon(type,w){
+        if (!(w)) w=64;
+        if (!(type)) return mbicon("diaglink",w,w);
+        else if (type==="audio/mpeg") 
+            return mbicon("music",w,w);
+        else if (type.slice(0,6)==="image/") 
+            return mbicon("photo",w,w);
+        else if (type.slice(0,6)==="audio/")
+            return mbicon("sound",w,w);
+        else return mbicon("diaglink",w,w);}
+    metaBook.typeIcon=typeIcon;
+    function mediaTypeClass(type){
+        if (!(type)) return false;
+        else if (type==="audio/mpeg")
+            return "musiclink";
+        else if (type.slice(0,6)==="image/") 
+            return "imagelink";
+        else if (type.slice(0,6)==="audio/")
+            return "audiolink";
+        else return false;}
+    metaBook.mediaTypeClass=mediaTypeClass;
 
 })();
 
@@ -24609,10 +24990,10 @@ fdjt.DOM.noautofontadjust=true;
         if (metaBook.target) {
             var old_target=metaBook.target, oldid=old_target.id;
             var old_targets=getDups(oldid);
-            dropClass(old_target,"metabooktarget");
-            dropClass(old_target,"metabooknewtarget");
-            dropClass(old_targets,"metabooktarget");
-            dropClass(old_targets,"metabooknewtarget");
+            dropClass(old_target,"mbtarget");
+            dropClass(old_target,"mbnewtarget");
+            dropClass(old_targets,"mbtarget");
+            dropClass(old_targets,"mbnewtarget");
             if (!(hasParent(old_target,target)))
                 clearHighlights(old_targets);
             metaBook.target=false;}
@@ -24625,16 +25006,16 @@ fdjt.DOM.noautofontadjust=true;
         var targetid=target.codexbaseid||target.id;
         var primary=((targetid)&&(mbID(targetid)))||target;
         var targets=getDups(targetid);
-        addClass(target,"metabooktarget");
-        addClass(target,"metabooknewtarget");
-        addClass(targets,"metabooktarget");
-        addClass(targets,"metabooknewtarget");
+        addClass(target,"mbtarget");
+        addClass(target,"mbnewtarget");
+        addClass(targets,"mbtarget");
+        addClass(targets,"mbnewtarget");
         setTimeout(function(){
-            dropClass(target,"metabooknewtarget");
-            dropClass(targets,"metabooknewtarget");},
+            dropClass(target,"mbnewtarget");
+            dropClass(targets,"mbnewtarget");},
                    3000);
         fdjtState.setCookie(
-            "metabooktarget",targetid||target.getAttribute('data-sbookid'));
+            "mbtarget",targetid||target.getAttribute('data-sbookid'));
         metaBook.target=primary;
         if (metaBook.UI.setTarget) metaBook.UI.setTarget(primary);
         if (metaBook.empty_cloud)
@@ -24645,39 +25026,45 @@ fdjt.DOM.noautofontadjust=true;
         if (typeof target === "string") target=mbID(target);
         if (!(target)) return;
         else if (target.length) {
-            dropClass(target,"metabookhighlightpassage");
+            dropClass(target,"mbhighlightpassage");
             var i=0, lim=target.length;
             while (i<lim) {
                 var node=target[i++];
-                fdjtUI.Highlight.clear(node,"metabookhighlightexcerpt");
-                fdjtUI.Highlight.clear(node,"metabookhighlightsearch");}}
+                fdjtUI.Highlight.clear(node,"mbhighlightexcerpt");
+                fdjtUI.Highlight.clear(node,"mbhighlightsearch");}}
         else {
-            dropClass(target,"metabookhighlightpassage");
-            fdjtUI.Highlight.clear(target,"metabookhighlightexcerpt");
-            fdjtUI.Highlight.clear(target,"metabookhighlightsearch");}}
+            dropClass(target,"mbhighlightpassage");
+            fdjtUI.Highlight.clear(target,"mbhighlightexcerpt");
+            fdjtUI.Highlight.clear(target,"mbhighlightsearch");}}
     metaBook.clearHighlights=clearHighlights;
 
     function findExcerpt(node,excerpt,off){
         if (typeof node === "string") node=mbID(node);
         if (!(node)) return false;
         if (node.nodeType) node=getDups(node);
-        var found=fdjtDOM.findString(node,excerpt,off||0);
-        if (found) return found;
         var trimmed=fdjtString.trim(excerpt);
-        var regex_string=fdjtDOM.textRegExp(trimmed,true);
-        var pattern=new RegExp("(\\s*)"+regex_string+"(\\s*)","gm");
+        var before=((trimmed.search(/[.,"']/)===0)?("(^|\\s)"):("\\b"));
+        var after=((trimmed.search(/[.,"']$/)>0)?("($|\\s)"):("\\b"));
+        var pattern=fdjtDOM.textRegExp(trimmed,before,after);
         var matches=fdjtDOM.findMatches(node,pattern,off||0,1);
         if ((matches)&&(matches.length)) return matches[0];
         // We could do this more intelligently
-        var result=false;
+        var result=false, roff=-1;
         matches=fdjtDOM.findMatches(node,pattern,0,1);
         while (matches.length>0) {
-            result=matches[0];
+            var first=matches[0];
+            if (first.start_offset>off) {
+                if (roff<0) return result;
+                else if ((off-roff)<(result.start_offset-off))
+                    return result;
+                else return first;}
+            else {result=first; roff=first.start_offset;}
             matches=fdjtDOM.findMatches(
-                node,pattern,result.end_offset+1,1);}
+                node,pattern,first.endOffset+1,1);}
         if ((matches)&&(matches.length)) return matches[0];
         else return result;}
     metaBook.findExcerpt=findExcerpt;
+
     /* Navigation */
 
     var sbookUIclasses=
@@ -24768,6 +25155,10 @@ fdjt.DOM.noautofontadjust=true;
         else {}
         var info=(target)&&
             metaBook.docinfo[target.getAttribute("data-baseid")||target.id];
+        if ((location)&&(info.ends_at)&&(info.starts_at)&&
+            ((location>(info.ends_at))||(location<(info.starts_at))))
+            // Why does this happen???
+            location=false;
         var page=((metaBook.bypage)&&(metaBook.layout)&&
                   (metaBook.getPage(target,location)));
         var pageno=(page)&&(parseInt(page.getAttribute("data-pagenum"),10));
@@ -26093,6 +26484,7 @@ metaBook.DOMScan=(function(){
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log, fdjtID=fdjt.ID;
     var fdjtTime=fdjt.Time, fdjtString=fdjt.String, fdjtUI=fdjt.UI;
+    var fdjtAsync=fdjt.Async;
     var dropClass=fdjtDOM.dropClass, addClass=fdjtDOM.addClass;
     var getLink=fdjtDOM.getLink, isEmpty=fdjtString.isEmpty;
 
@@ -26151,7 +26543,7 @@ metaBook.DOMScan=(function(){
         fdjtDOM(gloss_cloud.dom,
                 fdjtDOM("div.cloudprogress","Cloud Shaping in Progress"));
         addClass(gloss_cloud.dom,"working");
-        fdjtTime.slowmap(function(tag){
+        fdjtAsync.slowmap(function(tag){
             if (!(tag instanceof KNode)) {
                 if ((typeof tag === "string")&&(!(isEmpty(tag)))) {
                     var option=fdjtDOM("OPTION",tag); option.value=tag;
@@ -26166,9 +26558,10 @@ metaBook.DOMScan=(function(){
             if (!(tag.weak)) {
                 addClass(elt,"cue");
                 addTag2Cloud(tag,gloss_cloud);}},
-                         searchtags,tagindex_progress,
-                         tagindex_done,false,
-                         200,20);}
+                         searchtags,
+                         {watchfn: tagindex_progress,
+                          done: tagindex_done,
+                          slice: 200,space: 20});}
     
     function tagindex_done(searchtags){
         var eq=metaBook.empty_query;
@@ -26186,10 +26579,10 @@ metaBook.DOMScan=(function(){
             fdjtDOM.prepend(empty_cloud.dom,
                             metaBook.UI.getShowAll(
                                 true,empty_cloud.values.length));
-        fdjtTime.slowmap(function(string){
+        fdjtAsync.slowmap(function(string){
             searchlist.appendChild(knodeToOption(string));},
                          metaBook.textindex.allterms,
-                         false,false,false,100,20);
+                         {slice: 100,space: 20});
         metaBook.sortCloud(empty_cloud);
         metaBook.sortCloud(gloss_cloud);
         metaBook.sizeCloud(empty_cloud,metaBook.tagfreqs,[]);
@@ -26293,18 +26686,18 @@ metaBook.DOMScan=(function(){
                 occurrences.push(info);}
             addTags(occurrences,knode||taghead);}
         addClass(document.body,"mbINDEXING");
-        fdjtTime.slowmap(
+        fdjtAsync.slowmap(
             handleIndexEntry,alltags,
-            ((alltags.length>100)&&(tracelevel>1)&&(indexProgress)),
-            function(state){
+            {watchfn: ((alltags.length>100)&&(tracelevel>1)&&(indexProgress)),
+             done:
+             function(state){
                 fdjtLog("Book index links %d keys to %d refs",ntags,nitems);
                 dropClass(document.body,"mbINDEXING");
                 metaBook.tagmaxweight=maxweight;
                 metaBook.tagminweight=minweight;
                 if (whendone) return whendone();
                 else return state;},
-            false,
-            200,10);}
+             slice: 200,space: 10});}
     metaBook.useIndexData=useIndexData;
     function indexProgress(state,i,lim){
         if (state!=='suspend') return;
@@ -26381,6 +26774,26 @@ metaBook.DOMScan=(function(){
     function applyTagAttributes(docinfo,whendone){
         var tracelevel=Math.max(Trace.startup,Trace.clouds);
         var tohandle=[]; var tagged=0;
+        function index_progress(state,i,lim){
+            // For chunks:
+            if (!((state==='suspend')||(state==='finishing')))
+                return;
+            var pct=(i*100)/lim;
+            if (tracelevel>1)
+                fdjtLog("Processed %d/%d (%d%%) inline tags",
+                        i,lim,Math.floor(pct));
+            fdjtUI.ProgressBar.setProgress(
+                "METABOOKINDEXMESSAGE",pct);
+            fdjtUI.ProgressBar.setMessage(
+                "METABOOKINDEXMESSAGE",
+                fdjtString("Assimilated %d (%d%% of %d) inline tags",
+                           i,Math.floor(pct),lim));}
+        function index_done(){
+            if (((Trace.indexing>1)&&(tohandle.length))||
+                (tohandle.length>24))
+                fdjtLog("Finished indexing tag attributes for %d nodes",
+                        tohandle.length);
+            if (whendone) whendone();}
         if ((Trace.startup>1)||(Trace.indexing>1))
             fdjtLog("Applying inline tag attributes from content");
         for (var eltid in docinfo) {
@@ -26389,32 +26802,11 @@ metaBook.DOMScan=(function(){
         if (((Trace.indexing)&&(tohandle.length))||
             (Trace.indexing>1)||(Trace.startup>1))
             fdjtLog("Indexing tag attributes for %d nodes",tohandle.length);
-        fdjtTime.slowmap(
+        fdjtAsync.slowmap(
             handle_inline_tags,
             tohandle,
-            ((tohandle.length>100)&&
-             (function(state,i,lim){
-                 // For chunks:
-                 if (!((state==='suspend')||(state==='finishing')))
-                     return;
-                 var pct=(i*100)/lim;
-                 if (tracelevel>1)
-                     fdjtLog("Processed %d/%d (%d%%) inline tags",
-                             i,lim,Math.floor(pct));
-                 fdjtUI.ProgressBar.setProgress(
-                     "METABOOKINDEXMESSAGE",pct);
-                 fdjtUI.ProgressBar.setMessage(
-                     "METABOOKINDEXMESSAGE",
-                     fdjtString("Assimilated %d (%d%% of %d) inline tags",
-                                i,Math.floor(pct),lim));})),
-            function(){
-                if (((Trace.indexing>1)&&(tohandle.length))||
-                    (tohandle.length>24))
-                    fdjtLog("Finished indexing tag attributes for %d nodes",
-                            tohandle.length);
-                if (whendone) whendone();},
-            false,
-            200,5);}
+            {watchfn: ((tohandle.length>100)&&(index_progress)),
+             done: index_done,slice: 200, space: 5});}
     metaBook.applyTagAttributes=applyTagAttributes;
     
     function handle_inline_tags(info){
@@ -27306,7 +27698,7 @@ metaBook.DOMScan=(function(){
 (function(){
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log, fdjtString=fdjt.String;
-    var fdjtTime=fdjt.Time, fdjtID=fdjt.ID;
+    var fdjtTime=fdjt.Time, fdjtID=fdjt.ID, fdjtAsync=fdjt.Async;
     var RefDB=fdjt.RefDB, fdjtState=fdjt.State, fdjtAjax=fdjt.Ajax;
 
     var dropClass=fdjtDOM.dropClass, addClass=fdjtDOM.addClass;
@@ -27568,10 +27960,9 @@ metaBook.DOMScan=(function(){
                     var i=0; var lim=info.length; 
                     while (i<lim) gotItem(info[i++],qids);
                     saveItems(qids,name);}
-                else fdjtTime.slowmap(function(item){gotItem(item,qids);},
-                                      info,false,
-                                      function(){saveItems(qids,name);},
-                                     false);}
+                else fdjtAsync.slowmap(
+                    function(item){gotItem(item,qids);},
+                    info,{done: function(){saveItems(qids,name);}});}
             else {
                 var ref=metaBook.sourcedb.Import(
                     info,false,
@@ -27647,7 +28038,8 @@ metaBook.DOMScan=(function(){
             fdjtLog("Starting initializing glosses from local storage");
         metaBook.glosses.setLive(false);
         metaBook.sourcedb.load(true);
-        metaBook.glossdb.load(true,function(){
+        var loading=metaBook.glossdb.load(true);
+        loading.then(function(){
             metaBook.glosses.setLive(true);
             if (metaBook.heartscroller)
                 metaBook.heartscroller.refresh();
@@ -27720,6 +28112,7 @@ metaBook.Startup=
         var fdjtString=fdjt.String;
         var fdjtDevice=fdjt.device;
         var fdjtState=fdjt.State;
+        var fdjtAsync=fdjt.Async;
         var fdjtTime=fdjt.Time;
         var fdjtLog=fdjt.Log;
         var fdjtDOM=fdjt.DOM;
@@ -28064,7 +28457,7 @@ metaBook.Startup=
             metaBook.resizeUI();
 
             // The rest of the stuff we timeslice
-            fdjtTime.timeslice
+            fdjtAsync.timeslice
             ([  // Scan the DOM for metadata.  This is surprisingly
                 //  fast, so we don't currently try to timeslice it or
                 //  cache it, though we could.
@@ -28131,7 +28524,7 @@ metaBook.Startup=
                                metaBook.docinfo._headcount,
                                fdjtTime()-tocstart);
                     if (tocmsg) dropClass(tocmsg,"running");},
-                // Load all account information
+                // Load all source (user,layer,etc) information
                 function(){
                     if (Trace.startup>1) fdjtLog("Loading sourcedb");
                     metaBook.sourcedb.load(true);},
@@ -28164,7 +28557,7 @@ metaBook.Startup=
                     window._sbook_newinfo=false;})),
                 function(){metaBook.setupIndex(metadata);},
                 startupDone],
-             100,25);}
+             {slice: 100, space: 25});}
         metaBook.Startup=metaBookStartup;
         
         function addTOCLevel(specs,level){
@@ -28785,10 +29178,10 @@ metaBook.Setup=metaBook.StartupHandler;
             preview_elt=false; oldscroll=false;}}
     
     function clearPreview(){
-        var current=fdjtDOM.$(".metabookpreviewtarget");
+        var current=fdjtDOM.$(".mbpreviewing");
         var i=0, lim=current.length; while (i<lim) {
             var p=current[i++];
-            dropClass(p,"metabookpreviewtarget");
+            dropClass(p,"mbpreviewing");
             metaBook.clearHighlights(p);}}
 
     function startPreview(spec,caller){
@@ -28799,11 +29192,11 @@ metaBook.Setup=metaBook.StartupHandler;
         else if (metaBook.layout instanceof fdjt.CodexLayout) {
             var dups=((getTarget(target))&&(metaBook.getDups(target)));
             metaBook.startPagePreview(target,caller);
-            addClass(target,"metabookpreviewtarget");
-            if (dups) addClass(dups,"metabookpreviewtarget");}
+            addClass(target,"mbpreviewing");
+            if (dups) addClass(dups,"mbpreviewing");}
         else {
             scrollPreview(target,caller);
-            addClass(target,"metabookpreviewtarget");}
+            addClass(target,"mbpreviewing");}
         metaBook.previewing=target;
         addClass(document.body,"mbPREVIEW");
         if (hasClass(target,"codexpage"))
@@ -28952,6 +29345,9 @@ metaBook.setMode=
             // Setup heart
             var heart=fdjtID("METABOOKHEARTBODY");
             heart.innerHTML=fixStaticRefs(metaBook.HTML.heart);
+            metaBook.DOM.heart=heart;
+            var gloss_attach=fdjtID("METABOOKGLOSSATTACH");
+            gloss_attach.innerHTML=fixStaticRefs(metaBook.HTML.attach);
             metaBook.DOM.heart=heart;
             // Other HUD parts
             metaBook.DOM.top=fdjtID("METABOOKHEAD");
@@ -29133,8 +29529,9 @@ metaBook.setMode=
                     var range=metaBook.findExcerpt(
                         nodes,item.excerpt,item.exoff);
                     if (range) {
-                        fdjtUI.Highlight(range,"metabookuserexcerpt",
-                                         item.note,{"data-glossid":item._id});}}
+                        fdjtUI.Highlight(
+                            range,"mbexcerpt",
+                            item.note,{"data-glossid":item._id});}}
                 if (item.tags) {
                     var gloss_cloud=metaBook.gloss_cloud;
                     var tags=item.tags, j=0, n_tags=tags.length;
@@ -29391,7 +29788,7 @@ metaBook.setMode=
                 if (metaBook.skimming) {
                     var dups=metaBook.getDups(metaBook.target);
                     metaBook.clearHighlights(dups);
-                    dropClass(dups,"metabookhighlightpassage");}
+                    dropClass(dups,"mbhighlightpassage");}
                 dropClass(metaBookHUD,"openheart");
                 dropClass(metaBookHUD,"openhead");
                 dropClass(document.body,"dimmed");
@@ -29638,12 +30035,12 @@ metaBook.setMode=
                         searching,glossinfo.excerpt,glossinfo.exoff);
                     if (range) {
                         highlights=
-                            fdjtUI.Highlight(range,"metabookhighlightexcerpt");
+                            fdjtUI.Highlight(range,"mbhighlightexcerpt");
                         addClass("METABOOKSKIMMER","mbfoundhighlights");}}
                 else if (src.about[0]==="#")
                     addClass(metaBook.getDups(src.about.slice(1)),
-                             "metabookhighlightpassage");
-                else addClass(metaBook.getDups(src.about),"metabookhighlightpassage");}
+                             "mbhighlightpassage");
+                else addClass(metaBook.getDups(src.about),"mbhighlightpassage");}
             else if ((src)&&(getParent(src,".sbookresults"))) {
                 var about=src.about, target=mbID(about);
                 if (target) {
@@ -29653,7 +30050,7 @@ metaBook.setMode=
                     i=0; lim=terms.length;
                     if (lim===0)
                         addClass(metaBook.getDups(target),
-                                 "metabookhighlightpassage");
+                                 "mbhighlightpassage");
                     else while (i<lim) {
                         var term=terms[i++];
                         var h=metaBook.highlightTerm(
@@ -30429,6 +30826,8 @@ metaBook.Slice=(function () {
 
     var cancel=fdjtUI.cancel;
     
+    var TOA=fdjtDOM.toArray;
+
     function getTargetDup(scan,target){
         var targetid=target.id;
         while (scan) {
@@ -30582,15 +30981,22 @@ metaBook.Slice=(function () {
                 if (info.about) 
                     outlet_span.title="Shared with “"+info.name+"” — "+info.about;
                 else outlet_span.title="Shared with “"+info.name+"”";}
-            else info.load(fill_outlet_span,[info,outlet_span]);
+            else {
+                outlet_span.setAttribute("NAME","OUTLETSPAN"+info._id);
+                info.load().then(fill_outlet_spans);}
             fdjtDOM.append(span," ",outlet_span);
             i++;}
         return span;}
-    function fill_outlet_span(info,outlet_span){
-        fdjtDOM(outlet_span,info.name);
-        if (info.about) 
-            outlet_span.title="Shared with “"+info.name+"” — "+info.about;
-        else outlet_span.title="Shared with “"+info.name+"”";}
+    function fill_outlet_spans(info){
+        var outlet_spans=
+            TOA(document.getElementsByName("OUTLETSPAN"+info._id));
+        var i=0, len=outlet_spans.length; while (i<len) {
+            var outlet_span=outlet_spans[i++];
+            outlet_span.removeAttribute("NAME");
+            fdjtDOM(outlet_span,info.name);
+            if (info.about) 
+                outlet_span.title="Shared with “"+info.name+"” — "+info.about;
+            else outlet_span.title="Shared with “"+info.name+"”";}}
 
     function showlinks(refs,spec){
         var count=0;
@@ -30619,24 +31025,9 @@ metaBook.Slice=(function () {
                 title=urlinfo.title;
                 icon=urlinfo.icon;
                 type=urlinfo.type;}
-            if (type) {}
-            else if (url.search(/\.(jpg|jpeg)$/g)>0) type="image/jpeg";
-            else if (url.search(/\.png$/g)>0) type="image/png";
-            else if (url.search(/\.gif$/g)>0) type="image/gif";
-            else if (url.search(/\.wav$/g)>0) type="audio/wav";
-            else if (url.search(/\.ogg$/g)>0) type="audio/ogg";
-            else if (url.search(/\.mp3$/g)>0) type="audio/mpeg";
-            else if (url.search(/\.mp4$/g)>0) type="video/mp4";
-            else {}
-            if (icon) {}
-            else if (!(type)) icon=mbicon("diaglink",64,64);
-            else if (type==="audio/mpeg") {
-                icon=mbicon("music",64,64); useclass="musiclink";}
-            else if (type.slice(0,6)==="image/") {
-                icon=mbicon("photo",64,64); useclass="imagelink";}
-            else if (type.slice(0,6)==="audio/") {
-                icon=mbicon("sound",64,64); useclass="audiolink";}
-            else icon=mbicon("diaglink",64,64);
+            if (!(type)) type=metaBook.urlType(url);
+            if (!(icon)) icon=metaBook.typeIcon(type);
+            if (!(useclass)) useclass=metaBook.mediaTypeClass(type);
             var image=fdjtDOM.Image(icon);
             if (openinbook) {
                 elt=fdjtDOM("span.mbmedia",image,title);
@@ -30732,16 +31123,24 @@ metaBook.Slice=(function () {
         addClass(pic,"sbooknopic");
         return pic;}
 
+    function getpic(info){
+        if (info._pic) return info._pic;
+        else if (info.pic) {
+            info._pic=fdjtDOM.data2URL(info.pic);
+            return info._pic;}
+        else return false;}
+
     function getpicinfo(info){
         var i, lim;
-        if (info.pic) return {src: info.pic,alt: info.pic};
+        if (info.pic) return {
+            src: getpic(info),alt: info.note||info.name};
         if (info.sources) {
             var sources=info.sources;
             if (typeof sources==='string') sources=[sources];
             i=0; lim=sources.length; while (i<lim) {
                 var source=metaBook.sourcedb.loadref(sources[i++]);
                 if ((source)&&(source.kind===':OVERLAY')&&(source.pic))
-                    return { src: source.pic, alt: source.name,
+                    return { src: getpic(source), alt: source.name,
                              classname: "img.glosspic.sourcepic"};}}
         if (info.links) {
             var links=info.links;
@@ -30756,12 +31155,12 @@ metaBook.Slice=(function () {
             i=0; lim=outlets.length; while (i<lim) {
                 var outlet=metaBook.sourcedb.loadref(outlets[i++]);
                 if ((outlet)&&(outlet.kind===':LAYER')&&(outlet.pic))
-                    return { src: outlet.pic, alt: outlet.name,
+                    return { src: getpic(outlet), alt: outlet.name,
                              classname: "img.glosspic.sourcepic"};}}
         if (info.maker) {
             var userinfo=metaBook.sourcedb.loadref(info.maker);
             if (userinfo.pic)
-                return { src: userinfo.pic, alt: userinfo.name,
+                return { src: getpic(userinfo), alt: userinfo.name,
                          classname: "img.glosspic.userpic"};
             else if (userinfo.fbid)
                 return {
@@ -31071,9 +31470,9 @@ metaBook.Slice=(function () {
             var cards=this.cards, byfrag=this.byfrag;
             cards.sort(this.sortfn);
             var passage_starts=
-                fdjtDOM.toArray(fdjtDOM.$(".slicenewpassage",this.container));
+                TOA(fdjtDOM.$(".slicenewpassage",this.container));
             var head_starts=
-                fdjtDOM.toArray(fdjtDOM.$(".slicenewhead",this.container));
+                TOA(fdjtDOM.$(".slicenewhead",this.container));
             this.container.innerHTML="";
             dropClass(passage_starts,"slicenewpassage");
             dropClass(head_starts,"slicenewhead");
@@ -31232,7 +31631,7 @@ metaBook.Slice=(function () {
         // If we're currently previewing something, clear it
         if (metaBook.previewTarget) {
             var drop=metaBook.getDups(metaBook.previewTarget);
-            dropClass(drop,"metabookpreviewtarget");
+            dropClass(drop,"mbpreviewing");
             metaBook.clearHighlights(drop);
             metaBook.previewTarget=false;}
 
@@ -31243,7 +31642,7 @@ metaBook.Slice=(function () {
         var passage=mbID(passageid), show_target=false;
         var dups=metaBook.getDups(passageid);
         // Set up for preview
-        metaBook.previewTarget=passage; addClass(dups,"metabookpreviewtarget");
+        metaBook.previewTarget=passage; addClass(dups,"mbpreviewing");
         if ((gloss)&&(gloss.excerpt)) {
             // Highlight the gloss excerpt
             var range=metaBook.findExcerpt(dups,gloss.excerpt,gloss.exoff);
@@ -31253,7 +31652,7 @@ metaBook.Slice=(function () {
                     // This is the case where the glosses excerpt
                     //  starts in a 'dup' generated by page layout
                     show_target=getTargetDup(starts,passage);
-                fdjtUI.Highlight(range,"metabookhighlightexcerpt");}}
+                fdjtUI.Highlight(range,"mbhighlightexcerpt");}}
 
         if (getParent(card,".sbookresults")) {
             // It's a search result, so highlight any matching terms
@@ -32088,14 +32487,6 @@ metaBook.Slice=(function () {
                     ((info.fbid)&&
                      ("https://graph.facebook.com/"+info.fbid+
                       "/picture?type=square"));
-                if ((pic)&&(window.applicationCache)) {
-                    var cache=window.applicationCache;
-                    if (cache.add) cache.add(pic);
-                    // This gets an "operation is insecure error.
-                    else if (cache.mozAdd) {} // cache.mozAdd(pic);
-                    // We could probably use local storage to handle this
-                    // case, but that would be hairy.
-                    else {}}
                 var kind=info.kind;
                 if (pic) {}
                 else if ((kind===':CIRCLE')||(info.iscircle))
@@ -32256,8 +32647,8 @@ metaBook.Slice=(function () {
                 var range=metaBook.findExcerpt(dups,gloss.excerpt,gloss.exoff);
                 if (range) {
                     var starts=range.startContainer;
-                    if (!(hasClass(starts,"metabookhighlightexcerpt"))) {
-                        fdjtUI.Highlight(range,"metabookhighlightexcerpt");}}}}
+                    if (!(hasClass(starts,"mbhighlightexcerpt"))) {
+                        fdjtUI.Highlight(range,"mbhighlightexcerpt");}}}}
         var slice=new MetaBookSlice(slicediv,glosses,sort_point_glosses);
         var hudwrapper=fdjtDOM("div.hudpanel#METABOOKPOINTGLOSSES",slicediv);
         if (point) {
@@ -32846,7 +33237,7 @@ metaBook.Slice=(function () {
 
 */
 /* jshint browser: true */
-/* global metaBook: false */
+/* global metaBook: false, Promise: false */
 
 /* Initialize these here, even though they should always be
    initialized before hand.  This will cause various code checkers to
@@ -32889,21 +33280,19 @@ metaBook.Slice=(function () {
     var getInputValues=fdjtDOM.getInputValues;
 
     var cancel=fdjtUI.cancel;
-
     var setCheckSpan=fdjtUI.CheckSpan.set;
-
     var glossmodes=metaBook.glossmodes;
-
     var mbicon=metaBook.icon;
-
     var getTarget=metaBook.getTarget;
-
     var getGlossTags=metaBook.getGlossTags;
 
     var uri_prefix=/(http:)|(https:)|(ftp:)|(urn:)/;
     
     var saving_dialog=false;
     var selectors=[];
+
+    function goodURL(string){
+        return (/https?:[\/][\/](\w+[.])+\w+[\/]/).exec(string);}
 
     // The gloss mode is stored in two places:
     //  * the class of the gloss FORM element
@@ -32921,56 +33310,66 @@ metaBook.Slice=(function () {
     metaBook.getGlossMode=getGlossMode;
 
     function setGlossMode(mode,arg,toggle){
+        var node, form;
+        function setglossmode(resolve){
+            var div=getParent(form,".metabookglossform"), input=false;
+            var frag=fdjtDOM.getInput(form,"FRAG");
+            var uuid=fdjtDOM.getInput(form,"UUID");
+            if ((Trace.mode)||(Trace.glossing)) {
+                fdjtLog("setGlossMode %o%s: #%s #U%s",
+                        mode,((toggle)?(" (toggle)"):("")),
+                        ((frag)&&(frag.value)),
+                        ((uuid)&&(uuid.value)));}
+            if ((toggle)&&(mode===form.className)) mode=false;
+            if (mode) addClass(div,"focused");
+            if (!(mode)) {
+                dropClass(form,glossmodes);
+                dropClass("METABOOKHUD",/\bgloss\w+\b/);
+                dropClass("METABOOKHUD","openheart");
+                if (!(metaBook.touch)) {
+                    var glossinput=getInput(form,"NOTE");
+                    if (glossinput) metaBook.setFocus(glossinput);
+                    addClass(div,"focused");}
+                return;}
+            if (mode==="addtag") input=fdjtID("METABOOKADDTAGINPUT");
+            else if (mode==="attach") {
+                var upload_glossid=fdjtID("METABOOKUPLOADGLOSSID");
+                upload_glossid.value=uuid.value;
+                var upload_itemid=fdjtID("METABOOKUPLOADITEMID");
+                upload_itemid.value=fdjtState.getUUID();
+                input=fdjtID("METABOOKATTACHURL");}
+            else if (mode==="addoutlet") 
+                input=fdjtID("METABOOKADDSHAREINPUT");
+            else {
+                dropClass(form,glossmodes);
+                dropClass("METABOOKHUD",/\bgloss\w+\b/);
+                return resolve(form);}
+            if ((Trace.mode)||(Trace.glossing))
+                fdjtLog("setGlossMode gm=%s input=%o",mode,input);
+            form.className=mode;
+            swapClass("METABOOKHUD",/\bgloss\w+\b/,"gloss"+mode);
+            metaBook.setHUD(true);
+            if ((mode)&&(/(addtag|addoutlet)/.exec(mode)))
+                addClass("METABOOKHUD","openheart");
+            if (input) metaBook.setFocus(input);
+            return resolve(form);}
         if ((mode)&&(arg)&&(mode.nodeType)&&
             (typeof arg === "string")) {
-            var tmp=mode; mode=arg; arg=tmp;}
-        if (!(arg)) arg=fdjtID("METABOOKLIVEGLOSS");
-        if (typeof arg === 'string') arg=fdjtID(arg);
-        if ((!(arg))||(!(arg.nodeType))) return;
-        var form=((arg.tagName==="FORM")?(arg):
-                  ((fdjtDOM.getParent(arg,"form"))||
-                   (fdjtDOM.getChild(arg,"form"))));
-        var div=getParent(form,".metabookglossform");
-        var input=false;
-        if (!(form)) return;
-        var frag=fdjtDOM.getInput(form,"FRAG");
-        var uuid=fdjtDOM.getInput(form,"UUID");
-        if ((Trace.mode)||(Trace.glossing)) {
-            fdjtLog("setGlossMode %o%s: #%s #U%s",
-                    mode,((toggle)?(" (toggle)"):("")),
-                    ((frag)&&(frag.value)),
-                    ((uuid)&&(uuid.value)));}
-        if ((toggle)&&(mode===form.className)) mode=false;
-        if (mode) addClass(div,"focused");
-        if (!(mode)) {
-            dropClass(form,glossmodes);
-            dropClass("METABOOKHUD",/\bgloss\w+\b/);
-            dropClass("METABOOKHUD","openheart");
-            if (!(metaBook.touch)) {
-                var glossinput=getInput(form,"NOTE");
-                if (glossinput) metaBook.setFocus(glossinput);
-                addClass(div,"focused");}
-            return;}
-        if (mode==="addtag") input=fdjtID("METABOOKADDTAGINPUT");
-        else if (mode==="attach") {
-            var upload_glossid=fdjtID("METABOOKUPLOADGLOSSID");
-            upload_glossid.value=uuid.value;
-            var upload_itemid=fdjtID("METABOOKUPLOADITEMID");
-            upload_itemid.value=fdjtState.getUUID();
-            input=fdjtID("METABOOKATTACHURL");}
-        else if (mode==="addoutlet") input=fdjtID("METABOOKADDSHAREINPUT");
+            node=mode; mode=arg;}
+        else if (!(arg)) node=fdjtID("METABOOKLIVEGLOSS");
+        else if (typeof arg === 'string') node=fdjtID(arg);
+        else node=arg;
+        if ((node)&&(node.nodeType)) {
+            form=((node.tagName==="FORM")?(node):
+                  ((fdjtDOM.getParent(node,"form"))||
+                   (fdjtDOM.getChild(node,"form"))));
+            if (!(form)) {
+                fdjtLog.warn("Missing FORM for setGlossMode");
+                return;} 
+            else return new Promise(setglossmode);}
         else {
-            dropClass(form,glossmodes);
-            dropClass("METABOOKHUD",/\bgloss\w+\b/);
-            return;}
-        if ((Trace.mode)||(Trace.glossing))
-            fdjtLog("setGlossMode gm=%s input=%o",mode,input);
-        form.className=mode;
-        swapClass("METABOOKHUD",/\bgloss\w+\b/,"gloss"+mode);
-        metaBook.setHUD(true);
-        if ((mode)&&(/(addtag|addoutlet)/.exec(mode)))
-            addClass("METABOOKHUD","openheart");
-        if (input) metaBook.setFocus(input);}
+            fdjtLog.warn("Missing DOM arg for setGlossMode");
+            return false;}}
     metaBook.setGlossMode=setGlossMode;
 
     // set the gloss target for a particular passage
@@ -33135,7 +33534,7 @@ metaBook.Slice=(function () {
             fdjtLog("setGlossTarget %o form=%o selecting=%o",
                     target,form,selecting);
         if (metaBook.glosstarget) {
-            dropClass(metaBook.glosstarget,"metabookglosstarget");}
+            dropClass(metaBook.glosstarget,"mbglosstarget");}
         dropClass("METABOOKHUD",/\bgloss\w+\b/);
         dropClass("METABOOKHUD","editgloss");
         if (!(target)) {
@@ -33165,7 +33564,7 @@ metaBook.Slice=(function () {
             var frag=fdjtDOM.getInput(form,"FRAG");
             if (frag.value!==target.id) {
                 setExcerpt(form,false);
-                fdjtDOM.addClass(form,"modified");
+                fdjtDOM.addClass(getParent(form,".metabookglossform"),"modified");
                 frag.value=target.id;}}
         else {
             if (gloss) form=getGlossForm(gloss);
@@ -33176,7 +33575,7 @@ metaBook.Slice=(function () {
         metaBook.glosstarget=target;
         // Reset this when we actually get a gloss
         metaBook.select_target=false;
-        addClass(target,"metabookglosstarget");
+        addClass(target,"mbglosstarget");
         if (gloss.exoff)
             metaBook.GoTo({target: target,offset: gloss.exoff},"addgloss",true);
         else metaBook.GoTo(target,"addgloss",true);
@@ -33367,27 +33766,36 @@ metaBook.Slice=(function () {
     
     /***** Adding links ******/
     
-    function addLink(form,url,title) {
+    function addLink(form,url,title,replace) {
         var linkselt=getChild(form,'.links');
         var linkval=((title)?(url+" "+title):(url));
-        var img=fdjtDOM.Image(mbicon("diaglink",64,64),"img");
-        var anchor=fdjtDOM.Anchor(url,"a.glosslink",((title)||url));
+        var type=metaBook.urlType(url);
+        var icon=metaBook.typeIcon(type);
+        var img=fdjtDOM.Image(icon,"img");
+        var text=fdjtDOM("span.linktext",((title)||url));
         var checkbox=fdjtDOM.Checkbox("LINKS",linkval,true);
-        var aspan=fdjtDOM("span.checkspan.ischecked.waschecked.anchor",
-                          img,checkbox,anchor,
-                          fdjtDOM.Image(mbicon("redx",32,32),"img.redx","x"));
+        var aspan=fdjtDOM(
+            "span.checkspan.ischecked.waschecked.glosslink",
+            img,checkbox,text);
+        aspan.title=title||url; aspan.setAttribute("data-href",url);
+        if (url.search(/https:\/\/glossdata./)===0)
+            addClass(aspan,"glossdata");
+        if (type) addClass(aspan,metaBook.mediaTypeClass(type));
         var wrapper=getParent(form,".metabookglossform");
         if (Trace.glossing)
-            fdjtLog(
-                "addOutlet wrapper=%o form=%o url=%o title=%o",
-                wrapper,form,url,title);
+            fdjtLog("addOutlet wrapper=%o form=%o url=%o title=%o",
+                    wrapper,form,url,title);
         addClass(wrapper,"modified");
-        aspan.title=url; anchor.target='_blank';
-        fdjtDOM(linkselt,aspan," ");
+        if (replace)
+            fdjtDOM.replace(replace,aspan);
+        else fdjtDOM(linkselt,aspan," ");
         dropClass(linkselt,"empty");
         updateForm(form);
         return aspan;}
-    metaBook.addLink2Form=addLink;
+
+    function changeLink(form,oldlink,newlink,title){
+        var exists=fdjtDOM.getChild(form,"[data-href='"+oldlink+"']");
+        addLink(form,newlink,title,exists);}
 
     /***** Adding excerpts ******/
     
@@ -33675,7 +34083,8 @@ metaBook.Slice=(function () {
                     var outlet=cloud.selection.getAttribute("data-value");
                     metaBook.addOutlet2Form(form,outlet,"SHARE");}
                 else metaBook.addTag2Form(form,cloud.selection);
-                target.value=text.slice(0,taginfo.start)+text.slice(taginfo.end);
+                target.value=text.slice(0,taginfo.start)+
+                    text.slice(taginfo.end);
                 dropClass("METABOOKHUD",/gloss(tagging|tagoutlet)/g);
                 setTimeout(function(){cloud.complete("");},10);
                 cloud.clearSelection();
@@ -33804,7 +34213,8 @@ metaBook.Slice=(function () {
 
     function addgloss_callback(req,form,keep){
         if ((Trace.network)||(Trace.glossing))
-            fdjtLog("Got AJAX gloss response %o from %o",req,req.uri);
+            fdjtLog("Got AJAX gloss response %o from %o",
+                    req,req.responseURL);
         if (Trace.savegloss)
             fdjtLog("Gloss %o successfully added (status %d) to %o",
                     getInput(form,"UUID").value,req.status,
@@ -34510,7 +34920,7 @@ metaBook.Slice=(function () {
                 if (newglosses.length===0) fdjtDOM.remove(glossmark);
                 else glossmark.glosses=newglosses;}
             var highlights=fdjtDOM.$(
-                ".metabookuserexcerpt[data-glossid='"+glossid+"']");
+                ".mbexcerpt[data-glossid='"+glossid+"']");
             highlights=fdjtDOM.Array(highlights);
             i=0; lim=highlights.length; while (i<lim) {
                 fdjtUI.Highlight.remove(highlights[i++]);}}
@@ -34622,7 +35032,7 @@ metaBook.Slice=(function () {
             gloss_cloud.complete(target.value);},
                         100);}
 
-    var attach_types=/\b(uploading|linking|glossbody|image|audio|dropbox|gdrive|usebox)\b/g;
+    var attach_types=/\b(link|upload|body|capture)\b/g;
     function changeAttachment(evt){
         evt=evt||window.event;
         var target=fdjtUI.T(evt);
@@ -34638,100 +35048,203 @@ metaBook.Slice=(function () {
         var form=fdjtDOM.getChild(livegloss,"FORM");
         fdjtDOM.swapClass(form,attach_types,newtype);
         var attachform=fdjtID("METABOOKATTACHFORM");
-        var input=fdjtDOM.getInputFor(attachform,"ATTACHTYPE",newtype);
+        var input=fdjtDOM.getInputFor(
+            attachform,"ATTACHTYPE",newtype);
         fdjt.UI.CheckSpan.set(input,true);}
     metaBook.setAttachType=setAttachType;
 
-    function attach_action(evt){
-        var linkinput=fdjtID("METABOOKATTACHURL");
-        var titleinput=fdjtID("METABOOKATTACHTITLE");
-        var livegloss=fdjtID("METABOOKLIVEGLOSS");
-        if (!(livegloss)) return;
-        var form=getChild(livegloss,"FORM");
-        metaBook.addLink2Form(form,linkinput.value,titleinput.value);
-        linkinput.value="";
-        titleinput.value="";
-        metaBook.setGlossMode("editnote");
-        fdjtUI.cancel(evt);}
     function attach_submit(evt){
         evt=evt||window.event;
         var form=fdjtUI.T(evt);
+        if (form.tagName!=="FORM") form=getParent(form,"form");
         var livegloss=fdjtID("METABOOKLIVEGLOSS");
-        var liveglossid=fdjtDOM.getInput(livegloss,"UUID");
-        var glossid=liveglossid.value;
         var linkinput=fdjtDOM.getInput(form,"URL");
-        var fileinput=fdjtDOM.getInput(form,"UPLOAD");
-        var glossidinput=fdjtDOM.getInput(form,"GLOSSID");
-        var itemidinput=fdjtDOM.getInput(form,"ITEMID");
         var titleinput=fdjtDOM.getInput(form,"TITLE");
-        var title=(titleinput.value)&&(fdjtString.stdspace(titleinput.value));
+        var title=(titleinput.value)&&
+            (fdjtString.stdspace(titleinput.value));
         var isokay=fdjtDOM.getInput(form,"FILEOKAY");
-        var itemid=fdjt.State.getUUID();
         var path=linkinput.value;
-        if (hasClass("METABOOKHUD","glossattach")) {
-            if (!(fileinput.files.length)) {
-                fdjtUI.cancel(evt);
-                fdjtUI.alert("You need to specify a file!");
-                return;}
-            else path=fileinput.files[0].name;
-            if (!(isokay.checked)) {
-                fdjtUI.cancel(evt);
-                fdjtUI.alert(
-                    "You need to confirm that the file satisfies our restrictions!");
-                return;}
-            glossidinput.value=glossid;
-            itemidinput.value=itemid;}
-        else fdjtUI.cancel(evt);
-        if (!(title)) {
+        fdjtUI.cancel(evt);
+        if (!(livegloss)) return;
+        if ((!(title))&&(path)) {
             var namestart=((path.indexOf('/')>=0)?
                            (path.search(/\/[^\/]+$/)):(0));
-            if (namestart<0) title="attachment";
+            if (namestart<0) title=path;
             else title=path.slice(namestart);}
-        if (!(livegloss)) return;
-        var glossform=getChild(livegloss,"FORM");
-        if (hasClass("METABOOKHUD","glossattach")) {
-            var glossdata_url=
-                "https://glossdata.sbooks.net/"+glossid+"/"+itemid+"/"+path;
-            var commframe=fdjtID("METABOOKGLOSSCOMM");
-            var listener=function(evt){
-                evt=evt||window.event;
-                metaBook.addLink2Form(glossform,glossdata_url,title);
-                titleinput.value="";
-                fileinput.value="";
-                isokay.checked=false;
-                fdjtDOM.removeListener(commframe,"load",listener);
-                metaBook.submitGloss(glossform,true);
-                metaBook.setGlossMode("editnote");};
-            fdjtDOM.addListener(commframe,"load",listener);}
-        else {
-            metaBook.addLink2Form(glossform,linkinput.value,title);
-            metaBook.setGlossMode("editnote");}}
+        if (hasClass(form,"link")) {
+            if (!(goodURL(linkinput.value))) {
+                fdjtUI.alert("This URL doesn't look right");
+                return;}
+            if (metaBook.editlink) {
+                changeLink(form,metaBook.editlink,
+                           linkinput.value,title);
+                metaBook.editlink=false;}
+            else addLink(form,linkinput.value,title);
+            fdjtDOM.addClass(livegloss,"modified");
+            metaBook.setGlossMode("editnote");
+            clearAttachForm();}
+        else if (hasClass(form,"upload")) {
+            if ((!(metaBook.glossattach))&&(!(metaBook.editlink))) {
+                fdjtUI.alert("You need to specify a file!");
+                return;}
+            else if ((metaBook.glossattach)&&(!(isokay.checked)))
+                fdjt.UI.choose([{label: "Yes",
+                                 handler: function(){
+                                     fdjtUI.CheckSpan.set(isokay,true);
+                                     doFileAttach(title,livegloss);}},
+                                {label: "Cancel"}],
+                               fdjtDOM("P","By choosing 'Yes,' I affirm that ",
+                                       "I have the right to use and share this ",
+                                       "file according to the sBooks ",
+                                       fdjtDOM.Anchor(
+                                           "https://www.sbooks.net/legalia/TOS/",
+                                           "A[target='_blank']",
+                                           "Terms of Service"),
+                                       "."));
+            else if (metaBook.glossattach) {
+                var filename=metaBook.glossattach.name;
+                attachFile(metaBook.glossattach,
+                           title||metaBook.glossattach.name,
+                           livegloss).
+                    then(function(req){
+                        if (metaBook.editlink) {
+                            changeLink(livegloss,metaBook.editlink,
+                                       req.responseURL,title);
+                            metaBook.editlink=false;}
+                        else addLink(livegloss,req.responseURL,
+                                     title||filename||"attachment");
+                        fdjtDOM.addClass("METABOOKLIVEGLOSS","modified");
+                        metaBook.setGlossMode("editnote");
+                        clearAttachForm();}).
+                    catch(function(trouble){
+                        fdjtLog("Trouble attaching file %o (%o)",
+                                metaBook.glossattach,trouble);});}
+            else if (metaBook.editlink) {
+                fdjtDOM.addClass("METABOOKLIVEGLOSS","modified");
+                changeLink(livegloss,metaBook.editlink,metaBook.editlink,title);
+                clearAttachForm();
+                metaBook.editlink=false;}
+            else {fdjtLog.warn("Fall through in attach_submit");}}
+        else {fdjtLog.warn("Fall through in attach_submit");}
+        return;}
     function attach_cancel(evt){
-        var linkinput=fdjtID("METABOOKATTACHURL");
-        var titleinput=fdjtID("METABOOKATTACHTITLE");
         var livegloss=fdjtID("METABOOKLIVEGLOSS");
+        clearAttachForm(); fdjtUI.cancel(evt);
         if (!(livegloss)) return;
-        linkinput.value="";
-        titleinput.value="";
-        metaBook.setGlossMode("editnote");
-        fdjtUI.cancel(evt);}
+        metaBook.setGlossMode("editnote");}
     function attach_keydown(evt){
         evt=evt||window.event;
         var ch=evt.keyCode||evt.charCode;
         if (ch!==13) return;
         fdjtUI.cancel(evt);
-        var linkinput=fdjtID("METABOOKATTACHURL");
-        var titleinput=fdjtID("METABOOKATTACHTITLE");
         var livegloss=fdjtID("METABOOKLIVEGLOSS");
         if (!(livegloss)) return;
-        var form=getChild(livegloss,"FORM");
-        metaBook.addLink2Form(form,linkinput.value,titleinput.value);
-        linkinput.value="";
-        titleinput.value="";
+        attach_submit(evt);
         metaBook.setGlossMode("editnote");}
 
-    function glossetc_touch(evt){
+    function editLink(href,title){
+        metaBook.editlink=href;
+        setGlossMode("attach");
+        if (href.search(/https:\/\/glossdata\./)===0) {
+            var name=/\/([^\/]+)$/.exec(href);
+            setAttachType("upload");
+            addClass("METABOOKGLOSSATTACH","haveupload");
+            fdjt.ID("METABOOKATTACHFILENAME").innerHTML=name[1];}
+        else if (href.search(/\/capture\.[A-Za-z0-9]+$/)>=0)
+            setAttachType("capture");
+        else {
+            setAttachType("link");
+            fdjtID("METABOOKATTACHURL").value=href;}
+        fdjt.UI.CheckSpan.set(fdjtID("METABOOKUPLOADRIGHTS"),true);
+        fdjtID("METABOOKATTACHTITLE").value=title||href;
+        addClass(fdjtID("METABOOKATTACHFORM"),"editlink");
+        fdjtID("METABOOKATTACHTITLE").focus();}
+
+    function doFileAttach(title,livegloss){
+        var filename=metaBook.glossattach.name;
+        attachFile(metaBook.glossattach,
+                   title||metaBook.glossattach.name,
+                   livegloss).
+            then(function(req){
+                if (metaBook.editlink) {
+                    changeLink(livegloss,metaBook.editlink,
+                               req.responseURL,title);
+                    metaBook.editlink=false;}
+                else addLink(livegloss,req.responseURL,
+                             title||filename||"attachment");
+                metaBook.setGlossMode("editnote");
+                addClass(livegloss,"modified");
+                clearAttachForm();}).
+            catch(function(trouble){
+                fdjtLog("Trouble attaching file %o (%o)",
+                        metaBook.glossattach,trouble);});}
+
+    function attach_file_click(evt){
+        var file_input=fdjtID("METABOOKFILEINPUT");
+        var ev=document.createEvent("MouseEvents");
+        ev.initMouseEvent('click', true, true, evt.view);
+        file_input.dispatchEvent(ev);
+        fdjtUI.cancel(evt);}
+
+    function clearAttachForm(){
+        var linkinput=fdjtID("METABOOKATTACHURL");
+        var titleinput=fdjtID("METABOOKATTACHTITLE");
+        var rightsok=fdjt.ID("METABOOKUPLOADRIGHTS");
+        var fileinput=fdjt.ID("METABOOKFILEINPUT");
+        linkinput.value=""; titleinput.value="";
+        fdjtDOM.dropClass("METABOOKGLOSSATTACH","haveupload");
+        fdjt.ID("METABOOKATTACHFILE").className="nofile";
+        fdjt.ID("METABOOKATTACHFILENAME").innerHTML="";
+        fdjt.UI.CheckSpan.set(rightsok,false);        
+        metaBook.glossattach=false;
+        metaBook.editlink=false;
+        fileinput.value="";}
+
+    function attach_delete(evt){
+        var oldlink=metaBook.editlink;
+        var livegloss=fdjtID("METABOOKLIVEGLOSS");
+        var exists=fdjtDOM.getChild(livegloss,"[data-href='"+oldlink+"']");
+        fdjtUI.cancel(evt);
+        if (exists) {
+            addClass(livegloss,"modified");
+            fdjtUI.CheckSpan.set(exists,false);}
+        clearAttachForm();
+        setGlossMode("editnote");}
+
+    function attachFile(file,title,livegloss){
+        var glossid=fdjtDOM.getInputValue(livegloss,"UUID");
+        var itemid=fdjtState.getUUID();
+        var filename=file.name, filetype=file.type;
+        // var reader=new FileReader();
+        var savereq=new XMLHttpRequest();
+        var endpoint="https://glossdata.sbooks.net/"+
+            glossid+"/"+itemid+"/"+filename;
+        var aborted=false, done=false;
+        function attaching_file(resolve,reject){        
+            savereq.onreadystatechange=function(){
+                if (aborted) {}
+                else if (done) {}
+                else if (savereq.readyState===4) {
+                    if (savereq.status===200) {
+                        metaBook.glossattach=false;
+                        done=true; resolve(savereq);}
+                    else {done=aborted=true; reject(savereq);}}
+                else {}};
+            savereq.ontimeout=function(evt){reject(evt);};
+            savereq.open("POST",endpoint);
+            savereq.setRequestHeader("content-type",filetype);
+            savereq.withCredentials=true; // savereq.timeout=10000;
+            savereq.send(file);}
+        return new Promise(attaching_file);}
+
+    function glossetc_click(evt){
         var target=fdjtUI.T(evt);
+        var link=getParent(target,".glosslink");
+        if (link) {
+            editLink(link.getAttribute("data-href"),
+                     link.title);
+            fdjtUI.cancel(evt);
+            return;}
         fdjtUI.CheckSpan.onclick(evt);
         var form=getParent(target,"form");
         var input=getInput(form,"NOTE");
@@ -34741,6 +35254,8 @@ metaBook.Slice=(function () {
         evt=evt||window.event;
         var types=evt.dataTransfer.types;
         if (!(types)) return;
+        else if (types.indexOf("Files")>=0)
+            fdjt.UI.cancel(evt);
         else if (types.indexOf("text/uri-list")>=0)
             fdjt.UI.cancel(evt);
         else if (types.indexOf("text/plain")>=0) {
@@ -34750,14 +35265,26 @@ metaBook.Slice=(function () {
         else {}}
     function addGlossDrop(evt){
         evt=evt||window.event;
+        var attachform=fdjt.ID("METABOOKATTACHFORM");
         var types=evt.dataTransfer.types;
         if (!(types)) return;
+        else if (types.indexOf("Files")>=0) {
+            var files=evt.dataTransfer.files;
+            var file=files[0];
+            fdjtUI.cancel(evt);
+            metaBook.glossattach=file;
+            setAttachType("uploadfile");
+            fdjtID("METABOOKATTACHFILENAME").innerHTML=file.name;
+            fdjtDOM.addClass("METABOOKGLOSSATTACH","haveupload");
+            if (hasClass(attachform,"editlink"))
+                fdjt.UI.CheckSpan.set(fdjtID("METABOOKUPLOADRIGHTS"),false);}
         else if (types.indexOf("text/uri-list")>=0) {
-            var url=evt.dataTransfer.getData("URL");
+            var url=evt.dataTransfer.getData("URL")||
+                evt.dataTransfer.getData("text/uri-list");
             if (!(url)) return;
             fdjt.UI.cancel(evt);
             metaBook.setGlossMode("attach");
-            setAttachType("linking");
+            setAttachType("linkurl");
             fdjt.ID("METABOOKATTACHURL").value=url;
             fdjt.ID("METABOOKATTACHTITLE").focus();}
         else if (types.indexOf("text/plain")>=0) {
@@ -34765,7 +35292,9 @@ metaBook.Slice=(function () {
             fdjt.UI.cancel(evt);
             if (text.search(/^\s*https?:\/\//)===0) {
                 metaBook.setGlossMode("attach");
-                setAttachType("linking");
+                if (hasClass(attachform,"linkurl")) {}
+                else if (hasClass(attachform,"copyurl")) {}
+                else setAttachType("linkurl");
                 fdjt.ID("METABOOKATTACHURL").value=text;
                 fdjt.ID("METABOOKATTACHTITLE").focus();}
             else {
@@ -34775,6 +35304,16 @@ metaBook.Slice=(function () {
                 input.value=text;
                 input.focus();}}
         else {}}
+
+    function glossUploadChanged(evt){
+        var target=fdjtUI.T(evt), file=target.files[0];
+        if (file) {
+            metaBook.glossattach=file;
+            fdjtID("METABOOKATTACHFILENAME").innerHTML=file.name;
+            fdjtDOM.addClass("METABOOKGLOSSATTACH","haveupload");
+            if (hasClass("METABOOKATTACHFORM","editlink"))
+                fdjt.UI.CheckSpan.set(fdjtID("METABOOKUPLOADRIGHTS"),
+                                      false);}}
 
     function editglossnote(evt){
         evt=evt||window.event;
@@ -34903,10 +35442,16 @@ metaBook.Slice=(function () {
              slip: glossmode_slip,
              release: glossmode_release,
              click: cancel},
-         "div.glossetc": {},
+         "div.glossetc": {click: glossetc_click},
          "div.glossetc div.sharing": {click: glossform_outlets_tapped},
          "div.glossetc div.notetext": {click: editglossnote},
          "#METABOOKADDGLOSS": {
+             dragenter: addGlossDragOK,
+             dragover: addGlossDragOK,
+             drop: addGlossDrop},
+         "#METABOOKATTACHFILE": {
+             click: attach_file_click},
+         "#METABOOKGLOSSATTACH": {
              dragenter: addGlossDragOK,
              dragover: addGlossDragOK,
              drop: addGlossDrop},
@@ -34915,8 +35460,9 @@ metaBook.Slice=(function () {
          "#METABOOKATTACHFORM": {submit: attach_submit},
          "#METABOOKATTACHURL": {keydown: attach_keydown},
          "#METABOOKATTACHTITLE": {keydown: attach_keydown},
-         "#METABOOKATTACHOK": {click: attach_action},
          "#METABOOKATTACHCANCEL": {click: attach_cancel},
+         "#METABOOKATTACHDELETE": {click: attach_delete},
+         "#METABOOKFILEINPUT": {change: glossUploadChanged},
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
@@ -34933,7 +35479,7 @@ metaBook.Slice=(function () {
              release: glossmode_release,
              click: cancel},
          "div.glossetc": {
-             touchstart: glossetc_touch,
+             touchstart: glossetc_click,
              touchend: cancel},
          "div.glossetc div.sharing": {
              touchend: glossform_outlets_tapped,
@@ -34946,8 +35492,14 @@ metaBook.Slice=(function () {
          "#METABOOKATTACHFORM": {submit: attach_submit},
          "#METABOOKATTACHURL": {keydown: attach_keydown},
          "#METABOOKATTACHTITLE": {keydown: attach_keydown},
-         "#METABOOKATTACHOK": {click: attach_action},
+         "#METABOOKATTACHFILE": {click: attach_file_click},
          "#METABOOKATTACHCANCEL": {click: attach_cancel},
+         "#METABOOKATTACHDELETE": {click: attach_delete},
+         "#METABOOKADDGLOSS": {
+             dragenter: addGlossDragOK,
+             dragover: addGlossDragOK,
+             drop: addGlossDrop},
+         "#METABOOKFILEINPUT": {change: glossUploadChanged},
          "#METABOOKGLOSSCLOUD": {
              tap: metaBook.UI.handlers.glosscloud_select,
              release: metaBook.UI.handlers.glosscloud_select},
@@ -35437,8 +35989,7 @@ metaBook.Slice=(function () {
             else {}
             scan=scan.parentNode;
             style=fdjtDOM.getStyle(scan);}
-        if (block) return block; else return elt;
-        return elt;}
+        if (block) return block; else return elt;}
 
     function jumpToNote(evt){
         evt=evt||window.event;
@@ -35514,11 +36065,13 @@ metaBook.Slice=(function () {
              handler: function(){
                  metaBook.startGloss(passage);},
              isdefault: true}];
-        if (false) { /* (window.ClipboardEvent) */
+        /*
+          if (window.ClipboardEvent) {
             choices.push({label: "Copy link",
                           handler: function(){copyURI(passage);}});
             choices.push({label: "Copy content",
                           handler: function(){copyContent(passage);}});}
+        */
         if (true) choices.push(
             {label: "Zoom content",
              handler: function(){
@@ -35559,6 +36112,7 @@ metaBook.Slice=(function () {
     
     function makeOpener(url){
         return function (){window.open(url);};}
+    /*
     function copyURI(passage){
         var ClipboardEvent=window.ClipboardEvent;
         var evt = new ClipboardEvent(
@@ -35570,6 +36124,7 @@ metaBook.Slice=(function () {
         var evt = new ClipboardEvent(
             'copy',{ dataType: 'text/html', data: passage.innerHTML } );
         document.dispatchEvent(evt);}
+    */
 
     var body_tapstart=false;
     function body_touchstart(evt){
@@ -35862,7 +36417,7 @@ metaBook.Slice=(function () {
             if ((ranges)&&(ranges.length)) {
                 var k=0; while (k<ranges.length) {
                     var h=fdjtUI.Highlight(
-                        ranges[k++],"metabookhighlightsearch");
+                        ranges[k++],"mbhighlightsearch");
                     highlights=highlights.concat(h);}}}
         return highlights;}
     metaBook.highlightTerm=highlightTerm;
@@ -36160,14 +36715,14 @@ metaBook.Slice=(function () {
         evt=evt||window.event;
         var target=fdjtUI.T(evt);
         var passage=getTarget(target);
-        if (!(fdjtDOM.hasClass(passage,"metabooktarget")))
+        if (!(fdjtDOM.hasClass(passage,"mbtarget")))
             animate_glossmark(target,true);}
 
     function glossmark_hoverdone(evt){
         evt=evt||window.event;
         var target=fdjtUI.T(evt);
         var passage=getTarget(target);
-        if (!(fdjtDOM.hasClass(passage,"metabooktarget")))
+        if (!(fdjtDOM.hasClass(passage,"mbtarget")))
             animate_glossmark(target,false);}
 
     function setTargetUI(target){
@@ -37250,11 +37805,11 @@ metaBook.Slice=(function () {
             src_elt=media_elt=fdjtDOM("IFRAME");}
         media_elt.id="METABOOKMEDIATARGET";
         metaBook.showing=url;
-        if ((src_elt)&&(mB.tmpurlcache[url])) {
-            src_elt.src=mB.tmpurlcache[url];
+        if ((src_elt)&&(mB.glossdata[url])) {
+            src_elt.src=mB.glossdata[url];
             placeMedia();}
         else if (src_elt) {
-            var cache_key="cache("+url+")";
+            var cache_key="glossdata("+url+")";
             var cache_val=fdjtState.getLocal(cache_key);
             if (cache_val) {
                 if (cache_val.slice(0,5)==="data:")
@@ -37262,16 +37817,17 @@ metaBook.Slice=(function () {
                 else if (cache_val==="cached") {
                     addClass(fdjt.ID("METABOOKMEDIA"),"loadingcontent");
                     addClass(src_elt,"loadingcontent");
-                    var txn=mB.urlCacheDB.transaction(["urlcache"]);
-                    var storage=txn.objectStore("urlcache");
+                    var txn=mB.metaBookDB.transaction(["glossdata"]);
+                    var storage=txn.objectStore("glossdata");
                     var req=storage.get(url);
                     req.onsuccess=function(event){
                         var target=event.target;
                         var result=((target)&&(target.result));
                         dropClass(fdjt.ID("METABOOKMEDIA"),"loadingcontent");
                         dropClass(src_elt,"loadingcontent");
-                        if ((result)&&(result.datauri))
-                            src_elt.src=result.datauri;
+                        if ((result)&&(result.datauri)) {
+                            var objurl=metaBook.gotGlossData(url,result.datauri);
+                            src_elt.src=objurl;}
                         else src_elt.src=url;
                         placeMedia();};
                     req.onerror=function(event){
@@ -37282,7 +37838,8 @@ metaBook.Slice=(function () {
                         src_elt.src=url;
                         placeMedia();};}
                 else if (metaBook.srcloading[url]) {
-                    metaBook.srcloading[url].push(src_elt); placeMedia();}
+                    metaBook.srcloading[url].push(src_elt);
+                    placeMedia();}
                 else {
                     metaBook.srcloading[url]=[src_elt];
                     placeMedia();}}
@@ -37314,7 +37871,8 @@ metaBook.Slice=(function () {
                 pause_media_timeout=false;
                 dropClass(document.body,"mbMEDIA");},
                                            1500);}
-        else dropClass(document.body,"mbMEDIA");}
+        else dropClass(document.body,"mbMEDIA");
+        fdjt.UI.cancel(evt);}
     metaBook.hideMedia=hideMedia;
 
     fdjt.DOM.defListeners(
@@ -37530,7 +38088,7 @@ metaBook.Paginate=
                 layoutMessage("Using cached layout",0);
                 dropClass(document.body,"_SCROLL");
                 addClass(document.body,"_BYPAGE");
-                layout.restoreLayout(content,finish_layout);}
+                layout.restoreLayout(content).then(finish_layout);}
             function finish_layout(layout) {
                 fdjtID("CODEXPAGE").style.visibility='';
                 fdjtID("CODEXCONTENT").style.visibility='';
@@ -37664,7 +38222,6 @@ metaBook.Paginate=
                                               layout_progress,rootloop);
                         else return rootloop();}}
 
-                
                 rootloop();}
             
             if ((metaBook.cache_layout_thresh)&&
@@ -37672,13 +38229,17 @@ metaBook.Paginate=
                 (!(forced))) {
                 if (Trace.layout)
                     fdjtLog("Fetching layout %s",layout_id);
-                CodexLayout.fetchLayout(layout_id,function(content){
-                    if (content) {
-                        if (Trace.layout)
-                            fdjtLog("Got layout %s",layout_id);
+                CodexLayout.fetchLayout(layout_id).
+                    then(function(content){
+                        if (!(content)) return new_layout();
+                        if (Trace.layout) fdjtLog("Got layout %s",layout_id);
                         recordLayout(layout_id,metaBook.sourceid);
-                        restore_layout(content,layout_id);}
-                    else new_layout();});}
+                        try {
+                            return restore_layout(content,layout_id);}
+                        catch (ex) {
+                            fdjtLog("Layout restore error: %o",ex);
+                            return new_layout();}}).
+                    catch(function(){return new_layout();});}
             else {
                 setTimeout(new_layout,10);}}
         metaBook.Paginate=Paginate;
@@ -38628,7 +39189,6 @@ metaBook.HTML.addgloss=
     "         tabindex=\"0\"></textarea>\n"+
     "    </div>\n"+
     "    <div class=\"glossetc\">\n"+
-    "      <span class=\"glossdate\"></span>\n"+
     "      <span class=\"glossexposure\">\n"+
     "        <span class=\"checkspan private\" tabindex=\"5\">\n"+
     "          <input type=\"CHECKBOX\" name=\"PRIVATE\" value=\"yes\"\n"+
@@ -38641,6 +39201,7 @@ metaBook.HTML.addgloss=
     "            Shared</span>\n"+
     "        </span>\n"+
     "      </span>\n"+
+    "      <span class=\"glossdate\"></span>\n"+
     "      <span class=\"tags empty\"></span>    \n"+
     "      <span class=\"links empty\"></span>\n"+
     "      <span class=\"outlets empty\"></span>\n"+
@@ -38968,73 +39529,83 @@ metaBook.HTML.heart=
     "  <form id=\"METABOOKATTACHFORM\" target=\"METABOOKGLOSSCOMM\"\n"+
     "	method=\"POST\" enctype=\"multipart/form-data\" accept-charset=\"utf-8\"\n"+
     "        action=\"https://glosses.sbooks.net/1/attach\"\n"+
-    "        class=\"linking\">\n"+
-    "    <table class=\"fdjtform\">\n"+
+    "        class=\"link\">\n"+
+    "    <table class=\"fdjtform\"\n"+
+    "           onclick=\"fdjt.UI.CheckSpan.onclick(event);\">\n"+
     "      <input TYPE=\"HIDDEN\" NAME=\"GLOSSID\" VALUE=\"\" id=\"METABOOKUPLOADGLOSSID\"/>\n"+
     "      <input TYPE=\"HIDDEN\" NAME=\"ITEMID\" VALUE=\"\" id=\"METABOOKUPLOADITEMID\"/>\n"+
-    "      <tr class=\"attachtype\"\n"+
-    "          onclick=\"fdjt.UI.CheckSpan.onclick(event);\">\n"+
+    "      <tr class=\"attachtype\">\n"+
     "        <th class=\"headcell\">\n"+
     "          Attach<img src=\"{{bmg}}metabook/gloss_attach.svgz\"/></th>\n"+
     "        <td>\n"+
-    "          <span class=\"checkspan ischecked\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"linking\"\n"+
+    "          <button id=\"METABOOKATTACHDELETE\" NAME=\"ATTACH\" VALUE=\"DELETE\">\n"+
+    "            Delete</button>\n"+
+    "          <span class=\"checkspan ischecked\"\n"+
+    "                title=\"Attach a link to this gloss\">\n"+
+    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"link\"\n"+
     "                   onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
     "                   CHECKED/>\n"+
-    "            URL</span>\n"+
-    "          <span class=\"checkspan\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"uploading\"\n"+
+    "            Link</span>\n"+
+    "          <span class=\"checkspan\"\n"+
+    "                title=\"Upload a file and attach it to this gloss\">\n"+
+    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"upload\"\n"+
     "                   onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
     "            File</span>\n"+
-    "          <span class=\"checkspan\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"glossbody\"\n"+
+    "          <span class=\"checkspan\"\n"+
+    "                title=\"Create or edit a 'body' for this gloss\">\n"+
+    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"body\"\n"+
     "                   onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
     "            Body</span>\n"+
-    "          <span class=\"checkspan disabled\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"audio\"\n"+
+    "          <span class=\"checkspan disabled\"\n"+
+    "                title=\"Attach audio or video recorded on this device\">\n"+
+    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"capture\"\n"+
     "                   onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
     "                   disabled=\"DISABLED\"/>\n"+
-    "            Audio</span>\n"+
-    "          <span class=\"checkspan disabled\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"video\"\n"+
-    "                   onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
-    "                   disabled=\"DISABLED\"/>\n"+
-    "            Video</span>\n"+
+    "            Capture</span>\n"+
     "        </td>\n"+
-    "        <th class=\"button\"></th>\n"+
+    "        <th class=\"button\">\n"+
+    "          <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"LINK\">\n"+
+    "            Link</button>\n"+
+    "          <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" VALUE=\"UPLOAD\">\n"+
+    "            Save</button>\n"+
+    "          <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" VALUE=\"SAVE\">\n"+
+    "            Save</button>\n"+
+    "          <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"BODY\">\n"+
+    "            Save</button>\n"+
+    "          <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"DONE\">\n"+
+    "            Done</button>\n"+
+    "          <button id=\"METABOOKATTACHCANCEL\" VALUE=\"CANCEL\">\n"+
+    "            Cancel</button></th>\n"+
     "      </tr>\n"+
     "      <tr class=\"title\">\n"+
     "        <th>Label</th>\n"+
-    "        <td><INPUT TYPE=\"TEXT\" NAME=\"TITLE\" VALUE=\"\" ID=\"METABOOKATTACHTITLE\"\n"+
-    "                   placeholder=\"a descriptive label\"/>\n"+
-    "          <th class=\"button\">\n"+
-    "            <button id=\"METABOOKATTACHCANCEL\">Cancel</button></th></tr>\n"+
-    "      <tr class=\"spacing\"><td> </td></tr>\n"+
+    "        <td colspan=\"2\">\n"+
+    "          <INPUT TYPE=\"TEXT\" NAME=\"TITLE\" VALUE=\"\" ID=\"METABOOKATTACHTITLE\"\n"+
+    "                 placeholder=\"a descriptive label\"/></tr>\n"+
+    "      <tr class=\"checkspan uploadrights\"\n"+
+    "          id=\"METABOOKUPLOADRIGHTS\">\n"+
+    "        <th><input TYPE=\"CHECKBOX\" NAME=\"FILEOKAY\" VALUE=\"yes\"/></th>\n"+
+    "        <td colspan=\"2\">\n"+
+    "          I affirm that I have the right to use and share this\n"+
+    "          content according to the &sBooks;\n"+
+    "          <a href=\"https://www.sbooks.net/legalia/TOS/\" target=\"_blank\">\n"+
+    "            Terms of Service</a>.</td>\n"+
+    "      </tr>\n"+
     "      <tr class=\"url\">\n"+
     "        <th>URL</th>\n"+
-    "        <td><input TYPE=\"TEXT\" NAME=\"URL\" VALUE=\"\"\n"+
-    "                   ID=\"METABOOKATTACHURL\" class=\"fdjturlinput\"\n"+
-    "                   placeholder=\"a URL to attach\"/>\n"+
+    "        <td colspan=\"2\">\n"+
+    "          <input TYPE=\"TEXT\" NAME=\"URL\" VALUE=\"\"\n"+
+    "                 ID=\"METABOOKATTACHURL\" class=\"fdjturlinput\"\n"+
+    "                 placeholder=\"a URL to attach\"/>\n"+
     "        </td>\n"+
-    "        <th class=\"button\">\n"+
-    "          <button id=\"METABOOKATTACHOK\" NAME=\"ATTACH\" \"LINK\">\n"+
-    "            Link</button></th>\n"+
     "      </tr>\n"+
-    "      <tbody class=\"upload\">\n"+
-    "        <tr>\n"+
-    "          <th>File</th>\n"+
-    "          <td><input TYPE=\"FILE\" NAME=\"UPLOAD\" ID=\"METABOOKATTACHFILE\"/></td>\n"+
-    "          <th class=\"button\">\n"+
-    "            <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" \"UPLOAD\">\n"+
-    "              Upload</button></th></tr>\n"+
-    "        <tr class=\"checkspan fileokay\">\n"+
-    "          <th><input TYPE=\"CHECKBOX\" NAME=\"FILEOKAY\" VALUE=\"yes\"/></th>\n"+
-    "          <td>I affirm that I have the right to use and share this\n"+
-    "            file according to the &sBooks;\n"+
-    "                <a href=\"https://www.sbooks.net/legalia/TOS/\" target=\"_blank\">\n"+
-    "                  Terms of Service</a>.</td>\n"+
-    "        </tr>\n"+
-    "      </tbody>\n"+
+    "      <tr class=\"uploadfile\">\n"+
+    "        <th>Upload<input TYPE=\"FILE\" NAME=\"UPLOAD\" ID=\"METABOOKFILEINPUT\"/></th>\n"+
+    "        <td id=\"METABOOKATTACHFILE\" class=\"nofile\" colspan=\"2\">\n"+
+    "          <span class=\"mbdragmessage\">Drag a file here or click to browse</span>\n"+
+    "          <span class=\"mbmessage\">Tap to find files or media</span>\n"+
+    "          <span class=\"mbfilename\" id=\"METABOOKATTACHFILENAME\"></span>\n"+
+    "        </td></tr>\n"+
     "      <tbody class=\"glossbody\" id=\"METABOOKGLOSSBODY\">\n"+
     "        <tr>\n"+
     "          <td colspan=\"3\">\n"+
@@ -39044,6 +39615,7 @@ metaBook.HTML.heart=
     "    </table>\n"+
     "  </form>\n"+
     "</div>\n"+
+    "<div id=\"METABOOKGLOSSATTACH\" class=\"hudpanel\"></div>\n"+
     "<div id=\"METABOOKSEARCHCLOUD\" class=\"completions cloud searchcloud\"></div>\n"+
     "<div id=\"METABOOKALLTAGS\" class=\"completions searchcloud cloud noinput\">\n"+
     "</div>\n"+
@@ -39064,6 +39636,101 @@ metaBook.HTML.heart=
     "    ;;;  End: ***\n"+
     "    */\n"+
     "  -->\n"+
+    "";
+/* Mode: Javascript; Character-encoding: utf-8; */
+
+/* DO NOT EDIT THIS FILE!! It is automatically */
+/*   generated from the file "metabook/html/attach.html" */
+
+metaBook.HTML.attach=
+    "<form id=\"METABOOKATTACHFORM\" target=\"METABOOKGLOSSCOMM\"\n"+
+    "      method=\"POST\" enctype=\"multipart/form-data\" accept-charset=\"utf-8\"\n"+
+    "      action=\"https://glosses.sbooks.net/1/attach\"\n"+
+    "      class=\"link\">\n"+
+    "  <table class=\"fdjtform\"\n"+
+    "         onclick=\"fdjt.UI.CheckSpan.onclick(event);\">\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"GLOSSID\" VALUE=\"\" id=\"METABOOKUPLOADGLOSSID\"/>\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"ITEMID\" VALUE=\"\" id=\"METABOOKUPLOADITEMID\"/>\n"+
+    "    <tr class=\"attachtype\">\n"+
+    "      <th class=\"headcell\">\n"+
+    "        Attach<img src=\"{{bmg}}metabook/gloss_attach.svgz\"/></th>\n"+
+    "      <td>\n"+
+    "        <button id=\"METABOOKATTACHDELETE\" NAME=\"ATTACH\" VALUE=\"DELETE\">\n"+
+    "          Delete</button>\n"+
+    "        <span class=\"checkspan ischecked\"\n"+
+    "              title=\"Attach a link to this gloss\">\n"+
+    "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"link\"\n"+
+    "                 onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
+    "                 CHECKED/>\n"+
+    "          Link</span>\n"+
+    "        <span class=\"checkspan\"\n"+
+    "              title=\"Upload a file and attach it to this gloss\">\n"+
+    "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"upload\"\n"+
+    "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
+    "          File</span>\n"+
+    "        <span class=\"checkspan\"\n"+
+    "              title=\"Create or edit a 'body' for this gloss\">\n"+
+    "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"body\"\n"+
+    "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
+    "          Body</span>\n"+
+    "        <span class=\"checkspan disabled\"\n"+
+    "              title=\"Attach audio or video recorded on this device\">\n"+
+    "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"capture\"\n"+
+    "                 onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
+    "                 disabled=\"DISABLED\"/>\n"+
+    "          Capture</span>\n"+
+    "      </td>\n"+
+    "      <th class=\"button\">\n"+
+    "        <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"LINK\">\n"+
+    "          Link</button>\n"+
+    "        <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" VALUE=\"UPLOAD\">\n"+
+    "          Save</button>\n"+
+    "        <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" VALUE=\"SAVE\">\n"+
+    "          Save</button>\n"+
+    "        <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"BODY\">\n"+
+    "          Save</button>\n"+
+    "        <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"DONE\">\n"+
+    "          Done</button>\n"+
+    "        <button id=\"METABOOKATTACHCANCEL\" VALUE=\"CANCEL\">\n"+
+    "          Cancel</button></th>\n"+
+    "    </tr>\n"+
+    "    <tr class=\"title\">\n"+
+    "      <th>Label</th>\n"+
+    "      <td colspan=\"2\">\n"+
+    "        <INPUT TYPE=\"TEXT\" NAME=\"TITLE\" VALUE=\"\" ID=\"METABOOKATTACHTITLE\"\n"+
+    "               placeholder=\"a descriptive label\"/></tr>\n"+
+    "    <tr class=\"checkspan uploadrights\"\n"+
+    "        id=\"METABOOKUPLOADRIGHTS\">\n"+
+    "      <th><input TYPE=\"CHECKBOX\" NAME=\"FILEOKAY\" VALUE=\"yes\"/></th>\n"+
+    "      <td colspan=\"2\">\n"+
+    "        I affirm that I have the right to use and share this\n"+
+    "        content according to the &sBooks;\n"+
+    "        <a href=\"https://www.sbooks.net/legalia/TOS/\" target=\"_blank\">\n"+
+    "          Terms of Service</a>.</td>\n"+
+    "    </tr>\n"+
+    "    <tr class=\"url\">\n"+
+    "      <th>URL</th>\n"+
+    "      <td colspan=\"2\">\n"+
+    "        <input TYPE=\"TEXT\" NAME=\"URL\" VALUE=\"\"\n"+
+    "               ID=\"METABOOKATTACHURL\" class=\"fdjturlinput\"\n"+
+    "               placeholder=\"a URL to attach\"/>\n"+
+    "      </td>\n"+
+    "    </tr>\n"+
+    "    <tr class=\"uploadfile\">\n"+
+    "      <th>Upload<input TYPE=\"FILE\" NAME=\"UPLOAD\" ID=\"METABOOKFILEINPUT\"/></th>\n"+
+    "      <td id=\"METABOOKATTACHFILE\" class=\"nofile\" colspan=\"2\">\n"+
+    "        <span class=\"mbdragmessage\">Drag a file here or click to browse</span>\n"+
+    "        <span class=\"mbmessage\">Tap to find files or media</span>\n"+
+    "        <span class=\"mbfilename\" id=\"METABOOKATTACHFILENAME\"></span>\n"+
+    "    </td></tr>\n"+
+    "    <tbody class=\"glossbody\" id=\"METABOOKGLOSSBODY\">\n"+
+    "      <tr>\n"+
+    "        <td colspan=\"3\">\n"+
+    "          <textarea NAME=\"BODYTEXT\" ID=\"METABOOKGLOSSBODYTEXT\"></textarea>\n"+
+    "      </td></tr>\n"+
+    "    </tbody>\n"+
+    "  </table>\n"+
+    "</form>\n"+
     "";
 /* Mode: Javascript; Character-encoding: utf-8; */
 
@@ -39101,7 +39768,7 @@ metaBook.HTML.help=
     "  <span class=\"notouch\">the pointer</span></strong> to highlight an\n"+
     "excerpt.</p>\n"+
     "<p style=\"text-indent: 0px;\">\n"+
-    "  <span class=\"glossbarbox\">&nbsp;</span>\n"+
+    "  <span class=\"glossbarbox\"> </span>\n"+
     "  <strong>Blue <dfn>gloss bars</dfn></strong> in the right margin\n"+
     "  indicate glosses already overlaid on your\n"+
     "  book.  <strong><span class=\"fortouch\">Tap or drag\n"+
@@ -39947,15 +40614,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2436-g3baca3a';
+metaBook.version='v0.5-2468-g45706b9';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sun Feb 15 18:02:50 EST 2015';
-metaBook.buildid='35d8ef8c-d37b-46ea-ba5e-cc9c9d1c3a75';
+metaBook.buildtime='Mon Feb 23 09:51:50 EST 2015';
+metaBook.buildid='af97124e-192f-477f-95fd-c88096c5631d';
 
 Knodule.version='v0.8-145-gf3ac2cb';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sun Feb 15 18:02:50 EST 2015';
-metaBook.buildid='0ac61be0-7545-4391-9a7a-7091beafe553';
+metaBook.buildtime='Mon Feb 23 10:02:40 EST 2015';
+metaBook.buildid='06cec52f-0c69-4015-9f72-004c296a519c';
 
-fdjt.CodexLayout.sourcehash='DA552448B72442456D4DEC77D1D3EE2F69EA0F1E';
+fdjt.CodexLayout.sourcehash='8292209924A0E47C7821197D225D2D5C32502A38';

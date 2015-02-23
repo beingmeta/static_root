@@ -2051,6 +2051,18 @@ body._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
     color: black;}
 .rootform { font-weight: bold; }
 
+/* Gloss links */
+
+.glosslink {
+    background-color: lightblue;
+    border: solid blue 1px;
+    padding-right: 1ex; border-radius: 1ex;}
+.glosslink .linktext { color: blue; }
+.glosslink .linktext {
+    text-decoration: underline;}
+.glosslink.glossdata .linktext {
+    text-decoration: overline;}
+
 /*
 div.searchbox div.query span.dterm {
     padding-right: 0.35em; padding-left: 1ex;
@@ -2210,36 +2222,9 @@ body._MOUSE .glossmark#METABOOKOPENGLOSSMARK.hover > img {
 .glossmark img.wedge {
     position: absolute; right: 0px; top: 0px;}
 
-.metabookglossbutton {
-    position: absolute; left: 0px;
-    margin: 0px; padding: 0px; text-indent: 0px; 
-    border: solid transparent 2px;
-    width: 32px; height: 32px; z-index: 50;
-    border-right-width: 0px;
-    /* margin-left: -50px; */
-    opacity: 0.0001;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=1)";
-    filter: alpha(opacity=1);
-    -webkit-opacity: 0.0001;
-    -khtml-opacity: 0.0001;
-    -moz-opacity: 0.0001;
-    -o-opacity: 0.0001;
-    display: none;}
-body.hudup .metabookglossbutton {
-    opacity: 0.5;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-    filter: alpha(opacity=50);
-    -webkit-opacity: 0.50;
-    -khtml-opacity: 0.50;
-    -moz-opacity: 0.50;
-    -o-opacity: 0.50;}
-body.hudup .metabooktarget .metabookglossbutton { display: block;}
-body.hudup .metabooktarget.metabookglosstarget .metabookglossbutton {
-    background-color: lightblue;}
-
 /* Displaying the sbook target */
 
-body._ANIMATE .metabooktarget, body.mbSHRINK .metabooktarget {
+body._ANIMATE .mbtarget, body.mbSHRINK .mbtarget {
     transition-property: color,background-color;
     transition-duration: 6s;
     -o-transition-property: color,background-color;
@@ -2248,26 +2233,26 @@ body._ANIMATE .metabooktarget, body.mbSHRINK .metabooktarget {
     -moz-transition-duration: 6s;
     -webkit-transition-property: color,background-color;
     -webkit-transition-duration: 6s;}
-body.hudup .metabooktarget, body.mbSHRINK .metabooktarget {
+body.hudup .mbtarget, body.mbSHRINK .mbtarget {
     cursor: pointer;}
-body.hudup .metabooktarget, body.mbSHRINK .metabooktarget,
-body.mbSKIMMING .metabooktarget {
+body.hudup .mbtarget, body.mbSHRINK .mbtarget,
+body.mbSKIMMING .mbtarget {
     outline: dotted silver 2px;}
 
-body.hudup .metabooktarget.metabooknewtarget {
+body.hudup .mbtarget.mbnewtarget {
     background-color: inherit; }
-.metabooknewtarget {color: blue; }
-div.sbooksection.metabooknewtarget, section.metabooknewtarget,
-div.sbooksection.metabooknewtarget > *, section.metabooknewtarget > * {
+.mbnewtarget {color: blue; }
+div.sbooksection.mbnewtarget, section.mbnewtarget,
+div.sbooksection.mbnewtarget > *, section.mbnewtarget > * {
     color: inherit;}
-section.metabooknewtarget > *:first-child,
-div.sbooksection.metabooknewtarget > *:first-child {
+section.mbnewtarget > *:first-child,
+div.sbooksection.mbnewtarget > *:first-child {
     color: blue;}
 
 /* Don't color the body
    (actually, the body should probably never be a target, but when it is...)
 */
-body.metabooktarget { color: inherit;}
+body.mbtarget { color: inherit;}
 
 body._ANIMATE .glossmark > img {
     transition-property: opacity;
@@ -2279,11 +2264,11 @@ body._ANIMATE .glossmark > img {
     -webkit-transition-property: opacity;
     -webkit-transition-duration: 0.5s;}
 
-.metabooktarget > .glossmark {
+.mbtarget > .glossmark {
     border-right-color: blue;} /* double */
 
-body._MOUSE.hudup .metabooktarget .glossmark:hover > img,
-body._MOUSE.hudup .metabooktarget .glossmark.hover > img {
+body._MOUSE.hudup .mbtarget .glossmark:hover > img,
+body._MOUSE.hudup .mbtarget .glossmark.hover > img {
     opacity: 0.9;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     filter: alpha(opacity=90);
@@ -2292,8 +2277,8 @@ body._MOUSE.hudup .metabooktarget .glossmark.hover > img {
     -moz-opacity: 0.90;
     -o-opacity: 0.90;}
 
-body._TOUCH.hudup .metabooktarget > .glossmark > img,
-body._TOUCH.openhud .metabooktarget > .glossmark > img {
+body._TOUCH.hudup .mbtarget > .glossmark > img,
+body._TOUCH.openhud .mbtarget > .glossmark > img {
     opacity: 0.80;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
     filter: alpha(opacity=80);
@@ -2367,27 +2352,16 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 .avoidbreakinside { page-break-inside: avoid;}
 
 .alwaysbreakbefore { page-break-before: always;}
-.alwaysbreakbefore.metabookdup, .alwaysbreakbefore.metabookdupend {
-    page-break-before: auto;}
 .alwaysbreakafter { page-break-after: always;}
-.alwaysbreakafter.metabookdup, .alwaysbreakafter.metabookdupstart {
-    page-break-after: auto;}
 
 .avoidbreakbefore { page-break-before: avoid;}
-.avoidbreakbefore.metabookdup, .avoidbreakbefore.metabookdupend {
-    page-break-before: auto;}
 
 .avoidbreakafter { page-break-after: avoid;}
 .avoidbreakafter.metabookdupstart, .avoidbreakafter.metabookdup {
     page-break-after: auto;}
 
 .forcebreakbefore { page-break-before: always;}
-.forcebreakbefore.metabookdup, .forcebreakbefore.metabookdupend {
-    page-break-before: auto;}
-
 .forcebreakafter { page-break-after: always;}
-.forcebreakafter.metabookdupstart, .forcebreakafter.metabookdup {
-    page-break-after: auto;}
 
 .sbookpage {
     display: block; 
@@ -2620,12 +2594,6 @@ body #METABOOKBODY #CODEXPAGE .codexpage .metabookdup {
     border-bottom-width: 0px;
     margin-bottom: 0px;}
 body #METABOOKBODY #CODEXPAGE .codexpage p.metabookdup,
-body #METABOOKBODY #CODEXPAGE .codexpage p.metabookdupend {
-    text-indent: 0px;}
-body #METABOOKBODY #CODEXPAGE .codexpage .metabookdupend {
-    padding-top: 0px;
-    border-top-width: 0px;
-    margin-top: 0px;}
 
 img.metabookcoverpage {
     display: block;
@@ -2635,32 +2603,32 @@ img.metabookcoverpage {
 
 /* Highlighting */
 
-body.mbSKIMMING .metabookhighlightexcerpt,
-body.mbPREVIEW .metabookhighlightexcerpt,
-body.openhud .metabookhighlightexcerpt {
+body.mbSKIMMING .mbhighlightexcerpt,
+body.mbPREVIEW .mbhighlightexcerpt,
+body.openhud .mbhighlightexcerpt {
     background-color: yellow;}
-body.mbSKIMMING .metabookhighlightpassage,
-body.mbPREVIEW .metabookhighlightpassage,
-body.openhud .metabookhighlightpassage {
+body.mbSKIMMING .mbhighlightpassage,
+body.mbPREVIEW .mbhighlightpassage,
+body.openhud .mbhighlightpassage {
     background-color: rgba(255, 255, 0, 0.21);}
-body.mbSKIMMING .metabookhighlightsearch,
-body.mbPREVIEW .metabookhighlightsearch {
+body.mbSKIMMING .mbhighlightsearch,
+body.mbPREVIEW .mbhighlightsearch {
     background-color: gold;}
-.metabookpreviewtarget {
+.mbpreviewing {
     color: rgb(122,34,95);
     background-color: rgba(255,215,0,0.3);}
-section.metabookpreviewtarget, div.html5section.metabookpreviewtarget,
-section.metabookpreviewtarget p, div.html5section.metabookpreviewtarget p,
-section.metabookpreviewtarget h1, div.html5section.metabookpreviewtarget h1,
-section.metabookpreviewtarget h2, div.html5section.metabookpreviewtarget h2,
-section.metabookpreviewtarget h3, div.html5section.metabookpreviewtarget h3,
-section.metabookpreviewtarget h4, div.html5section.metabookpreviewtarget h4,
-section.metabookpreviewtarget h5, div.html5section.metabookpreviewtarget h5,
-section.metabookpreviewtarget h6, div.html5section.metabookpreviewtarget h6,
-section.metabookpreviewtarget h7, div.html5section.metabookpreviewtarget h7 {
+section.mbpreviewing, div.html5section.mbpreviewing,
+section.mbpreviewing p, div.html5section.mbpreviewing p,
+section.mbpreviewing h1, div.html5section.mbpreviewing h1,
+section.mbpreviewing h2, div.html5section.mbpreviewing h2,
+section.mbpreviewing h3, div.html5section.mbpreviewing h3,
+section.mbpreviewing h4, div.html5section.mbpreviewing h4,
+section.mbpreviewing h5, div.html5section.mbpreviewing h5,
+section.mbpreviewing h6, div.html5section.mbpreviewing h6,
+section.mbpreviewing h7, div.html5section.mbpreviewing h7 {
     color: rgb(122,34,95); } 
 
-.metabookuserexcerpt {
+.mbexcerpt {
     text-shadow: 0.2ex 0.2ex rgba(255, 215, 0, 0.53);}
 
 /* Startup messages */
@@ -3013,6 +2981,8 @@ body.mbSHOWHELP.mbZOOM #METABOOKZOOMHELPTEXT { display: block; }
     transform-origin: 0px 0px;
     -webkit-transform-origin: 0px 0px;
     -moz-transform-origin: 0px 0px;}
+img#METABOOKMEDIATARGET {
+    max-height: 90%; max-width: 90%;}
 
 body.mbMEDIA #METABOOKMEDIA {
     min-width: 100%; min-height: 100%;
@@ -3102,7 +3072,7 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -3211,7 +3181,7 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2014 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
     large structured documents (sBooks).
 
@@ -4731,8 +4701,6 @@ body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
     max-width: 80vw; min-width: 15em; min-height: 20px; 
     background-color: rgb(255,255,240);
     border: solid blue 5px; overflow: auto;
-    border-radius: 1ex; -webkit-border-radius: 1ex;
-    -o-border-radius: 1ex; -moz-border-radius: 1ex;
     position: absolute;}
 #METABOOKHUD.openglossmark #METABOOKPOINTGLOSSES.hudpanel {
     opacity: 0.95;
@@ -4748,7 +4716,11 @@ body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 #METABOOKHUD #METABOOKPOINTGLOSSES.hudpanel {
     border: solid blue 2px;
     border-radius: 1ex; -webkit-border-radius: 1ex;
-    -o-border-radius: 1ex; -moz-border-radius: 1ex;}
+    -o-border-radius: 1ex; -moz-border-radius: 1ex;
+    border-top-right-radius: 0px; -webkit-border-top-right-radius: 0px;
+    -o-border-top-right-radius: 0px; -moz-border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px; -webkit-border-bottom-right-radius: 0px;
+    -o-border-bottom-right-radius: 0px; -moz-border-bottom-right-radius: 0px;}
 
 #METABOOKHUD.openglossmark #METABOOKPOINTGLOSSES.hudpanel {
     display: block;}
@@ -5250,7 +5222,7 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
         bottom: 50px; top: auto;}
 }
 @media screen and (max-width: 500px) {
-    #METABOOKHUD.openhead #METABOOKHEAD {
+    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
         left: 5px; right: 5px;}
     body.mbSKIMMING .hudbutton,
     body.hudup.mbSKIMMING .hudbutton, 
@@ -5269,6 +5241,8 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
         font-size: 60%;}
 }
 @media (max-width: 700px) {
+    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
+        left: 10px; right: 10px;}
     #METABOOKHUD.openhead #METABOOKHEAD,
     #METABOOKHUD.openheart #METABOOKHEART,
     #METABOOKHUD.openfoot #METABOOKFOOT,
@@ -5825,6 +5799,26 @@ p .floatleft img, p img.floatleft {
 div.codexpage img {
     max-height: 90% !important; max-width: 90% !important;
     width: auto; height: auto;}
+
+/* Add some layout override rules */
+body #METABOOKBODY #CODEXPAGE .codexpage p.codexdupend,
+body #METABOOKBODY #CODEXPAGE .codexpage p.codexdup {
+    text-indent: 0px;}
+body #METABOOKBODY #CODEXPAGE .codexpage .codexdupstart {
+    padding-bottom: 0px;
+    border-bottom-width: 0px;
+    margin-bottom: 0px;}
+body #METABOOKBODY #CODEXPAGE .codexpage .codexdupend {
+    padding-top: 0px;
+    border-top-width: 0px;
+    margin-top: 0px;}
+body #METABOOKBODY #CODEXPAGE .codexpage .codexdup {
+    padding-bottom: 0px;
+    border-bottom-width: 0px;
+    margin-bottom: 0px;
+    padding-top: 0px;
+    border-top-width: 0px;
+    margin-top: 0px;}
 
 /* Anchor display */
 
@@ -7385,6 +7379,7 @@ div.metabookcard > hr {
     height: 40px; width: 40px; opacity: 0.3; clear: right;
     /* This makes it overlap the date, tightening things up generally */
     margin-right: 6px; margin-top: -1em;}
+._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
 .metabookcard span.glossbody {
     background-color: lightblue; color: black;
     padding: 2px; margin-top: 2px;
@@ -7595,7 +7590,7 @@ body._ANIMATE .qtags {
 
 @charset "UTF-8";
 
-div.metabookglosstarget {}
+div.mbglosstarget {}
 
 /* Gloss form */
 
@@ -7617,7 +7612,7 @@ body.hudup #METABOOKADDGLOSS div.metabookglossform {
 div.metabookglossform form div.textbox,
 div.metabookglossform form div.glossetc {
     max-height: 90%; font-size: 0.6em;
-    clear: left; text-align: left; margin-right: 60px;
+    clear: left; text-align: left; margin-right: 70px;
     padding-right: 3px; padding-top: 3px;
     box-sizing: border-box; -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;}
@@ -7625,7 +7620,7 @@ div.metabookglossform.focused form div.textbox,
 div.metabookglossform.focused form div.glossetc {
     max-height: inherit;}
 div.metabookglossform form div.glossetc {
-    overflow: hidden;}
+    padding-bottom: 0.5ex; overflow: hidden;}
 div.metabookglossform form div.textbox textarea,
 div.metabookglossform form div.textbox input[type="TEXT"] {
     min-height: 1.5em; max-height: 3em; padding: 2px;}
@@ -7678,6 +7673,7 @@ div.metabookglossform div .respdate {
 
 div.metabookglossform form {
     padding: 0px; margin: 0px;}
+div.metabookglossform form .excerpt { }
 div.metabookglossform form .excerpt.empty { display: none;}
 div.metabookglossform form .checkspan.excerpt {
     white-space: normal; text-decoration: line-through;}
@@ -7767,39 +7763,19 @@ div.metabookglossform .glossetc .glossdate {
 div.metabookglossform.focused form .glossetc .glossdate {
     padding-bottom: 1ex;}
 
-div.metabookglossform .glossetc .glossdate,
-div.metabookglossform .glossetc .glossexposure {
+div.metabookglossform .glossetc .glossdate {
     float: right;}
-div.metabookglossform .glossetc .glossexposure,
 div.metabookglossform .glossetc .excerpt {
-    font-size: 0.5em;}
-div.metabookglossform.focused .glossetc .glossexposure,
+    font-size: 0.8em;}
 div.metabookglossform.focused .glossetc .excerpt {
     font-size: 1em;}
 
-div.metabookglossform form .glossexposure .checkspan {
-    float: right; margin-right: 1ex; margin-top: 2px;
-    font-variant: smallcaps; vertical-align: top;}
-div.metabookglossform form .glossexposure .checkspan span {
-    vertical-align: middle;}
 div.metabookglossform.private .checkspan.postgloss {
     display: none;}
 
-div.metabookglossform form .glossexposure, div.metabookglossform form .excerpt {
     display: none; }
-body.hudup div.metabookglossform form .glossexposure,
 body.hudup div.metabookglossform form .excerpt {
     display: inline-block; }
-
-#METABOOKHUD .metabookglossform .checkspan.private {
-    color: white; font-weight: bold; background-color: green;
-    text-align: center;}
-#METABOOKHUD .metabookglossform .checkspan.private input { display: none; }
-#METABOOKHUD .metabookglossform .checkspan.private.ischecked {
-    background-color: red; color: white;}
-#METABOOKHUD .metabookglossform .checkspan.private span {
-    padding-left: 1ex; padding-right: 1ex;
-    vertical-align: top;}
 
 div.metabookglossform .checkspan.postgloss {}
 div.metabookglossform .checkspan.postgloss input[type='checkbox'] {
@@ -7808,8 +7784,8 @@ div.metabookglossform .checkspan.postgloss img {
     height: 2ex; width: auto; padding: 0px; margin: 0px; border: 0px;
     vertical-align: top;}
 
-div.metabookglossform.glossedit form .glossetc .glossdate {
-    display: inline-block;}
+/* div.metabookglossform.glossedit form .glossetc .glossdate {
+    display: inline-block;} */
 
 div.metabookglossform form div.glossetc .twisty { display: none;}
 div.metabookglossform form div.glossetc.overflow .twisty { display: none;}
@@ -7820,8 +7796,6 @@ body.hudup div.metabookglossform form div.glossetc {
     max-height: inherit;}
 body.hudup div.metabookglossform.focused form div.glossetc {
     overflow: visible;}
-div.metabookglossform form div.glossetc .glossexposure .checkspan input {
-    vertical-align: top;}
 
 div.metabookglossform form div.glossetc .notespan {
     color: purple; font-weight: bold;}
@@ -7834,7 +7808,8 @@ div.metabookglossform form div.glossetc .excerpt .delision {
 div.metabookglossform form div.glossetc .checkspan.excerpt.ischecked {
     font-weight: normal;}
 div.metabookglossform form div.glossetc .links,
-div.metabookglossform form div.glossetc .tags {}
+div.metabookglossform form div.glossetc .tags {
+    line-height: 140%;}
 
 div.metabookglossform form div.glossetc .tags span.checkspan .term {
     color: black;}
@@ -7842,25 +7817,38 @@ div.metabookglossform form div.glossetc .tags span.checkspan .term {
 div.metabookglossform form div.glossetc .tags span.checkspan {
     padding: 2px; padding-top: 0px;}
 div.metabookglossform form div.glossetc .checkspan.waschecked {
-    text-decoration: line-through; text-decoration-color: red;}
+    text-decoration: line-through; color: red;}
+div.metabookglossform form div.glossetc .glosslink.checkspan.waschecked
+   span.linktext { opacity: 0.6; text-decoration: none;}
 div.metabookglossform form div.glossetc .checkspan.ischecked {
-    text-decoration: none;}
+    text-decoration: none; color: inherit;}
 div.metabookglossform form div.glossetc .checkspan.waschecked.ischecked {
     text-decoration: none;}
 div.metabookglossform form div.glossetc .outlets,
 div.metabookglossform form div.glossetc .tags { 
     line-height: 0.6;}
 div.metabookglossform form div.glossetc .outlets { padding-left: 1px;}
-div.metabookglossform form div.glossetc .links { padding-left: 1px;}
+div.metabookglossform form div.glossetc .links {
+    padding-left: 1px; padding-right: 1em;}
 div.metabookglossform form div.glossetc .checkspan img {
-    height: 1.7ex; width: auto; vertical-align: bottom;
+    height: 1.7ex; width: auto; vertical-align: baseline;
     padding-left: 0.8ex; padding-top: 2px;}
 div.metabookglossform form div.glossetc .checkspan input {
     margin-left: 0px;}
 div.metabookglossform form div.glossetc .checkspan.anchor input,
 div.metabookglossform form div.glossetc .checkspan.outlet input,
-div.metabookglossform form div.glossetc .checkspan.glosstag input {
+div.metabookglossform form div.glossetc .checkspan.glosstag input,
+div.metabookglossform form div.glossetc .checkspan.glosslink input {
     display: none;}
+
+div.metabookglossform form div.glossetc .glosslink span.linktext {
+    color: blue; text-decoration: underline;}
+div.metabookglossform form div.glossetc .glosslink.glossdata span.linktext {
+    text-decoration: overline;}
+div.metabookglossform .glosslink.waschecked {
+    background-color: pink; border-color: red;}
+div.metabookglossform .glosslink.ischecked.waschecked {
+    background-color: lightblue; border-color: blue;}
 
 div.metabookglossform form div.glossetc .outlets.empty,
 div.metabookglossform form div.glossetc .links.empty,
@@ -7909,10 +7897,6 @@ div.metabookglossform div.glossetc .networks img {
 div.metabookglossform form div.glossetc .links span.checkspan a {
     color: darkblue;}
 div.metabookglossform form div.glossetc span.checkspan input {}
-
-div.metabookglossform form div.glossetc > .checkspan.private {
-    float: right; vertical-align: top; margin-left: 4px;
-    padding-top: 0px; margin-top: 0px;}
 
 div.metabookglossform form .button {
     font-weight: bold; color: black; font-size: 24px;
@@ -8059,9 +8043,72 @@ body.hudup #METABOOKHUD.addgloss.glossaddoutlet
           div.completions#METABOOKSHARECLOUD {
     display: block;}
 #METABOOKGLOSSATTACH {
-    font-size: 1.2rem; padding-top: 1ex;}
+    font-size: 1.2rem; padding-top: 1ex;
+    min-height: 90%;}
 body.hudup #METABOOKHUD.addgloss.glossattach {
     display: block;}
+#METABOOKGLOSSATTACH tr { display: none; }
+#METABOOKGLOSSATTACH .glossbody tbody.glossbody tr {
+    display: table-row; }
+
+#METABOOKGLOSSATTACH tr.title, #METABOOKGLOSSATTACH tr.attachtype {
+    display: table-row;}
+
+#METABOOKGLOSSATTACH .upload tr.uploadrights,
+#METABOOKGLOSSATTACH .link tr.url,
+#METABOOKGLOSSATTACH .upload tr.uploadfile {
+    display: table-row;}
+
+td#METABOOKATTACHFILE {
+    background-color: lightgray;
+    padding-bottom: 2em; padding-top: 1em;
+    text-align: center;
+    cursor: pointer;}
+#METABOOKATTACHFILE span {
+    font-size: 120%; font-size: 1.5rem;
+    display: none;}
+input#METABOOKFILEINPUT[TYPE="FILE"] { display: none;}
+
+#METABOOKATTACHFILE span.mbmessage,
+#METABOOKATTACHFILE span.mbdragmessage {
+    font-style: italic;}
+._MOUSE #METABOOKATTACHFILE span.mbdragmessage,
+._TOUCH #METABOOKATTACHFILE span.mbmessage {
+    display: inline;}
+._MOUSE .haveupload #METABOOKATTACHFILE span.mbdragmessage,
+._TOUCH .haveupload #METABOOKATTACHFILE span.mbmessage {
+    display: none;}
+
+#METABOOKATTACHFILE span.mbfilename {
+    font-family: fixed; font-weight: bold;}
+#METABOOKGLOSSATTACH.haveupload #METABOOKATTACHFILE span.mbfilename {
+    display: inline;}
+
+#METABOOKGLOSSATTACH .checkspan { color: gray; }
+#METABOOKGLOSSATTACH .checkspan.ischecked {
+    color: black; font-weight: normal;}
+
+#METABOOKGLOSSATTACH button { display: none;}
+#METABOOKGLOSSATTACH button[VALUE="DELETE"] {
+    float: right; color: red; font-weight: bold;
+    background-color: lightgray;}
+
+#METABOOKGLOSSATTACH button[VALUE="CANCEL"],
+#METABOOKGLOSSATTACH .body button[VALUE="BODY"],
+#METABOOKGLOSSATTACH .upload button[VALUE="UPLOAD"],
+#METABOOKGLOSSATTACH .link button[VALUE="LINK"],
+#METABOOKGLOSSATTACH .editlink button[VALUE="DELETE"],
+#METABOOKGLOSSATTACH .editlink button[VALUE="SAVE"] {
+    display: block;}
+
+#METABOOKGLOSSATTACH .editlink.upload button[VALUE="UPLOAD"],
+#METABOOKGLOSSATTACH .editlink.link button[VALUE="LINK"] {
+    display: none;}
+
+#METABOOKGLOSSATTACH tr.title td,
+#METABOOKGLOSSATTACH tr.uploadrights td,
+#METABOOKGLOSSATTACH tr.attachtype td {
+    padding-bottom: 1ex;}
 
 #METABOOKGLOSSATTACH table { color: black; }
 #METABOOKGLOSSATTACH table tr th:first-child {
@@ -8074,24 +8121,23 @@ body.hudup #METABOOKHUD.addgloss.glossattach {
 
 #METABOOKGLOSSATTACH tr.attachtype {
     border-bottom: solid transparent 1em;}
-#METABOOKGLOSSATTACH .attachtype td .checkspan.ischecked {
-    font-size: 100%;}
-#METABOOKGLOSSATTACH .attachtype td .checkspan {
-    display: inline-block; padding-left: 1ex; padding-right: 1ex;}
 #METABOOKGLOSSATTACH .attachtype td { vertical-align: middle; }
+#METABOOKGLOSSATTACH .editlink .attachtype td {
+    vertical-align: top;}
+#METABOOKGLOSSATTACH .attachtype td .checkspan {
+    display: inline-block; padding-right: 1em;}
 
-#METABOOKGLOSSATTACH tbody.upload { display:  none;}
-#METABOOKGLOSSATTACH form.uploading tbody.upload {
-    display:  table-row-group;}
-#METABOOKGLOSSATTACH form.uploading tr.url { display: none; }
+#METABOOKGLOSSATTACH .upload tr.url,
+#METABOOKGLOSSATTACH .body tr.url,
+#METABOOKGLOSSATTACH .capture tr.url {
+    display: none; }
+#METABOOKGLOSSATTACH .body tr.title { display: none; }
 
 #METABOOKGLOSSATTACH tbody.glossbody { display: none;}
-#METABOOKGLOSSATTACH form.glossbody tbody.glossbody {
+#METABOOKGLOSSATTACH .body tbody.glossbody {
     display: table-row-group;}
-#METABOOKGLOSSATTACH form.glossbody tbody.glossbody textarea {
+#METABOOKGLOSSATTACH .body tbody.glossbody textarea {
     min-height: 10em; width: 100%;}
-#METABOOKGLOSSATTACH form.glossbody tr.title { display: none; }
-#METABOOKGLOSSATTACH form.glossbody tr.url { display: none; }
 
 #METABOOKGLOSSATTACH tr.spacing td { height: 1ex;}
 
@@ -8102,8 +8148,8 @@ body.hudup #METABOOKHUD.addgloss.glossattach {
 #METABOOKGLOSSATTACH tr.fileokay a { color: blue; text-decoration: underline;}
 #METABOOKGLOSSATTACH tr.fileokay.ischecked {
     color: green; font-weight: normal;}
-#METABOOKGLOSSATTACH table.fdjtform td input[type="TEXT"],
-#METABOOKGLOSSATTACH table.fdjtform td input[type="URL"] {
+#METABOOKGLOSSATTACH td input[type="TEXT"],
+#METABOOKGLOSSATTACH td input[type="URL"] {
     box-sizing: border-box; width: 100%;}
 #METABOOKGLOSSATTACH th button { width: 5em; }
 
@@ -8146,11 +8192,11 @@ body._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
 
 div.metabookglossform form div.addglossmenu {
     position: absolute; top: 0px; right: 0px;
-    width: 50px; margin-right: 5px; margin-left: 5px;
+    width: 60px; margin-right: 5px; margin-left: 5px;
     z-index: 800;}
 
 div.metabookglossform form div.addglossmenu > img {
-    width: 40px; height: 40px; padding: 2px; 
+    width: 50px; height: 50px; padding: 2px; 
     box-sizing: content-box;
     display: none; }
 div.metabookglossform form div.addglossmenu > img.held {
@@ -8158,19 +8204,25 @@ div.metabookglossform form div.addglossmenu > img.held {
 div.metabookglossform form div.addglossmenu.expanded > img {
     margin-bottom: 4px;}
 
-
-body._TOUCH div.metabookglossform form div.addglossmenu > img.held {
+._TOUCH div.metabookglossform
+  form div.addglossmenu > img.held {
     width: 80px; height: 80px; margin-left: -20px;}
-body._TOUCH div.metabookglossform form div.addglossmenu > img.held.menutop {
+._TOUCH div.metabookglossform 
+  form div.addglossmenu > img.held.menutop {
     width: 40px; height: 40px; margin-left: 0px;}
-div.metabookglossform form div.addglossmenu > img.menutop[alt="downmenu"],
-div.metabookglossform form div.addglossmenu.expanded > img.menutop[alt="upmenu"],
-div.metabookglossform form div.addglossmenu.held > img.menutop[alt="holdmenu"] {
+div.metabookglossform
+  form div.addglossmenu > img.menutop[alt="downmenu"],
+div.metabookglossform
+  form div.addglossmenu.expanded > img.menutop[alt="upmenu"],
+div.metabookglossform
+  form div.addglossmenu.held > img.menutop[alt="holdmenu"] {
     display: block; }
-div.metabookglossform form div.addglossmenu.expanded.held > img.menutop[alt="upmenu"] {
+div.metabookglossform 
+  form div.addglossmenu.expanded.held > img.menutop[alt="upmenu"] {
     display: none;}
 
-div.metabookglossform form div.addglossmenu.expanded > img {
+div.metabookglossform
+  form div.addglossmenu.expanded > img {
     display: block; opacity: 0.90;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     filter: alpha(opacity=90);
@@ -8178,27 +8230,56 @@ div.metabookglossform form div.addglossmenu.expanded > img {
     -khtml-opacity: 0.90;
     -moz-opacity: 0.90;
     -o-opacity: 0.90;}
-div.metabookglossform form div.addglossmenu.expanded > img.menutop {
+div.metabookglossform
+  form div.addglossmenu.expanded > img.menutop {
     display: none;}
 
-div.metabookglossform form.addtag div.addglossmenu > img.menutop {
+div.metabookglossform
+  form.addtag div.addglossmenu > img.menutop {
     display: none; }
-div.metabookglossform form.addtag div.addglossmenu > img[alt="addtag"] {
+div.metabookglossform
+  form.addtag div.addglossmenu > img[alt="addtag"] {
     display: block; }
 
-div.metabookglossform form.attach div.addglossmenu > img.menutop {
+div.metabookglossform 
+  form.attach div.addglossmenu > img.menutop {
     display: none; }
-div.metabookglossform form.attach div.addglossmenu > img[alt="attach"] {
+div.metabookglossform
+  form.attach div.addglossmenu > img[alt="attach"] {
     display: block; }
 
-div.metabookglossform form.addoutlet div.addglossmenu > img.menutop {
+div.metabookglossform
+  form.addoutlet div.addglossmenu > img.menutop {
     display: none; }
-div.metabookglossform form.addoutlet div.addglossmenu > img[alt="addoutlet"] {
+div.metabookglossform 
+  form.addoutlet div.addglossmenu > img[alt="addoutlet"] {
     display: block; }
 
-div.metabookglossform.glossreply form div.addglossmenu.expanded > img[alt="glossrespond"],
-div.metabookglossform.glossadd form div.addglossmenu.expanded > img[alt="glossrespond"] {
+div.metabookglossform.glossreply 
+  form div.addglossmenu.expanded > img[alt="glossrespond"],
+div.metabookglossform.glossadd
+  form div.addglossmenu.expanded > img[alt="glossrespond"] {
     display: none;}
+
+div.metabookglossform span.glossexposure {
+    margin-right: 1.2ex; margin-left: 0.5ex;
+    float: right;}
+div.metabookglossform form div.glossetc .glossexposure .checkspan input {
+    vertical-align: top;}
+
+div.metabookglossform form .glossexposure .checkspan {
+    float: right; margin-top: 2px; margin-right: 0px;
+    font-variant: smallcaps; vertical-align: top;}
+div.metabookglossform form .glossexposure .checkspan span {
+    vertical-align: middle;}
+
+#METABOOKHUD .metabookglossform .checkspan.private {
+    color: white; background-color: green; text-align: center;
+    padding-left: 0.5ex; padding-right: 0.5ex; 
+    border-radius: 0.5ex;}
+#METABOOKHUD .metabookglossform .checkspan.private input { display: none; }
+#METABOOKHUD .metabookglossform .checkspan.private.ischecked {
+    background-color: red; color: white;}
 
 /* Saving/saved overlays */
 
@@ -8245,6 +8326,16 @@ div.metabookglossform.submitclose form > div.messageoverlay {
     #METABOOKHUD.addgloss img.hudbutton[alt="toc"],
     #METABOOKHUD.addgloss img.hudbutton[alt="search"] {
         display: none;}}
+
+@media screen and (max-width: 700px) {
+    ._TOUCH div.metabookglossform form div.addglossmenu > img {
+        width: 60px; height: 60px;}
+    div.metabookglossform form div.addglossmenu {
+        width: 70px;}
+    div.metabookglossform form div.textbox,
+    div.metabookglossform form div.glossetc {
+        margin-right: 80px;}
+}
 
 /* Emacs local variables
 ;;;  Local variables: ***
