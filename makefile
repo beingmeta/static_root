@@ -249,6 +249,7 @@ metabook.js: $(METABOOK_JS_BUNDLE) makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.js
+	@echo > fdjt/codexlayouthash.js 
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		> fdjt/codexlayouthash.js 
 	@uglifyjs2 \
