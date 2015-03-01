@@ -14,7 +14,7 @@ FDJT_FILES=fdjt/header.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
 	fdjt/textindex.js \
-	fdjt/ui.js fdjt/dialog.js fdjt/completions.js \
+	fdjt/ui.js fdjt/pager.js fdjt/dialog.js fdjt/completions.js \
 	fdjt/taphold.js fdjt/selecting.js fdjt/scrollever.js \
 	fdjt/globals.js
 BUILDUUID:=`uuidgen`
@@ -248,19 +248,21 @@ metabook.css: $(METABOOK_CSS_BUNDLE) makefile
 metabook.js: $(METABOOK_JS_BUNDLE) makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
-	@echo Building ./metabook.js
-	@echo > fdjt/codexlayouthash.js 
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		> fdjt/codexlayouthash.js 
-	@uglifyjs2 \
+	@echo >> fdjt/codexlayouthash.js
+	@echo >> fdjt/codexlayouthash.js
+	@echo Building ./metabook.js
+	@uglifyjs2 -b \
 	  --source-map metabook.uglify.map \
 	    sbooks/amalgam.js fdjt/buildstamp.js \
 	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-	    fdjt/codexlayouthash.js \
 	    metabook/buildstamp.js knodules/buildstamp.js \
+	    fdjt/codexlayouthash.js \
 	  > $@
-	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
-		>> $@
+fresh:
+	rm -f metabook.css metabook.js
+	make metabook.css metabook.js
 
 metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
