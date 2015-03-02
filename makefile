@@ -13,7 +13,7 @@ FDJT_FILES=fdjt/header.js \
 	fdjt/syze.js fdjt/iscroll.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
-	fdjt/textindex.js \
+	fdjt/textindex.js fdjt/codexlayout.js \
 	fdjt/ui.js fdjt/pager.js fdjt/dialog.js fdjt/completions.js \
 	fdjt/taphold.js fdjt/selecting.js fdjt/scrollever.js \
 	fdjt/globals.js
@@ -22,11 +22,14 @@ BUILDTIME:=`date`
 BUILDHOST:=`hostname`
 BRANCH=master
 CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
-		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon *.rct *.ico
+		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon \
+		*.rct *.ico
 
 FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
-KNODULES_FILES=knodules/knodules.js knodules/tags.js knodules/html.js # knodules/clouds.js 
-KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint knodules/html.hint # knodules/clouds.js 
+KNODULES_FILES=knodules/knodules.js knodules/tags.js \
+	knodules/html.js # knodules/clouds.js 
+KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint \
+	knodules/html.hint # knodules/clouds.js 
 KNODULES_CSS=knodules/knodules.css
 PAGEDOWN_FILES=metabook/pagedown.js
 SSC_FILES=showsomeclass/ssc.js showsomeclass/dialog.js showsomeclass/edit.js
@@ -73,7 +76,8 @@ METABOOK_DERIVED_FILES=\
 
 METABOOK_HTML_FILES=\
 	metabook/html/searchbox.html metabook/html/addgloss.html \
-	metabook/html/hud.html metabook/html/heart.html metabook/html/attach.html \
+	metabook/html/hud.html metabook/html/heart.html \
+	metabook/html/attach.html \
 	metabook/html/help.html metabook/html/hudhelp.html \
 	metabook/html/console.html metabook/html/messages.html \
 	metabook/html/cover.html metabook/html/settings.html \
@@ -107,12 +111,20 @@ ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(METABOOK_FILES)
 
 SBOOKSTYLES=sbooks/sbookstyles.css
 
+fdjt/%.hint: fdjt/%.js
+	@echo Checking $@
+	@JSHINT=`which jshint`; \
+	if test "x$${JSHINT}" = "x"; then touch $@; \
+	else $${JSHINT} --config fdjt/.jshintrc $< | tee $@; \
+	fi
 knodules/%.hint: knodules/%.js
+	@echo Checking $@
 	@JSHINT=`which jshint`; \
 	if test "x$${JSHINT}" = "x"; then touch $@; \
 	else $${JSHINT} --config knodules/.jshintrc $< | tee $@; \
 	fi
 metabook/%.hint: metabook/%.js
+	@echo Checking $@
 	@JSHINT=`which jshint`; \
 	if test "x$${JSHINT}" = "x"; then touch $@; \
 	else $${JSHINT} --config metabook/.jshintrc $< | tee $@; \
@@ -155,8 +167,8 @@ hints:
 	make cleanhints
 	make allhints
 
-fdjt/fdjt.hints: $(FDJT_FILES) fdjt/codexlayout.js
-	@cd fdjt; make fdjt.hints
+fdjt/fdjt.hints: $(FDJT_HINTS)
+	cd fdjt; make fdjt.hints
 metabook/metabook.hints: $(METABOOK_HINTS) metabook/.jshintrc
 	@cat $^ > $@
 knodules/knodules.hints: $(KNODULES_HINTS) knodules/.jshintrc
@@ -261,7 +273,7 @@ metabook.js: $(METABOOK_JS_BUNDLE) makefile \
 	    fdjt/codexlayouthash.js \
 	  > $@
 fresh:
-	rm -f metabook.css metabook.js
+	make clean
 	make metabook.css metabook.js
 
 metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
