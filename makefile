@@ -48,8 +48,8 @@ METABOOK_FILES=\
 	metabook/cover.js metabook/body.js metabook/tagindex.js \
 	metabook/syncstate.js metabook/user.js metabook/getglosses.js \
 	metabook/startup.js \
-	metabook/preview.js metabook/hud.js metabook/toc.js metabook/resize.js \
-	metabook/slices.js metabook/clouds.js \
+	metabook/slices.js metabook/clouds.js metabook/tocslice.js \
+	metabook/hud.js metabook/preview.js metabook/resize.js \
 	metabook/social.js metabook/search.js metabook/glosses.js \
 	metabook/interaction.js metabook/zoom.js \
 	metabook/layout.js metabook/debug.js \
@@ -62,7 +62,7 @@ METABOOK_HINTS=\
 	metabook/startup.hint \
 	metabook/preview.hint metabook/hud.hint metabook/toc.hint \
 	metabook/resize.hint \
-	metabook/slices.hint metabook/clouds.hint \
+	metabook/slices.hint metabook/clouds.hint metabook/tocslice.hint \
 	metabook/social.hint metabook/search.hint metabook/glosses.hint \
 	metabook/interaction.hint metabook/zoom.hint \
 	metabook/layout.hint
@@ -86,9 +86,9 @@ METABOOK_HTML_FILES=\
 METABOOK_CSS=\
 	metabook/css/app.css metabook/css/framing.css \
 	fonts/open_sans.css fonts/open_dyslexic.css metabook/css/fonts.css \
-	metabook/css/cover.css metabook/css/hud.css \
+	metabook/css/cover.css metabook/css/settings.css metabook/css/hud.css \
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css    \
-	metabook/css/toc.css metabook/css/slices.css metabook/css/clouds.css \
+	metabook/css/slices.css metabook/css/tocslice.css metabook/css/clouds.css \
 	metabook/css/card.css metabook/css/search.css \
 	metabook/css/addgloss.css metabook/css/heart.css \
 	metabook/css/preview.css metabook/css/media.css \
