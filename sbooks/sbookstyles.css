@@ -346,9 +346,9 @@ body.verse h2 {
 body.verse div.stanza p { }
 
 p.verse {
-  text-align: left; margin-left: 3em;
+  text-align: left; margin-left: 2em;
   margin-top: 0.2ex; margin-bottom: 0.4ex;
-  text-indent: -3em; }
+  text-indent: -2em; }
 div.stanza { 
   page-break-inside: avoid;
   text-align: left;
@@ -361,7 +361,7 @@ div.stanza p {
   text-align: left; line-height: 105%;
   margin-top: 0px; margin-bottom: 0.5ex;
   /* Hanging paragraph */
-  margin-left: 2em; text-indent: -2em;}
+  margin-left: 1em; text-indent: -1em;}
 
 /* Prose */
 
