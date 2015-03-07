@@ -509,10 +509,18 @@ div.sbooktight div, div.sbooktight p {
 /* Media rules */
 
 @media (max-width: 600px) {
-  blockquote { margin-left: 1.5em; margin-right: 0.5em;}}
+  blockquote { margin-left: 1em; margin-right: 0.5em;}}
 
 @media (max-width: 700px) {
   div.stanza { margin-left: 0.5em; margin-right: 0.25em; }
+  .metabookbodysizelarge div.stanza,
+  .metabookbodysizexlarge div.stanza {
+      margin-left: 0px; margin-right: 0px; }
+  .metabookbodysizelarge div.poem,
+  .metabookbodysizexlarge div.poem,
+  .metabookbodysizelarge section.poem,
+  .metabookbodysizexlarge section.poem{
+      margin-left: 0px; margin-right: 0px; }
   div.stanza p { margin-left: 1em; text-indent: -1em;}
   div.poem, section.poem { 
    margin-left: 0.5ex; margin-right: 0.25ex;
