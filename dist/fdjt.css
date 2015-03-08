@@ -1224,6 +1224,45 @@ table.fdjtform .usebaseline td {
 @media all and (max-width: 500px) {
     body:before { content: 'fdjt_phone'; display: none; }}
 
+/* The pager */
+
+.pager { overflow-x: scroll; overflow-y: hidden; }
+.pager > div.pagerblock { display: none; }
+.pager > div.pagerblock.pagevisible,
+.pager.pagerlayout > div.pagerblock.working {
+    display: block; }
+
+.pager .pagernav {
+    width: 100%; height: 1.6em;
+    text-align: center;}
+.pager .pagernav > span {
+    color: blue; background-color: ivory;
+    display: inline-block; box-sizing: border-box;
+    border: 0px; border-left: solid black 1px;
+    border-bottom: solid black 1ex;
+    text-align: center;
+    overflow: hidden;}
+.pager .pagernav > span > span.num { vertical-align: top; }
+.pager .pagernav > span:first-child { border-left: transparent;}
+.pager .pagernav > span.pagevisible {
+    overflow-x: visible; z-index: 100;
+    background-color: silver;
+    color: black;}
+.pager .pagernav.packed > span > span.num {
+    visibility: hidden;}
+.pager .pagernav.packed > span {
+    border-bottom: solid black 2px;}
+.pager .pagernav > div.pagenum {
+    position: absolute;
+    top: 0px; left: 50%; margin-left: -1.5em;
+    background-color: rgba(255,255,255,0.8);
+    display: none;}
+.pager .pagernav.packed > div.pagenum {
+    pointer-events: none;
+    display: block;}
+.pager.pagerdone {overflow: hidden;}
+.pager.pagerdone .pagerblock {overflow: hidden;}
+
 /* Emacs local variables
    ;;;  Local variables: ***
    ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
