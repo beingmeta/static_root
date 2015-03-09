@@ -26718,7 +26718,7 @@ var metaBook={
         addgloss: 0,      // Note whenever a gloss post completes
         glossdata: 0,     // Whether to trace caching/retrieval of glossdata
         slices: 0,        // How much to trace slice creation and layout
-        pagers: 1,        // How much to trace Pager layout
+        pagers: 0,        // How much to trace Pager layout
         layout: 0,        // How much to trace document layout
         knodules: 0,      // How much to trace knodule processing
         flips: false,     // Whether to trace page flips (movement by pages)
@@ -40720,7 +40720,7 @@ metaBook.setMode=
                  metaBook.UI.handlers.everyone_ontap(evt);
                  fdjt.UI.cancel(event);}},
          "#METABOOKINFOPANEL": {
-             click: toggleDevMode},
+             touchstart: toggleDevMode},
          ".metabooksettings input[type='RADIO']": {
              change: mB.configChange},
          ".metabooksettings input[type='CHECKBOX']": {
@@ -43705,15 +43705,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2529-ge76e5d2';
+metaBook.version='v0.5-2533-ga6c7475';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sun Mar  8 17:34:05 EDT 2015';
-metaBook.buildid='a06be84d-1107-44d2-9cf9-e62a06f7c059';
+metaBook.buildtime='Mon Mar  9 10:34:41 EDT 2015';
+metaBook.buildid='2f844014-661b-46fd-91a7-4edd81542422';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Sun Mar  8 17:50:21 EDT 2015';
-metaBook.buildid='366d226d-62b2-4d00-a153-fbaf9436eea8';
+metaBook.buildtime='Mon Mar  9 10:34:41 EDT 2015';
+metaBook.buildid='8414daa2-0629-4810-a9fb-a042fc73807d';
 
 fdjt.CodexLayout.sourcehash='1803AFEB41F27A76A9BD5EEAFBC72C163467818D';
