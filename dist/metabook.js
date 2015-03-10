@@ -28,8 +28,8 @@
 // FDJT build information
 var fdjt_revision='1.5-1336-gc13cb38';
 var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Mon Mar 9 16:40:33 EDT 2015';
-var fdjt_builduuid='cb1a06fe-1ee5-4733-b016-31e3b85d3084';
+var fdjt_buildtime='Tue Mar 10 11:37:50 EDT 2015';
+var fdjt_builduuid='6bb8be0a-40cf-4eac-8b12-b870de20d002';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -10478,7 +10478,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
 */
 
-/* global setTimeout, Promise */
+/* global setTimeout, clearTimeout, indexedDB, Promise */
 
 //var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -10505,7 +10505,8 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                 var fdjtAsync=fdjt.Async;
                 var fdjtDOM=fdjt.DOM;
                 var JSON=fdjt.JSON;
-                var warn=fdjt.Log.warn;
+                var fdjtLog=fdjt.Log;
+                var warn=fdjtLog.warn;
 
                 var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
 
@@ -12161,6 +12162,79 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                         this.counts=counts;}
                     
                     return this;};
+
+                /* Indexed DB utilities */
+                
+                function useIndexedDB(dbname,version,init,opts){
+                    if ((version)&&(!opts)&&
+                        (typeof version !== "number")&&(version.version)) {
+                        opts=version; version=opts.version;}
+                    else if (!(opts)) opts={};
+                    if (!(init)) init=opts.init||false;
+                    if (!(version)) version=1;
+                    var trace=opts.trace;
+                    var vname=dbname+":"+version;
+                    function usingIndexedDB(resolve,reject){
+                        if ((typeof indexedDB === "undefined")||
+                            (!(indexedDB.open))) {
+                            fdjtLog.warn(
+                                "No indexedDB implementation for opening %:",vname);
+                            if (reject)
+                                reject(new Error("No indexedDB implementation"));
+                            else throw new Error("No indexedDB implementation");}
+                        var req=indexedDB.open(dbname,version), fail=false;
+                        var init_timeout=setTimeout(function(){
+                            fail=true;
+                            fdjtLog.warn("Init timeout for indexedDB %s",vname);
+                            reject(new Error("Init timeout"));},
+                                                    opts.timeout||15000);
+                        req.onerror=function(event){
+                            fail=true;
+                            warn("Error initializing indexedDB layout cache: %o",
+                                 event.errorCode);
+                            if (init_timeout) clearTimeout(init_timeout);
+                            if (reject) return reject(event);
+                            else return event;};
+                        req.onsuccess=function(evt) {
+                            if (fail) {
+                                fdjtLog("Discarding indexedDB %s after failure!",
+                                        vname);
+                                return;}
+                            var db=evt.target.result;
+                            if (init_timeout) clearTimeout(init_timeout);
+                            if (trace)
+                                fdjtLog("Got existing IndexedDB %s %o",
+                                        vname,db);
+                            if (resolve)
+                                return resolve(db);
+                            else return db;};
+                        req.onupgradeneeded=function(evt) {
+                            var db=evt.target.result;
+                            if (!(init)) return resolve(db);
+                            else {
+                                req.onsuccess=function(){
+                                    if (resolve) return resolve(db);
+                                    else return db;};
+                                req.onerror=function(evt){
+                                    fdjtLog("Error upgrading %s %o",vname,evt);
+                                    if (reject) reject(evt);
+                                    else throw new Error(
+                                        "Error upgrading %s",vname);};
+                                if (init.call) {
+                                    try {init(db);
+                                         if (resolve) return resolve(db);
+                                         else return db;}
+                                    catch (ex) {
+                                        fdjtLog("Error upgrading %s:%d: %o",
+                                                dbname,version,ex);
+                                        if (reject) reject(ex);}}
+                                else if (reject) reject(
+                                    new Error("Bad indexDB init: %o",init));
+                                else throw new Error("Bad indexDB init: %o",init);}
+                            return db;};
+                        return req;}
+                    return new Promise(usingIndexedDB);}
+                RefDB.useIndexedDB=useIndexedDB;
 
                 return RefDB;})();}
 
@@ -15525,72 +15599,38 @@ fdjt.CodexLayout=
         CodexLayout.cache=2;
 
         var ondbinit=false;
-        var dbinit_timeout=false;
-
-        function indexedDB_timeout(){
-            fdjtLog("Error initializing indexedDB");
-            if (!(layoutDB)) {
-                CodexLayout.layoutDB=layoutDB=window.localStorage;
-                dbinit_timeout=false;
-                if (ondbinit) ondbinit();}}
-
-        var doinit=false;
 
         function useIndexedDB(dbname){
-            var req=window.indexedDB.open(dbname,1);
             CodexLayout.dbname=dbname;
-            dbinit_timeout=setTimeout(indexedDB_timeout,15000);
-            req.onerror=function(event){
-                fdjtLog("Error initializing indexedDB layout cache: %o",
-                        event.errorCode);
-                if (dbinit_timeout) clearTimeout(dbinit_timeout);
-                CodexLayout.layoutDB=layoutDB=window.localStorage;
-                doinit=ondbinit; ondbinit=false;
-                if (doinit) doinit();};
-            req.onsuccess=function(evt) {
-                var db=evt.target.result;
-                if (CodexLayout.trace)
-                    fdjtLog("Using existing indexedDB layout cache");
-                if (dbinit_timeout) clearTimeout(dbinit_timeout);
-                CodexLayout.layoutDB=layoutDB=db;
-                CodexLayout.cache=7;
-                doinit=ondbinit; ondbinit=false;
-                if (doinit) doinit();};
-            req.onupgradeneeded=function(evt) {
-                var db=evt.target.result;
-                if (dbinit_timeout) clearTimeout(dbinit_timeout);
-                db.onerror=function(event){
-                    fdjtLog("Unexpected error caching layouts: %d",
-                            event.target.errorCode);
-                    event=false; // ignored
+            RefDB.useIndexedDB(dbname,1,function(db){
+                db.createObjectStore("layouts",{keyPath: "layout_id"});})
+                .then(function(db){
+                    var doinit=ondbinit; ondbinit=false;
+                    CodexLayout.layoutDB=layoutDB=db;
+                    CodexLayout.cache=7;
+                    if (doinit) doinit();})
+                .catch(function(trouble){
+                    fdjtLog("indexedDB failed: %o",trouble);
+                    // Fall back to local storage 
                     CodexLayout.layoutDB=layoutDB=window.localStorage;
-                    if (ondbinit) ondbinit();};
-                db.onsuccess=function(event){
-                    if (CodexLayout.trace)
-                        fdjtLog("Initialized indexedDB layout cache");
-                    event=false; // ignored
-                    if (ondbinit) ondbinit();};
-                db.createObjectStore("layouts",{keyPath: "layout_id"});
-                CodexLayout.layoutDB=layoutDB=window.localStorage;
-                doinit=ondbinit; ondbinit=false;
-                if (doinit) doinit();};}
+                    doinit=ondbinit; ondbinit=false;
+                    if (doinit) doinit();});}
         CodexLayout.useIndexedDB=useIndexedDB;
         
-        if (window.indexedDB) {
+        if (typeof indexedDB !== "undefined") {
             fdjt.addInit(function(){
                 if (!(CodexLayout.dbname)) {
                     CodexLayout.dbname="codexlayout";
                     useIndexedDB("codexlayout");}},
                          "CodexLayoutCache");}
-        
-        if (window.localStorage) {
-            doinit=ondbinit; ondbinit=false;
-            CodexLayout.layoutDB=layoutDB=window.localStorage;
-            if (doinit) doinit();}
         else {
-            CodexLayout.layoutDB=layoutDB=false;
-            doinit=ondbinit; ondbinit=false;
-            if (doinit) doinit();}
+            var doinit=ondbinit; ondbinit=false;
+            if (window.localStorage) {
+                CodexLayout.layoutDB=layoutDB=window.localStorage;
+                if (doinit) doinit();}
+            else {
+                CodexLayout.layoutDB=layoutDB=false;
+                if (doinit) doinit();}}
      
         function cacheLayout(layout_id,content,pages,ondone){
             if (typeof layoutDB === "undefined") 
@@ -24882,72 +24922,38 @@ fdjt.CodexLayout=
         CodexLayout.cache=2;
 
         var ondbinit=false;
-        var dbinit_timeout=false;
-
-        function indexedDB_timeout(){
-            fdjtLog("Error initializing indexedDB");
-            if (!(layoutDB)) {
-                CodexLayout.layoutDB=layoutDB=window.localStorage;
-                dbinit_timeout=false;
-                if (ondbinit) ondbinit();}}
-
-        var doinit=false;
 
         function useIndexedDB(dbname){
-            var req=window.indexedDB.open(dbname,1);
             CodexLayout.dbname=dbname;
-            dbinit_timeout=setTimeout(indexedDB_timeout,15000);
-            req.onerror=function(event){
-                fdjtLog("Error initializing indexedDB layout cache: %o",
-                        event.errorCode);
-                if (dbinit_timeout) clearTimeout(dbinit_timeout);
-                CodexLayout.layoutDB=layoutDB=window.localStorage;
-                doinit=ondbinit; ondbinit=false;
-                if (doinit) doinit();};
-            req.onsuccess=function(evt) {
-                var db=evt.target.result;
-                if (CodexLayout.trace)
-                    fdjtLog("Using existing indexedDB layout cache");
-                if (dbinit_timeout) clearTimeout(dbinit_timeout);
-                CodexLayout.layoutDB=layoutDB=db;
-                CodexLayout.cache=7;
-                doinit=ondbinit; ondbinit=false;
-                if (doinit) doinit();};
-            req.onupgradeneeded=function(evt) {
-                var db=evt.target.result;
-                if (dbinit_timeout) clearTimeout(dbinit_timeout);
-                db.onerror=function(event){
-                    fdjtLog("Unexpected error caching layouts: %d",
-                            event.target.errorCode);
-                    event=false; // ignored
+            RefDB.useIndexedDB(dbname,1,function(db){
+                db.createObjectStore("layouts",{keyPath: "layout_id"});})
+                .then(function(db){
+                    var doinit=ondbinit; ondbinit=false;
+                    CodexLayout.layoutDB=layoutDB=db;
+                    CodexLayout.cache=7;
+                    if (doinit) doinit();})
+                .catch(function(trouble){
+                    fdjtLog("indexedDB failed: %o",trouble);
+                    // Fall back to local storage 
                     CodexLayout.layoutDB=layoutDB=window.localStorage;
-                    if (ondbinit) ondbinit();};
-                db.onsuccess=function(event){
-                    if (CodexLayout.trace)
-                        fdjtLog("Initialized indexedDB layout cache");
-                    event=false; // ignored
-                    if (ondbinit) ondbinit();};
-                db.createObjectStore("layouts",{keyPath: "layout_id"});
-                CodexLayout.layoutDB=layoutDB=window.localStorage;
-                doinit=ondbinit; ondbinit=false;
-                if (doinit) doinit();};}
+                    doinit=ondbinit; ondbinit=false;
+                    if (doinit) doinit();});}
         CodexLayout.useIndexedDB=useIndexedDB;
         
-        if (window.indexedDB) {
+        if (typeof indexedDB !== "undefined") {
             fdjt.addInit(function(){
                 if (!(CodexLayout.dbname)) {
                     CodexLayout.dbname="codexlayout";
                     useIndexedDB("codexlayout");}},
                          "CodexLayoutCache");}
-        
-        if (window.localStorage) {
-            doinit=ondbinit; ondbinit=false;
-            CodexLayout.layoutDB=layoutDB=window.localStorage;
-            if (doinit) doinit();}
         else {
-            CodexLayout.layoutDB=layoutDB=false;
-            doinit=ondbinit; ondbinit=false;
-            if (doinit) doinit();}
+            var doinit=ondbinit; ondbinit=false;
+            if (window.localStorage) {
+                CodexLayout.layoutDB=layoutDB=window.localStorage;
+                if (doinit) doinit();}
+            else {
+                CodexLayout.layoutDB=layoutDB=false;
+                if (doinit) doinit();}}
      
         function cacheLayout(layout_id,content,pages,ondone){
             if (typeof layoutDB === "undefined") 
@@ -33023,8 +33029,8 @@ metaBook.Slice=(function () {
         return renderCard(about);};
 
     MetaBookSlice.prototype.sortfn=function defaultSliceSortFn(x,y){
-        if (x.location) {
-            if (y.location) {
+        if (x.hasOwnProperty('location')) {
+            if (y.hasOwnProperty("location")) {
                 if (x.location===y.location) {
                     if (x.timestamp) {
                         if (y.timestamp)
@@ -41418,7 +41424,8 @@ metaBook.Paginate=
                              justify,source_id){
             var page=fdjtID("CODEXPAGE");
             var left=page.style.left, right=page.style.right;
-            var layout_source=fdjt.CodexLayout.sourcehash;
+            var docref=metaBook.docref, sourceid=metaBook.sourceid;
+            var sourcehash=fdjt.CodexLayout.sourcehash;
             page.style.left=""; page.style.right="";
             if (!(width))
                 width=getGeometry(page,false,true).width;
@@ -41428,17 +41435,18 @@ metaBook.Paginate=
             if (!(source_id))
                 source_id=metaBook.sourceid||fdjtHash.hex_md5(metaBook.docuri);
             if (!(justify)) justify=metaBook.textjustify;
-            if (!(spacing)) spacing=metaBook.bodyspacing;
+            if (!(spacing)) spacing=metaBook.linespacing;
             page.style.left=left; page.style.right=right;
-            return fdjtString("%dx%d-%s-%s%s%s(%s)%s",
-                              width,height,((family)?(family):("")),size,
-                              ((spacing)?("-"+spacing):("")),
-                              ((justify)?("-j"):("")),
-                              // Layout depends on the actual file ID,
-                              // if we've got one, rather than just
-                              // the REFURI
-                              source_id,
-                              ((layout_source)?("["+layout_source+"]"):("")));}
+            return fdjtString(
+                "%s%dx%d-%s-%s%s%s%s%s",
+                ((docref)?(docref+":"):("")),
+                width,height,family,size,
+                ((justify)?("-j"):("")),
+                ((spacing)?("-l"+spacing):("")),
+                // Layout depends on the actual file ID, if we've got
+                // one, rather than just the REFURI
+                ((sourceid)?("#"+sourceid):("")),
+                ((sourcehash)?("/"+sourcehash):("")));}
         metaBook.getLayoutID=getLayoutID;
 
         function layoutCached(layout_id){
@@ -41473,17 +41481,21 @@ metaBook.Paginate=
             var bodyfamily=(metaBook.dyslexical)?("opendyslexic"):
                 (metaBook.bodyfamily||"default");
             var bodysize=metaBook.bodysize||"normal";
-            var sourceid=metaBook.sourceid||fdjtHash.hex_md5(metaBook.docuri);
+            var docref=metaBook.docref;
+            var sourceid=metaBook.sourceid;
             var justify=metaBook.textjustify;
+            var spacing=metaBook.linespacing;
             var sourcehash=fdjt.CodexLayout.sourcehash;
             var layout_id=fdjtString(
-                "%dx%d-%s-%s%s(%s)%s",
+                "%s%dx%d-%s-%s%s%s%s%s",
+                ((docref)?(docref+":"):("")),
                 width,height,bodyfamily,bodysize,
                 ((justify)?("-j"):("")),
+                ((spacing)?("-l"+spacing):("")),
                 // Layout depends on the actual file ID, if we've got
                 // one, rather than just the REFURI
-                sourceid||metaBook.refuri,
-                ((sourcehash)?("["+sourcehash+"]"):("")));
+                ((sourceid)?("#"+sourceid):("")),
+                ((sourcehash)?("/"+sourcehash):("")));
 
             var docinfo=metaBook.docinfo;
             var goneto=false;
@@ -43515,6 +43527,24 @@ metaBook.HTML.settings=
     "        <span class=\"sample tiny\">Aa</span></span>\n"+
     "    </span>\n"+
     "  </div>\n"+
+    "  <!--\n"+
+    "  <div class=\"checkspans fontfamily\"\n"+
+    "       title=\"Set the font sizes used for the body text.\">\n"+
+    "    <span class=\"label smaller\">Font family</span>\n"+
+    "    <span class=\"checkspan sanserif\">\n"+
+    "      <input TYPE=\"RADIO\" NAME=\"bodyfamily\"\n"+
+    "             VALUE=\"sanserif\"/>\n"+
+    "      <span class=\"sample sanserif\">Sans</span></span>\n"+
+    "    <span class=\"checkspan serif\">\n"+
+    "      <input TYPE=\"RADIO\" NAME=\"bodyfamily\" \n"+
+    "             VALUE=\"serif\"/>\n"+
+    "      <span class=\"sample serif\">Serif</span></span>\n"+
+    "    <span class=\"checkspan lowcontrast\">\n"+
+    "      <input TYPE=\"RADIO\" NAME=\"bodyfamily\"\n"+
+    "             VALUE=\"opendyslexic\"/>\n"+
+    "      <span class=\"sample opendyslexic\">Open Dyslexic</span></span>\n"+
+    "  </div>\n"+
+    "  -->\n"+
     "  <div class=\"contrast checkspans\"\n"+
     "       title=\"Select the contrast level for body text\">\n"+
     "    <span class=\"label smaller\">Text Contrast</span>\n"+
@@ -43560,7 +43590,7 @@ metaBook.HTML.settings=
     "    <span class=\"sep\">//</span>\n"+
     "    <span class=\"checkspan justify\"\n"+
     "          title=\"left/right justify paragraphs of body text\">\n"+
-    "      <input TYPE=\"CHECKBOX\" NAME=\"justifytext\" VALUE=\"yes\"/>\n"+
+    "      <input TYPE=\"CHECKBOX\" NAME=\"textjustify\" VALUE=\"yes\"/>\n"+
     "      Justify paragraphs</span>\n"+
     "  </div>\n"+
     "  <div class=\"fontsizes device\"\n"+
@@ -43599,7 +43629,7 @@ metaBook.HTML.settings=
     "      Reset</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"locsync\" VALUE=\"yes\"/>\n"+
     "    <span class=\"text\">\n"+
-    "      Sync your reading location with other devices</span>\n"+
+    "      Sync your <strong>reading location</strong> with other devices</span>\n"+
     "  </div>\n"+
     "  <div class=\"checkspan saveglosses cf\">\n"+
     "    <button id=\"METABOOKREFRESHOFFLINE\" class=\"refresh floatright\"\n"+
@@ -43608,7 +43638,8 @@ metaBook.HTML.settings=
     "      Reload</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"cacheglosses\" VALUE=\"yes\" CHECKED/>\n"+
     "    <span class=\"text\">\n"+
-    "      Save copies of notes and overlays on this device</span>\n"+
+    "      Save copies of <strong>glosses</strong>\n"+
+    "      and <strong>layers</strong> on this device</span>\n"+
     "  </div>\n"+
     "  <div class=\"checkspan showconsole cf\">\n"+
     "    <span class=\"label\">Developer</span>\n"+
@@ -43706,15 +43737,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2533-ga6c7475';
+metaBook.version='v0.5-2538-gf7d29e4';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Mon Mar  9 10:34:41 EDT 2015';
-metaBook.buildid='2f844014-661b-46fd-91a7-4edd81542422';
+metaBook.buildtime='Tue Mar 10 13:18:47 EDT 2015';
+metaBook.buildid='0a88c8ab-aa1e-4e66-b12f-f44c31569944';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Mon Mar  9 16:40:33 EDT 2015';
-metaBook.buildid='2f69bba8-1f98-4fc0-8b01-178a65fef899';
+metaBook.buildtime='Tue Mar 10 14:02:48 EDT 2015';
+metaBook.buildid='d6d38e2c-f854-41e2-aeb1-57b34606167a';
 
-fdjt.CodexLayout.sourcehash='1803AFEB41F27A76A9BD5EEAFBC72C163467818D';
+fdjt.CodexLayout.sourcehash='CF522E2E578660428EF8F1B8AC0B0BD9DCEA8B9B';
