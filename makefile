@@ -13,7 +13,7 @@ FDJT_FILES=fdjt/header.js \
 	fdjt/syze.js fdjt/iscroll.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
-	fdjt/textindex.js fdjt/codexlayout.js \
+	fdjt/textindex.js \
 	fdjt/ui.js fdjt/pager.js fdjt/dialog.js fdjt/completions.js \
 	fdjt/taphold.js fdjt/selecting.js fdjt/scrollever.js \
 	fdjt/globals.js
@@ -153,7 +153,7 @@ dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.min.js dist/metabook.min.js.gz \
 	dist/metabook.uglify.js dist/metabook.uglify.js.gz \
 	dist/metabook.clean.css dist/metabook.clean.css.gz \
-	dist/fdjt.min.js dist/fdjt.min.js.gz  dist/fdjt.uglify.map \
+	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.uglify.map \
 	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
 
 allhints: fdjt/fdjt.hints metabook/metabook.hints \
@@ -325,15 +325,17 @@ dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
 
-fdjt/fdjt.min.js fdjt/fdjt.uglify.map: $(FDJT_FILES)
+dist/fdjt.min.js dist/fdjt.uglify.map: $(FDJT_FILES) makefile
+	@echo Rebuilding dist/fdjt.min.js
 	@uglifyjs2                           \
-	  --source-map fdjt/fdjt.uglify.map  \
+	  --source-map dist/fdjt.uglify.map  \
 	  --source-map-root /static          \
 	    $(FDJT_FILES) fdjt/buildstamp.js > $@
 
 # Compiled
 
-dist/metabook.compiled.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
+dist/metabook.compiled.js: fdjt/fdjt.js \
+	dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
 	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
 	java -jar closure/compiler.jar \
 		--language_in ECMASCRIPT5 \
