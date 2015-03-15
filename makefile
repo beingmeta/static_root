@@ -153,8 +153,8 @@ dist: dist/metabook.js dist/metabook.css \
 	dist/metabook.min.js dist/metabook.min.js.gz \
 	dist/metabook.uglify.js dist/metabook.uglify.js.gz \
 	dist/metabook.clean.css dist/metabook.clean.css.gz \
-	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.css.gz \
-	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css
+	dist/fdjt.min.js dist/fdjt.min.js.gz  dist/fdjt.uglify.map \
+	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
 
 allhints: fdjt/fdjt.hints metabook/metabook.hints \
 	knodules/knodules.hints showsomeclass/hints
@@ -325,13 +325,11 @@ dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
 
-fdjt/fdjt.min.js: fdjt/fdjt.js
+fdjt/fdjt.min.js fdjt/fdjt.uglify.map: $(FDJT_FILES)
 	@uglifyjs2                           \
-	  --source-map fdjt.uglify.map       \
+	  --source-map fdjt/fdjt.uglify.map  \
 	  --source-map-root /static          \
 	    $(FDJT_FILES) fdjt/buildstamp.js > $@
-dist/fdjt.css: fdjt/fdjt.css
-	cp $< $@
 
 # Compiled
 
