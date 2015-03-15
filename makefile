@@ -60,7 +60,7 @@ METABOOK_HINTS=\
 	metabook/domscan.hint metabook/user.hint metabook/getglosses.hint \
 	metabook/cover.hint metabook/body.hint metabook/tagindex.hint \
 	metabook/startup.hint \
-	metabook/preview.hint metabook/hud.hint metabook/toc.hint \
+	metabook/preview.hint metabook/hud.hint metabook/tocslice.hint \
 	metabook/resize.hint \
 	metabook/slices.hint metabook/clouds.hint metabook/tocslice.hint \
 	metabook/social.hint metabook/search.hint metabook/glosses.hint \
@@ -129,6 +129,9 @@ metabook/%.hint: metabook/%.js
 	if test "x$${JSHINT}" = "x"; then touch $@; \
 	else $${JSHINT} --config metabook/.jshintrc $< | tee $@; \
 	fi
+
+dist/%: fdjt/%
+	cp $< $@
 
 metabook/html/%.js: metabook/html/%.html makefile
 	@./text2js metaBook.HTML.`basename $@ .js` $< $@
@@ -322,10 +325,11 @@ dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
 
-fdjt/fdjt.min.js dist/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
-	uglifyjs2 $(FDJT_FILES) fdjt/buildstamp.js > $@
-dist/fdjt.js: fdjt/fdjt.js
-	cp $< $@
+fdjt/fdjt.min.js: fdjt/fdjt.js
+	@uglifyjs2                           \
+	  --source-map fdjt.uglify.map       \
+	  --source-map-root /static          \
+	    $(FDJT_FILES) fdjt/buildstamp.js > $@
 dist/fdjt.css: fdjt/fdjt.css
 	cp $< $@
 
@@ -396,7 +400,10 @@ etc/sha1: etc/sha1.c
 	$(CC) -o etc/sha1 etc/sha1.c
 
 checkout:
-	git checkout ${BRANCH}; cd fdjt; git checkout ${BRANCH}; cd ../metabook; git checkout ${BRANCH}; cd ../knodules; git checkout ${BRANCH}
+	git checkout ${BRANCH}; \
+	cd fdjt; git checkout ${BRANCH}; \
+	cd ../metabook; git checkout ${BRANCH}; \
+	cd ../knodules; git checkout ${BRANCH}
 
 diff:
 	git diff;
