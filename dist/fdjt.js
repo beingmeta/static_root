@@ -1,8 +1,8 @@
 // FDJT build information
-var fdjt_revision='1.5-1296-g5043d74';
+var fdjt_revision='1.5-1336-gc13cb38';
 var fdjt_buildhost='moby.dot.beingmeta.com';
-var fdjt_buildtime='Mon Feb 23 09:24:22 EST 2015';
-var fdjt_builduuid='b1823e5c-6d88-459a-9ac7-b443b6eef009';
+var fdjt_buildtime='Tue Mar 10 11:37:50 EDT 2015';
+var fdjt_builduuid='6bb8be0a-40cf-4eac-8b12-b870de20d002';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -31,36 +31,41 @@ var fdjt_builduuid='b1823e5c-6d88-459a-9ac7-b443b6eef009';
    http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
 */
-
-var fdjt_versions=((fdjt_versions)||(new Array()));
-fdjt_versions.decl=function(name,num){
-    if ((!(fdjt_versions[name]))||(fdjt_versions[name]<num)) fdjt_versions[name]=num;};
-
-// Some augmentations
-if (!(Array.prototype.indexOf))
-    Array.prototype.indexOf=function(elt,i){
-        if (!(i)) i=0; var len=this.length;
-        while (i<len) if (this[i]===elt) return i; else i++;
-        return -1;};
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
-if (!Object.keys) {
-    Object.keys = function(o){
-        if (o !== Object(o))
-            throw new TypeError('Object.keys called on non-object');
-        var ret=[], p;
-        for (p in o) if (Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
-        return ret;}};
-
-if (!String.prototype.trim) {
-    String.prototype.trim = (function () {
-        var trimLeft  = /^\s+/, trimRight = /\s+$/;
-            
-        return function () {
-            return this.replace(trimLeft, "").replace(trimRight, "")
-        }
-    })()};
+/* global
+   fdjt_revision, fdjt_buildhost,
+   fdjt_buildtime, fdjt_builduuid */
 
 var fdjt=((typeof fdjt === "undefined")?({}):(fdjt));
+var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
+		   ((fdjt_versions)||[]));
+(function(){
+    "use strict";
+    fdjt_versions.decl=function(name,num){
+        if ((!(fdjt_versions[name]))||(fdjt_versions[name]<num))
+            fdjt_versions[name]=num;};
+
+    // Some augmentations
+    if (!(Array.prototype.indexOf))
+        Array.prototype.indexOf=function(elt,i){
+            if (!(i)) i=0; var len=this.length;
+            while (i<len) if (this[i]===elt) return i; else i++;
+            return -1;};
+    // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
+    if (!Object.keys) {
+        Object.keys = function(o){
+            if (o !== Object(o))
+                throw new TypeError('Object.keys called on non-object');
+            var ret=[], p;
+            for (p in o) if (Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
+            return ret;};}
+
+    if (!String.prototype.trim) {
+        String.prototype.trim = (function () {
+            var trimLeft  = /^\s+/, trimRight = /\s+$/;
+            
+            return function () {
+                return this.replace(trimLeft, "").replace(trimRight, "");};});}
+})();
 
 fdjt.revision=fdjt_revision;
 fdjt.buildhost=fdjt_buildhost;
@@ -80,7 +85,9 @@ fdjt.builduuid=fdjt_builduuid;
     }
 
     // Use polyfill for setImmediate for performance gains
-    var asap = Promise.immediateFn || root.setImmediate || function(fn) { setTimeout(fn, 1); };
+    var asap = ((root.Promise)&&(root.Promise.immediateFn)) ||
+        root.setImmediate ||
+        function(fn) { setTimeout(fn, 1); };
 
     // Polyfill for Function.prototype.bind
     function bind(fn, thisArg) {
@@ -89,11 +96,15 @@ fdjt.builduuid=fdjt_builduuid;
         };
     }
 
-    var isArray = Array.isArray || function(value) { return Object.prototype.toString.call(value) === "[object Array]"; };
+    var isArray = Array.isArray || function(value) {
+        return Object.prototype.toString.call(value) ===
+            "[object Array]"; };
 
-    function Promise(fn) {
-        if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
-        if (typeof fn !== 'function') throw new TypeError('not a function');
+    function PromiseFillIn(fn) {
+        if (typeof this !== 'object')
+            throw new TypeError('Use "new" to make Promises');
+        if (typeof fn !== 'function')
+            throw new TypeError('not a function');
         this._state = null;
         this._value = null;
         this._deferreds = [];
@@ -102,6 +113,7 @@ fdjt.builduuid=fdjt_builduuid;
     }
 
     function handle(deferred) {
+	// jshint validthis: true
         var me = this;
         if (this._state === null) {
             this._deferreds.push(deferred);
@@ -126,12 +138,19 @@ fdjt.builduuid=fdjt_builduuid;
     }
 
     function resolve(newValue) {
+	// jshint validthis: true
         try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
-            if (newValue === this) throw new TypeError('A promise cannot be resolved with itself.');
-            if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+            if (newValue === this)
+                throw new TypeError(
+                    'A promise cannot be resolved with itself.');
+            if (newValue &&
+                (typeof newValue === 'object' ||
+                 typeof newValue === 'function')) {
                 var then = newValue.then;
                 if (typeof then === 'function') {
-                    doResolve(bind(then, newValue), bind(resolve, this), bind(reject, this));
+                    doResolve(bind(then, newValue),
+                              bind(resolve, this),
+                              bind(reject, this));
                     return;
                 }
             }
@@ -142,21 +161,27 @@ fdjt.builduuid=fdjt_builduuid;
     }
 
     function reject(newValue) {
+	// jshint validthis: true
         this._state = false;
         this._value = newValue;
         finale.call(this);
     }
 
     function finale() {
-        for (var i = 0, len = this._deferreds.length; i < len; i++) {
+	// jshint validthis: true
+        for (var i = 0, len = this._deferreds.length;
+             i < len;
+             i++) {
             handle.call(this, this._deferreds[i]);
         }
         this._deferreds = null;
     }
-
+    
     function Handler(onFulfilled, onRejected, resolve, reject){
-        this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
-        this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+        this.onFulfilled =
+            typeof onFulfilled === 'function' ? onFulfilled : null;
+        this.onRejected =
+            typeof onRejected === 'function' ? onRejected : null;
         this.resolve = resolve;
         this.reject = reject;
     }
@@ -186,29 +211,37 @@ fdjt.builduuid=fdjt_builduuid;
         }
     }
 
-    Promise.prototype['catch'] = function (onRejected) {
+    PromiseFillIn.prototype['catch'] = function (onRejected) {
         return this.then(null, onRejected);
     };
 
-    Promise.prototype.then = function(onFulfilled, onRejected) {
-        var me = this;
-        return new Promise(function(resolve, reject) {
-            handle.call(me, new Handler(onFulfilled, onRejected, resolve, reject));
-        });
-    };
+    PromiseFillIn.prototype.then =
+        function(onFulfilled, onRejected) {
+            var me = this;
+            return new PromiseFillIn(function(resolve, reject) {
+                handle.call(
+                    me,new Handler(onFulfilled, onRejected,
+                                   resolve, reject));
+            });
+        };
+    
+    PromiseFillIn.all = function () {
+        var args = Array.prototype.slice.call(
+            arguments.length === 1 && isArray(arguments[0]) ?
+                arguments[0] : arguments);
 
-    Promise.all = function () {
-        var args = Array.prototype.slice.call(arguments.length === 1 && isArray(arguments[0]) ? arguments[0] : arguments);
-
-        return new Promise(function (resolve, reject) {
+        return new PromiseFillIn(function (resolve, reject) {
             if (args.length === 0) return resolve([]);
             var remaining = args.length;
             function res(i, val) {
                 try {
-                    if (val && (typeof val === 'object' || typeof val === 'function')) {
+                    if (val &&
+                        (typeof val === 'object' ||
+                         typeof val === 'function')) {
                         var then = val.then;
                         if (typeof then === 'function') {
-                            then.call(val, function (val) { res(i, val); }, reject);
+                            then.call(val, function (val) {
+                                res(i, val); }, reject);
                             return;
                         }
                     }
@@ -226,24 +259,25 @@ fdjt.builduuid=fdjt_builduuid;
         });
     };
 
-    Promise.resolve = function (value) {
-        if (value && typeof value === 'object' && value.constructor === Promise) {
+    PromiseFillIn.resolve = function (value) {
+        if (value && typeof value === 'object' &&
+            value.constructor === PromiseFillIn) {
             return value;
         }
 
-        return new Promise(function (resolve) {
+        return new PromiseFillIn(function (resolve) {
             resolve(value);
         });
     };
 
-    Promise.reject = function (value) {
-        return new Promise(function (resolve, reject) {
+    PromiseFillIn.reject = function (value) {
+        return new PromiseFillIn(function (resolve, reject) {
             reject(value);
         });
     };
 
-    Promise.race = function (values) {
-        return new Promise(function (resolve, reject) {
+    PromiseFillIn.race = function (values) {
+        return new PromiseFillIn(function (resolve, reject) {
             for(var i = 0, len = values.length; i < len; i++) {
                 values[i].then(resolve, reject);
             }
@@ -251,9 +285,9 @@ fdjt.builduuid=fdjt_builduuid;
     };
 
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = Promise;
+        module.exports = PromiseFillIn;
     } else if (!root.Promise) {
-        root.Promise = Promise;
+        root.Promise = PromiseFillIn;
     }
 })();
 /* -*- Mode: Javascript; -*- */
@@ -384,14 +418,22 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             if (!(opts)) opts={};
             var slice=opts.slice, space=opts.space;
             var watchfn=opts.watchfn, watch_slice=opts.watch;
+            var sync=((opts.hasOwnProperty("sync"))?(opts.sync):
+                      ((opts.hasOwnProperty("async"))?(!(opts.async)):
+                       (false)));
             var donefn=opts.done;
             function slowmapping(resolve,reject){
-                slowmap(fcn,vec,watchfn,
-                        ((donefn)?(function(){
-                            donefn(); if (resolve) resolve(vec);}):
-                         (resolve)),
-                        reject,
-                        slice,space,watch_slice);}
+                if (sync) {
+                    var i=0, lim=vec.length; while (i<lim) {
+                        try { fcn(vec[i++]);}
+                        catch (ex) { if (reject) reject(ex); }}
+                    if (resolve) resolve(vec);}
+                else slowmap(fcn,vec,watchfn,
+                             ((donefn)?(function(){
+                                 donefn(); if (resolve) resolve(vec);}):
+                              (resolve)),
+                             reject,
+                             slice,space,watch_slice);}
             if (watch_slice<1) watch_slice=vec.length*watch_slice;
             return new Promise(slowmapping);};
 
@@ -2274,6 +2316,24 @@ fdjt.Time=
             if (!(arg)) arg=new Date();
             return (arg.getTime()-loaded)/1000;};
 
+        var tzpat=/(EST|EDT|PDT|PST|CST|CDT|ECT|GMT|Z|([+-]\d\d?(:\d+)?))$/i;
+
+        fdjtTime.parse=function(string){
+            var value=false;
+            try {
+                if (Date.parse)
+                    value=new Date(Date.parse(string));
+                else value=new Date(string);
+            } catch (ex) {
+                fdjt.Log("Error parsing time '%s': %o",string,ex);}
+            if ((value instanceof Date)&&(!(isNaN(value.getYear()))))
+                return value;
+            else {
+                var strip=string.search(tzpat);
+                if (strip>0) return fdjtTime.parse(string.slice(0,strip));
+                fdjt.Log("Couldn't parse time '%s'",string);
+                return string;}};
+        
         fdjtTime.timeslice=fdjt.Async.timeslice;
         fdjtTime.slowmap=fdjt.Async.slowmap;
 
@@ -6992,19 +7052,26 @@ fdjt.DOM=
             return node;}
         function dominsert(before,content,i) {
             var node=before.parentNode;
-            if (content.nodeType) node.insertBefore(content,node);
+            if ((content.nodeType)&&(content===before))
+                return;
+            else if (content.nodeType)
+                node.insertBefore(content,before);
             else if (typeof content === 'string') 
                 node.insertBefore(document.createTextNode(content),before);
             else if (content.toDOM)
                 return dominsert(before,content.toDOM());
             else if (content.toHTML)
                 return dominsert(before,node,content.toHTML());
-            else if (content.length) {
+            else if (content.length-i>1) {
                 var frag=(((window.documentFragment)&&(node instanceof window.DocumentFragment))?
                           (node):(document.createDocumentFragment()));
                 domappend(frag,content,i);
                 node.insertBefore(frag,before);
                 return before;}
+            else if (content.length) {
+                var c=content[i];
+                if (c===before) return;
+                else node.insertBefore(c,before);}
             else node.insertBefore(document.createTextNode(""+content),before);
             return node;}
         fdjtDOM.appendArray=domappend;
@@ -10384,7 +10451,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
 
 */
 
-/* global setTimeout: false */
+/* global setTimeout, clearTimeout, indexedDB, Promise */
 
 //var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -10411,7 +10478,8 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                 var fdjtAsync=fdjt.Async;
                 var fdjtDOM=fdjt.DOM;
                 var JSON=fdjt.JSON;
-                var warn=fdjt.Log.warn;
+                var fdjtLog=fdjt.Log;
+                var warn=fdjtLog.warn;
 
                 var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
 
@@ -11932,6 +12000,17 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                 RefDB.contains=arr_contains;
                 RefDB.position=arr_position;
 
+                function countKeys(obj){
+                    var count=0; for (var key in obj) {
+                        if (obj.hasOwnProperty(key)) count++;}
+                    return count;}
+                RefDB.countKeys=countKeys;
+                function localKeys(obj){
+                    var keys=[]; for (var key in obj) {
+                        if (obj.hasOwnProperty(key)) keys.push(key);}
+                    return keys;}
+                RefDB.localKeys=localKeys;
+
                 function Query(dbs,clauses,weights){
                     if (arguments.length===0) return this;
                     if (dbs) this.dbs=dbs;
@@ -12056,6 +12135,79 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                         this.counts=counts;}
                     
                     return this;};
+
+                /* Indexed DB utilities */
+                
+                function useIndexedDB(dbname,version,init,opts){
+                    if ((version)&&(!opts)&&
+                        (typeof version !== "number")&&(version.version)) {
+                        opts=version; version=opts.version;}
+                    else if (!(opts)) opts={};
+                    if (!(init)) init=opts.init||false;
+                    if (!(version)) version=1;
+                    var trace=opts.trace;
+                    var vname=dbname+":"+version;
+                    function usingIndexedDB(resolve,reject){
+                        if ((typeof indexedDB === "undefined")||
+                            (!(indexedDB.open))) {
+                            fdjtLog.warn(
+                                "No indexedDB implementation for opening %:",vname);
+                            if (reject)
+                                reject(new Error("No indexedDB implementation"));
+                            else throw new Error("No indexedDB implementation");}
+                        var req=indexedDB.open(dbname,version), fail=false;
+                        var init_timeout=setTimeout(function(){
+                            fail=true;
+                            fdjtLog.warn("Init timeout for indexedDB %s",vname);
+                            reject(new Error("Init timeout"));},
+                                                    opts.timeout||15000);
+                        req.onerror=function(event){
+                            fail=true;
+                            warn("Error initializing indexedDB layout cache: %o",
+                                 event.errorCode);
+                            if (init_timeout) clearTimeout(init_timeout);
+                            if (reject) return reject(event);
+                            else return event;};
+                        req.onsuccess=function(evt) {
+                            if (fail) {
+                                fdjtLog("Discarding indexedDB %s after failure!",
+                                        vname);
+                                return;}
+                            var db=evt.target.result;
+                            if (init_timeout) clearTimeout(init_timeout);
+                            if (trace)
+                                fdjtLog("Got existing IndexedDB %s %o",
+                                        vname,db);
+                            if (resolve)
+                                return resolve(db);
+                            else return db;};
+                        req.onupgradeneeded=function(evt) {
+                            var db=evt.target.result;
+                            if (!(init)) return resolve(db);
+                            else {
+                                req.onsuccess=function(){
+                                    if (resolve) return resolve(db);
+                                    else return db;};
+                                req.onerror=function(evt){
+                                    fdjtLog("Error upgrading %s %o",vname,evt);
+                                    if (reject) reject(evt);
+                                    else throw new Error(
+                                        "Error upgrading %s",vname);};
+                                if (init.call) {
+                                    try {init(db);
+                                         if (resolve) return resolve(db);
+                                         else return db;}
+                                    catch (ex) {
+                                        fdjtLog("Error upgrading %s:%d: %o",
+                                                dbname,version,ex);
+                                        if (reject) reject(ex);}}
+                                else if (reject) reject(
+                                    new Error("Bad indexDB init: %o",init));
+                                else throw new Error("Bad indexDB init: %o",init);}
+                            return db;};
+                        return req;}
+                    return new Promise(usingIndexedDB);}
+                RefDB.useIndexedDB=useIndexedDB;
 
                 return RefDB;})();}
 
@@ -14369,6 +14521,329 @@ fdjt.disenableInputs=fdjt.UI.disenableInputs=
 /* Emacs local variables
    ;;;  Local variables: ***
    ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ######################### fdjt/pager.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or any
+   later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+   Use and redistribution (especially embedding in other CC licensed
+   content) is also permitted under the terms of the Creative Commons
+   "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+
+fdjt.Pager=
+    (function(){
+        "use strict";
+
+        var fdjtDOM=fdjt.DOM;
+        var fdjtLog=fdjt.Log;
+        var fdjtTime=fdjt.Time;
+        var addClass=fdjtDOM.addClass;
+        var hasClass=fdjtDOM.hasClass;
+        var dropClass=fdjtDOM.dropClass;
+        var getChildren=fdjtDOM.getChildren;
+        var getChild=fdjtDOM.getChild;
+        var getParent=fdjtDOM.getParent;
+        var getStyle=fdjtDOM.getStyle;
+        var toArray=fdjtDOM.toArray;
+        var parsePX=fdjtDOM.parsePX;
+
+        function Pager(root,opts){
+            if (!(this instanceof Pager))
+                return new Pager(root,opts);
+            if (!(opts)) opts={};
+            addClass(root,"pager");
+            this.root=root;
+            if (opts.container)
+                this.container=opts.container;
+            else this.container=root.parentNode||root;
+            this.packthresh=opts.packthresh||30;
+            if (opts.trace) this.trace=opts.trace;
+            if (opts.hasOwnProperty("initlayout")) {
+                if (opts.initlayout) this.doLayout();}
+            else this.doLayout();
+            return this;}
+        function makeSolid(node){
+            var style=getStyle(node), resets=[], body=document.body;
+            while ((node)&&(node!==body)) {
+                var nodestyle=node.style;
+                if (style.display==="none") {
+                    resets.push({node: node,style: node.getAttribute("style")});
+                    nodestyle.opacity=0; nodestyle.zIndex=-500;
+                    nodestyle.display='block'; nodestyle.pointerEvents='none';}
+                node=node.parentNode;
+                style=getStyle(node);}
+            return resets;}
+        function resetStyles(resets) {
+            var i=0, n=resets.length;
+            while (i<n) {
+                var reset=resets[i++];
+                if (reset.style) reset.node.setAttribute("style",reset.style);
+                else reset.node.removeAttribute("style");}}
+
+        Pager.prototype.clear=function(){
+            var shown=getChildren(this.root,".pagevisible");
+            dropClass(toArray(shown),"pagevisible");};
+        
+        function doingLayout(pager,root,children,h){
+            var page=fdjtDOM("div.pagerblock.working"), pages=[page];
+            root.appendChild(page);
+            page.setAttribute("data-pageno",pages.length);
+            if (pager.trace)
+                fdjtLog("Pager: %d children -> %dpx pages for\n\t%o",
+                        children.length,h,root);
+            return fdjt.Async.slowmap(function(child){
+                var trace=pager.trace||0, started=fdjtTime();
+                page.appendChild(child);
+                if (child.nodeType===1) {
+                    var page_height=page.offsetHeight;
+                    if (trace>2)
+                        fdjtLog("Pager: Child#%d %o, page %d h=%d/%d for\n\t%o",
+                                children.indexOf(child),child,
+                                pages.length,page_height,h,
+                                root);
+                    if (page_height>h) {
+                        var pagetop=child;
+                        if ((pager.badBreak)&&
+                            (pager.badBreak(
+                                child.previousElementSibling,child))) {
+                            var a=child.previousElementSibling, b=child;
+                            while ((a)&&(b)&&(pager.badBreak(a,b))) {
+                                b=a; a=a.previousElementSibling;}
+                            if ((a)&&(b)) {
+                                var scan=b;
+                                pagetop=document.createDocumentFragment();
+                                while ((scan)&&(scan!==child)) {
+                                    pagetop.appendChild(scan);
+                                    scan=scan.nextSibling;}
+                                pagetop.appendChild(child);}}
+                        var newpage=fdjtDOM("div.pagerblock.working",pagetop);
+                        pages.push(newpage);
+                        root.appendChild(newpage);
+                        if (trace>1)
+                            fdjtLog(
+                                "Pager: new p#%d for ch#%d (h=%d) %o for\n\t%o",
+                                pages.length,children.indexOf(child),
+                                child.offsetHeight,child,root);
+                        newpage.setAttribute("data-pageno",pages.length);
+                        dropClass(page,"working");
+                        page=newpage;}}
+                pager.layout_used=pager.layout_used+(fdjtTime()-started);},
+                                      children,
+                                      {slice: 100,space: 5})
+                .then(function(){pager.layoutDone(pages);})
+                .catch(function(){pager.layoutDone(pages);});}
+            
+        Pager.prototype.reset=function(){
+            this.pages=false; this.children=false;
+            this.showpage=false;};
+
+        Pager.prototype.clearLayout=function(){
+            var root=this.root, children=this.children;
+            var frag=document.createDocumentFragment();
+            var i=0, n=children.length;
+            while (i<n) {frag.appendChild(children[i++]);}
+            root.innerHTML=""; root.appendChild(frag);
+            this.children=false; this.pages=false;
+            this.root.removeAttribute("data-npages");
+            if (this.trace)
+                fdjtLog("Pager: Cleared layout, restored %d children for\n\t%o",
+                        children.length,root);
+            if (this.pagernav) {
+                fdjtDOM.remove(this.pagernav);}};
+
+        Pager.prototype.refreshLayout=function refreshLayout(force){
+            var container=this.container;
+            var h=container.offsetHeight, w=container.offsetWidth;
+            if ((this.pages)&&(!(force))&&
+                (this.height===h)&&(this.width===w))
+                return this.pageinfo;
+            else this.doLayout();};
+        Pager.prototype.resized=function resized(){
+            this.refreshLayout();};
+        Pager.prototype.changed=function changed(){
+            var pager=this;
+            if (this.layout_timer) clearTimeout(this.layout_timer);
+            this.layout_timer=setTimeout(function(){
+                pager.layout_timer=false;
+                pager.refreshLayout(true);},
+                                         50);};
+
+        Pager.prototype.layoutDone=function(pages){
+            var resets=this.resets, root=this.root;
+            if (this.focus) dropClass(this.focus,"pagerfocus");
+            this.resets=false;
+            if (pages.length) {
+                dropClass(root,"pagerlayout");
+                this.pages=pages; this.npages=pages.length;
+                this.root.setAttribute("data-npages",this.npages);
+                var focus=
+                    ((getParent(this.focus,root))?
+                     (this.focus):(pages[0].firstElementChild));
+                var newpage=getParent(focus,".pagerblock");
+                addClass(newpage,"pagevisible");
+                addClass(focus,"pagerfocus");
+                this.page=newpage;
+                this.pageoff=pages.indexOf(newpage);}
+            if (pages.length) this.setupPagerNav();
+            if (this.trace)
+                fdjtLog("Pager: Finished %d %dpx pages in %o/%os for\t\n%o",
+                        pages.length,this.height,
+                        (this.layout_used)/1000,
+                        (fdjtTime()-this.layout_started)/1000,
+                       this.root);
+            addClass(root,"pagerdone");
+            this.layout_started=false;
+            resetStyles(resets);};
+
+        Pager.prototype.doLayout=function doLayout(){
+            var root=this.root, container=this.container;
+            var trace=this.trace||0, started=fdjtTime();
+            if (root.childNodes.length===0) return;
+            if (this.layout_started) return;
+            else {
+                this.layout_started=fdjtTime();
+                this.layout_used=0;}
+            if (trace) fdjtLog("Pager: starting layout rh=%o, ch=%o for\n\t%o",
+                               root.offsetHeight,container.offsetHeight,
+                               root);
+            var resets=makeSolid(root), h=container.offsetHeight;
+            if (trace) 
+                fdjtLog("Pager: Solidified (h=%d) with %d restyles for\n\t%o",
+                        h,resets.length,root);
+            var cstyle=getStyle(container);
+            if (cstyle.paddingTop) h=h-parsePX(cstyle.paddingTop);
+            if (cstyle.borderTopWidth) h=h-parsePX(cstyle.borderTopWidth);
+            if (cstyle.paddingBottom) h=h-parsePX(cstyle.paddingBottom);
+            var rstyle=getStyle(root);
+            if (rstyle.paddingTop) h=h-parsePX(rstyle.paddingTop);
+            if (rstyle.paddingBottom) h=h-parsePX(rstyle.paddingBottom);
+            if (rstyle.borderBottomWidth) h=h-parsePX(rstyle.borderBottomWidth);
+            if (h<=0) {
+                fdjtLog("Pager: exit because h=%d for\n\t%o",h,root);
+                resetStyles(resets); return;}
+            else if (trace>1) 
+                fdjtLog("Pager: adjust h=%d for\n\t%o",h,root);
+            else {}
+            this.height=h;
+            if (this.pages) this.clearLayout();
+            addClass(root,"pagerlayout");
+            var children=this.children=toArray(root.childNodes);
+            var pagenum=fdjtDOM("div.pagenum");
+            var pagernav=fdjtDOM("div.pagernav");
+            fdjtDOM.prepend(root,pagernav); 
+            this.pagernav=pagernav; 
+            this.pagenum=pagenum;
+            this.resets=resets;
+            this.layout_used=fdjtTime()-started;
+            doingLayout(this,root,children,h-pagernav.offsetHeight);};
+
+        Pager.prototype.setupPagerNav=function setupPagerNav(){
+            var pagernav=this.pagernav, pages=this.pages;
+            var nav_elts=[];
+            var pct_width=(100/pages.length);
+            var i=0, lim=pages.length;
+            while (i<lim) {
+                var nav_elt=fdjtDOM("span",fdjtDOM("span.num",i+1));
+                nav_elt.style.width=pct_width+"%";
+                pagernav.appendChild(nav_elt);
+                nav_elts.push(nav_elt);
+                i++;}
+            var off=pages.indexOf(this.page);
+            if ((pagernav.offsetWidth/pages.length)<this.packthresh)
+                addClass(pagernav,"packed");
+            addClass(nav_elts[off],"pagevisible");
+            this.showpage=nav_elts[off];
+            if (this.pagenum) {
+                this.pagenum.innerHTML=(off+1)+"/"+pages.length;
+                pagernav.appendChild(this.pagenum);}
+            fdjtDOM.prepend(this.root,pagernav);
+            this.nav_elts=nav_elts;};
+
+        Pager.prototype.setPage=function setPage(arg){
+            if (arg.nodeType) {
+                var page=getParent(arg,".pagerblock");
+                if (!(page)) return;
+                if (this.page!==page) {
+                    var off=this.pages.indexOf(page);
+                    if (this.page) dropClass(this.page,"pagevisible");
+                    addClass(page,"pagevisible");
+                    this.page=page;
+                    this.pagenum.innerHTML=(off+1)+"/"+this.pages.length;
+                    if (this.pagernav) {
+                        if (this.showpage)
+                            dropClass(this.showpage,"pagevisible");
+                        var elt=this.nav_elts[off];
+                        if (elt) addClass(elt,"pagevisible");
+                        this.showpage=elt;}}
+                if (arg===page) arg=page.firstElementChild;
+                if (this.focus!==arg) {
+                    if (this.focus) dropClass(this.focus,"pagerfocus");
+                    addClass(arg,"pagerfocus");
+                    this.focus=arg;}}
+            else if (typeof arg === "number") {
+                var goto=this.pages[arg];
+                if (!(goto)) return;
+                this.setPage(goto);}
+            else return;};
+
+        Pager.prototype.forward=function(){
+            if (!(this.pages)) this.changed();
+            if (!(this.page)) return;
+            else if (this.page.nextElementSibling)
+                this.setPage(this.page.nextElementSibling);
+            else return;};
+
+        Pager.prototype.backward=function(){
+            if (!(this.pages)) this.changed();
+            if (!(this.page)) return;
+            else if (this.page.previousElementSibling)
+                this.setPage(this.page.previousElementSibling);
+            else return;};
+
+        Pager.prototype.getNum=function(target){
+            var num=((hasClass(target,"num"))?(target):
+                     ((getParent(target,".num"))||
+                      (getChild(target,".num"))));
+            if (!(num)) return false;
+            else return parseInt(num.innerHTML);};
+
+        Pager.prototype.trace=0;
+
+        return Pager;})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
@@ -17200,31 +17675,39 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
 */
+/* globals window, global */
 
-fdjt.useGlobals=function(){
-    if (!(window.fdjtDOM)) window.fdjtDOM=fdjt.DOM;
-    if (!(window.fdjtUI)) window.fdjtUI=fdjt.UI;
-    if (window.fdjtTime) window.fdjtTime=fdjt.Time;
-    if (!(window.fdjtString)) window.fdjtString=fdjt.String;
-    if (!(window.fdjtState)) window.fdjtState=fdjt.State;
-    if (!(window.fdjtLog)) window.fdjtLog=fdjt.Log;
-    if (!(window.fdjtHash)) window.fdjtHash=fdjt.Hash;
-    if (!(window.fdjtAjax)) window.fdjtAjax=fdjt.Ajax;
-    if (!(window.CodexLayout)) window.CodexLayout=fdjt.CodexLayout;
-    if (!(window.RefDB)) window.RefDB=fdjt.RefDB;};
+(function(){
+    "use strict";
+    fdjt.useGlobals=fdjt.dbg=function(cxt){
+        var names=["fdjtDOM","fdjtUI","fdjtTime","fdjtString","fdjtState",
+                   "fdjtLog","fdjtHash","fdjtAjax","fdjtAsync","fdjtInit",
+                   "fdjtDialog","fdjtTemplate","fdjtID","fdjtRef",
+                   "fdjtTapHold","fdjtSelecting","fdjtTextIndex","fdjtRefDB",
+                   "TextIndex","RefDB","CodexLayout","Pager"];
+        if (!(cxt)) cxt=window;
+        if (!(cxt)) {
+            fdjt.Log("Nowhere to put globals");
+            return;}
+        var i=0, n=names.length; while (i<n) {
+            var name=names[i++];
+            var fname=((name.search("fdjt")===0)?(name.slice(4)):(name));
+            if ((fdjt[fname])&&(!(cxt[name]))) {
+                fdjt.Log("%s = fdjt.%s",name,fname);
+                cxt[name]=fdjt[fname];}}
+        return n;};
+    /*
+    window.addEventListener("load",function(){
+        var root=(typeof global !== "undefined")?(global):
+            (typeof window !== "undefined")?(window):
+            (false);
+        fdjt.useGlobals(root);});
+    */
+})();
 
-    
-/*
-if (!(window.((typeof _declare_fdjt_globals !== "undefined")&&(_declare_fdjt_globals)))) window.(((typeof _declare_fdjt_globals !== "undefined")&&(_declare_fdjt_globals)) {
-var fdjtDOM=fdjt.DOM;
-    var fdjtUI=fdjt.UI;
-    var fdjtTime=fdjt.Time;
-    var fdjtString=fdjt.String;
-    var fdjtState=fdjt.State;
-    var fdjtLog=fdjt.Log;
-    var fdjtHash=fdjt.Hash;
-    var fdjtAjax=fdjt.Ajax;
-    var CodexLayout=fdjt.CodexLayout;
-    var RefDB=fdjt.RefDB;}
-
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
 */

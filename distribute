@@ -9,7 +9,8 @@
 (define gzheaders '("x-amz-acl: public-read"
 		    "Content-encoding\: gzip"))
 (define graphics
-  {"g/metabook/" "g/metabook/docs/" "g/fdjt/"})
+  {"g/metabook/" "g/metabook/docs/"
+   "g/fdjt/" "metabook/css/g/metabook/"})
 (define fonts
   {"fonts/Adobe/" "fonts/aleo/" "fonts/coelacanth/"
    "fonts/gentium/" "fonts/noto/"
