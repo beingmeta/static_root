@@ -323,7 +323,7 @@ dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
 
 fdjt/fdjt.min.js dist/fdjt.min.js: fdjt/fdjt.js jsmin/jsmin
-	uglifyjs2 $(FDJT_FILES) > $@
+	uglifyjs2 $(FDJT_FILES) fdjt/buildstamp.js > $@
 dist/fdjt.js: fdjt/fdjt.js
 	cp $< $@
 dist/fdjt.css: fdjt/fdjt.css
