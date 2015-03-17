@@ -230,7 +230,8 @@ clean:
 	make cleanhints
 	rm -f ${METABOOK_DERIVED_FILES}
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
-	rm -f metabook.js metabook.css fdjt.js fdjt.css
+	rm -f metabook*js metabook*css fdjt*js fdjt*css *.map
+	rm -f metabook*js.gz metabook*css.gz fdjt*js.gz fdjt*css.gz
 
 cleandist undist:
 	rm dist/*; git checkout dist
@@ -277,7 +278,7 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 metabook.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
-	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o $@
+	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.min.js: $(METABOOK_JS_BUNDLE) makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
