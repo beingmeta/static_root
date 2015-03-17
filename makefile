@@ -109,7 +109,22 @@ METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
 
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(METABOOK_FILES)
 
+ROOT_FDJT=fdjt.js fdjt.min.js fdjt.min.js.gz fdjt.css fdjt.css.gz
+ROOT_METABOOK=metabook.js metabook.min.js metabook.min.js.gz \
+	metabook.css metabook.css.gz metabook.clean.css \
+	metabook.clean.css.gz
+DIST_FDJT=dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.uglify.map \
+	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
+DIST_METABOOK=dist/metabook.js dist/metabook.css \
+	dist/metabook.js.gz dist/metabook.css.gz \
+	dist/metabook.min.js dist/metabook.min.js.gz \
+	dist/metabook.uglify.js dist/metabook.uglify.js.gz \
+	dist/metabook.clean.css dist/metabook.clean.css.gz
+
 SBOOKSTYLES=sbooks/sbookstyles.css
+
+%.gz: %
+	@gzip $< -c > $@
 
 fdjt/%.hint: fdjt/%.js
 	@echo Checking $@
@@ -141,20 +156,17 @@ dist/%.gz: dist/%
 fdjt/%.gz: fdjt/%
 	@gzip $< -c > $@
 
-.SUFFIXES: .js .css
+.SUFFIXES: .js .css .gz
 
-all: allcode alltags allhints index.html
-allcode: fdjt knodules metabook webfontloader \
-	metabook.js metabook.css fdjt.js fdjt.css \
-	fdjt/fdjt.js showsomeclass/app.js showsomeclass/app.css
+default: root ssc alltags allhints index.html
 
-dist: dist/metabook.js dist/metabook.css \
-	dist/metabook.js.gz dist/metabook.css.gz \
-	dist/metabook.min.js dist/metabook.min.js.gz \
-	dist/metabook.uglify.js dist/metabook.uglify.js.gz \
-	dist/metabook.clean.css dist/metabook.clean.css.gz \
-	dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.uglify.map \
-	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
+root: ${ROOT_FDJT} ${ROOT_METABOOK}
+
+${ROOT_METABOOK} ${DIST_METABOOK}: fdjt metabook knodules webfontloader
+${ROOT_FDJT} ${DIST_FDJT}: fdjt
+dist: ${DIST_FDJT} ${DIST_METABOOK}
+
+ssc: showsomeclass/app.js showsomeclass/app.css
 
 allhints: fdjt/fdjt.hints metabook/metabook.hints \
 	knodules/knodules.hints showsomeclass/hints
@@ -230,10 +242,16 @@ fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
 fdjt/codexlayouthash.js: fdjt/codexlayout.js fdjt/codexlayout.css
 	cd fdjt; make all
 
-fdjt.js: fdjt/fdjt.js
+fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
 	cp fdjt/fdjt.js fdjt.js
 fdjt.css: fdjt/fdjt.css
 	cp fdjt/fdjt.css fdjt.css
+fdjt.min.js: ${FDJT_FILES} fdjt/buildstamp.js makefile
+	@echo Building ./fdjt.min.js
+	@uglifyjs2 -b \
+	  --source-map fdjt.uglify.map \
+	    ${FDJT_FILES} fdjt/buildstamp.js \
+	  > $@
 
 dist/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE)
 	@$(ECHO) "// sBooks metaBook build information" > $@
@@ -260,21 +278,25 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 metabook.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
 	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o $@
-metabook.js: $(METABOOK_JS_BUNDLE) makefile \
+metabook.min.js: $(METABOOK_JS_BUNDLE) makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
+	@echo Building ./metabook.js
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		> fdjt/codexlayouthash.js 
 	@echo >> fdjt/codexlayouthash.js
 	@echo >> fdjt/codexlayouthash.js
-	@echo Building ./metabook.js
 	@uglifyjs2 -b \
 	  --source-map metabook.uglify.map \
-	    sbooks/amalgam.js fdjt/buildstamp.js \
-	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-	    metabook/buildstamp.js knodules/buildstamp.js \
-	    fdjt/codexlayouthash.js \
+	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
+	    knodules/buildstamp.js metabook/buildstamp.js \
+	    \
 	  > $@
+metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
+	@echo Building metabook.clean.css
+	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+
 fresh:
 	make clean
 	make metabook.css metabook.js
