@@ -357,18 +357,36 @@ dist/fdjt.min.js dist/fdjt.uglify.map: $(FDJT_FILES) makefile
 
 # Compiled
 
-dist/metabook.compiled.js: fdjt/fdjt.js \
+dist/metabook.compiled.js: makefile \
 	dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
 	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
 	java -jar closure/compiler.jar \
 		--language_in ECMASCRIPT5 \
-		--create_source_map dist/metabook.closure.map \
-		sbooks/amalgam.js fdjt/buildstamp.js \
-		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-		metabook/buildstamp.js knodules/buildstamp.js \
+		--create_source_map dist/metabook.compiled.map \
+		sbooks/amalgam.js      \
+		$(METABOOK_JS_BUNDLE)  \
+                metabook/tieoff.js     \
+	        fdjt/buildstamp.js     \
+		metabook/buildstamp.js \
+	        knodules/buildstamp.js \
 		--js_output_file dist/metabook.compiled.js
+dist/metabook.advanced.js: makefile \
+	dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
+	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
+	java -jar closure/compiler.jar \
+		--language_in ECMASCRIPT5 \
+		--create_source_map dist/metabook.advanced.map \
+	        --compilation_level ADVANCED_OPTIMIZATIONS \
+		sbooks/amalgam.js      \
+		$(METABOOK_JS_BUNDLE)  \
+                metabook/tieoff.js     \
+	        fdjt/buildstamp.js     \
+		metabook/buildstamp.js \
+	        knodules/buildstamp.js \
+		--js_output_file dist/metabook.advanced.js
 
-compiled: dist/metabook.compiled.js dist/metabook.compiled.js.gz
+compiled: dist/metabook.compiled.js dist/metabook.compiled.js.gz \
+	dist/metabook.advanced.js dist/metabook.advanced.js.gz
 
 # Generating the HTML
 
