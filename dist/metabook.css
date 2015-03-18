@@ -832,11 +832,18 @@ body._NOSVG img.svg { display: none;}
 body._NOSVG img.inline.svg { display: none;}
 body._NOSVG .nosvg { display: inline;}
 body._NOSVG .inline.nosvg { display: inline;}
+html._NOSVG img.svg { display: none;}
+html._NOSVG img.inline.svg { display: none;}
+html._NOSVG .nosvg { display: inline;}
+html._NOSVG .inline.nosvg { display: inline;}
 
 img.hires { display: none !important;}
 img.svg { display: none !important;}
 body._USESVG img.svg { display: inline !important;}
 body._USESVG img.stdres, body._USESVG img.notsvg {
+    display: none !important;}
+html._USESVG img.svg { display: inline !important;}
+html._USESVG img.stdres, html._USESVG img.notsvg {
     display: none !important;}
 
 
@@ -1133,6 +1140,14 @@ body._TOUCH .fdjtselecting .fdjtselectstart:hover,
 body._TOUCH .fdjtselecting .fdjtselectend:hover {
     text-decoration: none;}
 
+html._TOUCH .fdjtselecting .fdjtselected:hover,
+html._TOUCH .fdjtselecting .fdjtselectstart:hover,
+html._TOUCH .fdjtselecting .fdjtselectend:hover,
+html._TOUCH .fdjtselecting .fdjtselected:hover,
+html._TOUCH .fdjtselecting .fdjtselectstart:hover,
+html._TOUCH .fdjtselecting .fdjtselectend:hover {
+    text-decoration: none;}
+
 .fdjtselecting .fdjtadjuststart .fdjtselectstart,
 .fdjtselecting .fdjtadjustend .fdjtselectend {
     background-color: gold;}
@@ -1190,12 +1205,16 @@ input.fdjtemailinput, input[TYPE="EMAIL"] {
     background-position: right;}
 body._USESVG input.fdjtemailinput,body._USESVG input[TYPE="EMAIL"] { 
     background-image: url(/static/fdjt/email_bg.svg);}
+html._USESVG input.fdjtemailinput,html._USESVG input[TYPE="EMAIL"] { 
+    background-image: url(/static/fdjt/email_bg.svg);}
 
 input[TYPE="TEXT"].markdowninput, textarea.markdowninput {
     background-image: url(/static/fdjt/markdown-solid_bg.png);
     background-repeat: no-repeat;
     background-position: bottom right;}
-body._USESVG input[TYPE="TEXT"].markdowninput, textarea.markdowninput {
+body._USESVG input[TYPE="TEXT"].markdowninput, body._USESVG textarea.markdowninput {
+    background-image: url(/static/fdjt/markdown-solid_bg.svg);}
+html._USESVG input[TYPE="TEXT"].markdowninput, html._USESVG textarea.markdowninput {
     background-image: url(/static/fdjt/markdown-solid_bg.svg);}
 input[TYPE="TEXT"].markdowninput {
     background-size: 20% auto;}
@@ -1231,6 +1250,16 @@ table.fdjtform .usebaseline td {
 .pager > div.pagerblock.pagevisible,
 .pager.pagerlayout > div.pagerblock.working {
     display: block; }
+
+.pager.pagerlayout > * {
+    visibility: hidden; opacity: 0.0;}
+.pager.pagerlayout {
+    background-image: url(/static/fdjt/justaminute.svgz);
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: contains;}
+html._NOSVG .pager.pagerlayout {
+    background-image: url(/static/fdjt/justaminute.png);}
 
 .pager .pagernav {
     width: 100%; height: 1.6em;
@@ -1922,10 +1951,10 @@ body._ANIMATE.hudup #CODEXPAGE {
     -webkit-transition-property: opacity;
     -moz-transition-property: opacity;
     -o-transition-property: opacity;
-    transition-duration: 1s; 
-    -webkit-transition-duration: 1s;
-    -o-transition-duration: 1s;
-    -moz-duration: 1s; }
+    transition-duration: 0.2s; 
+    -webkit-transition-duration: 0.2s;
+    -o-transition-duration: 0.2s;
+    -moz-duration: 0.2s;}
 body.hudup #CODEXPAGE {
     opacity: 0.8;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
@@ -2063,7 +2092,7 @@ span.note.ellipsis span.elision, span.note.ellipsis span.delision {
 
 /* Fuzzy selections */
 
-body._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
+html._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
 
 .fdjtselected {
     box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 255, 0, 0.33);}
@@ -2170,29 +2199,29 @@ div.sbookabout div.publisher { font-style: italic;}
 div.logindoc { display: none;}
 
 .fortouch { display: none;}
-body._TOUCH .notouch { display: none;}
-body._TOUCH div.fortouch,
-body._TOUCH p.fortouch {
+html._TOUCH .notouch { display: none;}
+html._TOUCH div.fortouch,
+html._TOUCH p.fortouch {
     display: block;}
-body._TOUCH .fortouch {display: inline;}
-body._TOUCH li.fortouch {display: list-item;}
-body._TOUCH span.fortouch { display: inline;}
-body._TOUCH div.fortouch { display: block;}
-body._TOUCH p.fortouch { display: block;}
-body._TOUCH li.fortouch { display: list-item;}
+html._TOUCH .fortouch {display: inline;}
+html._TOUCH li.fortouch {display: list-item;}
+html._TOUCH span.fortouch { display: inline;}
+html._TOUCH div.fortouch { display: block;}
+html._TOUCH p.fortouch { display: block;}
+html._TOUCH li.fortouch { display: list-item;}
 /* Make checkboxes bigger */
-body._TOUCH .checkspan input[TYPE="CHECKBOX"],
-body._TOUCH .checkspan input[TYPE="RADIO"] {
+html._TOUCH .checkspan input[TYPE="CHECKBOX"],
+html._TOUCH .checkspan input[TYPE="RADIO"] {
     height: 1em; width: 1em;}
 
 body._MOUSE._USESVG img.fortouch.svg,
-body._TOUCH._USESVG img.notouch.svg {
+html._TOUCH._USESVG img.notouch.svg {
     display: none !important;}
 
 body img.touchicon { display: none;}
 body img.mouseicon { display: inline;}
-body._TOUCH img.touchicon { display: inline;}
-body._TOUCH img.mouseicon { display: none;}
+html._TOUCH img.touchicon { display: inline;}
+html._TOUCH img.mouseicon { display: none;}
 
 div.locbar {
     background-color: ivory;
@@ -2265,6 +2294,9 @@ body._MOUSE .glossmark#METABOOKOPENGLOSSMARK.hover > img {
 .glossmark img.wedge {
     position: absolute; right: 0px; top: 0px;}
 
+.mbSKIMMING .glossmark, .mbPREVIEW .glossmark {
+    opacity: 0.5;}
+
 /* Displaying the sbook target */
 
 body._ANIMATE .mbtarget, body.mbSHRINK .mbtarget {
@@ -2310,8 +2342,8 @@ body._ANIMATE .glossmark > img {
 .mbtarget > .glossmark {
     border-right-color: blue;} /* double */
 
-body._MOUSE.hudup .mbtarget .glossmark:hover > img,
-body._MOUSE.hudup .mbtarget .glossmark.hover > img {
+html._MOUSE .glossmark:hover > img
+{
     opacity: 0.9;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     filter: alpha(opacity=90);
@@ -2320,8 +2352,7 @@ body._MOUSE.hudup .mbtarget .glossmark.hover > img {
     -moz-opacity: 0.90;
     -o-opacity: 0.90;}
 
-body._TOUCH.hudup .mbtarget > .glossmark > img,
-body._TOUCH.openhud .mbtarget > .glossmark > img {
+body.hudup .mbtarget > .glossmark > img {
     opacity: 0.80;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
     filter: alpha(opacity=80);
@@ -2329,64 +2360,72 @@ body._TOUCH.openhud .mbtarget > .glossmark > img {
     -khtml-opacity: 0.80;
     -moz-opacity: 0.80;
     -o-opacity: 0.80;}
+body.openhud .mbtarget > .glossmark > img {
+    opacity: 0.40;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+    filter: alpha(opacity=40);
+    -webkit-opacity: 0.40;
+    -khtml-opacity: 0.40;
+    -moz-opacity: 0.40;
+    -o-opacity: 0.40;}
 
 /* Not logged in conditionalization */
 
-body._NOUSER a.logout {display: none;}
-body._NOUSER #SBOOKLOGOUT { display: none;}
-body._NOUSER #METABOOKHUD div.hud#METABOOKSOURCES img.button.login {
+html._NOUSER a.logout {display: none;}
+html._NOUSER #SBOOKLOGOUT { display: none;}
+html._NOUSER #METABOOKHUD div.hud#METABOOKSOURCES img.button.login {
     display: block;}
 
 .mbwithuser, .mbdisconn, .mbwithconn, .mbneedlogin { display: none;}
-body._USER .mbnouser { display: none;}
+html._USER .mbnouser { display: none;}
 
-body._NOUSER span.mbnouser, body._NOUSER a.mbnouser,
-body._NOUSER em.mbnouser, body._NOUSER strong.mbnouser {
+html._NOUSER span.mbnouser, html._NOUSER a.mbnouser,
+html._NOUSER em.mbnouser, html._NOUSER strong.mbnouser {
     display: inline; }
 
-body._NOUSER p._nouser, body._NOUSER div.mbnouser,
-body._NOUSER blockquote.mbnouser { display: block; }
+html._NOUSER p._nouser, html._NOUSER div.mbnouser,
+html._NOUSER blockquote.mbnouser { display: block; }
 
-body._NOUSER tr.mbnouser { display: table-row; }
-body._NOUSER tbody.mbnouser { display: table-row-group; }
+html._NOUSER tr.mbnouser { display: table-row; }
+html._NOUSER tbody.mbnouser { display: table-row-group; }
 
-body._USER span.mbwithuser, body._USER a.mbwithuser,
-body._USER em.mbwithuser, body._USER strong.mbwithuser {
+html._USER span.mbwithuser, html._USER a.mbwithuser,
+html._USER em.mbwithuser, html._USER strong.mbwithuser {
     display: inline; }
 
-body._DISCONN span.mbdisconn, body._DISCONN a.mbdisconn,
-body._DISCONN em.mbdisconn, body._DISCONN strong.mbdisconn {
+html._DISCONN span.mbdisconn, html._DISCONN a.mbdisconn,
+html._DISCONN em.mbdisconn, html._DISCONN strong.mbdisconn {
     display: inline; }
 
-body._DISCONN p.mbdisconn, body._DISCONN div.mbdisconn,
-body._DISCONN blockquote.mbdisconn { display: block; }
+html._DISCONN p.mbdisconn, html._DISCONN div.mbdisconn,
+html._DISCONN blockquote.mbdisconn { display: block; }
 
-body._DISCONN tr.mbdisconn { display: table-row; }
-body._DISCONN tbody.mbdisconn { display: table-row-group; }
+html._DISCONN tr.mbdisconn { display: table-row; }
+html._DISCONN tbody.mbdisconn { display: table-row-group; }
 
-body._NOUSER tbody.mbneedlogin, body._DISCONN tbody.mbneedlogin {
+html._NOUSER tbody.mbneedlogin, html._DISCONN tbody.mbneedlogin {
     display: table-row-group; }
-body._NOUSER tr.mbneedlogin, body._DISCONN tr.mbneedlogin {
+html._NOUSER tr.mbneedlogin, html._DISCONN tr.mbneedlogin {
     display: table-row; }
-body._NOUSER p.mbneedlogin, body._DISCONN p.mbneedlogin,
-body._NOUSER div.mbneedlogin, body._DISCONN div.mbneedlogin {
+html._NOUSER p.mbneedlogin, html._DISCONN p.mbneedlogin,
+html._NOUSER div.mbneedlogin, html._DISCONN div.mbneedlogin {
     display: block; }
 
-body._USER p.mbwithuser, body._USER div.mbwithuser,
-body._USER blockquote.mbwithuser { display: block; }
+html._USER p.mbwithuser, html._USER div.mbwithuser,
+html._USER blockquote.mbwithuser { display: block; }
 
-body._USER tr.mbwithuser { display: table-row; }
-body._USER tbody.mbwithuser { display: table-row-group; }
+html._USER tr.mbwithuser { display: table-row; }
+html._USER tbody.mbwithuser { display: table-row-group; }
 
-body._CONN span.mbwithconn, body._CONN a.mbwithconn,
-body._CONN em.mbwithconn, body._CONN strong.mbwithconn {
+html._CONN span.mbwithconn, html._CONN a.mbwithconn,
+html._CONN em.mbwithconn, html._CONN strong.mbwithconn {
     display: inline; }
 
-body._CONN p.mbwithconn, body._CONN div.mbwithconn,
-body._CONN blockquote.mbwithconn { display: block; }
+html._CONN p.mbwithconn, html._CONN div.mbwithconn,
+html._CONN blockquote.mbwithconn { display: block; }
 
-body._CONN tr.mbwithconn { display: table-row; }
-body._CONN tbody.mbwithconn { display: table-row-group; }
+html._CONN tr.mbwithconn { display: table-row; }
+html._CONN tbody.mbwithconn { display: table-row-group; }
 
 /* Pagination stuff */
 
@@ -2883,15 +2922,15 @@ body.mbSHOWHELP #METABOOKFRAME {
     pointer-events: none;}
 #METABOOKFRAME > #METABOOKHUD > div {
     pointer-events: all;}
-body._TOUCH #METABOOKFRAME > #METABOOKHUD > div {
+html._TOUCH #METABOOKFRAME > #METABOOKHUD > div {
     pointer-events: none;}
-body.mbSHOWHELP._TOUCH #METABOOKFRAME > #METABOOKHUD > div.metabookhelp {
+html._TOUCH body.mbSHOWHELP #METABOOKFRAME > #METABOOKHUD > div.metabookhelp {
     pointer-events: all;}
-body.mbSHOWHELP._TOUCH #METABOOKBODY {
+html._TOUCH body.mbSHOWHELP #METABOOKBODY {
     pointer-events: none;}
 
-body._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKTOPBAR,
-body._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKFOOT {
+html._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKTOPBAR,
+html._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKFOOT {
     pointer-events: all;}
 
 /* The COVER contains the usual wrapping elements for the book
@@ -2962,7 +3001,7 @@ body.mbZOOM #METABOOKZOOM {
     width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/redx.svgz);}
-body._NOSVG #METABOOKZOOMCLOSE {
+html._NOSVG #METABOOKZOOMCLOSE {
     background-image: url(g/metabook/redx100x100.png);}
 #METABOOKZOOMHELP {
     position: absolute;
@@ -2970,7 +3009,7 @@ body._NOSVG #METABOOKZOOMCLOSE {
     width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/help.svgz);}
-body._NOSVG #METABOOKZOOMHELP {
+html._NOSVG #METABOOKZOOMHELP {
     background-image: url(g/metabook/help100x100.png);}
 
 #METABOOKZOOMOUT {
@@ -2979,7 +3018,7 @@ body._NOSVG #METABOOKZOOMHELP {
     width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/zoomout.svgz);}
-body._NOSVG #METABOOKZOOMOUT {
+html._NOSVG #METABOOKZOOMOUT {
     background-image: url(g/metabook/zoomout50x50.png);}
 
 #METABOOKZOOMIN {
@@ -2988,7 +3027,7 @@ body._NOSVG #METABOOKZOOMOUT {
     width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/zoomin.svgz);}
-body._NOSVG #METABOOKZOOMIN {
+html._NOSVG #METABOOKZOOMIN {
     background-image: url(g/metabook/zoomin50x50.png);}
 
 #METABOOKUNZOOM {
@@ -2997,7 +3036,7 @@ body._NOSVG #METABOOKZOOMIN {
     width: 50px; width: 8vmin; height: 50px; height: 8vmin; 
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/unzoom.svgz);}
-body._NOSVG #METABOOKUNZOOM {
+html._NOSVG #METABOOKUNZOOM {
     background-image: url(g/metabook/unzoom50x50.png);}
 
 body.mbSHOWHELP #METABOOKZOOMHELP {
@@ -3325,7 +3364,7 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 #METABOOKFRAME {
     /* font-family: 'Open Sans', Arial, Helvetica, sans-serif, sans; */
     font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif, sans;}
-body._DYSLEXICAL #METABOOKFRAME, body._DYSLEXICAL .fdjtdialog {
+html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog {
     font-family: 'Open Dyslexic', serif;}
 .wf-inactive #METABOOKFRAME {
     font-family: Arial, Helvetica, sans-serif, sans;}
@@ -3335,11 +3374,11 @@ body._DYSLEXICAL #METABOOKFRAME, body._DYSLEXICAL .fdjtdialog {
                  Georgia, Charter, Garamond,
                  'Times New Roman', Times;}
 
-body._DYSLEXICAL #METABOOKBODY, .dyslexical {
+html._DYSLEXICAL #METABOOKBODY, .dyslexical {
     font-family: 'Open Dyslexic', serif;}
-body._DYSLEXICAL #METABOOKBODY, .dyslexical,
-body._DYSLEXICAL #METABOOKBODY p, .dyslexical p,
-body._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
+html._DYSLEXICAL #METABOOKBODY, .dyslexical,
+html._DYSLEXICAL #METABOOKBODY p, .dyslexical p,
+html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
     line-height: 1.5;}
 
 #METABOOKFRAME #METABOOKCONSOLE, span.uri {
@@ -3498,11 +3537,11 @@ body._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
 #METABOOKCOVER > div.userbox {
     padding-top: 0px;}
 
-body._NOUSER #METABOOKCOVER > div {
+html._NOUSER #METABOOKCOVER > div {
     top: 65px; bottom: 150px; }
-body._USER #METABOOKCOVER > div.userbox {
+html._USER #METABOOKCOVER > div.userbox {
     height: 40px; padding-top: 1px; display: block;}
-body._NOUSER #METABOOKCOVER > div.loginbox {
+html._NOUSER #METABOOKCOVER > div.loginbox {
     height: 70px; display: block;}
 
 #METABOOKCOVER div.loginmessage {
@@ -3527,7 +3566,7 @@ body._NOUSER #METABOOKCOVER > div.loginbox {
     max-width: 50%; float: left;} 
 #METABOOKCOVER div.loginbox form select {display: none;}
 
-body._NOUSER #METABOOKCOVER > #METABOOKCOVERCONTROLS {
+html._NOUSER #METABOOKCOVER > #METABOOKCOVERCONTROLS {
     bottom: 70px;}
 
 #METABOOKCOVER div.loginbox {
@@ -3552,7 +3591,7 @@ div.loginbox form > span, div.loginbox form > select {
 #METABOOKCOVER div.userbox a.sbookslogo em { color: cornflowerblue; }
 #METABOOKCOVER div.userbox span.sbooks em { color: silver;}
 #METABOOKCOVER div.userbox a.sbooks em { color: steelblue;}
-body._USER #METABOOKCOVER div.userbox {
+html._USER #METABOOKCOVER div.userbox {
     height: 40px;}
 
 #METABOOKCOVER div.userbox a.sbookslogo { display: none;}
@@ -3592,14 +3631,14 @@ body._USER #METABOOKCOVER div.userbox {
 .control[data-mode='console'], .control[data-mode='aboutsbooks'],
 .control[data-mode='aboutbook'] {
     display: none;}
-body._SHOWCONSOLE span.control[data-mode='console'] { display: inline;}
-body._NOUSER span.control[data-mode='layers'] { display: none;}
+html._SHOWCONSOLE span.control[data-mode='console'] { display: inline;}
+html._NOUSER span.control[data-mode='layers'] { display: none;}
 span.control[data-mode='layers'] .whenloggedin { display: none;}
-body._USER span.control[data-mode='layers'] .whenloggedin {
+html._USER span.control[data-mode='layers'] .whenloggedin {
     display: inline;}
-body._USER span.control[data-mode='layers'] .notloggedin {
+html._USER span.control[data-mode='layers'] .notloggedin {
     display: none;}
-body._USER._CONN .control[data-mode='login'] { display: none;}
+html._USER._CONN .control[data-mode='login'] { display: none;}
 
 #METABOOKCOVERCONTROLS.nobookcover .control[data-mode='bookcover'],
 #METABOOKCOVERCONTROLS.nocoverpage .control[data-mode='coverpage'],
@@ -3660,7 +3699,7 @@ body._USER._CONN .control[data-mode='login'] { display: none;}
     max-width: 30%; float: right;}
 #METABOOKBLURB p .floatright img, #ABOUTSBOOKS p .floatright img {
     max-width: 100%; height: auto; }
-body._SHOWCONSOLE .control[alt='Console'] {display: none;}
+html._SHOWCONSOLE .control[alt='Console'] {display: none;}
 
 /* Title page */
 
@@ -3699,11 +3738,11 @@ body._SHOWCONSOLE .control[alt='Console'] {display: none;}
     background-color: silver;
     float: right;}
 #METABOOKCONSOLE #METABOOKCONSOLEINPUT textarea { width: 90%;}
-body._TOUCH #METABOOKCONSOLE #METABOOKCONSOLEINPUT.uptop {
+html._TOUCH #METABOOKCONSOLE #METABOOKCONSOLEINPUT.uptop {
     position: absolute;
     top: 5px; left: 10%; right: 10%; width: 90%;
     margin-left: 0px; padding-top: 0px;}
-body._TOUCH #METABOOKCONSOLELOG {
+html._TOUCH #METABOOKCONSOLELOG {
     /* This make it always scrollable on touch devices,
        in case interesting content is underneath the
        soft keyboard. */
@@ -3740,8 +3779,8 @@ body._MOUSE #METABOOKOPENTAB:hover, #METABOOKOPENTAB.tapholdtarget {
     border-color: blue; border-style: dotted;}
 #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
     width: 7em; color: white;}
-body._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB { font-size: 36px;}
-body._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
+html._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB { font-size: 36px;}
+html._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
     width: 5em; }
 
 body.mbREADY #METABOOKCOVERMESSAGE > #METABOOKOPENTAB {
@@ -3787,7 +3826,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
 /* Media specific rules */
 
 @media screen and (max-width: 750px) {
-    body._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1.3em; }}
+    html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1.3em; }}
 
 @media screen and (max-width: 640px) {
     div.fdjtprogress#METABOOKLAYOUTMESSAGE {
@@ -3803,15 +3842,15 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
 }
 @media screen and (max-width: 500px) {
     #METABOOKCOVER > div { bottom: 120px; }
-    body._NOUSER #METABOOKCOVER > div { bottom: 150px; }
+    html._NOUSER #METABOOKCOVER > div { bottom: 150px; }
     #METABOOKCOVERMESSAGE > div { font-size: 0.7em;}
     #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB { font-size: 30px;}
     #METABOOKCOVERMESSAGE > div#METABOOKREADYMESSAGE { font-size: 30px;}
 
     #METABOOKCOVER > div { left: 10px; right: 10px;}
 
-    body._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
-    body._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
+    html._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
+    html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
     
     #METABOOKCOVER > #METABOOKCOVERCONTROLS {
         height: 80px; white-space: normal; }
@@ -3907,7 +3946,7 @@ form.metabooksettings span.sep {
 form.metabooksettings h1 .button {float: right;}
 form.metabooksettings h1 .message {
     font-size: 50%; float: right; padding-top: 0.5ex;}
-._NOUSER form.metabooksettings h1 a.logout {display:none;}
+html._NOUSER form.metabooksettings h1 a.logout {display:none;}
 form.metabooksettings h1 a.logout {
     float: right; color: red; text-decoration: none;
     font-size: 60%; font-variant: small-caps;}
@@ -3922,7 +3961,7 @@ form.metabooksettings h1 .button {
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     float: right;}
-._MOUSE form.metabooksettings h1 .button:hover {
+html._MOUSE form.metabooksettings h1 .button:hover {
     border-color: black;}
 form.metabooksettings .button.exit {
     color: red; background-color: white;}
@@ -4022,8 +4061,8 @@ form.metabooksettings > div.checkspan.showconsole {
     margin-top: 1.5ex;
     border-top: solid gray 4px;}
 form.metabooksettings > div.showconsole { display: none; }
-._DEVMODE form.metabooksettings > div.showconsole,
-._SHOWCONSOLE form.metabooksettings > div.showconsole{
+html._DEVMODE form.metabooksettings > div.showconsole,
+html._SHOWCONSOLE form.metabooksettings > div.showconsole{
     display: block; }
 
 #METABOOKCOVER form.metabooksettings a,
@@ -4066,12 +4105,12 @@ form.metabooksettings > div button {
 form.metabooksettings button.reset {
     width: 2em; height: 2em; color: transparent;
     background-image: url();}
-._NOSVG form.metabooksettings button.reset {
+html._NOSVG form.metabooksettings button.reset {
     background-image: url(g/metabook/reset50x50.pg);}
 form.metabooksettings button.refresh {
     width: 2em; height: 2em; color: transparent;
     background-image: url(g/metabook/refresh.svgz);}
-._NOSVG form.metabooksettings button.refresh {    
+html._NOSVG form.metabooksettings button.refresh {    
     background-image: url(g/metabook/refresh50x50.png);}
 */
 
@@ -4092,9 +4131,9 @@ div.fdjtdialog.fdjtconfirm.mbsettings div.message {
 @charset "UTF-8";
 
 #METABOOKHUD a img { border: transparent;}
-._MOUSE #METABOOKHUD a:hover img { border: inherit;}
-._MOUSE #METABOOKHUD a:hover { text-decoration: underline;}
-._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
+html._MOUSE #METABOOKHUD a:hover img { border: inherit;}
+html._MOUSE #METABOOKHUD a:hover { text-decoration: underline;}
+html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
 
 /* Size rules */
 
@@ -4120,17 +4159,22 @@ div.fdjtdialog.fdjtconfirm.mbsettings div.message {
 #METABOOKFOOT { bottom: 0px; }
 #METABOOKSKIMMER {
     position: absolute; left: 60px; right: 60px; z-index: 100;
-    background-color: white;
     border: solid steelblue 4px; padding: 0px; font-size: 70%;
     max-height: 75px;}
-._ANIMATE #METABOOKSKIMMER {
-    transition-property: height; transition-duration: 0.5x;
-    -webkit-transition-property: height; -webkit-transition-duration: 0.5x;
-    -moz-transition-property: height; -moz-transition-duration: 0.5x;
-    -o-transition-property: height; -o-transition-duration: 0.5x;}
+html._TOUCH #METABOOKSKIMMER,
+html._TOUCH #METABOOKSKIMMER div.mbtoc,
+html._TOUCH #METABOOKSKIMMER div.metabookcard {
+    min-height: 50px;}
+body._ANIMATE #METABOOKSKIMMER {
+    transition-property: height; transition-duration: 0.3s;
+    -webkit-transition-property: height; -webkit-transition-duration: 0.3s;
+    -moz-transition-property: height; -moz-transition-duration: 0.3s;
+    -o-transition-property: height; -o-transition-duration: 0.3s;}
 
 #METABOOKSKIMMER.flash { background-color: silver;}
-#METABOOKSKIMMER.expanded { max-height: inherit; }
+#METABOOKSKIMMER.expanded {
+    background-color: white;
+    max-height: inherit; }
 #METABOOKSKIMMER .tochead {
     background-color: steelblue; color: white;
     font-weight: bold; max-height: 4ex;}
@@ -4154,11 +4198,11 @@ body.hudup #METABOOKHEAD .hudpanel {
 body._FULLHEIGHT #METABOOKTOPBAR {height: 20px;}
 body._FULLHEIGHT.hudup #METABOOKTOPBAR {height: 50px;}
 
-body._TOUCH.hudup #METABOOKFRAME > #METABOOKHUD > div,
-body._TOUCH #METABOOKFRAME > #METABOOKHUD.addgloss > div,
-body._TOUCH.mbSKIMMING #METABOOKFRAME > #METABOOKHUD > #METABOOKSKIMMER {
+html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div,
+html._TOUCH #METABOOKFRAME > #METABOOKHUD.addgloss > div,
+html._TOUCH body.mbSKIMMING #METABOOKFRAME > #METABOOKHUD > #METABOOKSKIMMER {
     pointer-events: all;}
-body._TOUCH.hudup #METABOOKFRAME > #METABOOKHUD > div.helphud {
+html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.helphud {
     background-color: ivory;}
 
 #METABOOKHEAD, #METABOOKSKIMMER {top: 0px; border-top: 0px;}
@@ -4354,14 +4398,16 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.glossaddtag #METABOOKRIBBON,
 #METABOOKHUD.glossaddoutlet #METABOOKRIBBON {
     border-bottom: solid blue 2px;
-    padding-top: 0px; height: 6ex;}
+    padding-top: 0px;
+    height: 6ex;} /* font-size: 50%; */
 #METABOOKHUD.refinesearch #METABOOKHEARTBODY,
 #METABOOKHUD.expandsearch #METABOOKHEARTBODY,
 #METABOOKHUD.searchresults #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddoutlet #METABOOKHEARTBODY {
-    top: 6ex; margin-top: 0px;
-    border-radius: 0px;}
+    margin-top: 0px;
+    border-radius: 0px;
+    top: 3ex;}
 
 /*
 #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY,
@@ -4426,6 +4472,7 @@ body._ISCROLL #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY #METABOOKHEAR
     position: absolute; bottom: 0px; z-index: 300;}
 
 body.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER {display: block;}
+body.mbSKIMMING #METABOOKHUD #METABOOKHEAD {display: none;}
 
 /* HUD panels */
 
@@ -4545,7 +4592,7 @@ body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCH {
     -moz-opacity: 0.98;
     -o-opacity: 0.98;}
 
-body._TOUCH .metabookcard .age {
+html._TOUCH .metabookcard .age {
     font-size: 125%; padding-bottom: 2px;}
 
 div.completions.hudpanel { line-height: 120%;}
@@ -4577,7 +4624,7 @@ div.completions.hudpanel .normal { line-height: 250%;}
     -khtml-opacity: 0.02;
     -moz-opacity: 0.02;
     -o-opacity: 0.02;}
-._MOUSE #METABOOKHUD:hover img.hudbutton {
+html._MOUSE #METABOOKHUD:hover img.hudbutton {
     opacity: 0.30;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
     filter: alpha(opacity=30);
@@ -4606,18 +4653,11 @@ body.mbSKIMMING #METABOOKHUD img.hudbutton {
     -o-opacity: 0.80;}
 #METABOOKHUD .hudbutton {
     transition-property: width, height, opacity;
-    transition-duration: 1s;
+    transition-duration: 0.2s;
     -moz-transition-property: width, height, opacity;
-    -moz-transition-duration: 1s;
+    -moz-transition-duration: 0.2s;
     -webkit-transition-property: width, height, opacity;
-    -webkit-transition-duration: 1s;}
-
-._TOUCH #METABOOKHUD img.hudbutton {
-    width: 65px; height: 64px;}
-
-/* .hudup #METABOOKHUD img.hudbutton { width: 75px; height: 75px;} */
-.hudup #METABOOKHUD.openheart img.hudbutton {
-    width: 50px; height: 50px;}
+    -webkit-transition-duration: 0.2s;}
 
 #METABOOKTOPBAR img.hudbutton[hudmode="allglosses"],
 #METABOOKTOPBAR img.hudbutton[hudmode="help"] {
@@ -4626,18 +4666,19 @@ body.mbSKIMMING #METABOOKHUD img.hudbutton {
 #METABOOKTOPBAR img.hudbutton[hudmode="help"] {left: 60px;}
 
 #METABOOKFOOT img.hudbutton[hudmode="searchresults"],
+#METABOOKFOOT img.hudbutton[hudmode="statictoc"],
 #METABOOKFOOT img.hudbutton[alt="save gloss"] {
     display: none; }
 #METABOOKHUD.addgloss #METABOOKFOOT img.hudbutton {
     opacity: 0.8; -webkit-opacity: 0.8;
     -moz-opacity: 0.8; -o-opacity: 0.8;}
 #METABOOKHUD.addgloss #METABOOKFOOT img.hudbutton[alt="save gloss"],
-body.mbSKIMMING #METABOOKHUD.searchresults
-    img.hudbutton[hudmode="searchresults"] {
+body.mbSKIMMING #METABOOKHUD.searchresults img.hudbutton[hudmode="searchresults"],
+body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="statictoc"] {
     display: inline-block; }
 #METABOOKHUD.addgloss img.hudbutton[hudmode="allglosses"],
-body.mbSKIMMING #METABOOKHUD.searchresults
-    img.hudbutton[hudmode="allglosses"] {
+body.mbSKIMMING #METABOOKHUD.searchresults img.hudbutton[hudmode="allglosses"],
+body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="allglosses"]{
     display: none; }
 
 body.hudup #METABOOKHUD img.hudbutton  {}
@@ -4651,12 +4692,6 @@ body._MOUSE #METABOOKHUD img.hudbutton:hover,
     -khtml-opacity: 0.45;
     -moz-opacity: 0.45;
     -o-opacity: 0.45;}
-#METABOOKHUD #METABOOKFOOT.tapholding img.hudbutton.tapholdtarget,
-#METABOOKHUD #METABOOKTOPBAR.tapholding img.hudbutton {
-    width: 75px; height: 75px;}
-._TOUCH #METABOOKHUD #METABOOKFOOT.tapholding img.hudbutton.tapholdtarget,
-._TOUCH #METABOOKHUD #METABOOKTOPBAR.tapholding img.hudbutton.tapholdtarget {
-    width: 125px; height: 125px;}
 
 #METABOOKHUD .topleft {top: 0px; left: 0px;}
 #METABOOKHUD .topleftin {top: 0px; left: 70px;}
@@ -4737,7 +4772,7 @@ body._ANIMATE #METABOOKTOOLTAB {
     transition-duration: 0.2s;}
 #METABOOKTOOLTAB {
     background-image: url(g/metabook/downbar.svgz);}
-body._NOSVG #METABOOKTOOLTAB {
+html._NOSVG #METABOOKTOOLTAB {
     background-image: url(g/metabook/downbar128w.png);}
 .hudup #METABOOKTOOLTAB, .mbcover #METABOOKTOOLTAB { display: none;}
 #METABOOKTOPBAR.tapholding #METABOOKTOOLTAB { display: none; }
@@ -4770,15 +4805,16 @@ body.mbPREVIEW #METABOOKSHOWCOVER,
 body.mbPREVIEW.hudup #METABOOKSHOWCOVER {
     display: none;}
 #METABOOKSHOWCOVER { pointer-events: none; }
-body.hudup #METABOOKSHOWCOVER, #METABOOKTOPBAR.tapholding #METABOOKSHOWCOVER,
-body._MOUSE #METABOOKTOPBAR:hover #METABOOKSHOWCOVER {
+body.hudup #METABOOKSHOWCOVER,
+#METABOOKTOPBAR.tapholding #METABOOKSHOWCOVER,
+html._MOUSE #METABOOKTOPBAR:hover #METABOOKSHOWCOVER {
     pointer-events: all; }
 
 #METABOOKSHOWCOVER img {
     height: 1.2em; width: auto;
     float: left;}
 
-body._NOUSER a.logout {
+html._NOUSER a.logout {
     display: none !important;}
 
 #METABOOKHUD #METABOOKBUTTON.toc img[alt='toc'],
@@ -4871,7 +4907,7 @@ body.hudup #METABOOKHUD.openglossmark div.hudpanel#METABOOKPOINTGLOSSES {
     -o-box-shadow: 1em 1em 1em #cccccc;
     display: block;}
 
-body._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKPOINTGLOSSES {
+html._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKPOINTGLOSSES {
     pointer-events: all;}
 
 /* The METABOOKSKIMMER */
@@ -4908,9 +4944,6 @@ body.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER {
 
 #METABOOKSKIMMER span.expander {display: none;}
 
-#METABOOKSKIMMER .metabookskiminfo {
-    position: absolute; right: 2px; top: 1px; z-index: 100;
-    font-size: 90%; color:  cyan;}
 #METABOOKSKIMMER #METABOOKSKIMCONTROLS .expanded { display: none;}
 #METABOOKSKIMMER.expanded #METABOOKSKIMCONTROLS .expanded {
     display: inline;}
@@ -4938,6 +4971,16 @@ body.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER {
 #METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody .sourcepic {
     position: absolute; top: 0px; left: 0px; margin-top: 0px;}
 
+div.metabookskimindicator {
+    position: absolute; bottom: 50%; z-index: 600;
+    pointer-events: none;
+    color: rgba(0,0,0,0.7);
+    font-size: 2rem; padding-bottom: 2rem;
+    display: none;}
+div#METABOOKSKIMINDEX.metabookskimindicator {left: 3px;}
+div#METABOOKSKIMLIMIT.metabookskimindicator {right: 3px;}
+body.mbSKIMMING div.metabookskimindicator {
+    display: block; }
 
 #METABOOKHUD.overtoc #METABOOKHEAD {
     background-color: rgba(255,255,255,0.5);}
@@ -5018,18 +5061,23 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER.sbookatstart img[alt="beginning"] {disp
 #METABOOKHUD #METABOOKSKIMMER.expanded span.whencollapsed {
     display: none;}
 
-#METABOOKSKIMMER div.metabookcard {
-    margin-left: 0px;}
-#METABOOKSKIMMER div.metabookcard > div.tochead {
-    margin-left: 0px; }
+#METABOOKSKIMMER div.metabookcard,
+#METABOOKSKIMMER div.metabookcard > div.tochead,
 #METABOOKSKIMMER div.metabookcard > div.idhead {
     margin-left: 0px;}
+#METABOOKSKIMMER div.metabookcard {
+    min-height: 50px;}
 
 #METABOOKHUD #METABOOKSKIMMER div.idhead,
 #METABOOKHUD #METABOOKPOINTGLOSSES div.idhead {
-    height: 0px;}
+    display: none;}
+#METABOOKHUD #METABOOKSKIMMER div.gloss div.tochead,
+#METABOOKHUD #METABOOKPOINTGLOSSES div.tochead {
+    display: none;}
+#METABOOKHUD #METABOOKSKIMMER.expanded div.gloss div.tochead {
+    display: block;}
 
-#METABOOKSKIMMER._highlights .metabookcard .excerpt { display: none; }
+#METABOOKSKIMMER.mbfoundhighlights .metabookcard .excerpt { display: none; }
 
 #METABOOKHUD div.hudpanel#METABOOKSKIMMER.expanded { max-height: inherit; }
 #METABOOKHUD #METABOOKSKIMMER.expanded img.glosspic {  height: inherit; }
@@ -5039,8 +5087,8 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER.sbookatstart img[alt="beginning"] {disp
     -o-transition-property: background-color;
     -moz-transition-property: background-color;
     -webkit-transition-property: background-color; 
-    transition-duration: 0.5s; -o-transition-duration: 0.5s;
-    -webkit-transition-duration: 0.5s; -moz-transition-duration: 0.5s;}
+    transition-duration: 0.2s; -o-transition-duration: 0.2s;
+    -webkit-transition-duration: 0.2s; -moz-transition-duration: 0.2s;}
 #METABOOKHUD #METABOOKSKIMMER div.metabookcard span.glossinfo span.isclickable {
     display: none;}
 body img.metabookskimbutton {
@@ -5052,8 +5100,8 @@ body._ANIMATE img.metabookskimbutton {
     -o-transition-property: -o-opacity,background-color;
     -moz-transition-property: -moz-opacity,background-color;
     -webkit-transition-property: -webkit-opacity,background-color; 
-    transition-duration: 0.5s; -o-transition-duration: 0.5s;
-    -webkit-transition-duration: 0.5s; -moz-transition-duration: 0.5s;
+    transition-duration: 0.2s; -o-transition-duration: 0.2s;
+    -webkit-transition-duration: 0.2s; -moz-transition-duration: 0.2s;
     opacity: 0.50;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     filter: alpha(opacity=50);
@@ -5240,28 +5288,28 @@ form.sbooksapp table td.text { padding-bottom: 1ex;}
 
 /* User, no user rules */
 
-body._NOUSER ._USER { display: none;}
-body._USER ._NOUSER { display: none;}
+html._NOUSER ._USER { display: none;}
+html._USER ._NOUSER { display: none;}
 
-body._NOUSER form.sbooksapp { padding-top: 0px;}
+html._NOUSER form.sbooksapp { padding-top: 0px;}
 
 .mbwithuser, .mbnouser, .mbdisconn, .mbwithconn { display: none; }
 
-body._USER tr.mbwithuser, body._NOUSER tr.mbnouser {
+html._USER tr.mbwithuser, html._NOUSER tr.mbnouser {
     display: table-row; }
-body._USER tbody.mbwithuser, body._NOUSER tbody.mbnouser {
+html._USER tbody.mbwithuser, html._NOUSER tbody.mbnouser {
     display: table-row-group; }
-body._USER._CONN tbody.mbwithconn { display: table-row-group; }
-body._USER._CONN tr.mbwithconn { display: table-row; }
-body._USER._DISCONN tbody.mbdisconn { display: table-row-group; }
-body._USER._DISCONN tr.mbdisconn { display: table-row; }
+html._USER._CONN tbody.mbwithconn { display: table-row-group; }
+html._USER._CONN tr.mbwithconn { display: table-row; }
+html._USER._DISCONN tbody.mbdisconn { display: table-row-group; }
+html._USER._DISCONN tr.mbdisconn { display: table-row; }
 
-body._NOUSER .mbwithuser { display: none;}
-body._NOUSER .mbdisconn {display: none;}
-body._USER._CONN .mbdisconn {display: none;}
-body._USER._CONN .mbdisconn {display: none;}
-body._USER .nouser {display: none;}
-body._USER._DISCONN .mbwithconn {display: none;}
+html._NOUSER .mbwithuser { display: none;}
+html._NOUSER .mbdisconn {display: none;}
+html._USER._CONN .mbdisconn {display: none;}
+html._USER._CONN .mbdisconn {display: none;}
+html._USER .nouser {display: none;}
+html._USER._DISCONN .mbwithconn {display: none;}
 
 /* Close HUD buttons */
 
@@ -5561,9 +5609,9 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER3.metabooksectmarker {
     height: 55%; background-color: rgba(0,0,255,0.1); }
 
-body._TOUCH.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR {
+html._TOUCH body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR {
     height: 150px;}
-body._TOUCH.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
+html._TOUCH body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
   .metabookpagespans span.preview  {
     height: 100%;}
 
@@ -5626,7 +5674,7 @@ body._TOUCH.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
     background-repeat: no-repeat;
     background-size: 50% auto;
     background-position: top center;}
-body._NOSVG #METABOOKSHOWTEXT > span > span {
+html._NOSVG #METABOOKSHOWTEXT > span > span {
     background-image: url(g/metabook/upbar_faded64h.png);}
 
 #METABOOKHUD.addgloss #METABOOKSHOWTEXT span.justreading { display: none;}
@@ -5661,9 +5709,9 @@ body._FULLHEIGHT #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT > span > span {
     padding-left: 0.5ex; padding-right: 0.5ex;}
 
 @media screen and (max-width: 640px) {
-    body._TOUCH.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR { 
+    html._TOUCH body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR { 
         height: 80px;}
-    body._TOUCH.mbPAGEPREVIEW #METABOOKFOOT .hudbutton { display: none; }
+    html._TOUCH body.mbPAGEPREVIEW #METABOOKFOOT .hudbutton { display: none; }
 }
 @media screen and (max-width: 500px) {
     #METABOOKFOOT #METABOOKPAGEBAR {
@@ -5971,7 +6019,7 @@ a[href].wikicon, a[href].wikiref.wikicon {
     background-image: url(g/sbooks/wikipedia.svgz);
     background-position: center; background-repeat: no-repeat;
     background-size: contain;}
-body._NOSVG a[href].wikicon, body._NOSVG a[href].wikiref.wikicon {
+html._NOSVG a[href].wikicon, html._NOSVG a[href].wikiref.wikicon {
     background-image: url(g/sbooks/wikipedia128w.png);}
 a[href].wikicon:hover, body._MOUSE a[href].wikicon:hover {
     color: transparent; text-deocration: none;}
@@ -5985,7 +6033,7 @@ a[href].wikiref, a[href].sbwikiref {
     background-image: url(g/sbooks/wikipedia.svgz);
     background-position: bottom right; background-repeat: no-repeat;
     background-size: 1em;}
-body._NOSVG a[href].wikiref, body._NOSVG a[href].sbwikiref {
+html._NOSVG a[href].wikiref, html._NOSVG a[href].sbwikiref {
     background-image: url(g/sbooks/wikipedia64w.png);}
 
 div.metabooknotebody { margin-left: 3em;}
@@ -5995,32 +6043,32 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 
 /* Phone */
 @media only screen and
-            (min-device-width: 320px) and
-            (max-device-width: 480px) {
-    #CODEXPAGE {top: 10px; bottom: 20px; left: 10px; right: 10px;}}
+            (min-width: 320px) and
+            (max-width: 480px) {
+    #CODEXPAGE {top: 15px; bottom: 50px; left: 10px; right: 10px;}}
 /* Tablet */
 @media only screen and
-            (min-device-width: 480px) and
-            (max-device-width: 800px) {
-    #CODEXPAGE {top: 25px; bottom: 25px; left: 25px; right: 25px;}
+            (min-width: 480px) and
+            (max-width: 800px) {
+    #CODEXPAGE {top: 50px; bottom: 50px; left: 25px; right: 25px;}
     .metabookbodysizelarge #CODEXPAGE,
     .metabookbodysizexlarge #CODEXPAGE {
-        top: 15px; bottom: 15px; left: 10px; right: 10px;}
+        top: 15px; bottom: 25px; left: 10px; right: 10px;}
 }
 @media only screen and
-            (min-device-width: 800px) and
-            (max-device-width: 1024px) and
+            (min-width: 800px) and
+            (max-width: 1024px) and
             (orientation: portrait) {
     #CODEXPAGE {top: 40px; bottom: 50px; left: 40px; right: 40px;}
     .metabookbodysizelarge #CODEXPAGE,
     .metabookbodysizexlarge #CODEXPAGE {
-        top: 10px; bottom: 15px; left: 20px; right: 20px;}
+        top: 15px; bottom: 50px; left: 20px; right: 20px;}
 }
 @media only screen and
-            (min-device-width: 768px) and
-            (max-device-width: 1024px) and
+            (min-width: 768px) and
+            (max-width: 1024px) and
             (orientation: landscape) {
-    #CODEXPAGE {top: 20px; bottom: 40px; left: 50px; right: 50px;}}
+    #CODEXPAGE {top: 20px; bottom: 50px; left: 50px; right: 50px;}}
 
 /* Handheld media rules */
 
@@ -6572,6 +6620,9 @@ div.metabookslice input[TYPE="TEXT"] {
 
 div.metabookslice div.metabookcard {
     margin-left: 20px; margin-right: 3px;}
+div.metabookslice div.metabookcard.skimpoint {
+    margin-left: 0px; padding-left: 20px;
+    margin-right: 3px;}
 div.metabookslice.sourced div.metabookcard { display: none;}
 div.metabookslice.sourced div.metabookcard.sourced { display: block;}
 
@@ -6586,14 +6637,18 @@ div.metabookslice div.xrefs a { display: block;}
 div.metabookslice div.metabookcard span.tags span.other { display: none;}
 
 div.metabookslice div.skimpoint {
-    border-top: solid rgba(255,0,0,0.9) 1px;
-    border-bottom: solid rgba(255,0,0,0.9) 4px;}
+    /* border-top: solid rgba(255,0,0,0.9) 1px;
+       border-right: solid rgba(255,0,0,0.9) 2px;
+       border-bottom: solid rgba(255,0,0,0.9) 4px; */
+    background-color: rgba(70, 130, 180, 0.5);}
 div.metabookslice div.skimpoint.metabookcard {}
 div.metabookslice div.skimpoint.metabookcard .tool {
     font-size: 47%; font-weight: bold;}
-div.metabookslice div.skimpoint.metabookcard img.userpic,
-div.metabookslice div.skimpoint.metabookcard img.sourcepic {
-    width: 75px;}
+div.metabookslice .excerpt .elision,
+div.metabookslice .excerpt .delision {
+    display: none; }
+div.metabookslice .excerpt .elided {
+    display: inline;}
 
 div.skimpoint .metabookcard .metabookcardbody { padding-top: 0px;}
 
@@ -6605,7 +6660,7 @@ div.metabookslice div.metabookcard.skimpoint .fdjtclearfloats {
 
 div.metabookslice.pager div.pagernav {
     border-bottom: solid black 1px;}
-._TOUCH div.metabookslice.pager div.pagernav {
+html._TOUCH div.metabookslice.pager div.pagernav {
     font-size: 200%;}
 div.metabookslice.pager.hudpanel div.pagernav {
     position: absolute; bottom: 0px;
@@ -6716,9 +6771,6 @@ div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
     -o-transition-duration: 0.3s;
     -moz-duration: 0.3s;}
 
-._MOUSE div.metabookcard:hover .metabookcardbody {
-    outline: dotted blue 2px;}
-
 @media (pointer: coarse) and (max-width: 650px) {
     div.metabookslice div.metabookcard { font-size: 120%; }
 }
@@ -6741,40 +6793,48 @@ div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
     text-align: left;
     display: block;}
 .mbtoc .context .tocpath { padding-left: 1ex; }
-.mbtoc .context { font-size: 60%; float: right;}
+.mbtoc .context { font-size: 60%; float: right; }
 .mbtocslice .mbtoc .context { display: none;}
-#METABOOKSKIMMER .mbtoc .extents {display: none;}
 .mbtoc a.sectname { color: black; z-index: 50;}
-.mbtoc div.extents {
-    position: relative; z-index: -10; overflow: visible;
+.mbtoc div.elements {
+    position: relative; overflow: visible;
     margin: 0px; padding: 0px; border: 0px;}
 .mbtoc {
     font-size: 100%; line-height: 100%;
     height: 1em; margin-bottom: 0.2em; margin-right: 1ex;}
-.mbtoc div.extents a.brick {
+.mbtoc a.brick {
     position: absolute; display: inline-block;
     box-sizing: border-box;
     border: solid gray 1px; border-left: 0px;
     background-color: lightblue;
     opacity: 0.8;
     height: 1em;}
-.mbtoc div.extents a.brick.cohi,
-.mbtoc.cohi div.extents a.showsize {
+.mbtoc a.brick.cohi, .mbtoc.cohi a.showsize {
     background-color: gold;}
+.mbtoc .toctext {
+    position: absolute;
+    left: 1px; top: 0px; width: 100%;
+    pointer-events: none;
+    z-index: 100; }
 .mbtoc.cohi a.sectname {
     color: darkblue;}
-.mbtoc div.extents a.showsize {
+.mbtoc a.showsize {
     position: absolute; display: inline-block;
     box-sizing: border-box;
     background-color: lightblue;
     height: 1em; }
-.mbtoc div.extents a.brick:first-child {
+.mbtoc div.elements a.brick:first-child {
     border-left: solid gray 1px;}
 .mbtoc.mbtoc1 { font-size: 130%;}
 .mbtoc.mbtoc2 { margin-left: 2em; font-size: 120%;}
 .mbtoc.mbtoc3 { margin-left: 4em; font-size: 100%;}
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
 
+#METABOOKSKIMMER .mbtoc .elements .brick,
+#METABOOKSKIMMER .mbtoc .elements .showsize {
+    display: none;}
+#METABOOKSKIMMER .mbtoc .toctext {
+    top: 2px;}
 #METABOOKSKIMMER .sectname:before {
     content: "§"; font-style: italic;
     vertical-align: bottom;
@@ -6783,13 +6843,23 @@ div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
 #METABOOKSKIMMER .mbtoc.mbtoc1, #METABOOKSKIMMER .mbtoc.mbtoc2,
 #METABOOKSKIMMER .mbtoc.mbtoc3, #METABOOKSKIMMER .mbtoc.mbtoc4,
 #METABOOKSKIMMER .mbtoc.mbtoc5, #METABOOKSKIMMER .mbtoc.mbtoc6 {
-    margin-left: 0px; font-size: 100%;}
+    margin-left: 1ex; font-size: 100%;}
 
-.statictoc #METABOOKSKIMMER .metabookskiminfo { display: none; }
+html._TOUCH #METABOOKHUD #METABOOKSTATICTOC.metabookslice {
+    font-size: 100%; }
+html._TOUCH #METABOOKHUD #METABOOKSTATICTOC.metabookslice.pager div.pagernav {
+    font-size: 100%;}
+html._TOUCH .mbtoc.mbtoc2 { margin-left: 1em;}
+html._TOUCH .mbtoc.mbtoc3 { margin-left: 2em;}
+html._TOUCH .mbtoc.mbtoc4 { margin-left: 3em;}
 
-#METABOOKSTATICTOC .pagerblock { padding-top: 1.5ex;}
+#METABOOKSTATICTOC {padding-left: 1em; padding-right: 1em;}
+#METABOOKSTATICTOC.pager {padding-left: 0px; padding-right: 0px;}
+#METABOOKSTATICTOC.pager .pagerblock {
+    padding-left: 1em; padding-right: 1em;
+    padding-top: 1.5ex;}
 
-._MOUSE .mbtocslice .mbtoc:hover {
+html._MOUSE .mbtocslice .mbtoc:hover {
     outline: dotted blue 2px;}
 
 /* Emacs local variables
@@ -6846,7 +6916,7 @@ div.completions.noinput .cloudtoggle {
 .cloud .showall { display: none; }
 .cloud.noinput .showall { display: block; }
 
-._MOUSE .cloud .showall:hover,
+html._MOUSE .cloud .showall:hover,
 .cloud .showall.tapholdtarget {
     border-color: blue;}
 .cloud .showall .showless { display: none;}
@@ -7058,6 +7128,8 @@ div.metabookcard > hr {
     font-family: courier,fixed;}
 .metabookcard span.user { 
     color: green; font-size: 125%; font-style: italic;}
+.metabookcard span.mbmedia {
+    cursor: pointer;}
 .metabookcard span.outlet { color: green;}
 .metabookcard span.overlay { 
     color: green; font-size: 125%; font-style: normal;
@@ -7095,7 +7167,6 @@ div.metabookcard > hr {
 .metabookcard.gloss .metabookcardbody {
     border-top: solid purple 2px;}
 .metabookcard.passage .metabookcardbody {
-    background-color: white;
     border-top: solid purple 1px;}
 .metabookslice > .metabookcard:first-child .metabookcardbody {
     border-top-width: 0px;}
@@ -7133,16 +7204,18 @@ div.metabookcard > hr {
 .metabookcardbody img.userpic,
 .metabookcardbody img.sourcepic  {
     float: left; clear: left; margin-right: 3px;
-    width: 50px; height: auto;
+    width: 50px; overflow: hidden; height: auto;
     /* This lines up with the padding on metabookcardbody */
     margin-top: -6px;}
 .metabookcardbody div.glosspic,
 .metabookcardbody div.userpic,
 .metabookcardbody div.sourcepic  {
     float: left; clear: left; margin-right: 3px;
-    width: 50px; height: 50px; font-size: 32px;
+    width: 50px; height: 50px; font-size: 40px;
     text-align: center; vertical-align: top;
-    color: black; font-weight: bold;
+    font-weight: bold; overflow: hidden;
+    color: rgba(245, 245, 245, 0.56);
+    text-stroke: 2px black; -webkit-text-stroke: 2px black;
     /* This lines up with the padding on metabookcardbody */
     margin-top: -6px;}
 .metabookcardbody div.userpic.sbooknopic,
@@ -7173,7 +7246,7 @@ div.metabookcard > hr {
     height: 40px; width: 40px; opacity: 0.3; clear: right;
     /* This makes it overlap the date, tightening things up generally */
     margin-right: 6px; margin-top: -1em;}
-._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
+html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
 .metabookcard span.glossbody {
     background-color: lightblue; color: black;
     padding: 2px; margin-top: 2px;
@@ -7252,7 +7325,7 @@ div.searchbox input[type='TEXT'][name='QTEXT'] {
     background-image: url(g/metabook/tagicon.svgz);
     background-repeat: no-repeat;
     background-size: contain;}
-body._NOSVG div.searchbox input[type='TEXT'][name='QTEXT'] {
+html._NOSVG div.searchbox input[type='TEXT'][name='QTEXT'] {
     background-image: url(g/metabook/tagicon64x64.png);}
 
 div.searchbox div.toolbox div.tags {
@@ -7328,7 +7401,7 @@ div.resultinfo .qtags .qelt span.redx {
     background-position: left center;
     background-repeat: no-repeat; background-size: contain;
     background-image: url(g/metabook/redx.svgz);}
-._NOSVG div.resultinfo .qtags .qelt span.redx {
+html._NOSVG div.resultinfo .qtags .qelt span.redx {
     background-image: url(g/metabook/redx64x64.png);}
 
 #METABOOKHUD.refinesearch div.resultinfo span.refinecount, 
@@ -7539,17 +7612,17 @@ div.metabookglossform.glossreply form .showmode.add {
 
 div.metabookglossform form textarea[name='NOTE'] {
     background-image: url(g/metabook/remark.svgz);}
-body._NOSVG div.metabookglossform form textarea[name='NOTE'] {
+html._NOSVG div.metabookglossform form textarea[name='NOTE'] {
     background-image: url(g/metabook/remark24x24.png);}
 div.metabookglossform div.textbox input[name='TAG'] {
     background-image: url(g/metabook/tagicon.svgz);}
-body._NOSVG div.metabookglossform div.textbox input[name='TAG'] {
+html._NOSVG div.metabookglossform div.textbox input[name='TAG'] {
     background-image: url(g/metabook/tagicon24x24.png);}
 div.metabookglossform div.textbox input[name='LINK'] {
     background-image: url(g/metabook/diaglink24x24.png);}
 div.metabookglossform div.textbox input[name='OUTLET'] {
     background-image: url(g/metabook/sbookspeople.svgz);}
-body._NOSVG div.metabookglossform div.textbox input[name='OUTLET'] {
+html._NOSVG div.metabookglossform div.textbox input[name='OUTLET'] {
     background-image: url(g/metabook/sbookspeople24x24.png);}
 
 div.metabookglossform .glossetc .glossdate {
@@ -7803,9 +7876,9 @@ div.metabookglossform div.textbox input[type="TEXT"][name='TAG'] {
     background-image: url(g/metabook/tagicon.svgz);}
 div.metabookglossform div.textbox input[type="TEXT"][name='LINK'] {
     background-image: url(g/metabook/diaglink.svgz);}
-body._NOSVG div.metabookglossform div.textbox input[type="TEXT"][name='TAG'] {
+html._NOSVG div.metabookglossform div.textbox input[type="TEXT"][name='TAG'] {
     background-image: url(g/metabook/tagicon16x16.png);}
-body._NOSVG div.metabookglossform div.textbox input[type="TEXT"][name='LINK'] {
+html._NOSVG div.metabookglossform div.textbox input[type="TEXT"][name='LINK'] {
     background-image: url(g/metabook/diaglink16x16.png);}
 
 div.glossetc, div.glossetc img, div.glossetc span, div.glossetc input {
@@ -7866,11 +7939,11 @@ input#METABOOKFILEINPUT[TYPE="FILE"] { display: none;}
 #METABOOKATTACHFILE span.mbmessage,
 #METABOOKATTACHFILE span.mbdragmessage {
     font-style: italic;}
-._MOUSE #METABOOKATTACHFILE span.mbdragmessage,
-._TOUCH #METABOOKATTACHFILE span.mbmessage {
+html._MOUSE #METABOOKATTACHFILE span.mbdragmessage,
+html._TOUCH #METABOOKATTACHFILE span.mbmessage {
     display: inline;}
-._MOUSE .haveupload #METABOOKATTACHFILE span.mbdragmessage,
-._TOUCH .haveupload #METABOOKATTACHFILE span.mbmessage {
+html._MOUSE .haveupload #METABOOKATTACHFILE span.mbdragmessage,
+html._TOUCH .haveupload #METABOOKATTACHFILE span.mbmessage {
     display: none;}
 
 #METABOOKATTACHFILE span.mbfilename {
@@ -7977,9 +8050,9 @@ input#METABOOKFILEINPUT[TYPE="FILE"] { display: none;}
     background-image: url(g/metabook/tagicon.svgz);}
 #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
     background-image: url(g/metabook/sbookspeople.svgz);}
-body._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDTAGINPUT {
+html._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDTAGINPUT {
     background-image: url(g/metabook/tagicon64x64.png);}
-body._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
+html._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
     background-image: url(g/metabook/sbookspeople64x64.png);}
 
 /* New menu stuff */
@@ -7990,7 +8063,7 @@ div.metabookglossform form div.addglossmenu {
     z-index: 800;}
 
 div.metabookglossform form div.addglossmenu > img {
-    width: 50px; height: 50px; padding: 2px; 
+    width: 40px; height: 40px; padding: 2px; 
     box-sizing: content-box;
     display: none; }
 div.metabookglossform form div.addglossmenu > img.held {
@@ -7998,10 +8071,10 @@ div.metabookglossform form div.addglossmenu > img.held {
 div.metabookglossform form div.addglossmenu.expanded > img {
     margin-bottom: 4px;}
 
-._TOUCH div.metabookglossform
+html._TOUCH div.metabookglossform
   form div.addglossmenu > img.held {
     width: 80px; height: 80px; margin-left: -20px;}
-._TOUCH div.metabookglossform 
+html._TOUCH div.metabookglossform 
   form div.addglossmenu > img.held.menutop {
     width: 40px; height: 40px; margin-left: 0px;}
 div.metabookglossform
@@ -8121,16 +8194,6 @@ div.metabookglossform.submitclose form > div.messageoverlay {
     #METABOOKHUD.addgloss img.hudbutton[alt="search"] {
         display: none;}}
 
-@media screen and (max-width: 700px) {
-    ._TOUCH div.metabookglossform form div.addglossmenu > img {
-        width: 60px; height: 60px;}
-    div.metabookglossform form div.addglossmenu {
-        width: 70px;}
-    div.metabookglossform form div.textbox,
-    div.metabookglossform form div.glossetc {
-        margin-right: 80px;}
-}
-
 /* Emacs local variables
 ;;;  Local variables: ***
 ;;;  compile-command: "cd ../..; make" ***
@@ -8162,7 +8225,7 @@ div.metabookglossform.submitclose form > div.messageoverlay {
     width: 100%; border: 0px; margin: 0px; padding: 0px;}
 #METABOOKHUD #METABOOKHEARTBODY .tabcontent section { clear: both;}
 
-body._NOUSER a.logout {display: none;}
+html._NOUSER a.logout {display: none;}
 
 /* METABOOKHEARTBODY content rules */
 
@@ -8321,7 +8384,9 @@ body.mbPREVIEW.hudup #METABOOKHUD.searchresults #METABOOKSEETHRUHELP,
 body.mbPREVIEW.hudup #METABOOKHUD.allglosses #METABOOKSEETHRUHELP {
     display: none;}
 
-body.mbPREVIEW #METABOOKPAGENOTEXT, body.mbPREVIEW #METABOOKLOCPCT, body.mbPREVIEW #METABOOKLOCOFF {
+body.mbPREVIEW #METABOOKPAGENOTEXT,
+body.mbPREVIEW #METABOOKLOCPCT,
+body.mbPREVIEW #METABOOKLOCOFF {
     pointer-events: none;}
 
 div.metabookhelp .result span { display: none; }
