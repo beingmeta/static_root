@@ -41285,15 +41285,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2578-g0471aa7';
+metaBook.version='v0.5-2580-g74211e3';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Wed Mar 18 18:25:27 EDT 2015';
-metaBook.buildid='bce525db-5577-45a7-8987-ae684a60b0a3';
+metaBook.buildtime='Wed Mar 18 21:34:50 EDT 2015';
+metaBook.buildid='6e3ae3aa-0213-47cb-b053-fbd6fd164d5d';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Wed Mar 18 21:22:48 EDT 2015';
-metaBook.buildid='8156e97d-90af-4ba1-9e80-c1628aa9fd28';
+metaBook.buildtime='Wed Mar 18 21:36:04 EDT 2015';
+metaBook.buildid='f1bce8e5-0032-433e-9ed5-ef7284d103d7';
 
 fdjt.CodexLayout.sourcehash='3CCDD12E0B73724CC1D8243043D627D84C680063';
