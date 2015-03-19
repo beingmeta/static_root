@@ -41293,7 +41293,7 @@ metaBook.buildid='bce525db-5577-45a7-8987-ae684a60b0a3';
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Wed Mar 18 18:31:54 EDT 2015';
-metaBook.buildid='201734db-2633-4d2d-8d44-b4b73833a240';
+metaBook.buildtime='Wed Mar 18 21:22:48 EDT 2015';
+metaBook.buildid='8156e97d-90af-4ba1-9e80-c1628aa9fd28';
 
 fdjt.CodexLayout.sourcehash='3CCDD12E0B73724CC1D8243043D627D84C680063';

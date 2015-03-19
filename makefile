@@ -292,7 +292,6 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) makefile \
 	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
-	    \
 	  > $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building metabook.clean.css
@@ -320,7 +319,7 @@ metabook/tieoff.js dist/tieoff.js:
 
 dist/metabook.js: fdjt/fdjt.js dist/buildstamp.js $(METABOOK_JS_BUNDLE) \
 	metabook/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
-	@echo Rebuilding dist/metabook.js
+	@echo Building dist/metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) dist/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js \
@@ -337,12 +336,13 @@ dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    metabook/buildstamp.js knodules/buildstamp.js
+	@echo Building dist/metabook.min.js
 	@uglifyjs2 \
 	  --source-map metabook.uglify.map \
 	  --source-map-root /static \
-	    sbooks/amalgam.js fdjt/buildstamp.js \
-	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-	    metabook/buildstamp.js knodules/buildstamp.js \
+	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
+	    knodules/buildstamp.js metabook/buildstamp.js \
 	  > $@
 	@mv metabook.uglify.map dist
 dist/metabook.min.js: dist/metabook.uglify.js
