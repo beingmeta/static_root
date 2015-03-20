@@ -5397,13 +5397,21 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
         border-bottom-left-radius: 0px;
         border-bottom-right-radius: 0px;
         padding-bottom: 0px;
-        left: 0px; right: 0px; }
+        left: 10px; right: 10px; }
     body.mbSKIMMING #METABOOKTOPBAR {
         display: none;}
  
     img.metabookclosehud#METABOOKSTOPSKIM {
         bottom: 50px; top: auto;}
 
+    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
+        left: 10px; right: 10px;}
+    #METABOOKHUD.openhead #METABOOKHEAD,
+    #METABOOKHUD.openheart #METABOOKHEART,
+    #METABOOKHUD.openfoot #METABOOKFOOT,
+    #METABOOKPOINTGLOSSES {
+        box-shadow: none; -webkit-box-shadow: none;
+        -moz-box-shadow: none; -o-box-shadow: none;}
 }
 @media screen and (max-width: 500px) {
     #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
@@ -5424,15 +5432,6 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
         left: 5px; right: 10px;
         font-size: 60%;}
 }
-@media (max-width: 700px) {
-    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
-        left: 10px; right: 10px;}
-    #METABOOKHUD.openhead #METABOOKHEAD,
-    #METABOOKHUD.openheart #METABOOKHEART,
-    #METABOOKHUD.openfoot #METABOOKFOOT,
-    #METABOOKPOINTGLOSSES {
-        box-shadow: none; -webkit-box-shadow: none;
-        -moz-box-shadow: none; -o-box-shadow: none;}}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -6045,24 +6044,18 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 @media only screen and
             (min-width: 320px) and
             (max-width: 480px) {
-    #CODEXPAGE {top: 15px; bottom: 50px; left: 10px; right: 10px;}}
+    #CODEXPAGE {top: 40px; bottom: 40px; left: 15px; right: 15px;}}
 /* Tablet */
 @media only screen and
             (min-width: 480px) and
             (max-width: 800px) {
-    #CODEXPAGE {top: 50px; bottom: 50px; left: 25px; right: 25px;}
-    .metabookbodysizelarge #CODEXPAGE,
-    .metabookbodysizexlarge #CODEXPAGE {
-        top: 30px; bottom: 25px; left: 10px; right: 10px;}
+    #CODEXPAGE {top: 40px; bottom: 50px; left: 25px; right: 25px;}
 }
 @media only screen and
             (min-width: 800px) and
             (max-width: 1024px) and
             (orientation: portrait) {
-    #CODEXPAGE {top: 40px; bottom: 50px; left: 40px; right: 40px;}
-    .metabookbodysizelarge #CODEXPAGE,
-    .metabookbodysizexlarge #CODEXPAGE {
-        top: 40px; bottom: 50px; left: 20px; right: 20px;}
+    #CODEXPAGE {top: 50px; bottom: 50px; left: 40px; right: 40px;}
 }
 @media only screen and
             (min-width: 768px) and
@@ -6792,16 +6785,21 @@ div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
 .mbtocslice .mbtoc {
     text-align: left;
     display: block;}
+.mbtoc {
+    font-size: 100%; line-height: 100%;
+    height: 1em; white-space: nowrap; overflow: hidden;
+    margin-bottom: 0.2em; margin-right: 1ex;
+    box-sizing: border-box;}
 .mbtoc .context .tocpath { padding-left: 1ex; }
-.mbtoc .context { font-size: 60%; float: right; }
+.mbtoc .context {
+    color: darkblue;
+    font-size: 60%;
+    float: right; }
 .mbtocslice .mbtoc .context { display: none;}
 .mbtoc a.sectname { color: black; z-index: 50;}
 .mbtoc div.elements {
     position: relative; overflow: visible;
     margin: 0px; padding: 0px; border: 0px;}
-.mbtoc {
-    font-size: 100%; line-height: 100%;
-    height: 1em; margin-bottom: 0.2em; margin-right: 1ex;}
 .mbtoc a.brick {
     position: absolute; display: inline-block;
     box-sizing: border-box;
@@ -6829,6 +6827,12 @@ div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
 .mbtoc.mbtoc2 { margin-left: 2em; font-size: 120%;}
 .mbtoc.mbtoc3 { margin-left: 4em; font-size: 100%;}
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
+
+#METABOOKSKIMMER .mbtoc {
+    font-weight: bold; padding-top: 2px;}
+#METABOOKSKIMMER .mbtoc .context { font-size: 80%; }
+#METABOOKHUD.statictoc #METABOOKSKIMMER {
+    background-color: rgba(70, 130, 180, 0.5);}
 
 #METABOOKSKIMMER .mbtoc .elements .brick,
 #METABOOKSKIMMER .mbtoc .elements .showsize {
@@ -7085,7 +7089,9 @@ span.completion.sectname.cue {
     text-align: left;
     font-size: 90%;}
 
-div.metabookcard { margin-left: 20px; margin-right: 0px; }
+div.metabookcard {
+    margin-left: 20px; margin-right: 0px;
+    box-sizing: border-box;}
 div.metabookcard > div.idhead, div.metabookcard > div.tochead {
     max-height: 3ex; white-space: nowrap;
     text-overflow: ellipsis; overflow: hidden;}
@@ -7436,10 +7442,10 @@ body._ANIMATE .qtags {
         font-size: 250%;}}
 
 @media screen and (min-width: 1000px) {
-    #METABOOKHUD div.resultinfo span.stats { font-size: 2vmin; }}
+    #METABOOKHUD div.resultinfo span.stats { font-size: 2vw; }}
 
 @media screen and (max-width: 640px) {
-    #METABOOKHUD div.resultinfo span.stats { font-size: 3vmin; }
+    #METABOOKHUD div.resultinfo span.stats { font-size: 3vw; }
     div.resultinfo .stats > span > br { display: initial; }}
 
 @media screen and (max-width: 500px) {

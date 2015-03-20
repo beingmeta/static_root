@@ -14696,11 +14696,12 @@ fdjt.Pager=
     Pager.prototype.changed=function changed(){
       var pager=this;
       if (this.layout_timer) clearTimeout(this.layout_timer);
-      this.layout_timer=setTimeout(function(){
+      this.layout_timer=setTimeout(
+        function(){pager_timeout(pager);},
+        250);};
+    function pager_timeout(pager){
         pager.layout_timer=false;
-        pager.refreshLayout(true);},
-                                   50);};
-
+        pager.refreshLayout(true);}
     Pager.prototype.layoutDone=function(pages){
       var resets=this.resets, root=this.root;
       if (this.focus) dropClass(this.focus,"pagerfocus");
@@ -17730,8 +17731,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1355-gb26da7d';
+fdjt.revision='1.5-1357-gbbfe604';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Mar 18 17:54:20 EDT 2015';
-fdjt.builduuid='5c9c35b3-450b-432d-8132-458b1fec2eb5';
+fdjt.buildtime='Fri Mar 20 09:22:39 EDT 2015';
+fdjt.builduuid='604a8486-0d93-4263-8606-600b0466432c';
 

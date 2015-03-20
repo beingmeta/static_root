@@ -26,10 +26,10 @@
 */
 
 // FDJT build information
-fdjt.revision='1.5-1356-g84da61c';
+fdjt.revision='1.5-1357-gbbfe604';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Thu Mar 19 09:34:03 EDT 2015';
-fdjt.builduuid='6470f267-8a32-4fe8-a8e2-6bf1a42c7231';
+fdjt.buildtime='Fri Mar 20 09:22:39 EDT 2015';
+fdjt.builduuid='604a8486-0d93-4263-8606-600b0466432c';
 
 /* -*- Mode: Javascript; -*- */
 
@@ -23920,8 +23920,8 @@ var metaBook={
     curpage: false,curoff: false,curinfo: false, curbottom: false,
     // For tracking UI state
     last_mode: false, last_heartmode: "about", demo: false,
-    // How long it takes a gesture to go from tap to hold
-    taptapmsecs: 300, holdmsecs: 150, edgeclick: 50, pagesize: 250,
+    // Various default gesture timing parameters
+    taptapmsecs: 200, holdmsecs: 500, edgeclick: 50, pagesize: 250,
     dontanimate: false, nativeselect: false,
     // Ignore swipes shorter than this:
     minswipe: 7,
@@ -23939,6 +23939,8 @@ var metaBook={
     // Ask about updating layouts which took longer than this
     //  many milliseconds to generate
     long_layout_thresh: 5000,
+    // How long (msecs) to wait for a resize to be 'real'
+    resize_wait: 500,
     // Whether to force new layouts
     forcelayout: false,
     // Whether layout is temporarily frozen, for example during text
@@ -24024,7 +24026,7 @@ var metaBook={
         uisize: 'normal',dyslexical: false,
         animatecontent: true,animatehud: true,
         hidesplash: false,keyboardhelp: true,
-        holdmsecs: 150,wandermsecs: 1500,
+        holdmsecs: 500,wandermsecs: 1500,taptapmsecs: 200,
         locsync: true, syncinterval: 60, checksync: 15*60,
         glossupdate: 5*60,cacheglosses: true,
         soundeffects: false, buzzeffects: false,
@@ -24054,6 +24056,7 @@ var metaBook={
         knodules: 0,      // How much to trace knodule processing
         preview: false,   // Whether to trace preview activity
         flips: false,     // Whether to trace page flips (movement by pages)
+        resize: false,    // Whether to trace resizing events/activity
         messages: false,  // Whether to trace inter-window messages
         glossing: false,  // Whether to trace gloss adding or edition
         selection: false, // Whether to trace text selection events
@@ -29963,7 +29966,7 @@ metaBook.Slice=(function () {
         var count=0;
         for (var url in refs) if (url[0]==='_') continue; else count++;
         if (count===0) return false;
-        var span=fdjtDOM(spec||((count>1)?("div.links"):("span.links")),
+        var span=fdjtDOM(spec||((count>4)?("div.links"):("span.links")),
                          ((count>1)&&(fdjtDOM("span.count",count, " links"))),
                          " ");
         for (url in refs) {
@@ -30616,7 +30619,18 @@ metaBook.Slice=(function () {
         var passage=mbID(card.getAttribute("data-passage"));
         var glossid=card.getAttribute("data-gloss");
         var gloss=((glossid)&&(metaBook.glossdb.ref(glossid)));
-        if (gloss) {
+        if (!(passage)) return;
+        else if ((!(gloss))&&(passage)) {
+            metaBook.SkimTo(card,0);
+            return fdjtUI.cancel(evt);}
+        else if (getParent(target,".tool")) {
+            var form=metaBook.setGlossTarget(gloss);           
+            if (!(form)) return;
+            metaBook.setMode("addgloss");
+            return fdjtUI.cancel(evt);}
+        else if (mB.mode==="openglossmark") {
+            goToGloss(card); return fdjtUI.cancel(evt);}
+        else if (getParent(target,".glossbody"))  {
             var detail=((gloss)&&(gloss.detail));
             if (!(detail)) return;
             else if (detail[0]==='<')
@@ -30629,20 +30643,9 @@ metaBook.Slice=(function () {
                 metaBook.md2HTML(detail);
             metaBook.setMode("glossdetail");
             return fdjtUI.cancel(evt);}
-        else if ((!(gloss))&&(passage)) {
+        else {
             metaBook.SkimTo(card,0);
-            return fdjtUI.cancel(evt);}
-        else if ((gloss)&&(getParent(target,".tool"))) {
-            var form=metaBook.setGlossTarget(gloss);           
-            if (!(form)) return;
-            metaBook.setMode("addgloss");
-            return fdjtUI.cancel(evt);}
-        else if ((gloss)&&(mB.mode==="openglossmark")) {
-            goToGloss(card); return fdjtUI.cancel(evt);}
-        else if (gloss) {
-            metaBook.SkimTo(card,0);
-            return fdjtUI.cancel(evt);}
-        else return;}
+            return fdjtUI.cancel(evt);}}
     function slice_held(evt){
         evt=evt||window.event;
         var slice_target=fdjtUI.T(evt), card=getCard(slice_target);
@@ -31427,7 +31430,8 @@ metaBook.Slice=(function () {
             fdjtDOM.toggleClass(completions,"showall");
             fdjtDOM.cancel(evt);}
         else if (fdjtDOM.inherits(target,".maxcompletemsg")) {
-            $ID("METABOOKSEARCHINPUT").focus();
+            if (!(metaBook.touch)) 
+                $ID("METABOOKSEARCHINPUT").focus();
             fdjtDOM.toggleClass(completions,"showall");
             fdjtDOM.cancel(evt);}
         else {}}
@@ -32786,6 +32790,7 @@ metaBook.setMode=
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log, $ID=fdjt.ID;
     var fdjtUI=fdjt.UI;
+    var Trace=metaBook.Trace, mB=metaBook;
 
     var getGeometry=fdjtDOM.getGeometry;
 
@@ -32804,8 +32809,8 @@ metaBook.setMode=
             var adjstart=fdjt.Time();
             var hud=$ID("METABOOKHUD");
             var cover=$ID("METABOOKCOVER");
-            if (cover) metaBook.resizeCover(cover);
-            if (hud) metaBook.resizeHUD(hud);
+            if (cover) mB.resizeCover(cover);
+            if (hud) mB.resizeHUD(hud);
             if ((hud)||(cover))
                 fdjtLog("Resized UI in %fsecs",
                         ((fdjt.Time()-adjstart)/1000));},
@@ -32813,24 +32818,29 @@ metaBook.setMode=
     metaBook.resizeUI=resizeUI;
 
     function metabookResize(){
-        var layout=metaBook.layout;
+        var layout=mB.layout;
+        if (Trace.resize)
+            fdjtLog("Real resize w/layout=%o",layout);
         if (resizing) {
             clearTimeout(resizing); resizing=false;}
         updateSizeClasses();
-        metaBook.resizeUI();
-        metaBook.sizeContent();
-        metaBook.scaleLayout(false);
-        if (!(layout)) return;
-        else if ((metaBook.textinput)||
-                 ((metaBook.touch)&&
-                  (document.activeElement)&&
-                  (document.activeElement.tagName==="INPUT")))
-            return;
+        mB.resizeUI();
+        mB.sizeContent();
+        // Unscale the layout
+        if (layout) mB.scaleLayout(false);
+        if ((mB.touch)&&
+            ((mB.textinput)||
+             ((document.activeElement)&&
+              (document.activeElement.tagName==="INPUT")))) {
+            if (Trace.resize)
+                fdjtLog("Resize for soft keyboard, mostly ignoring");
+            return;}
         if ((window.outerWidth===outer_width)&&
             (window.outerHeight===outer_height)) {
             // Not a real change (we think), so just scale the
             // layout, don't make a new one.
-            metaBook.scaleLayout(true);
+            if (layout) metaBook.scaleLayout(true);
+            if (Trace.resize) fdjtLog("Resize to norm, ignoring");
             return;}
         resizePagers();
         // Set these values to the new one
@@ -32839,8 +32849,9 @@ metaBook.setMode=
         // Possibly a new layout
         var width=getGeometry($ID("CODEXPAGE"),false,true).width;
         var height=getGeometry($ID("CODEXPAGE"),false,true).inner_height;
-        if ((layout)&&(layout.width===width)&&(layout.height===height))
-            return;
+        if ((layout)&&(layout.width===width)&&(layout.height===height)) {
+            if (Trace.resize) fdjtLog("Layout size unchanged, ignoring");
+            return;}
         if ((layout)&&(layout.onresize)&&(!(metaBook.freezelayout))) {
             // This handles prompting for whether or not to update
             // the layout.  We don't prompt if the layout didn't
@@ -32849,14 +32860,14 @@ metaBook.setMode=
             if ((metaBook.long_layout_thresh)&&(layout.started)&&
                 ((layout.done-layout.started)<=metaBook.long_layout_thresh))
                 resizing=setTimeout(resizeNow,50);
+            else if (choosing_resize) {}
             else if (metaBook.layoutCached())
                 resizing=setTimeout(resizeNow,50);
-            else if (choosing_resize) {}
             else {
                 // This prompts for updating the layout
                 var msg=fdjtDOM("div.title","Update layout?");
                 // This should be fast, so we do it right away.
-                metaBook.scaleLayout();
+                metaBook.scaleLayout(true);
                 choosing_resize=true;
                 // When a choice is made, it becomes the default
                 // When a choice is made to not resize, the
@@ -32913,11 +32924,14 @@ metaBook.setMode=
     
     function resizeHandler(evt){
         evt=evt||window.event;
+        if (Trace.resize)
+            fdjtLog("Resize event %o, waiting=%o",evt,resize_wait);
         if (resize_wait) clearTimeout(resize_wait);
         if (choosing_resize) {
+            if (Trace.resize) fdjtLog("Close resize dialog %o",evt);
             fdjt.Dialog.close(choosing_resize);
             choosing_resize=false;}
-        resize_wait=setTimeout(metabookResize,1000);}
+        resize_wait=setTimeout(metabookResize,metaBook.resize_wait);}
     metaBook.resizeHandler=resizeHandler;
 
 })();
@@ -33374,7 +33388,9 @@ metaBook.setMode=
             if (query.results.length===0) {}
             else if (query.results.length<7)
                 showSearchResults();
-            else {$ID("METABOOKSEARCHINPUT").focus();}}}
+            else if (!(metaBook.touch)) {
+                $ID("METABOOKSEARCHINPUT").focus();}
+            else {}}}
 
     metaBook.setQuery=setQuery;
 
@@ -33669,7 +33685,8 @@ metaBook.setMode=
             metaBook.setMode(false);
         else {
             metaBook.setMode("refinesearch");
-            $ID("METABOOKSEARCHINPUT").focus();}
+            if (!(metaBook.touch))
+                $ID("METABOOKSEARCHINPUT").focus();}
         fdjtUI.cancel(evt);};
     
     /* Search result listings */
@@ -35385,7 +35402,9 @@ metaBook.setMode=
         var input=((div)&&(getChild(div,"TEXTAREA")));
         if (hasClass(div,"focused")) {
             setTimeout(function(){
-                if (input) {metaBook.setFocus(input); input.focus();}},
+                if (input) {
+                    metaBook.setFocus(input);
+                    input.focus();}},
                        150);
             return;}
         if ((hasParent(target,".addglossmenu"))||
@@ -36225,7 +36244,7 @@ metaBook.setMode=
             metaBook.TapHold.body=fdjtUI.TapHold(
                 $ID("METABOOKBODY"),
                 {override: true,noslip: true,id: "METABOOKBODY",
-                 maxtouches: 2,taptapmsecs: 200,
+                 maxtouches: 2,taptapmsecs: true,
                  untouchable: externClickable,
                  movethresh: 10});
             addHandlers(metaBook.HUD,'hud');}
@@ -39296,8 +39315,7 @@ metaBook.Paginate=
             var cheaprule=metaBook.CSS.resizerule;
             if (typeof flag==="undefined") flag=true;
             if ((flag)&&(hasClass(document.body,"_SCALEDLAYOUT"))) return;
-            if ((!(flag))&&
-                (!(hasClass(document.body,"_SCALEDLAYOUT")))) return;
+            if ((!(flag))&&(!(hasClass(document.body,"_SCALEDLAYOUT")))) return;
             if (cheaprule) {
                 cheaprule.style[fdjtDOM.transform]="";
                 cheaprule.style[fdjtDOM.transformOrigin]="";
@@ -41270,15 +41288,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // sBooks metaBook build information
-metaBook.version='v0.5-2589-g01851fe';
+metaBook.version='v0.5-2597-g80c1365';
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Thu Mar 19 14:48:41 EDT 2015';
-metaBook.buildid='27db5734-5c19-4ba6-a8b1-1a052171f67d';
+metaBook.buildtime='Fri Mar 20 10:09:22 EDT 2015';
+metaBook.buildid='486a6d31-0918-4cbe-9442-1b7c20bb1423';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
 metaBook.buildhost='moby.dot.beingmeta.com';
-metaBook.buildtime='Thu Mar 19 21:27:48 EDT 2015';
-metaBook.buildid='e3c008f6-23bf-469f-b574-20d04b07f62c';
+metaBook.buildtime='Fri Mar 20 10:09:22 EDT 2015';
+metaBook.buildid='b2cd6a91-4727-42fd-be97-bf2a705e4abf';
 
 fdjt.CodexLayout.sourcehash='3CCDD12E0B73724CC1D8243043D627D84C680063';
