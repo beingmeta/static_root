@@ -41107,7 +41107,7 @@ metaBook.HTML.settings=
     "      Body size<br/>\n"+
     "      <button name=\"REFRESH\" value=\"Layout\"\n"+
     "              id=\"METABOOKREFRESHLAYOUT\">\n"+
-    "        <img src=\"{{bmg}}/metabook/refresh.svgz\" alt=\"Update\">\n"+
+    "        <img src=\"{{bmg}}metabook/refresh.svgz\" alt=\"Update\">\n"+
     "        Layout</button></span>\n"+
     "    <span class=\"samples\">\n"+
     "      <span class=\"checkspan\">\n"+
@@ -41230,7 +41230,7 @@ metaBook.HTML.settings=
     "    <button id=\"METABOOKRESETSYNC\" name=\"SYNC\" VALUE=\"RESET\"\n"+
     "            class=\"reset floatright\"\n"+
     "            title=\"Reset synchronized location information.\">\n"+
-    "      <img src=\"{{bmg}}/metabook/reset.svgz\" alt=\"\"/>\n"+
+    "      <img src=\"{{bmg}}metabook/reset.svgz\" alt=\"\"/>\n"+
     "      Reset</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"locsync\" VALUE=\"yes\"/>\n"+
     "    <span class=\"text\">\n"+
@@ -41239,7 +41239,7 @@ metaBook.HTML.settings=
     "  <div class=\"checkspan saveglosses cf\">\n"+
     "    <button id=\"METABOOKREFRESHOFFLINE\" class=\"refresh floatright\"\n"+
     "            title=\"Reload glosses and layers for this book from the sBooks cloud.\">\n"+
-    "      <img src=\"{{bmg}}/metabook/refresh.svgz\" alt=\"\"/>\n"+
+    "      <img src=\"{{bmg}}metabook/refresh.svgz\" alt=\"\"/>\n"+
     "      Reload</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"cacheglosses\" VALUE=\"yes\" CHECKED/>\n"+
     "    <span class=\"text\">\n"+
@@ -41351,8 +41351,8 @@ fdjt.builduuid='3a50ea60-83c1-452a-8a5a-9bce2beb2164';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
-metaBook.buildid='dc573064-bef9-434c-9a15-8dcb2b8b4383-dist';
-metaBook.buildtime='Sat Mar 21 12:21:54 EDT 2015';
+metaBook.buildid='43194b7a-7213-4ca7-a64d-e3c42b80711f-dist';
+metaBook.buildtime='Sat Mar 21 12:32:13 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
