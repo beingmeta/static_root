@@ -41378,10 +41378,10 @@ fdjt.buildhost='moby.dot.beingmeta.com';
 fdjt.buildtime='Sat Mar 21 14:29:48 EDT 2015';
 fdjt.builduuid='74c95b52-cc33-4e16-8e65-c0d5c0fed989';
 
-Knodule.version='v0.8-147-gcd7d6a3';
+Knodule.version='v0.8-149-ga0f7398';
 // sBooks metaBook build information
-metaBook.buildid='c6589402-df06-418d-afe6-2b6bca32d595-dist';
-metaBook.buildtime='Sat Mar 21 16:19:31 EDT 2015';
+metaBook.buildid='686765f9-e5a9-4ba1-98d9-d39cfc2fe3ef-dist';
+metaBook.buildtime='Sat Mar 21 18:47:11 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

@@ -1890,7 +1890,7 @@ span.dterm {
     border-top-left-radius: 0.5ex; border-bottom-left-radius: 0.5ex;
     color: darkblue; background-color: gold;
     border: solid blue 2px;}
-span.dterm.weak {
+.dterm.weak {
     border: solid yellow 2px;
     opacity: 0.85;}
 
@@ -6875,7 +6875,7 @@ html._MOUSE .cloud .showall:hover,
 .cloud span.sep { 
     font-size: 200%; font-weight: bold; 
     color: purple; vertical-align: middle;}
-.completion.cloudroot {
+.completion.cloudroot, .completion.cloudroot.weak {
     cursor: default; opacity: 0.25;}
 #METABOOKHUD .cloud .sectname, #METABOOKHUD .qtags .sectname {
     white-space: nowrap;
