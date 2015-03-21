@@ -28731,7 +28731,7 @@ metaBook.Startup=
             run_inits();
             if (!(metaBook._setup_start)) metaBook._setup_start=new Date();
             metaBook.appsource=getSourceRef();
-            fdjtLog("This is metaBook v%s, built %s on %s, launched %s, from %s",
+            fdjtLog("This is metaBook %s, built %s on %s, launched %s, from %s",
                     mB.version,mB.buildtime,mB.buildhost,
                     mB._setup_start.toString(),
                     mB.root||metaBook.appsource||"somewhere");
@@ -41351,8 +41351,8 @@ fdjt.builduuid='3a50ea60-83c1-452a-8a5a-9bce2beb2164';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
-metaBook.buildid='bee11f01-69dc-4c33-bd8a-cb73559bcf36-dist';
-metaBook.buildtime='Sat Mar 21 12:19:34 EDT 2015';
+metaBook.buildid='dc573064-bef9-434c-9a15-8dcb2b8b4383-dist';
+metaBook.buildtime='Sat Mar 21 12:21:54 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

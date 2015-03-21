@@ -4003,7 +4003,7 @@ form.metabooksettings .label.smaller {
 
 form.metabooksettings > div.fontsizes,
 form.metabooksettings > div.checkspan {
-    font-size: 20px; font-size: 2vw;}
+    font-size: 18px;} /* font-size: 2vw; */
 
 form.metabooksettings > div.fontsizes,
 form.metabooksettings > div.header,
@@ -4034,7 +4034,7 @@ form.metabooksettings div.checkspans .checkspan.ischecked {
 form.metabooksettings div.fontsizes span.checkspan {
     border-bottom: transparent solid 3px;}
 form.metabooksettings div.fontsizes span.checkspan span.sample {
-    vertical-align: baseline;}
+    vertical-align: baseline; padding-right: 0.7rem;}
 form.metabooksettings div.fontsizes
   span.checkspan input[TYPE="RADIO"] { display: none; }
 form.metabooksettings div.fontsizes span.checkspan.ischecked {
