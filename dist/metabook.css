@@ -4624,25 +4624,7 @@ div.completions.hudpanel .normal { line-height: 250%;}
     -khtml-opacity: 0.02;
     -moz-opacity: 0.02;
     -o-opacity: 0.02;}
-html._MOUSE #METABOOKHUD:hover img.hudbutton {
-    opacity: 0.30;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
-    filter: alpha(opacity=30);
-    -webkit-opacity: 0.30;
-    -khtml-opacity: 0.30;
-    -moz-opacity: 0.30;
-    -o-opacity: 0.30;}
-.hudup._MOUSE #METABOOKHUD:hover img.hudbutton {
-    opacity: 0.99;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=99)";
-    filter: alpha(opacity=99);
-    -webkit-opacity: 0.99;
-    -khtml-opacity: 0.99;
-    -moz-opacity: 0.99;
-    -o-opacity: 0.99;}
-#METABOOKHUD .hudbutton.tapholdtarget,
-body._MOUSE #METABOOKHUD .hudbutton:hover {
-    border-color: blue; border-style: dotted; opacity: 0.99;}
+
 body.mbSKIMMING #METABOOKHUD img.hudbutton {
     opacity: 0.80;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
@@ -4682,35 +4664,11 @@ body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="allglosses"]{
     display: none; }
 
 body.hudup #METABOOKHUD img.hudbutton  {}
-body._MOUSE #METABOOKHUD img.hudbutton:hover,
-#METABOOKHUD #METABOOKFOOT.tapholding img.hudbutton,
-#METABOOKHUD #METABOOKTOPBAR.tapholding img.hudbutton {
-    opacity: 0.45;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=45)";
-    filter: alpha(opacity=45);
-    -webkit-opacity: 0.45;
-    -khtml-opacity: 0.45;
-    -moz-opacity: 0.45;
-    -o-opacity: 0.45;}
 
 #METABOOKHUD .topleft {top: 0px; left: 0px;}
-#METABOOKHUD .topleftin {top: 0px; left: 70px;}
 #METABOOKHUD .topright {top: 0px; right: 0px;}
-#METABOOKHUD .toprightin {top: 0px; right: 70px;}
 #METABOOKHUD .botleft {bottom: 0px; left: 0px;}
 #METABOOKHUD .botright {bottom: 0px; right: 0px;}
-
-#METABOOKHUD .topleftin.hudbutton,
-#METABOOKHUD .toprightin.hudbutton {
-    display: none;}
-#METABOOKHUD .tapholding .topleftin.hudbutton,
-#METABOOKHUD .tapholding .toprightin.hudbutton,
-.hudup #METABOOKHUD .topleftin.hudbutton,
-.hudup #METABOOKHUD .toprightin.hudbutton {
-    display: block;}
-.hudup #METABOOKHUD.openheart .topleftin.hudbutton,
-.hudup #METABOOKHUD.openheart .toprightin.hudbutton {
-    display: none;}
 
 #METABOOKHUD img.topleft {
     border-top-width: 0px; border-left-width: 0px;
@@ -4755,6 +4713,12 @@ img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
 #METABOOKTOPCENTER {
     display: inline-block; text-align: center;
     max-height: 100%;}
+#METABOOKHUD #METABOOKTOPCENTER .hudbutton {
+    position: static;}
+#METABOOKHUD #METABOOKTOPCENTER .hudbutton.left {
+    float: left; padding-right: 1ex;}
+#METABOOKHUD #METABOOKTOPCENTER .hudbutton.right {
+    float: right; padding-left: 1ex;}
 
 #METABOOKTOOLTAB {
     box-sizing: border-box; -webkit-box-sizing: border-box;
@@ -4776,10 +4740,6 @@ html._NOSVG #METABOOKTOOLTAB {
     background-image: url(g/metabook/downbar128w.png);}
 .hudup #METABOOKTOOLTAB, .mbcover #METABOOKTOOLTAB { display: none;}
 #METABOOKTOPBAR.tapholding #METABOOKTOOLTAB { display: none; }
-body._MOUSE #METABOOKHUD #METABOOKTOOLTAB.hudbutton:hover {
-    border: 0px;
-    background-color: rgba(192,192,192,0.75);
-    opacity: 0.75;}
 
 #METABOOKSHOWCOVER {
     white-space: nowrap;
@@ -4792,27 +4752,22 @@ body._MOUSE #METABOOKHUD #METABOOKTOOLTAB.hudbutton:hover {
     background-color: gray; color: white;
     font-variant: small-caps; font-weight: bold;
     border-bottom-left-radius: 1ex; border-bottom-right-radius: 1ex;
-    cursor: pointer;
+    cursor: pointer;}
+#METABOOKSHOWCOVER {
+    pointer-events: none;
     display: none;}
-
-#METABOOKSHOWCOVER {}
-.hudup #METABOOKSHOWCOVER, #METABOOKTOPBAR.tapholding #METABOOKSHOWCOVER {
-    display: block; pointer-events: all;}
-
-.hudup #METABOOKSHOWCOVER { display: block; }
-#METABOOKSHOWCOVER { pointer-events: none;}
-body.mbPREVIEW #METABOOKSHOWCOVER, 
-body.mbPREVIEW.hudup #METABOOKSHOWCOVER {
-    display: none;}
-#METABOOKSHOWCOVER { pointer-events: none; }
-body.hudup #METABOOKSHOWCOVER,
-#METABOOKTOPBAR.tapholding #METABOOKSHOWCOVER,
-html._MOUSE #METABOOKTOPBAR:hover #METABOOKSHOWCOVER {
-    pointer-events: all; }
-
 #METABOOKSHOWCOVER img {
     height: 1.2em; width: auto;
     float: left;}
+
+.hudup #METABOOKSHOWCOVER,
+#METABOOKTOPBAR.tapholding #METABOOKSHOWCOVER {
+    pointer-events: all;
+    display: inline-block;}
+
+body.mbPREVIEW.hudup #METABOOKSHOWCOVER {
+    pointer-events: none;
+    display: none;}
 
 html._NOUSER a.logout {
     display: none !important;}
@@ -4842,28 +4797,6 @@ body.hudup #METABOOKHUD .hudbutton {
     -khtml-opacity: 0.60;
     -moz-opacity: 0.60;
     -o-opacity: 0.60;}
-body.hudup._MOUSE #METABOOKHUD .hudbutton:hover,
-body.hudup #METABOOKHUD .tapholding .hudbutton,
-body.hudup #METABOOKHUD .hudbutton.tapholding {
-    opacity: 0.95;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=95)";
-    filter: alpha(opacity=95);
-    -webkit-opacity: 0.95;
-    -khtml-opacity: 0.95;
-    -moz-opacity: 0.95;
-    -o-opacity: 0.95;}
-
-body.hudup._MOUSE._FULLHEIGHT #METABOOKHUD .hudbutton:hover,
-body.hudup._FULLHEIGHT #METABOOKHUD .tapholding .hudbutton,
-body.hudup._FULLHEIGHT #METABOOKHUD .hudbutton.tapholding {
-    opacity: 0.70;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
-    filter: alpha(opacity=70);
-    -webkit-opacity: 0.70;
-    -khtml-opacity: 0.70;
-    -moz-opacity: 0.70;
-    -o-opacity: 0.70;}
-
 body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 
 /* METABOOKPOINTGLOSSES rules */
@@ -5128,22 +5061,7 @@ body img.metabookpagebutton {
     -khtml-opacity: 0.15;
     -moz-opacity: 0.15;
     -o-opacity: 0.15;}
-body._MOUSE img.metabookpagebutton:hover {
-    opacity: 0.7;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
-    filter: alpha(opacity=70);
-    -webkit-opacity: 0.70;
-    -khtml-opacity: 0.70;
-    -moz-opacity: 0.70;
-    -o-opacity: 0.70; }
-body.hudup img.metabookpagebutton {
-    opacity: 0.7;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
-    filter: alpha(opacity=70);
-    -webkit-opacity: 0.70;
-    -khtml-opacity: 0.70;
-    -moz-opacity: 0.70;
-    -o-opacity: 0.70; }
+
 body img.metabookskimbutton#METABOOKNEXTSKIM,
 body img.metabookskimbutton#METABOOKENDSKIM,
 body img.metabookpagebutton#METABOOKNEXTPAGE {
@@ -5352,6 +5270,46 @@ body._FULLHEIGHT #METABOOKSHOWCOVER {
 body._FULLHEIGHT.hudup #METABOOKFOOT {
     padding-top: 2px;
     border-radius: 0px;}
+
+/* Hover rules */
+
+#METABOOKHUD .hudbutton.tapholdtarget,
+#METABOOKHUD .hudbutton.tapholdtarget,
+html._MOUSE #METABOOKHUD .hudbutton:hover {
+    border-color: blue; border-style: dotted;
+    opacity: 0.90;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
+    filter: alpha(opacity=90);
+    -webkit-opacity: 0.90;
+    -khtml-opacity: 0.90;
+    -moz-opacity: 0.90;
+    -o-opacity: 0.90;}
+
+html._MOUSE body:not(.hudup) #METABOOKHUD:hover .hudbutton:not(:hover) {
+    opacity: 0.30;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+    filter: alpha(opacity=30);
+    -webkit-opacity: 0.30;
+    -khtml-opacity: 0.30;
+    -moz-opacity: 0.30;
+    -o-opacity: 0.30;}
+html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKSHOWCOVER {
+    display: inline-block;
+    pointer-events: all;}
+html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKTOOLTAB {
+    display: none;}
+
+html._MOUSE img.metabookpagebutton:hover,
+body.hudup img.metabookpagebutton {
+    opacity: 0.7;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+    filter: alpha(opacity=70);
+    -webkit-opacity: 0.70;
+    -khtml-opacity: 0.70;
+    -moz-opacity: 0.70;
+    -o-opacity: 0.70; }
+
+o/* Media rules */
 
 @media screen and (max-width: 640px) {
     .hudup #METABOOKHUD img.hudbutton {
@@ -5608,11 +5566,8 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER3.metabooksectmarker {
     height: 55%; background-color: rgba(0,0,255,0.1); }
 
-html._TOUCH body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR {
-    height: 150px;}
-html._TOUCH body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
-  .metabookpagespans span.preview  {
-    height: 100%;}
+html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
+    height: 100px;}
 
 #METABOOKHUD .metabookgoto {
     position: absolute; bottom: 0px; padding-bottom: 0px;
