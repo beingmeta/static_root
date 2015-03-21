@@ -41340,8 +41340,8 @@ fdjt.builduuid='40156aee-9936-474b-a718-881e4229b23b';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
-metaBook.buildid='ae4a51ba-6b4e-4e41-8288-abe2b0c59fa7(dist)';
-metaBook.buildtime='Sat Mar 21 10:32:45 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com'(dist);
+metaBook.buildid='2b36555d-78a9-4f56-a866-cdb045af7736-dist';
+metaBook.buildtime='Sat Mar 21 11:31:35 EDT 2015';
+metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 fdjt.CodexLayout.sourcehash='3CCDD12E0B73724CC1D8243043D627D84C680063';
