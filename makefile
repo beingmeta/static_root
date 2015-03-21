@@ -52,8 +52,7 @@ METABOOK_FILES=\
 	metabook/hud.js metabook/preview.js metabook/resize.js \
 	metabook/social.js metabook/search.js metabook/glosses.js \
 	metabook/interaction.js metabook/pagebar.js metabook/zoom.js \
-	metabook/layout.js metabook/debug.js \
-	metabook/autoload.js
+	metabook/layout.js metabook/debug.js
 METABOOK_HINTS=\
 	metabook/core.hint metabook/config.hint metabook/syncstate.hint \
 	metabook/nav.hint \
@@ -224,7 +223,10 @@ ext:
 webfontloader:
 	git clone https://github.com/typekit/webfontloader.git webfontloader
 
-clean:
+tidy:
+	rm *~
+
+clean: tidy
 	cd fdjt; make clean
 	cd showsomeclass; make clean
 	make cleanhints
@@ -280,7 +282,7 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 metabook.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
-metabook.min.js: $(METABOOK_JS_BUNDLE) makefile \
+metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.js
@@ -293,38 +295,40 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) makefile \
 	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
-	  > $@
+	  metabook/autoload.js > $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building metabook.clean.css
 	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 
 fresh:
 	make clean
-	make metabook.css metabook.js
+	make metabook.css metabook.min.js metabook.raw.js
+	ln -s metabook.raw.js metabook.js
 
 metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
-metabook.raw.js: $(METABOOK_JS_BUNDLE) makefile \
+metabook.raw.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-		metabook/buildstamp.js knodules/buildstamp.js > $@
+		metabook/buildstamp.js knodules/buildstamp.js \
+		metabook/autoload.js > $@
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		>> $@
 
 metabook/tieoff.js dist/tieoff.js:
 	@touch $@
 
-dist/metabook.js: fdjt/fdjt.js $(METABOOK_JS_BUNDLE) \
+dist/metabook.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js \
 	dist/buildstamp.js knodules/buildstamp.js dist/tieoff.js etc/sha1
 	@echo Building dist/metabook.js
 	@cat sbooks/amalgam.js \
 		$(METABOOK_JS_BUNDLE) dist/tieoff.js \
 		fdjt/buildstamp.js knodules/buildstamp.js \
-		dist/buildstamp.js > $@
+		dist/buildstamp.js metabook/autoload.js > $@
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		>> $@
 dist/metabook.css: $(METABOOK_CSS_BUNDLE)
@@ -344,7 +348,7 @@ dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js dist/buildstamp.js \
-	  > $@
+	  metabook/autoload.js > $@
 	@mv metabook.uglify.map dist
 dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
