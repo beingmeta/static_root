@@ -2312,7 +2312,7 @@ body.hudup .mbtarget, body.mbSHRINK .mbtarget {
     cursor: pointer;}
 body.hudup .mbtarget, body.mbSHRINK .mbtarget,
 body.mbSKIMMING .mbtarget {
-    outline: dotted silver 2px;}
+    /* outline: dotted silver 2px; */}
 
 body.hudup .mbtarget.mbnewtarget {
     background-color: inherit; }
@@ -4701,9 +4701,9 @@ img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
 #METABOOKHUD #METABOOKTOPCENTER .hudbutton {
     position: static;}
 #METABOOKHUD #METABOOKTOPCENTER .hudbutton.left {
-    float: left; padding-right: 1ex;}
+    float: left; margin-right: 1ex;}
 #METABOOKHUD #METABOOKTOPCENTER .hudbutton.right {
-    float: right; padding-left: 1ex;}
+    float: right; margin-left: 1ex;}
 
 #METABOOKTOOLTAB {
     box-sizing: border-box; -webkit-box-sizing: border-box;
@@ -5262,22 +5262,22 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
 #METABOOKHUD .hudbutton.tapholdtarget,
 html._MOUSE #METABOOKHUD .hudbutton:hover {
     border-color: blue; border-style: dotted;
-    opacity: 0.90;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
-    filter: alpha(opacity=90);
-    -webkit-opacity: 0.90;
-    -khtml-opacity: 0.90;
-    -moz-opacity: 0.90;
-    -o-opacity: 0.90;}
+    opacity: 0.50;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+    -webkit-opacity: 0.50;
+    -khtml-opacity: 0.50;
+    -moz-opacity: 0.50;
+    -o-opacity: 0.50;}
 
 html._MOUSE body:not(.hudup) #METABOOKHUD:hover .hudbutton:not(:hover) {
-    opacity: 0.30;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
-    filter: alpha(opacity=30);
-    -webkit-opacity: 0.30;
-    -khtml-opacity: 0.30;
-    -moz-opacity: 0.30;
-    -o-opacity: 0.30;}
+    opacity: 0.20;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+    filter: alpha(opacity=20);
+    -webkit-opacity: 0.20;
+    -khtml-opacity: 0.20;
+    -moz-opacity: 0.20;
+    -o-opacity: 0.20;}
 html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKSHOWCOVER {
     display: inline-block;
     pointer-events: all;}
@@ -5294,7 +5294,7 @@ body.hudup img.metabookpagebutton {
     -moz-opacity: 0.70;
     -o-opacity: 0.70; }
 
-o/* Media rules */
+/* Media rules */
 
 @media screen and (max-width: 640px) {
     .hudup #METABOOKHUD img.hudbutton {

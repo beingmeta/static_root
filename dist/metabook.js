@@ -368,7 +368,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                     else {
                         try {fcn();} catch (ex) {fail(ex);}}
                     if (getnow()>timelim) break;}
-                if ((i<lim)&&((!(done))||(!(done()))))
+                if ((i<lim)&&((!(stop))||(!(stop()))))
                     timer=setTimeout(slicefn,nextspace||space);
                 else {
                     clearTimeout(timer); 
@@ -383,7 +383,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                 timeslice(fcns,slice,space,stop,success,failure);}
             return new Promise(timeslicing);};
 
-        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
+        function slowmap(fn,vec,watch,done,failed,slice,space,onerr,watch_slice){
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=getnow();
             var timer=false;
@@ -402,7 +402,12 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                         if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
                                       (i+1===lim)))
                             watch('element',i,lim,elt,used,now-zerostart);
-                        fn(elt);
+                        try {fn(elt);}
+                        catch (ex) {
+                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
+                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
+                            if (failed) return failed(ex);
+                            else throw ex;}
                         if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
                                       (i+1===lim)))
                             watch('after',i,lim,elt,used+(getnow()-started),
@@ -429,7 +434,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             timer=setTimeout(stepfn,space);}
         fdjtAsync.slowmap=function(fcn,vec,opts){
             if (!(opts)) opts={};
-            var slice=opts.slice, space=opts.space;
+            var slice=opts.slice, space=opts.space, onerr=opts.onerr;
             var watchfn=opts.watchfn, watch_slice=opts.watch;
             var sync=((opts.hasOwnProperty("sync"))?(opts.sync):
                       ((opts.hasOwnProperty("async"))?(!(opts.async)):
@@ -438,15 +443,20 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             function slowmapping(resolve,reject){
                 if (sync) {
                     var i=0, lim=vec.length; while (i<lim) {
-                        try { fcn(vec[i++]);}
-                        catch (ex) { if (reject) reject(ex); }}
+                        var elt=vec[i++];
+                        try { fcn(vec[elt]); }
+                        catch (ex) {
+                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
+                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
+                            if (reject) return reject(ex);
+                            else throw ex;}}
                     if (resolve) resolve(vec);}
                 else slowmap(fcn,vec,watchfn,
                              ((donefn)?(function(){
                                  donefn(); if (resolve) resolve(vec);}):
                               (resolve)),
                              reject,
-                             slice,space,watch_slice);}
+                             slice,space,onerr,watch_slice);}
             if (watch_slice<1) watch_slice=vec.length*watch_slice;
             return new Promise(slowmapping);};
 
@@ -18155,7 +18165,7 @@ var Knodule=(function(){
                        (clause.slice(equals+1)));
                 if (value[0]==='\\') value=value.slice(1);
                 else if (/\d/.exec(value[0])) {
-                    var number=parseFloat(value[0]);
+                    var number=parseFloat(value);
                     if ((typeof number === "number")&&((number)||(number===0)))
                         value=number;}
                 else {}
@@ -27120,16 +27130,23 @@ metaBook.DOMScan=(function(){
                 addTag2Cloud(tag,gloss_cloud);}},
                          searchtags,
                          {watchfn: tagindex_progress,
-                          done: tagindex_done,
-                          slice: 200,space: 20});}
+                          slice: 200,space: 20}).
+            then(tagindex_done);}
     
     function tagindex_done(searchtags){
         var eq=metaBook.empty_query;
+        var knodule=metaBook.knodule;
         var empty_cloud=metaBook.empty_cloud;
         var gloss_cloud=metaBook.gloss_cloud;
         var searchlist=$ID("METABOOKSEARCHLIST");
         var knodeToOption=Knodule.knodeToOption;        
         
+        /* Take the top dterms and make them into cues, so there's at
+         * least *something* */
+        metaBook.knodule.alldterms.slice(0,7).map(function(dterm){
+            var ref=knodule.ref(dterm), elts=empty_cloud.getByValue(ref);
+            elts.map(function(elt){addClass(elt,"cue");});});
+
         if (Trace.startup>1)
             fdjtLog("Done populating clouds with %d tags",
                     searchtags.length);
@@ -31381,43 +31398,55 @@ metaBook.Slice=(function () {
         var gscores=metaBook.tagscores;
         var gweights=metaBook.tagweights;
         var values=cloud.values, byvalue=cloud.byvalue;
-        var vscores=new Array(values.length);
+        var compscores=new Array(values.length);
+        var matchscores=new Array(values.length);
         var i=0, lim=values.length;
+        var min_vscore=Infinity, max_vscore=-1;
         var min_score=Infinity, max_score=-1;
         if (Trace.clouds)
             fdjtLog("Sizing %d tags in cloud %o with roots %o",
                     values.length,cloud.dom,roots);
         while (i<lim) {
-            var value=values[i], score;
+            var value=values[i], score, matchscore=false;
             if ((roots)&&(roots.length)&&(roots.indexOf(value)>=0)) {
-                vscores[i++]=false; continue;}
+                matchscores[i]=compscores[i]=false; i++; continue;}
             if (scores) {
-                var cscore=scores.get(value);
+                matchscore=scores.get(value);
                 var gscore=gscores.get(value);
-                score=(cscore/gscore)*(gweights.get(value));}
+                if (gscore) {
+                    var gweight=gweights.get(value)||1;
+                    score=(matchscore/gscore)*(gweight);}
+                else score=false;}
             else score=gscores.get(value);
-            if ((typeof score === "number")&&((score)||(score===0))) {
-                vscores[i]=score;
-                if (score<min_score) min_score=score;
-                if (score>max_score) max_score=score;}
-            else vscores[i]=false;
+            if ((typeof score === "number")&&(!(isNaN(score)))) {
+                compscores[i]=score;
+                if (score<min_vscore) min_vscore=score;
+                if (score>max_vscore) max_vscore=score;}
+            else compscores[i]=false;
+            if ((typeof matchscore == "number")&&(!(isNaN(matchscore)))) {
+                matchscores[i]=matchscore;
+                if (matchscore<min_score) min_score=matchscore;
+                if (matchscore>max_score) max_score=matchscore;}
+            else matchscores[i]=false;
             i++;}
         if (Trace.clouds)
             fdjtLog("Sizing %d tags in %o with scores in [%o,%o]",
-                    values.length,cloud.dom,min_score,max_score);
+                    values.length,cloud.dom,min_vscore,max_vscore);
         cloud.dom.style.display='none';
         i=0; while (i<lim) {
-            var v=values[i], s=vscores[i];
+            var v=values[i], s=compscores[i], ms=matchscores[i];
             var elt=byvalue.get(v);
+            elt.title=(elt.title||"")+"; vscore="+s;
             if (v.prime) {
                 addClass(elt,"prime"); addClass(elt,"cue");}
             if ((roots)&&(roots.length)&&(roots.indexOf(v)>=0)) 
                 addClass(elt,"cloudroot");
-            if (!(s)) {
+            if (!((s)||(ms))) {
                 addClass(elt,"unscored");
                 elt.style.fontSize=""; i++;
                 continue;}
-            var factor=(s-min_score)/(max_score-min_score);
+            var factor=((s)?((s-min_vscore)/(max_vscore-min_vscore)):
+                        ((ms-min_score)/(max_score-min_score)));
             var fsize=50+(150*factor);
             if (fsize<200)
                 elt.style.fontSize=Math.round(fsize)+"%";
@@ -31425,17 +31454,17 @@ metaBook.Slice=(function () {
             i++;}
         if (Trace.clouds)
             fdjtLog("Finished computing sizes for %o using scores [%o,%o]",
-                    cloud.dom,min_score,max_score);
+                    cloud.dom,min_vscore,max_vscore);
         cloud.dom.style.display='';
         dropClass(cloud.dom,"working");
         if (Trace.clouds)
             fdjtLog("Rendered new cloud %o using scores [%o,%o]",
-                    cloud.dom,min_score,max_score);
+                    cloud.dom,min_vscore,max_vscore);
         if (cloud.dom.parentNode) setTimeout(function(){
             adjustCloudFont(cloud);},50);
         if (Trace.clouds)
             fdjtLog("Finished sizing tags in %o using scores [%o,%o]",
-                    cloud.dom,min_score,max_score);}
+                    cloud.dom,min_vscore,max_vscore);}
     metaBook.sizeCloud=sizeCloud;
 
     function searchcloud_select(evt){
@@ -41346,13 +41375,13 @@ metaBook.HTML.pageright=
 // FDJT build information
 fdjt.revision='1.5-1358-g963199b';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sat Mar 21 11:59:36 EDT 2015';
-fdjt.builduuid='3a50ea60-83c1-452a-8a5a-9bce2beb2164';
+fdjt.buildtime='Sat Mar 21 14:29:48 EDT 2015';
+fdjt.builduuid='74c95b52-cc33-4e16-8e65-c0d5c0fed989';
 
-Knodule.version='v0.8-146-g7fb6ce1';
+Knodule.version='v0.8-147-gcd7d6a3';
 // sBooks metaBook build information
-metaBook.buildid='e16697ec-83fa-48f6-91fa-ec08c3dc7c18-dist';
-metaBook.buildtime='Sat Mar 21 12:47:12 EDT 2015';
+metaBook.buildid='c6589402-df06-418d-afe6-2b6bca32d595-dist';
+metaBook.buildtime='Sat Mar 21 16:19:31 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

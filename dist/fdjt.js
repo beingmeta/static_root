@@ -341,7 +341,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                     else {
                         try {fcn();} catch (ex) {fail(ex);}}
                     if (getnow()>timelim) break;}
-                if ((i<lim)&&((!(done))||(!(done()))))
+                if ((i<lim)&&((!(stop))||(!(stop()))))
                     timer=setTimeout(slicefn,nextspace||space);
                 else {
                     clearTimeout(timer); 
@@ -356,7 +356,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                 timeslice(fcns,slice,space,stop,success,failure);}
             return new Promise(timeslicing);};
 
-        function slowmap(fn,vec,watch,done,failed,slice,space,watch_slice){
+        function slowmap(fn,vec,watch,done,failed,slice,space,onerr,watch_slice){
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=getnow();
             var timer=false;
@@ -375,7 +375,12 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                         if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
                                       (i+1===lim)))
                             watch('element',i,lim,elt,used,now-zerostart);
-                        fn(elt);
+                        try {fn(elt);}
+                        catch (ex) {
+                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
+                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
+                            if (failed) return failed(ex);
+                            else throw ex;}
                         if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
                                       (i+1===lim)))
                             watch('after',i,lim,elt,used+(getnow()-started),
@@ -402,7 +407,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             timer=setTimeout(stepfn,space);}
         fdjtAsync.slowmap=function(fcn,vec,opts){
             if (!(opts)) opts={};
-            var slice=opts.slice, space=opts.space;
+            var slice=opts.slice, space=opts.space, onerr=opts.onerr;
             var watchfn=opts.watchfn, watch_slice=opts.watch;
             var sync=((opts.hasOwnProperty("sync"))?(opts.sync):
                       ((opts.hasOwnProperty("async"))?(!(opts.async)):
@@ -411,15 +416,20 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             function slowmapping(resolve,reject){
                 if (sync) {
                     var i=0, lim=vec.length; while (i<lim) {
-                        try { fcn(vec[i++]);}
-                        catch (ex) { if (reject) reject(ex); }}
+                        var elt=vec[i++];
+                        try { fcn(vec[elt]); }
+                        catch (ex) {
+                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
+                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
+                            if (reject) return reject(ex);
+                            else throw ex;}}
                     if (resolve) resolve(vec);}
                 else slowmap(fcn,vec,watchfn,
                              ((donefn)?(function(){
                                  donefn(); if (resolve) resolve(vec);}):
                               (resolve)),
                              reject,
-                             slice,space,watch_slice);}
+                             slice,space,onerr,watch_slice);}
             if (watch_slice<1) watch_slice=vec.length*watch_slice;
             return new Promise(slowmapping);};
 
@@ -17763,8 +17773,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1357-gbbfe604';
+fdjt.revision='1.5-1358-g963199b';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sat Mar 21 10:16:35 EDT 2015';
-fdjt.builduuid='40156aee-9936-474b-a718-881e4229b23b';
+fdjt.buildtime='Sat Mar 21 14:29:48 EDT 2015';
+fdjt.builduuid='74c95b52-cc33-4e16-8e65-c0d5c0fed989';
 
