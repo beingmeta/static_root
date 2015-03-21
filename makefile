@@ -109,7 +109,9 @@ METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
 ALLFILES=$(FDJT_FILES) $(KNODULES_FILES) $(METABOOK_FILES)
 
 ROOT_FDJT=fdjt.js fdjt.min.js fdjt.min.js.gz fdjt.css fdjt.css.gz
-ROOT_METABOOK=metabook.js metabook.min.js metabook.min.js.gz \
+ROOT_METABOOK=metabook.js metabook.js.gz \
+	metabook.raw.js metabook.raw.js.gz \
+	metabook.min.js metabook.min.js.gz \
 	metabook.css metabook.css.gz metabook.clean.css \
 	metabook.clean.css.gz
 DIST_FDJT=dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.uglify.map \
@@ -167,8 +169,7 @@ dist: ${DIST_FDJT} ${DIST_METABOOK}
 
 ssc: showsomeclass/app.js showsomeclass/app.css
 
-allhints: fdjt/fdjt.hints metabook/metabook.hints \
-	knodules/knodules.hints showsomeclass/hints
+allhints: fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints
 
 cleanhints:
 	rm -f fdjt/*.hint fdjt/fdjt.hints
@@ -224,7 +225,7 @@ webfontloader:
 	git clone https://github.com/typekit/webfontloader.git webfontloader
 
 tidy:
-	rm *~
+	rm -f *~
 
 clean: tidy
 	cd fdjt; make clean
@@ -302,8 +303,7 @@ metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 
 fresh:
 	make clean
-	make metabook.css metabook.min.js metabook.raw.js
-	ln -s metabook.raw.js metabook.js
+	make $(ROOT_FDJT) $(ROOT_METABOOK)
 
 metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.css
@@ -318,6 +318,12 @@ metabook.raw.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 		metabook/autoload.js > $@
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		>> $@
+metabook.js: metabook.raw.js
+	rm -f metabook.js
+	ln -sf metabook.raw.js metabook.js
+metabook.js.gz: metabook.raw.js.gz
+	rm -f metabook.js.gz
+	ln -sf metabook.raw.js.gz metabook.js
 
 metabook/tieoff.js dist/tieoff.js:
 	@touch $@
@@ -411,7 +417,7 @@ alltags: fdjt knodules metabook TAGS APPTAGS \
 	METABOOKTAGS METABOOKHTMLTAGS METABOOKCSSTAGS METABOOKXCSSTAGS \
 	fdjt/TAGS HTMLTAGS CSSTAGS SSCTAGS
 
-TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} ${SSC_FILES} \
+TAGS: ${FDJT_FILES} fdjt/codexlayout.js ${KNODULES_FILES} \
 	${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
 	@etags -o $@ $^
 METABOOKTAGS: ${METABOOK_FILES} ${METABOOK_CSS_BUNDLE} ${METABOOK_HTML_FILES}
