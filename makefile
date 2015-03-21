@@ -257,9 +257,9 @@ fdjt.min.js: ${FDJT_FILES} fdjt/buildstamp.js makefile
 dist/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE) \
 	            $(METABOOK_HTML)
 	@$(ECHO) "// sBooks metaBook build information" > $@
-	@$(ECHO) "metaBook.buildid='${BUILDUUID}(dist)';" >> $@
+	@$(ECHO) "metaBook.buildid='${BUILDUUID}-dist';" >> $@
 	@$(ECHO) "metaBook.buildtime='${BUILDTIME}';" >> $@
-	@$(ECHO) "metaBook.buildhost='${BUILDHOST}'(dist);" >> $@
+	@$(ECHO) "metaBook.buildhost='${BUILDHOST}(dist)';" >> $@
 	@$(ECHO) >> $@
 	@echo "Created $@"
 metabook/buildstamp.js: $(METABOOK_FILES) $(METABOOK_CSS_BUNDLE) \
