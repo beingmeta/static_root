@@ -4099,21 +4099,6 @@ form.metabooksettings div.metabookcopyright {
 form.metabooksettings div.metabookcopyright p {
     font-weight: bold; margin-left: 3em; text-indent: -3em;}
 
-/*
-form.metabooksettings > div button {
-    background-repeat: no-repeat; background-size: contain;}
-form.metabooksettings button.reset {
-    width: 2em; height: 2em; color: transparent;
-    background-image: url();}
-html._NOSVG form.metabooksettings button.reset {
-    background-image: url(g/metabook/reset50x50.pg);}
-form.metabooksettings button.refresh {
-    width: 2em; height: 2em; color: transparent;
-    background-image: url(g/metabook/refresh.svgz);}
-html._NOSVG form.metabooksettings button.refresh {    
-    background-image: url(g/metabook/refresh50x50.png);}
-*/
-
 div.fdjtdialog.fdjtconfirm.mbsettings div.message {
     font-weight: normal;}
 

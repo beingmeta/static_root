@@ -41351,8 +41351,8 @@ fdjt.builduuid='3a50ea60-83c1-452a-8a5a-9bce2beb2164';
 
 Knodule.version='v0.8-146-g7fb6ce1';
 // sBooks metaBook build information
-metaBook.buildid='43194b7a-7213-4ca7-a64d-e3c42b80711f-dist';
-metaBook.buildtime='Sat Mar 21 12:32:13 EDT 2015';
+metaBook.buildid='e16697ec-83fa-48f6-91fa-ec08c3dc7c18-dist';
+metaBook.buildtime='Sat Mar 21 12:47:12 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
