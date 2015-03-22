@@ -9540,9 +9540,14 @@ fdjt.DOM=
                          ((after)||("")));}
         fdjtDOM.getRegexString=getRegexString;
 
-        function textRegExp(needle,before,after){
-            return new RegExp(getRegexString(needle,true,before,after),"gm");}
+        function textRegExp(needle,foldcase,before,after){
+            return new RegExp(getRegexString(needle,true,before,after),
+                              ((foldcase)?("igm"):("gm")));}
         fdjtDOM.textRegExp=textRegExp;
+        function wordRegExp(needle,foldcase){
+            return new RegExp(getRegexString(needle,true,"\\b","\\b"),
+                              ((foldcase)?("igm"):("gm")));}
+        fdjtDOM.wordRegExp=wordRegExp;
 
         function findString(node,needle,off,count){
             if (typeof off === 'undefined') off=0;
@@ -14798,6 +14803,13 @@ fdjt.Pager=
       else {}
       this.height=h;
       if (this.pages) this.clearLayout();
+      if (root.offsetHeight<=h) {
+        addClass(root,"onepage");
+        this.onepage=true;
+        return;}
+      else {
+        dropClass(root,"onepage");
+        this.onepage=false;}
       addClass(root,"pagerlayout");
       var childinfo=[], children=root.childNodes;
       var pagenum=fdjtDOM("div.pagenum");
@@ -17847,6 +17859,8 @@ var Knodule=(function(){
     var Ref=fdjt.Ref;
     var warn=fdjtLog.warn;
 
+    var ObjectMap=RefDB.ObjectMap;
+
     var trace_parsing=0;
 
     var lang_pat=/^(([A-Za-z]{2,3}\$)|([A-Za-z]{2,3}_[A-Za-z]{2,3}\$))/;
@@ -17894,7 +17908,7 @@ var Knodule=(function(){
         knodule.allxdterms=[];
         // Inverted index for genls in particular (useful for
         // faster search, inferences, etc)
-        knodule.genlsIndex={};
+        knodule.allwaysIndex=new ObjectMap();
         // This maps external OIDs to knodes
         knodule.oidmap={};
         // DRULES (disambiguation rules)
@@ -17979,10 +17993,21 @@ var Knodule=(function(){
         return this.dterms[langid+"$"+string]||false;};
     
     KNode.prototype.add=function(prop,val){
+        var ai=this._db.allwaysIndex;
         if ((Ref.prototype.add.call(this,prop,val))&&
             (prop==='genls')) {
             this.allways.push(val);
             this.allways=RefDB.merge(this.allways,val.allways);
+            var allways=this.allways, i=0, lim=allways.length;
+            while (i<lim) ai.add(allways[i++],this);
+            var examples=ai.get(this);
+            if (examples) {
+                var e=0, n_examples=examples.length;
+                while (e<n_examples) {
+                    var example=examples[e++];
+                    example.allways=RefDB.merge(example.allways,this.allways);
+                    var j=0, jlim=allways.length;
+                    while (j<jlim) ai.add(allways[j++],example);}}
             return true;}
         else return false;};
     KNode.prototype.addTerm=function(val,field,inlang){
@@ -18536,10 +18561,11 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
         var tags=fdjt.Set(this.tags); var qstring="";
         var i=0, lim=tags.length;
         while (i<lim) {
+            if (i>0) qstring=qstring+";";
             var tag=tags[i++];
             if (typeof tag === "string")
-                qstring=qstring+";"+tag;
-            else qstring=qstring+";"+((tag._qid)||(tag.getQID()));}
+                qstring=qstring+tag;
+            else qstring=qstring+((tag._qid)||(tag.getQID()));}
         return qstring;};
     
     Knodule.TagQuery=TagQuery;
@@ -24459,7 +24485,7 @@ fdjt.DOM.noautofontadjust=true;
 
         Query.prototype.dbs=[metaBook.glossdb,metaBook.docdb];
         Query.prototype.weights={
-            "tags": 4,"^tags": 2,"+tags": 8,"^+tags": 4,
+            "+tags": 8,"tags": 4,"+tags*": 2,"tags*": 2,"^+tags": 2,
             "strings": 1,"head": 2,"heads": 1};
         Query.prototype.uniqueids=true;
         metaBook.query=metaBook.empty_query=new Query([]);
@@ -25626,8 +25652,11 @@ fdjt.DOM.noautofontadjust=true;
         var trimmed=fdjtString.trim(excerpt);
         var before=((trimmed.search(/[.,"']/)===0)?("(^|\\s)"):("\\b"));
         var after=((trimmed.search(/[.,"']$/)>0)?("($|\\s)"):("\\b"));
-        var pattern=fdjtDOM.textRegExp(trimmed,before,after);
+        var pattern=fdjtDOM.textRegExp(trimmed,false,before,after);
         var matches=fdjtDOM.findMatches(node,pattern,off||0,1);
+        if ((!(matches))||(matches.length===0)) {
+            pattern=fdjtDOM.textRegExp(trimmed,true,before,after);
+            matches=fdjtDOM.findMatches(node,pattern,off||0,1);}
         if ((matches)&&(matches.length)) return matches[0];
         // We could do this more intelligently
         var result=false, roff=-1;
@@ -25823,36 +25852,8 @@ fdjt.DOM.noautofontadjust=true;
 
     // This jumps and disables the HUD at the same time
     function metaBookGoTOC(target){
-        if (target) metaBook.GoTo(target,"GoTOC");
-        metaBook.setMode("statictoc");
-        var headid=((metaBook.head)&&(metaBook.head.id));
-        var headinfo=(headid)&&(metaBook.docinfo[headid]);
-        var hhid=(headinfo)&&(headinfo.head)&&(headinfo.head.frag);
-        var tocelt=(headid)&&getTOCHead(headid);
-        var cxtelt=(hhid)&&getTOCHead(hhid);
-        if ((cxtelt)&&(tocelt)) {
-            cxtelt.scrollIntoView();
-            if (fdjtDOM.isVisible(tocelt)) return;
-            else tocelt.scrollIntoView();}
-        else if (tocelt)
-            tocelt.scrollIntoView();
-        else if (cxtelt)
-            cxtelt.scrollIntoView();
-        else {}}
+        if (target) metaBook.GoTo(target,"GoTOC");}
     metaBook.GoTOC=metaBookGoTOC;
-
-    // This jumps and disables the HUD at the same time
-    // We try to animate the transition
-    function metaBookSkimTo(target){
-        if (metaBook.hudup) { // Figure out what mode to go to
-            var headinfo=metaBook.docinfo[target]||metaBook.docinfo[target.id];
-            if ((headinfo)&&((!(headinfo.sub))||(headinfo.sub.length===0))) {
-                metaBook.setMode("statictoc"); metaBook.setHUD(false,false);
-                addClass(document.body,"mbSKIMMING");
-                metaBook.skimming=true;}}
-        metaBook.GoTo(target,"metaBookSkimTo");}
-    metaBook.Skimto=metaBookSkimTo;
-
 
 })();
 
@@ -27251,7 +27252,7 @@ metaBook.DOMScan=(function(){
                     // basis for the tag (we use this for
                     // highlighting).
                     var knodeterms=info.knodeterms, terms;
-                    var tagid=((knode)?(knode._qid):(tagterm));
+                    var tagid=((knode)?(knode._qid||knode.getQID()):(tagterm));
                     // If it's the regular case, we just assume that
                     if (!(info.knodeterms)) {
                         knodeterms=info.knodeterms={};
@@ -29879,7 +29880,7 @@ metaBook.Slice=(function () {
         if (overlay) shared=RefDB.remove(shared,(overlay._qid||overlay._id));
         var body=
             fdjtDOM("div.metabookcardbody",
-                    ((score)&&(showscore(score,query))),
+                    ((score)&&(showscore(info,score,query))),
                     (((info.maker)||(info.tstamp))?(showglossinfo(info)):
                      (showdocinfo(info))),
                     ((note_len>0)&&
@@ -29931,6 +29932,8 @@ metaBook.Slice=(function () {
             return metaBook.md2DOM(note.slice(close+1),true);}
         else return note;}
 
+    var isArray=Array.isArray;
+
     function showtags(info,query){
         var tagicon=fdjtDOM.Image(mbicon("tagicon",64,64),
                                   "img.tagicon","tags");
@@ -29944,7 +29947,10 @@ metaBook.Slice=(function () {
         var j=0, nslots=tagslots.length, ntags=0;
         while (j<nslots) {
             var slot=tagslots[j++], tags=info[slot];
-            if ((!(tags))||(tags.length===0)) continue;
+            if (!(tags)) continue;
+            else if (!(isArray(tags))) tags=[tags];
+            else if (tags.length===0) continue;
+            else {}
             var i=0, lim=tags.length; ntags=ntags+lim;
             while (i<lim) {
                 var tag=tags[i++];
@@ -30072,10 +30078,12 @@ metaBook.Slice=(function () {
                         ((i>0)&&" "),
                         fdjtUI.Ellipsis("span.excerpt",excerpts[i++],40));
             return ediv;}}
-    function showscore(score,query){
+    function showscore(elt,score,query){
+        var count=((query)&&(query.counts)&&(query.counts.get(elt)));
+        if (count) count=count+":";
         if ((query)&&(query.max_score))
-            return fdjtDOM("span.score","(",score,"/",query.max_score,")");
-        else return fdjtDOM("span.score","(",score,")");}
+            return fdjtDOM("span.score","(",count,score,"/",query.max_score,")");
+        else return fdjtDOM("span.score","(",count,score,")");}
     function showglossinfo(info) {
         var user=info.maker;
         var userinfo=(user)&&(metaBook.sourcedb.load(user));
@@ -30293,7 +30301,7 @@ metaBook.Slice=(function () {
                 fdjtDOM("span.headtext.tocref",
                         fdjtDOM("span.spacer","\u00A7"),
                         text);
-            headtext.setAttribute("data-tocref",head.frag);
+            headtext.setAttribute("data-tocref",head.id);
             var curspan=fdjtDOM("span.head",headtext);
             headtext.title='jump to the section: '+text;
             fdjtDOM.append(basespan," ",curspan);
@@ -30328,7 +30336,8 @@ metaBook.Slice=(function () {
         if (!(headinfo)) headinfo=info.head;
         var idhead=fdjtDOM("div.idhead",
                            makelocrule(info,headinfo),
-                           fdjtDOM("span.spacer","\u00b6"),
+                           fdjtDOM("span.spacer",
+                                   ((info.level)?("\u00a7"):("\u00b6"))),
                            fdjtDOM("span",sumText(target)));
         idhead.title=makelocstring(info,headinfo);
         return idhead;}
@@ -30384,7 +30393,7 @@ metaBook.Slice=(function () {
         if (!(opts.hasOwnProperty('id')))
             opts.id=container.id;
         if (!(opts.hasOwnProperty('holdmsecs')))
-            opts.holdmsecs=150;
+            opts.holdmsecs=400;
         if (opts.hasOwnProperty('holdclass'))
             opts.holdclass=false;
         if (opts.hasOwnProperty('touchtoo'))
@@ -30596,7 +30605,7 @@ metaBook.Slice=(function () {
             var shown=this.shown;
             if (!(card)) card=this.skimpoint||shown[0];
             var off=shown.indexOf(card);
-            if ((off<0)||(off>=this.visible.length))
+            if ((off<0)||(off+1>=this.visible.length))
                 return; 
             else return this.setSkim(shown[off+1]);};
     MetaBookSlice.prototype.backward=
@@ -30607,9 +30616,16 @@ metaBook.Slice=(function () {
             if (off<=0) return; 
             else return this.setSkim(shown[off-1]);};
     MetaBookSlice.prototype.getInfo=function getSliceInfo(card){
+        if (typeof card === "string") {
+            var found=this.byid.get(card)||this.byfrag.get(card);
+            if ((Array.isArray(found))&&(found.length))
+                card=found[0];
+            else card=found;}
         var pos; if (!(card)) pos=this.skimpos;
-        else pos=this.shown.indexOf(card);
-        return this.visible[pos];};
+        else if ((pos=this.shown.indexOf(card))<0)
+            pos=this.visible.indexOf(card);
+        if (pos>=0) return this.visible[pos];
+        else return false;};
 
     MetaBookSlice.prototype.setLocation=function setSliceLocation(location){
         var visible=this.visible; var i=0, lim=visible.length;
@@ -30654,7 +30670,7 @@ metaBook.Slice=(function () {
         if (getParent(target,".tochead")) {
             var anchor=getParent(target,".tocref");
             var href=(anchor)&&(anchor.getAttribute("data-tocref"));
-            metaBook.GoTOC(href);
+            metaBook.SkimTo(href);
             fdjtUI.cancel(evt);
             return;}
 
@@ -30761,8 +30777,7 @@ metaBook.Slice=(function () {
             var spellings=info.knodeterms;
             var i=0; var lim=terms.length; while (i<lim) {
                 var term=terms[i++];
-                var highlights=metaBook.highlightTerm(
-                    term,passage,info,spellings);
+                var highlights=metaBook.highlightTerm(term,passage,info,spellings);
                 if (!(show_target))
                     if ((highlights)&&(highlights.length)&&
                         (!(getParent(highlights[0],passage))))
@@ -31423,7 +31438,7 @@ metaBook.Slice=(function () {
                 if (score<min_vscore) min_vscore=score;
                 if (score>max_vscore) max_vscore=score;}
             else compscores[i]=false;
-            if ((typeof matchscore == "number")&&(!(isNaN(matchscore)))) {
+            if ((typeof matchscore === "number")&&(!(isNaN(matchscore)))) {
                 matchscores[i]=matchscore;
                 if (matchscore<min_score) min_score=matchscore;
                 if (matchscore>max_score) max_score=matchscore;}
@@ -31436,7 +31451,6 @@ metaBook.Slice=(function () {
         i=0; while (i<lim) {
             var v=values[i], s=compscores[i], ms=matchscores[i];
             var elt=byvalue.get(v);
-            elt.title=(elt.title||"")+"; vscore="+s;
             if (v.prime) {
                 addClass(elt,"prime"); addClass(elt,"cue");}
             if ((roots)&&(roots.length)&&(roots.indexOf(v)>=0)) 
@@ -31734,6 +31748,7 @@ metaBook.TOCSlice=
             if (toc) {
                 var info=toc.byfrag[headinfo.frag];
                 if (info) toc.setSkim(info.dom);}};
+        MetaBookTOC.prototype.mode="statictoc";
 
         metaBook.TOC=MetaBookTOC;
 
@@ -31919,6 +31934,7 @@ metaBook.setMode=
             metaBook.allglosses=allglosses=
                 new metaBook.Slice(metaBook.DOM.allglosses);
             metaBook.pagers.allglosses=metaBook.allglosses.pager;
+            metaBook.allglosses.mode="allglosses";
             metaBook.glossdb.onAdd("maker",function(f,p,v){
                 metaBook.sourcedb.ref(v).oninit
                 (metaBook.UI.addGlossSource,"newsource");});
@@ -32475,8 +32491,17 @@ metaBook.setMode=
         function metaBookSkimTo(card,dir,expanded){
             var skimmer=$ID("METABOOKSKIMMER");
             var skimpoint=metaBook.skimpoint;
-            var slice=metaBook[metaBook.mode];
+            var slice=getSlice(card);
+            if (!(slice)) {
+                fdjtLog.warn("Can't determine slice for skimming to %o",card);
+                return;}
             var cardinfo=slice.getInfo(card);
+            if (!(cardinfo)) {
+                fdjtLog.warn("No info for skimming to %s in %s",card,slice);
+                return;}
+            else card=cardinfo.dom||card;
+            if ((slice.mode)&&(mB.mode!==slice.mode))
+                mB.setMode(slice.mode);
             var passage=mbID(cardinfo.passage||cardinfo.id);
             var i=0, lim=0;
             if (typeof dir !== "number") dir=0;
@@ -32578,11 +32603,28 @@ metaBook.setMode=
                                  "mbhighlightpassage");
                     else while (i<lim) {
                         var term=terms[i++];
-                        var h=metaBook.highlightTerm(
-                            term,target,info,spellings);
+                        var h=metaBook.highlightTerm(term,target,info,spellings);
                         highlights=highlights.concat(h);}}}
             metaBook.GoTo(passage,"Skim");}
         metaBook.SkimTo=metaBookSkimTo;
+
+        function getSlice(card){
+            var cur_slice=mB[mB.mode];
+            if ((cur_slice)&&(cur_slice.getInfo(card)))
+                return cur_slice;
+            else if (card.nodeType) {
+                if (hasParent(card,mB.DOM.allglosses))
+                    return mB.allglosses;
+                else if (hasParent(card,$ID("SBOOKSEARCHRESULTS")))
+                    return mB.searchresults;
+                else return false;}
+            else if (typeof card === "string") {
+                if (mB.glossdb.probe(card))
+                    return mB.allglosses;
+                else if (mB.docinfo[card])
+                    return mB.statictoc;
+                else return false;}
+            else return false;}
 
         metaBook.addConfig("uisize",function(name,value){
             fdjtDOM.swapClass(
@@ -33433,43 +33475,48 @@ metaBook.setMode=
     /* Set on main search input */
     // id="METABOOKSEARCHINPUT" 
     // completions="METABOOKSEARCHCLOUD"
+    var search_modes=/(search|refinesearch|searchresults|expandsearch)/;
 
     metaBook.getQuery=function(){return metaBook.query;};
     
     function setQuery(query){
+        if (query instanceof Query) query=query;
+        else query=new metaBook.Query(query);
+        if (query===metaBook.query) return query;
         if (Trace.search) log("Setting working query to %o",query);
+        if (query.tags.length===0) {
+            addClass(metaBook.HUD,"emptysearch");
+            metaBook.empty_cloud.dom.style.fontSize="";
+            metaBook.search_cloud=metaBook.empty_cloud;
+            fdjtDOM.replace(
+                "METABOOKSEARCHCLOUD",fdjtDOM("div#METABOOKSEARCHCLOUD"));
+            displayQuery(query,$ID("METABOOKSEARCH"));
+            metaBook.empty_cloud.complete("");
+            addClass(metaBook.HUD,"emptysearch");
+            metaBook.query=mB.empty_query;
+            metaBook.qstring="";
+            return;}
+        else dropClass(metaBook.HUD,"emptysearch");
         var qstring=query.getString();
         if (qstring!==metaBook.qstring) {
+            displayQuery(query,$ID("METABOOKSEARCH"));
             metaBook.query=query;
-            metaBook.qstring=qstring;
-            if (query.tags.length===0)  {
-                addClass(metaBook.HUD,"emptysearch");
-                metaBook.empty_cloud.dom.style.fontSize="";
-                metaBook.search_cloud=metaBook.empty_cloud;}
-            else {
-                var cloud=metaBook.queryCloud(query);
-                dropClass(metaBook.HUD,"emptysearch");
-                fdjtDOM.replace("METABOOKSEARCHCLOUD",cloud.dom);
-                metaBook.search_cloud=cloud;}
-            useQuery(query,$ID("METABOOKSEARCH"));}
-        if (metaBook.mode==="refinesearch") {
+            metaBook.qstring=qstring;}
+        if (search_modes.exec(metaBook.mode)) {
             if (query.results.length===0) {}
             else if (query.results.length<7)
                 showSearchResults();
             else if (!(metaBook.touch)) {
                 $ID("METABOOKSEARCHINPUT").focus();}
-            else {}}}
-
+            else {}}
+        return query;}
     metaBook.setQuery=setQuery;
 
-    function useQuery(query,box_arg){
-        if (query instanceof Query) query=query;
-        else query=new metaBook.Query(query);
-        if (query===metaBook.query) return query;
-        var qstring=query.getString();
+    function displayQuery(query,box_arg){
         if ((box_arg)&&(typeof box_arg === 'string'))
             box_arg=document.getElementById(box_arg);
         var box=box_arg||query._box||$ID("METABOOKSEARCH");
+        var qstring=query.getString();
         if ((query.dom)&&(box)&&(box!==query.dom))
             fdjtDOM.replace(box_arg,query.dom);
         box.setAttribute("qstring",qstring);
@@ -33480,7 +33527,6 @@ metaBook.setMode=
         var cloudid=input.getAttribute("completions");
         var infoid=input.getAttribute("info");
         var qtags=getChild(box,".qtags")||$ID("METABOOKSEARCHTAGS");
-        var cloud=((cloudid)&&($ID(cloudid)));
         /* These should possibly be used in initializing the .listing
          * field of the query */
         //var resultsid=input.getAttribute("results");
@@ -33510,7 +33556,8 @@ metaBook.setMode=
         if (qtags.id) newtags.id=qtags.id;
         fdjtDOM.replace(qtags,newtags);
         // Update the results display
-        if (query.results.length) {
+        if (query.tags.length===0) {}
+        else if (query.results.length) {
             resultcount.innerHTML=query.results.length+
                 " <br/>result"+((query.results.length===1)?"":"s");
             fdjtDOM.dropClass([box,info],"noresults");}
@@ -33528,31 +33575,27 @@ metaBook.setMode=
         refinecount.innerHTML=n_refiners+" <br/>"+
             ((n_refiners===1)?("co-tag"):("co-tags"));
         fdjtDOM.dropClass(box,"norefiners");
-        if (query.tags.length===0) {
-            fdjtDOM.replace(
-                "METABOOKSEARCHCLOUD",fdjtDOM("div#METABOOKSEARCHCLOUD"));
-            metaBook.empty_cloud.dom.style.fontSize="";
-            metaBook.empty_cloud.complete("");}
-        else {
+        if (completions!==mB.empty_cloud) {
+            fdjtDOM.replace(cloudid,completions.dom);
             if (cloudid) completions.dom.id=cloudid;
-            addClass(completions.dom,"hudpanel");
-            if (Trace.search>1)
-                log("Setting search cloud for %o to %o",box,completions.dom);
-            completions.complete("",function(){
-                completions.dom.style.fontSize="";
-                if (cloud)
-                    fdjtDOM.replace(cloud,completions.dom);
-                else fdjtDOM.append(
-                    $ID("METABOOKHEARTBODY"),
-                    completions.dom);
-                metaBook.adjustCloudFont(completions);});}
+            addClass(completions.dom,"hudpanel");}
+        else cloudid="METABOOKALLTAGS";
+        metaBook.search_cloud=completions;
+        if (Trace.search>1)
+            log("Setting search cloud for %o to %o",box,completions.dom);
+        completions.complete("",function(){
+            completions.dom.style.fontSize="";
+            if ($ID(cloudid))
+                fdjtDOM.replace(cloudid,completions.dom);
+            else fdjtDOM.append(
+                $ID("METABOOKHEARTBODY"),
+                completions.dom);
+            metaBook.adjustCloudFont(completions);});
         if (n_refiners===0) {
             addClass(box,"norefiners");
             refinecount.innerHTML="no refiners";}
         query._box=box; box.setAttribute("qstring",qstring);
-        metaBook.UI.updateScroller(completions.dom);
         return query;}
-    metaBook.useQuery=useQuery;
 
     var hasParent=fdjtDOM.hasParent;
     var getParent=fdjtDOM.hasParent;
@@ -33586,7 +33629,7 @@ metaBook.setMode=
                 elts.push(kbref(elt)||elt);
             else elts.push(elt);}
         else elts.push(elt);
-        return useQuery(new metaBook.Query(elts),query._box);}
+        return new metaBook.Query(elts);}
     metaBook.extendQuery=extendQuery;
 
     metaBook.updateQuery=function(input_elt){
@@ -37002,7 +37045,7 @@ metaBook.setMode=
 
     /* Highlighting terms in passages (for skimming, etc) */
 
-    var textRegExp=fdjtDOM.textRegExp;
+    var wordRegExp=fdjtDOM.wordRegExp;
 
     function highlightTerm(term,target,info,spellings){
         var words=[]; var highlights=[];
@@ -37040,9 +37083,12 @@ metaBook.setMode=
         var j=0; var jlim=words.length;
         while (j<jlim) {
             var word=words[j++];
-            var pattern=textRegExp(word);
+            var pattern=wordRegExp(word);
             var dups=metaBook.getDups(target);
             var ranges=fdjtDOM.findMatches(dups,pattern);
+            if (!((ranges)&&(ranges.length))) {
+                pattern=wordRegExp(word,true);
+                ranges=fdjtDOM.findMatches(dups,pattern);}
             if (Trace.highlight)
                 fdjtLog("Trying to highlight %s (using %o) in %o, ranges=%o",
                         word,pattern,target,ranges);
@@ -41373,15 +41419,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1358-g963199b';
+fdjt.revision='1.5-1360-g396e4de';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sat Mar 21 14:29:48 EDT 2015';
-fdjt.builduuid='74c95b52-cc33-4e16-8e65-c0d5c0fed989';
+fdjt.buildtime='Sun Mar 22 17:38:31 EDT 2015';
+fdjt.builduuid='9bd10899-1835-49dc-86d7-25e04a537ac3';
 
 Knodule.version='v0.8-149-ga0f7398';
 // sBooks metaBook build information
-metaBook.buildid='686765f9-e5a9-4ba1-98d9-d39cfc2fe3ef-dist';
-metaBook.buildtime='Sat Mar 21 18:47:11 EDT 2015';
+metaBook.buildid='2d336838-0609-430a-ab5a-0041790e446b-dist';
+metaBook.buildtime='Sun Mar 22 17:59:07 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

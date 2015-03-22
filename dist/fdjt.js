@@ -9513,9 +9513,14 @@ fdjt.DOM=
                          ((after)||("")));}
         fdjtDOM.getRegexString=getRegexString;
 
-        function textRegExp(needle,before,after){
-            return new RegExp(getRegexString(needle,true,before,after),"gm");}
+        function textRegExp(needle,foldcase,before,after){
+            return new RegExp(getRegexString(needle,true,before,after),
+                              ((foldcase)?("igm"):("gm")));}
         fdjtDOM.textRegExp=textRegExp;
+        function wordRegExp(needle,foldcase){
+            return new RegExp(getRegexString(needle,true,"\\b","\\b"),
+                              ((foldcase)?("igm"):("gm")));}
+        fdjtDOM.wordRegExp=wordRegExp;
 
         function findString(node,needle,off,count){
             if (typeof off === 'undefined') off=0;
@@ -14771,6 +14776,13 @@ fdjt.Pager=
       else {}
       this.height=h;
       if (this.pages) this.clearLayout();
+      if (root.offsetHeight<=h) {
+        addClass(root,"onepage");
+        this.onepage=true;
+        return;}
+      else {
+        dropClass(root,"onepage");
+        this.onepage=false;}
       addClass(root,"pagerlayout");
       var childinfo=[], children=root.childNodes;
       var pagenum=fdjtDOM("div.pagenum");
@@ -17773,8 +17785,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1358-g963199b';
+fdjt.revision='1.5-1360-g396e4de';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sat Mar 21 14:29:48 EDT 2015';
-fdjt.builduuid='74c95b52-cc33-4e16-8e65-c0d5c0fed989';
+fdjt.buildtime='Sun Mar 22 17:38:31 EDT 2015';
+fdjt.builduuid='9bd10899-1835-49dc-86d7-25e04a537ac3';
 
