@@ -280,13 +280,10 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 	@echo "Created knodules/buildstamp.js"
 
 
-metabook.css: $(METABOOK_CSS_BUNDLE) makefile
-	@echo Building ./metabook.css
-	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
-	@echo Building ./metabook.js
+	@echo Building ./metabook.min.js and ./metabook.uglify.map
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		> fdjt/codexlayouthash.js 
 	@echo >> fdjt/codexlayouthash.js
@@ -298,7 +295,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	    knodules/buildstamp.js metabook/buildstamp.js \
 	  metabook/autoload.js > $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
-	@echo Building metabook.clean.css
+	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
 	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 
 fresh:
@@ -306,12 +303,12 @@ fresh:
 	make $(ROOT_FDJT) $(ROOT_METABOOK)
 
 metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
-	@echo Building ./metabook.css
+	@echo Building ./metabook.raw.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.raw.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
-	@echo Building ./metabook.js
+	@echo Building ./metabook.raw.js
 	@cat sbooks/amalgam.js fdjt/buildstamp.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 		metabook/buildstamp.js knodules/buildstamp.js \
@@ -324,6 +321,9 @@ metabook.js: metabook.raw.js
 metabook.js.gz: metabook.raw.js.gz
 	rm -f metabook.js.gz
 	ln -sf metabook.raw.js.gz metabook.js
+metabook.css: metabook.raw.css
+	rm -f metabook.css
+	ln -sf metabook.raw.css metabook.css
 
 metabook/tieoff.js dist/tieoff.js:
 	@touch $@
