@@ -11453,6 +11453,13 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                             results.push(set1[i]);
                             i++;}
                         else j++;}
+                    if ((!(new_allstrings))||(set1._allstrings)) 
+                        results=results.concat(set1.slice(i));
+                    else while (i<len1) {
+                        var elt=set1[i++];
+                        if ((new_allstrings)&&(typeof elt !== "string"))
+                            new_allstrings=false;
+                        results.push(elt);}
                     results._allstrings=new_allstrings;
                     results._sortlen=results.length;
                     return results;}
@@ -12921,10 +12928,12 @@ fdjt.TextIndex=(function(){
             var words=stdtext.split(/\b/g), termlist=[];
             var i=0, lim=words.length;
             while (i<lim) {
-                var term=words[i++];
+                var term=words[i++], iscap=/[A-Z][^A-Z]/.exec(term);
                 if (term.length<2) continue;
                 else if (term.search(/\w/)<0) continue;
                 else if (stopwords.hasOwnProperty(term)) continue;
+                else if ((iscap)&&(stopwords.hasOwnProperty(term.toLowerCase())))
+                    continue;
                 else if (stopfns) {
                     var fn=0, fns=stopfns.length;
                     while (fn<fns) {
@@ -17785,8 +17794,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1360-g396e4de';
+fdjt.revision='1.5-1362-g16340d8';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sun Mar 22 17:38:31 EDT 2015';
-fdjt.builduuid='9bd10899-1835-49dc-86d7-25e04a537ac3';
+fdjt.buildtime='Mon Mar 23 12:53:36 EDT 2015';
+fdjt.builduuid='198411ad-fa01-4bbb-98ae-de81fadc90aa';
 

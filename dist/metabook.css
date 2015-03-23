@@ -1887,7 +1887,7 @@ div.richtip .relcode {
 span.dterm {
     padding-right: 0.35ex; padding-left: 0.5ex;
     padding-top: 0px; padding-bottom: 0px;
-    border-top-left-radius: 0.5ex; border-bottom-left-radius: 0.5ex;
+    border-top-left-radius: 1ex; border-bottom-left-radius: 1ex;
     color: darkblue; background-color: gold;
     border: solid blue 2px;}
 .dterm.weak {
@@ -6934,7 +6934,8 @@ html._MOUSE .cloud .showall:hover,
 /* Special rules */
 
 .cloud span.dterm {
-    padding-top: 0.1ex; padding-bottom: 0.1ex;}
+    padding-top: 0.1ex; padding-bottom: 0.1ex;
+    vertical-align: middle;}
 .cloud span.dterm.longterm {
     border-top-left-radius: 1ex;
     border-bottom-left-radius: 1ex;}
@@ -7176,6 +7177,9 @@ div.metabookcard > hr {
 .metabookcard .score {
     float: right; color: darkblue;
     font-size: 80%; vertical-align: top; margin-top: -0.5ex;}
+.metabookcard .score img.inline {
+    padding-left: 0px; padding-right: 0px;}
+.metabookcard .score .note { color: red; padding-right: 1ex;}
 .metabookcard .glossinfo {
     float: right; clear: right; display: block;
     padding: 0px; margin: 0px;

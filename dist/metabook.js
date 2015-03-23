@@ -11480,6 +11480,13 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
                             results.push(set1[i]);
                             i++;}
                         else j++;}
+                    if ((!(new_allstrings))||(set1._allstrings)) 
+                        results=results.concat(set1.slice(i));
+                    else while (i<len1) {
+                        var elt=set1[i++];
+                        if ((new_allstrings)&&(typeof elt !== "string"))
+                            new_allstrings=false;
+                        results.push(elt);}
                     results._allstrings=new_allstrings;
                     results._sortlen=results.length;
                     return results;}
@@ -12948,10 +12955,12 @@ fdjt.TextIndex=(function(){
             var words=stdtext.split(/\b/g), termlist=[];
             var i=0, lim=words.length;
             while (i<lim) {
-                var term=words[i++];
+                var term=words[i++], iscap=/[A-Z][^A-Z]/.exec(term);
                 if (term.length<2) continue;
                 else if (term.search(/\w/)<0) continue;
                 else if (stopwords.hasOwnProperty(term)) continue;
+                else if ((iscap)&&(stopwords.hasOwnProperty(term.toLowerCase())))
+                    continue;
                 else if (stopfns) {
                     var fn=0, fns=stopfns.length;
                     while (fn<fns) {
@@ -30079,11 +30088,18 @@ metaBook.Slice=(function () {
                         fdjtUI.Ellipsis("span.excerpt",excerpts[i++],40));
             return ediv;}}
     function showscore(elt,score,query){
+        var staricon=fdjtDOM.Image(mbicon("goldstar",24,24),"img.inline");
+        var tagicon=fdjtDOM.Image(mbicon("tagicon",24,24),"img.inline");
         var count=((query)&&(query.counts)&&(query.counts.get(elt)));
+        var partial=((count)&&(query.tags.length>1)&&
+                     ((count!==query.tags.length)?                     
+                      (fdjtDOM("span.note",count,tagicon)):
+                      (fdjtDOM("span.note","all",tagicon))));
         if (count) count=count+":";
         if ((query)&&(query.max_score))
-            return fdjtDOM("span.score","(",count,score,"/",query.max_score,")");
-        else return fdjtDOM("span.score","(",count,score,")");}
+            return fdjtDOM(
+                "span.score",partial,"(",score,"/",query.max_score,staricon,")");
+        else return fdjtDOM("span.score",partial,"(",score,staricon,")");}
     function showglossinfo(info) {
         var user=info.maker;
         var userinfo=(user)&&(metaBook.sourcedb.load(user));
@@ -33558,8 +33574,11 @@ metaBook.setMode=
         // Update the results display
         if (query.tags.length===0) {}
         else if (query.results.length) {
-            resultcount.innerHTML=query.results.length+
-                " <br/>result"+((query.results.length===1)?"":"s");
+            var plural=(query.results.length!==1);
+            resultcount.innerHTML=query.results.length+" <br/>"+
+                ((elts.length>2)?
+                 ((plural)?("results"):("result")):
+                 ((plural)?("matches"):("match")));
             fdjtDOM.dropClass([box,info],"noresults");}
         else {
             resultcount.innerHTML="no results";
@@ -33612,7 +33631,9 @@ metaBook.setMode=
                     evt,((onx)?("(onx) "):("")),
                     elt);
         var cur=[].concat(metaBook.query.tags);
-        var splicepos=cur.indexOf(elt);
+        var splicepos=((elt)?(cur.indexOf(elt)):
+                       (cur.indexOf(eltval)));
+        if (splicepos<0) splicepos=cur.indexOf(eltval);
         if (splicepos<0) return;
         else cur.splice(splicepos,1);
         if (cur.length===0) {
@@ -41419,15 +41440,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1360-g396e4de';
+fdjt.revision='1.5-1362-g16340d8';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sun Mar 22 17:38:31 EDT 2015';
-fdjt.builduuid='9bd10899-1835-49dc-86d7-25e04a537ac3';
+fdjt.buildtime='Mon Mar 23 12:53:36 EDT 2015';
+fdjt.builduuid='198411ad-fa01-4bbb-98ae-de81fadc90aa';
 
-Knodule.version='v0.8-149-ga0f7398';
+Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='2d336838-0609-430a-ab5a-0041790e446b-dist';
-metaBook.buildtime='Sun Mar 22 17:59:07 EDT 2015';
+metaBook.buildid='186ccf92-c6ac-4d6f-b446-bb9df334b912-dist';
+metaBook.buildtime='Mon Mar 23 13:05:17 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
