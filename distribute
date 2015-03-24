@@ -25,6 +25,8 @@
 	     (segment (filestring dist-targets-file) "\n")))
 ;;(set! dist-targets '("s3://beingmeta/static/"))
 
+(config! 'aws:curlcache #t)
+
 (define forcewrite #f)
 (varconfig! force forcewrite config:boolean)
 
