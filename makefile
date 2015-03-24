@@ -44,7 +44,7 @@ SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 
 METABOOK_FILES=\
 	metabook/root.js metabook/core.js metabook/config.js \
-	metabook/nav.js metabook/domscan.js \
+	metabook/nav.js metabook/domscan.js metabook/glossdata.js \
 	metabook/cover.js metabook/body.js metabook/tagindex.js \
 	metabook/syncstate.js metabook/user.js metabook/getglosses.js \
 	metabook/startup.js \
@@ -56,7 +56,8 @@ METABOOK_FILES=\
 METABOOK_HINTS=\
 	metabook/core.hint metabook/config.hint metabook/syncstate.hint \
 	metabook/nav.hint \
-	metabook/domscan.hint metabook/user.hint metabook/getglosses.hint \
+	metabook/domscan.hint metabook/glossdata.hint \
+	metabook/user.hint metabook/getglosses.hint \
 	metabook/cover.hint metabook/body.hint metabook/tagindex.hint \
 	metabook/startup.hint \
 	metabook/preview.hint metabook/hud.hint metabook/tocslice.hint \
