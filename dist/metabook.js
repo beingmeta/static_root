@@ -10464,1790 +10464,1848 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
    This file is a part of the FDJT web toolkit (www.fdjt.org)
    This file provides extended Javascript utility functions
    of various kinds.
-
+   
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
    purpose.
-
+   
    Use, modification, and redistribution of this program is permitted
    under either the GNU General Public License (GPL) Version 2 (or
    any later version) or under the GNU Lesser General Public License
    (version 3 or later).
-
+   
    These licenses may be found at www.gnu.org, particularly:
    http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
    http://www.gnu.org/licenses/lgpl-3.0-standalone.html
-
+   
 */
 
 /* global setTimeout, clearTimeout, indexedDB, Promise */
 
-//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
+fdjt.RefDB=(function(){
+    "use strict";
+    var fdjtState=fdjt.State;
+    var fdjtTime=fdjt.Time;
+    var fdjtAsync=fdjt.Async;
+    var fdjtDOM=fdjt.DOM;
+    var JSON=fdjt.JSON;
+    var fdjtLog=fdjt.Log;
+    var warn=fdjtLog.warn;
 
-/* There are three stores (at least):
-   1. the in-memory store
-   2. the local (not in-memory) store
-   3. the external store (over the network)
+    var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
 
-   Import takes data and updates a ref.
-   Export takes a ref and updates a serializable object
-   Load takes a ref and hooks it into the application
+    function RefDB(name,init){
+        var db=this;
+        if (refdbs[name]) {
+            db=refdbs[name];
+            if ((init)&&(db.init)) {
+                if (db.xinits) db.xinits.push(init);
+                else db.xinits=[init];}
+            else if (init) db.init=init;
+            else init={};}
+        else if ((init)&&(init.aliases)&&(checkAliases(init.aliases))) {
+            db=checkAliases(init.aliases);
+            if (db.aliases.indexOf(db.name)>=0) db.name=name;
+            if ((init)&&(db.init)) {
+                if (db.xinits) db.xinits.push(init);
+                else db.xinits=[init];}
+            else if (init) db.init=init;
+            else init={};}
+        else {
+            if (!(init)) init={};
+            db.name=name; refdbs[name]=db; all_refdbs.push(db);
+            db.aliases=[];
+            db.complete=false; // Whether all valid refs are loaded
+            db.refs={}; // Mapping _ids to refs (unique within the DB)
+            db.altrefs={}; // Alternate unique IDs
+            // An array of all references to this DB
+            db.allrefs=[];
+            // All loaded refs. This is used when declaring an onLoad
+            //  method after some references have already been loaded
+            db.loaded=[];
+            // An array of changed references, together with the
+            //  timestamp of the earliest change
+            db.changes=[]; db.changed=false; 
+            // Where to persist the data from this database
+            db.storage=init.storage||false;
+            // Whether _id fields for this database are globally unique
+            db.absrefs=init.absrefs||false;
+            // Whether _id fields for this database are OIDs (e.g. @xxx/xxx)
+            db.oidrefs=init.oidrefs||false;
+            // Handlers for loading refs from memory or network
+            db.onload=[]; db.onloadnames={};
+            // Rules to run when adding or dropping fields of references
+            //  This doesn't happen on import, though.
+            db.onadd={}; db.ondrop={}; 
+            // This maps from field names to tables which map from
+            //  keys to reference ids.
+            db.indices={};}
+        if (init.hasOwnProperty("absrefs")) db.absrefs=init.absrefs;
+        if (init.aliases) {
+            var aliases=init.aliases;
+            var i=0, lim=aliases.length; while (i<lim) {
+                var alias=aliases[i++];
+                if (aliases[alias]) {
+                    if (aliases[alias]!==db)
+                        warn("Alias %s for %o already associated with %o",
+                             alias,db,aliases[alias]);}
+                else {
+                    aliases[alias]=db;
+                    db.aliases.push(alias);}}}
+        if (init.onload) {
+            var onload=init.onload;
+            for (var methname in onload) {
+                if (onload.hasOwnProperty(methname)) 
+                    db.onLoad(onload[methname],methname);}}
+        if (init.indices) {
+            var index_specs=init.indices;
+            var j=0, jlim=index_specs.length; while (j<jlim) {
+                var ix=index_specs[j++];
+                if (typeof ix !== "string") 
+                    warn("Complex indices not yet handled!");
+                else {
+                    var index=this.indices[ix]=new ObjectMap();
+                    index.fordb=db;}}}
+        
+        return db;}
 
-   Import and Export takes a set of rules for particular slot/values.
-   Import also takes some flags: 
-   
+    var REFINDEX=RefDB.REFINDEX=2;
+    var REFLOAD=RefDB.REFLOAD=4;
+    var REFSTRINGS=RefDB.REFSTRINGS=8;
+    var default_flags=((REFINDEX)|(REFSTRINGS));
 
-*/
+    function checkAliases(aliases){
+        var i=0, lim=aliases.length;
+        while (i<lim) {
+            var alias=aliases[i++];
+            var db=refdbs[alias];
+            if (db) return db;}
+        return false;}
 
-        if (!(fdjt.RefDB)) {
-            fdjt.RefDB=(function(){
-                "use strict";
-                var fdjtState=fdjt.State;
-                var fdjtTime=fdjt.Time;
-                var fdjtAsync=fdjt.Async;
-                var fdjtDOM=fdjt.DOM;
-                var JSON=fdjt.JSON;
-                var fdjtLog=fdjt.Log;
-                var warn=fdjtLog.warn;
+    RefDB.open=function RefDBOpen(name,DBClass){
+        if (!(DBClass)) DBClass=RefDB;
+        return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
+            ((aliases.hasOwnProperty(name))&&(aliases[name]))||
+            (new DBClass(name));};
+    function refDBProbe(name){
+        return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
+            ((aliases.hasOwnProperty(name))&&(aliases[name]))||
+            false;}
+    RefDB.probe=refDBProbe;
+    RefDB.prototype.addAlias=function DBaddAlias(alias){
+        if (aliases[alias]) {
+            if (aliases[alias]!==this) 
+                warn("Alias %s for %o already associated with %o",
+                     alias,this,aliases[alias]);}
+        else {
+            aliases[alias]=this;
+            this.aliases.push(alias);}};
 
-                var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
+    RefDB.prototype.toString=function (){
+        return "RefDB("+this.name+")";};
 
-                function RefDB(name,init){
-                    var db=this;
-                    if (refdbs[name]) {
-                        db=refdbs[name];
-                        if ((init)&&(db.init)) {
-                            if (db.xinits) db.xinits.push(init);
-                            else db.xinits=[init];}
-                        else if (init) db.init=init;
-                        else init={};}
-                    else if ((init)&&(init.aliases)&&(checkAliases(init.aliases))) {
-                        db=checkAliases(init.aliases);
-                        if (db.aliases.indexOf(db.name)>=0) db.name=name;
-                        if ((init)&&(db.init)) {
-                            if (db.xinits) db.xinits.push(init);
-                            else db.xinits=[init];}
-                        else if (init) db.init=init;
-                        else init={};}
+    RefDB.prototype.ref=function DBref(id){
+        if (typeof id !== "string") {
+            if (id instanceof Ref) return id;
+            else throw new Error("Not a reference");}
+        else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
+        var refs=this.refs;
+        return ((refs.hasOwnProperty(id))&&(refs[id]))||
+            ((this.refclass)&&(new (this.refclass)(id,this)))||
+            (new Ref(id,this));};
+    RefDB.prototype.probe=function DBprobe(id){
+        if (typeof id !== "string") {
+            if (id instanceof Ref) return id;
+            else return false;}
+        else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
+        var refs=this.refs;
+        return ((refs.hasOwnProperty(id))&&(refs[id]));};
+    RefDB.prototype.drop=function DBdrop(refset){
+        var count=0;
+        var refs=this.refs; var altrefs=this.altrefs;
+        if (!(id instanceof Array)) refset=[refset];
+        var i=0, nrefs=refset.length; while (i<nrefs) {
+            var ref=refset[i++]; var id;
+            if (ref instanceof Ref) id=ref._id;
+            else {id=ref; ref=this.probe(id);}
+            if (!(ref)) continue; else count++;
+            var aliases=ref.aliases;
+            var pos=this.allrefs.indexOf(ref);
+            if (pos>=0) this.allrefs.splice(pos,1);
+            pos=this.changes.indexOf(ref);
+            if (pos>=0) this.changes.splice(pos,1);
+            pos=this.loaded.indexOf(ref);
+            if (pos>=0) this.loaded.splice(pos,1);
+            delete refs[id];
+            if (this.storage instanceof Storage) {
+                var storage=this.storage;
+                var key="allids("+this.name+")";
+                var allidsval=storage[key];
+                var allids=((allidsval)&&(JSON.parse(allidsval)));
+                var idpos=allids.indexOf(id);
+                if (idpos>=0) {
+                    allids.splice(idpos,1);
+                    storage.setItem(key,JSON.stringify(allids));
+                    storage.removeItem(id);}}
+            if (aliases) {
+                var j=0, jlim=aliases.length;
+                while (j<jlim) {delete altrefs[aliases[j++]];}}}
+        return count;};
+    RefDB.prototype.clearOffline=function refDBclear(callback){
+        if (!(this.storage)) return false;
+        else if ((Storage)&&(this.storage instanceof Storage)) {
+            var storage=this.storage;
+            var key="allids("+this.name+")";
+            var allids=this.storage[key];
+            if (allids) allids=JSON.parse(allids);
+            if (allids) {
+                var i=0, lim=allids.length;
+                while (i<lim) delete storage[allids[i++]];}
+            delete storage[key];
+            if (callback) setTimeout(callback,5);}
+        else if (this.storage instanceof indexedDB) {
+            // Not yet implemented
+            return;}
+        else return false;};
+
+    RefDB.prototype.onLoad=function(method,name,noupdate){
+        if ((name)&&(this.onloadnames[name])) {
+            var cur=this.onloadnames[name];
+            if (cur===method) return;
+            var pos=this.onload.indexOf(cur);
+            if (cur<0) {
+                warn("Couldn't replace named onload method %s for <RefDB %s>",
+                     name,this.name);
+                return;}
+            else {
+                this.onload[pos]=method;}}
+        else this.onload.push(method);
+        if (name) this.onloadnames[name]=method;
+        if (!(noupdate)) {
+            var loaded=[].concat(this.loaded);
+            fdjtAsync.slowmap(method,loaded);}};
+
+    RefDB.prototype.onAdd=function(name,method){
+        this.onadd[name]=method;};
+
+    RefDB.prototype.onDrop=function(name,method){
+        this.ondrop[name]=method;};
+    
+    var refpat=/^(((:|)@(([0-9a-fA-F]+\/[0-9a-fA-F]+)|(\/\w+\/.*)|(@\d+\/.*)))|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}t[0-9a-zA-Z]+)|([^@]+@.+))$/;
+    
+    var getLocal=fdjtState.getLocal;
+
+    function resolveRef(arg,db,DBType,force){
+        if (typeof DBType !== "function") DBType=RefDB;
+        if (!(arg)) return arg;
+        else if (arg instanceof Ref) return arg;
+        else if ((typeof arg === "object")&&(arg.id))
+            return object2ref(arg,db);
+        else if ((db)&&(db.refs.hasOwnProperty(arg)))
+            return db.refs[arg];
+        // The case above catches direct references inline; the
+        // case below does a function call (probe) and catches
+        // aliases
+        else if ((db)&&(db.probe(arg))) return db.probe(arg);
+        else if ((typeof arg === "string")&&(refpat.exec(arg))) {
+            var at=arg.indexOf('@');
+            if ((at===1)&&(arg[0]===':')) {arg=arg.slice(1); at=0;}
+            if (at>0) {
+                // this is the term@domain form
+                var usedb=false, dbname=arg.slice(at+1), origin;
+                if ((usedb=refDBProbe(dbname))) {}
+                else if (refpat.exec(dbname)) {
+                    origin=resolveRef(dbname);
+                    if (origin) force=true;
+                    else dbname=arg.slice(at+1);}
+                else dbname=arg.slice(at+1);
+                if ((db)&&(db.name===dbname)) usedb=db;
+                else usedb=refDBProbe(dbname);
+                arg=arg.slice(0,at);
+                if (usedb) db=usedb;
+                else if (force) {
+                    warn("Creating forced RefDB domain %s for reference %s",dbname,arg);
+                    db=RefDB.open(dbname,DBType);}
+                else db=refDBProbe(dbname);
+                if ((db)&&(origin)) {
+                    db.origin=origin;
+                    if (origin.name) db.fullname=origin.name;}
+                arg=arg.slice(0,at);}
+            else if (at<0) {
+                var uuid;
+                if (arg.search(":#U")===0) uuid=arg.slice(3);
+                else if (arg.search("#U")===0) uuid=arg.slice(2);
+                else if (arg.search("U")===0) uuid=arg.slice(1);
+                else uuid=arg;
+                var type=uuid.indexOf('t'), tail=arg.length-2;
+                if (type>0) type="UUID"+uuid.slice(type); else type=false;
+                if (tail>0) tail="-UUIDTYPE="+uuid.slice(tail);
+                else tail=false;
+                var known_db=((type)&&(refdbs[type]||aliases[type]))||
+                    ((tail)&&(refdbs[tail]||aliases[tail]));
+                if (known_db) db=known_db;
+                else if ((force)&&(type)&&(DBType)) {
+                    warn("Creating forced RefDB domain %s for reference %s",type,arg);
+                    db=new DBType(type);
+                    if (type) db.addAlias(type);}
+                else {}}
+            else if (arg[1]==='@') {
+                // This is for local references
+                var idstart=arg.indexOf('/');
+                var atid=arg.slice(0,idstart);
+                var atdb=aliases[atid];
+                if (atdb) db=atdb;
+                else {
+                    var domain=getLocal(arg.slice(0,idstart),true);
+                    if (domain) {
+                        db=new RefDB(domain,{aliases: [atid]});}
                     else {
-                        if (!(init)) init={};
-                        db.name=name; refdbs[name]=db; all_refdbs.push(db);
-                        db.aliases=[];
-                        db.complete=false; // Whether all valid refs are loaded
-                        db.refs={}; // Mapping _ids to refs (unique within the DB)
-                        db.altrefs={}; // Alternate unique IDs
-                        // An array of all references to this DB
-                        db.allrefs=[];
-                        // All loaded refs. This is used when declaring an onLoad
-                        //  method after some references have already been loaded
-                        db.loaded=[];
-                        // An array of changed references, together with the
-                        //  timestamp of the earliest change
-                        db.changes=[]; db.changed=false; 
-                        // Where to persist the data from this database
-                        db.storage=init.storage||false;
-                        // Whether _id fields for this database are globally unique
-                        db.absrefs=init.absrefs||false;
-                        // Whether _id fields for this database are OIDs (e.g. @xxx/xxx)
-                        db.oidrefs=init.oidrefs||false;
-                        // Handlers for loading refs from memory or network
-                        db.onload=[]; db.onloadnames={};
-                        // Rules to run when adding or dropping fields of references
-                        //  This doesn't happen on import, though.
-                        db.onadd={}; db.ondrop={}; 
-                        // This maps from field names to tables which map from
-                        //  keys to reference ids.
-                        db.indices={};}
-                    if (init.hasOwnProperty("absrefs")) db.absrefs=init.absrefs;
-                    if (init.aliases) {
-                        var aliases=init.aliases;
-                        var i=0, lim=aliases.length; while (i<lim) {
-                            var alias=aliases[i++];
-                            if (aliases[alias]) {
-                                if (aliases[alias]!==db)
-                                    warn("Alias %s for %o already associated with %o",
-                                         alias,db,aliases[alias]);}
-                            else {
-                                aliases[alias]=db;
-                                db.aliases.push(alias);}}}
-                    if (init.onload) {
-                        var onload=init.onload;
-                        for (var methname in onload) {
-                            if (onload.hasOwnProperty(methname)) 
-                                db.onLoad(onload[methname],methname);}}
-                    if (init.indices) {
-                        var index_specs=init.indices;
-                        var j=0, jlim=index_specs.length; while (j<jlim) {
-                            var ix=index_specs[j++];
-                            if (typeof ix !== "string") 
-                                warn("Complex indices not yet handled!");
-                            else {
-                                var index=this.indices[ix]=new ObjectMap();
-                                index.fordb=db;}}}
-                    
-                    return db;}
+                        warn("Can't find domain for atid %s when resolving %s",atid,arg);
+                        db=false;}}}
+            else {
+                var atprefix, slash;
+                // Find the slash before the ID
+                if (arg[1]==='/') {
+                    slash=arg.slice(2).indexOf('/');
+                    if (slash>0) slash=slash+2;}
+                else slash=arg.indexOf('/');
+                atprefix=arg.slice(at,slash+1);
+                db=refdbs[atprefix]||aliases[atprefix]||
+                    ((DBType)&&(new DBType(atprefix)));}}
+        else {}
+        if (!(db)) return false;
+        if (db.refs.hasOwnProperty(arg)) return (db.refs[arg]);
+        else if (force) return db.ref(arg);
+        else return false;}
+    RefDB.resolve=resolveRef;
+    RefDB.ref=resolveRef;
 
-                var REFINDEX=RefDB.REFINDEX=2;
-                var REFLOAD=RefDB.REFLOAD=4;
-                var REFSTRINGS=RefDB.REFSTRINGS=8;
-                var default_flags=((REFINDEX)|(REFSTRINGS));
+    function Ref(id,db,instance){
+        // Just called for the prototype
+        if (arguments.length===0) return this;
+        var at=id.indexOf('@');
+        if ((at>1)&&(id[at-1]!=='\\')) {
+            var domain=id.slice(at+1);
+            if ((domain!==db.name)&&
+                (db.aliases.indexOf(domain)<0))
+                warn("Reference to %s being handled by %s",id,db);
+            id=id.slice(0,at);}
+        if (db.refs.hasOwnProperty(id)) return db.refs[id];
+        else if (instance) {
+            instance._id=id; instance._db=db;
+            if (!(db.absrefs)) instance._domain=db.name;
+            db.refs[id]=instance;
+            db.allrefs.push(instance);
+            return instance;}
+        else if ((db.refclass)&&(!(this instanceof db.refclass)))
+            return new (db.refclass)(id,db);
+        else {
+            this._id=id; this._db=db;
+            if (!(db.absrefs)) this._domain=db.name;
+            db.refs[id]=this;
+            db.allrefs.push(this);
+            return this;}}
+    fdjt.Ref=RefDB.Ref=Ref;
 
-                function checkAliases(aliases){
-                    var i=0, lim=aliases.length;
-                    while (i<lim) {
-                        var alias=aliases[i++];
-                        var db=refdbs[alias];
-                        if (db) return db;}
-                    return false;}
+    Ref.prototype.toString=function(){
+        if (this._qid) return this._qid;
+        else if (this._domain)
+            return this._id+"@"+this._domain;
+        else if (this._db.absrefs) return this._id;
+        else return this._id+"@"+this._db.name;};
+    Ref.prototype.getQID=function getQID(){
+        var qid;
+        if (this._qid) return this._qid;
+        else if (this._domain) 
+            qid=this._qid=(this._id+"@"+this._domain);
+        else if (this._db.absrefs) 
+            qid=this._qid=this._id;
+        else {
+            qid=this._qid=(this._id+"@"+this._db.name);}
+        return qid;};
 
-                RefDB.open=function RefDBOpen(name,DBClass){
-                    if (!(DBClass)) DBClass=RefDB;
-                    return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
-                        ((aliases.hasOwnProperty(name))&&(aliases[name]))||
-                        (new DBClass(name));};
-                function refDBProbe(name){
-                    return ((refdbs.hasOwnProperty(name))&&(refdbs[name]))||
-                        ((aliases.hasOwnProperty(name))&&(aliases[name]))||
-                        false;}
-                RefDB.probe=refDBProbe;
-                RefDB.prototype.addAlias=function DBaddAlias(alias){
-                    if (aliases[alias]) {
-                        if (aliases[alias]!==this) 
-                            warn("Alias %s for %o already associated with %o",
-                                 alias,this,aliases[alias]);}
+    Ref.prototype.addAlias=function addRefAlias(term){
+        var refs=this._db.refs;
+        if (refs.hasOwnProperty(term)) {
+            if (refs[term]===this) return false;
+            else throw {error: "Ref alias conflict"};}
+        else if (this._db.altrefs.hasOwnProperty(term)) {
+            if (this._db.altrefs[term]===this) return false;
+            else throw {error: "Ref alias conflict"};}
+        else {
+            this._db.altrefs[term]=this;
+            return true;}};
+
+    function object2ref(value,db,dbtype) {
+        var ref, dbref=false; 
+        if (value._domain)
+            dbref=RefDB.probe(value._domain)||(new RefDB(value._domain));
+        if (dbref) ref=dbref.ref(value._id);
+        else ref=RefDB.resolve(value._id,db,(dbtype||RefDB),true);
+        return ref;}
+
+    Ref.prototype.Import=function refImport(data,rules,flags){
+        var db=this._db; var live=this._live;
+        var indices=db.indices; var onload=db.onload;
+        var onadd=((live)&&(db.onadd)), ondrop=((live)&&(db.ondrop));
+        var aliases=data.aliases;
+        if (typeof flags === "undefined") flags=default_flags;
+        if (typeof rules === "undefined")
+            rules=this.import_rules||db.import_rules;
+        var indexing=(((flags)&(REFINDEX))!==0);
+        var loading=(((flags)&(REFLOAD))!==0);
+        var refstrings=(((flags)&(REFSTRINGS))!==0);
+        if (aliases) {
+            var ai=0, alim=aliases.length; while (ai<alim) {
+                var alias=aliases[ai++];
+                var cur=((db.refs.hasOwnProperty(alias))&&
+                         (db.refs[alias]))||
+                    ((db.altrefs.hasOwnProperty(alias))&&
+                     (db.altrefs[alias]));
+                if ((cur)&&(cur!==this))
+                    warn("Ambiguous ref %s in %s refers to both %o and %o",
+                         alias,db,cur.name,this.name);
+                else aliases[alias]=this;}}
+        var run_inits=((loading)&&(!(this._live)));
+        if (run_inits) this._live=fdjtTime();
+        for (var key in data) {
+            if ((key==="aliases")||(key==="_id")) {}
+            else if (data.hasOwnProperty(key)) {
+                var value=data[key]; var rule=((rules)&&(rules[key]));
+                if (typeof value !== "undefined") {
+                    if (rule) value=(rule)(this,key,value,data,indexing);
+                    value=importValue(value,db,refstrings);}
+                var oldval=((live)&&(this[key]));
+                this[key]=value;
+                if (oldval) {
+                    var drops=difference(oldval,value||[]);
+                    var adds=((value)?(difference(value,oldval)):([]));
+                    if ((indexing)&&(indices[key])) { 
+                        if (adds.length)
+                            this.indexRef(key,adds,indices[key],db);
+                        if (drops.length)
+                            this.dropIndexRef(key,drops,indices[key],db);}
+                    if ((adds.length)&&(onadd[key])) {
+                        var addfn=onadd[key];
+                        var addi=0, addlen=adds.length;
+                        while (addi<addlen) {
+                            addfn(adds[addi++]);}}
+                    if ((drops.length)&&(ondrop[key])) {
+                        var dropfn=ondrop[key];
+                        var dropi=0, droplen=drops.length;
+                        while (dropi<droplen) {
+                            dropfn(drops[dropi++]);}}}
+                else if ((value)&&(indexing)&&(indices[key])) 
+                    this.indexRef(key,value,indices[key],db);}}
+        // These are run-once inits loaded on initial import
+        if (run_inits) {
+            // Run the db-specific inits for each reference
+            if (onload) {
+                var i=0, lim=onload.length; while (i<lim) {
+                    var loadfn=onload[i++];
+                    loadfn(this);}}
+            // Run per-instance delayed inits
+            if (this._onload) {
+                var onloads=this._onload, inits=onloads.fns;
+                var j=0, jlim=inits.length; while (j<jlim) {
+                    inits[j++](this);}
+                delete this._onload;}}
+        // Record a change if we're not loading and not already changed.
+        if ((!(loading))&&(!(this._changed))) {
+            var now=fdjtTime();
+            this._changed=now;
+            db.changes.push(this);
+            if (!(db.changed)) {
+                db.changed=now; db.changes.push(db);}}};
+    function importValue(value,db,refstrings){
+        if ((typeof value === "undefined")||
+            (typeof value === "number")||
+            (value=== null))
+            return value;
+        else if (value instanceof Ref) return value;
+        else if (value instanceof Array) {
+            var i=0, lim=value.length; var copied=false;
+            while (i<lim) {
+                var v=value[i++], nv=v;
+                if (v===null) nv=undefined;
+                else if (v instanceof Ref) nv=v;
+                else if ((typeof v === "object")&&(v._id)) {
+                    var ref=object2ref(v,db);
+                    if (ref) {
+                        for (var slot in v) {
+                            if ((v.hasOwnProperty(slot))&&
+                                (slot!=="_id")&&(slot!=="_db"))
+                                ref[slot]=importValue(v[slot],db,refstrings);}
+                        nv=ref;}}
+                else if ((refstrings)&&(typeof v === "string")&&
+                         (refpat.exec(v))) {
+                    nv=resolveRef(v,db)||v;}
+                if (typeof nv === "undefined") {
+                    if (!(copied)) copied=value.slice(0,i-1);}
+                else if (copied) copied.push(nv);
+                else if (nv!==v) {
+                    copied=value.slice(0,i-1);
+                    copied.push(nv);}
+                else {}}
+            if (copied) return copied; else return value;}
+        else if ((typeof value === "object")&&(value._id)) {
+            var refv=object2ref(value,db);
+            for (var vslot in value) {
+                if ((value.hasOwnProperty(vslot))&&
+                    (vslot!=="_id")&&(vslot!=="_db"))
+                    refv[vslot]=importValue(value[vslot],db,refstrings);}
+            return refv;}
+        else if ((refstrings)&&(typeof value === "string")&&
+                 (refpat.exec(value)))
+            return resolveRef(value,db)||value;
+        else return value;}
+    Ref.prototype.importValue=function(value,refstrings){
+        return importValue(this._db,value,refstrings);};
+    RefDB.prototype.importValue=function(val,refstrings){
+        return importValue(val,this,refstrings);};
+    function defImport(item,refs,db,rules,flags){
+        var ref=resolveRef(item._id,item._domain||db,
+                           db.constructor,true);
+        if (!(ref)) warn("Couldn't resolve database for %o",item._id);
+        else {
+            refs.push(ref);
+            ref.Import(item,rules||false,flags);}}
+
+    RefDB.prototype.Import=function refDBImport(data,rules,flags,callback){
+        var refs=[]; var db=this;
+        if (!(data instanceof Array)) {
+            defImport(data,refs,db,rules,flags);
+            if (callback) {
+                if (callback.call) 
+                    setTimeout(function(){callback(refs[0]);});
+                return refs[0];}
+            else return refs[0];}
+        if ((!(callback))||(data.length<=7)) {
+            var i=0, lim=data.length; while (i<lim) {
+                defImport(data[i++],refs,db,rules,flags);}
+            if ((callback)&&(callback.call)) 
+                setTimeout(function(){callback(refs);},10);
+            return refs;}
+        else if (!(callback.call))
+            fdjtAsync.slowmap(function(item){
+                defImport(item,refs,db,rules,flags);},data);
+        else fdjtAsync.slowmap(function(item){
+            defImport(item,refs,db,rules,flags);},
+                               data,
+                               {done: function(){callback(refs);}});};
+
+    Ref.prototype.onLoad=function(fn,name){
+        if (this._live) fn(this);
+        else if (this._onload) {
+            if (this._onload[name]) return;
+            if (name) this._onload[name]=fn;
+            this._onload.fns.push(fn);}
+        else {
+            this._onload={fns:[fn]};
+            if (name) this._onload[name]=fn;}};
+    
+    Ref.Export=Ref.prototype.Export=function refExport(xforms){
+        var db=this._id;
+        var exported={_id: this._id};
+        if (!(xforms)) xforms=this.export_rules||db.export_rules;
+        if (!(db.absrefs)) this._domain=db.name;
+        for (var key in this) {
+            if (key[0]==="_") continue;
+            else if (this.hasOwnProperty(key)) {
+                var value=this[key];
+                var xform=((xforms)&&(xforms[key]));
+                if (xform) value=xform(value,key,exported);
+                if (typeof value === "undefined") {}
+                else if ((typeof value === "number")||
+                         (typeof value === "string"))
+                    exported[key]=value;
+                else if (value instanceof Ref) {
+                    if (value._db.absrefs)
+                        exported[key]={_id: value._id};
+                    else exported[key]={
+                        _id: value._id,
+                        _domain: value._domain||value._db.name};}
+                else exported[key]=exportValue(value,this._db);}}
+        return exported;};
+
+    function exportValue(value,db){
+        if (value instanceof Ref) {
+            if (value._db===db) return {_id: value._id};
+            else if (value._db.absrefs) return {_id: value._id};
+            else return {
+                _id: value._id,
+                _domain: value._domain||value._db.name};}
+        else if (value instanceof Array) {
+            var i=0, lim=value.length; var exports=false;
+            while (i<lim) {
+                var elt=value[i++];
+                var exported=exportValue(elt,db);
+                if (elt!==exported) {
+                    if (exports) exports.push(exported);
                     else {
-                        aliases[alias]=this;
-                        this.aliases.push(alias);}};
+                        exports=value.slice(0,i-1);
+                        exports.push(exported);}}
+                else if (exports) exports.push(elt);
+                else {}}
+            return exports||value;}
+        else if (typeof value === "object") {
+            var copied=false, fields=[];
+            for (var field in value) {
+                if (value.hasOwnProperty(field)) {
+                    var fieldval=value[field];
+                    var exportval=exportValue(fieldval,db);
+                    if (fieldval!==exportval) {
+                        if (!(copied)) {
+                            copied={};
+                            if (fields.length) {
+                                var j=0, jlim=fields.length;
+                                while (j<jlim) {
+                                    var f=fields[j++];
+                                    copied[f]=value[f];}}}
+                        copied[field]=exportval;}
+                    else if (copied) copied[field]=fieldval;
+                    else fields.push(field);}}
+            return copied||value;}
+        else return value;}
+    Ref.exportValue=exportValue;
+    RefDB.prototype.exportValue=function(val){
+        return exportValue(val,this);};
+    
+    RefDB.prototype.load=function loadRefs(refs,callback,args){
+        function docallback(){
+            if (callback) {
+                if (args) callback.apply(null,args);
+                else callback();}}
+        function load_ref(arg,loaded,storage){
+            var ref=arg, content;
+            if (typeof ref === "string")
+                ref=db.ref(ref,false,true);
+            if (!(ref)) {
+                warn("Couldn't resolve ref to %s",arg);
+                return;}
+            else if (ref._live) return;
+            loaded.push(ref);
+            if (absrefs) content=storage[ref._id];
+            else if (atid)
+                content=storage[atid+"("+ref._id+")"];
+            else {
+                if (db.atid) atid=db.atid;
+                else atid=db.atid=getatid(storage,db);
+                content=storage[atid+"("+ref._id+")"];}
+            if (!(content))
+                warn("No item stored for %s",ref._id);
+            else ref.Import(
+                JSON.parse(content),false,REFLOAD|REFINDEX);}
+        if (!(this.storage)) return;
+        else if (this.storage instanceof Storage) {
+            if (!(refs)) refs=[].concat(this.allrefs);
+            else if (refs===true) {
+                var all=this.storage["allids("+this.name+")"];
+                if (all) refs=JSON.parse(all).concat(this.allrefs);
+                else refs=[].concat(this.allrefs);}
+            else if (refs instanceof Ref) refs=[refs];
+            else if (typeof refs === "string") refs=[refs];
+            else if (typeof refs.length === "undefined") refs=[refs];
+            else {}
+            var storage=this.storage; var loaded=this.loaded;
+            var db=this, absrefs=this.absrefs, refmap=this.refs;
+            var atid=false; var needrefs=[];
+            var i=0, lim=refs.length; while (i<lim) {
+                var refid=refs[i++], ref=refid;
+                if (typeof refid === "string") ref=refmap[refid];
+                if (!((ref instanceof Ref)&&(ref._live)))
+                    needrefs.push(refid);}
+            if (needrefs.length) {
+                var opts=((!(callback))?(false):
+                          (args)?{done: docallback}:{done: callback});
+                return fdjtAsync.slowmap(
+                    function(arg){load_ref(arg,loaded,storage);},
+                    needrefs,opts);}
+            else {
+                docallback();
+                return new Promise(function(resolve){
+                    resolve(refs);});}}
+        else if (this.storage instanceof indexedDB) {
+            // Not yet implemented
+            return;}
+        else {}};
+    RefDB.prototype.load=function loadRefs(refs){
+        if (this.storage instanceof Storage) 
+            return this.loadFromStorage(refs);
+        else return false;};
+    RefDB.prototype.loadFromStorage=function loadFromStorage(refs){
+        var db=this, storage=this.storage, loaded=this.loaded;
+        var atid=(db.atid)||(db.atid=getatid(storage,db));
+        var needrefs=[], refmap=db.refs, absrefs=db.absrefs;
+        function storage_loader(arg,loaded){
+            var ref=arg, content;
+            if (typeof ref === "string") ref=db.ref(ref,false,true);
+            if (!(ref)) {warn("Couldn't resolve ref to %s",arg); return;}
+            else if (ref._live) return;
+            else loaded.push(ref);
+            if (absrefs) content=storage[ref._id];
+            else if (atid) content=storage[atid+"("+ref._id+")"];
+            else content=storage[atid+"("+ref._id+")"];
+            if (!(content)) warn("No item stored for %s",ref._id);
+            else ref.Import(
+                JSON.parse(content),false,REFLOAD|REFINDEX);}
+        if (!(refs)) refs=[].concat(db.allrefs);
+        else if (refs===true) {
+            var all=storage["allids("+db.name+")"]||"[]";
+            refs=JSON.parse(all).concat(db.allrefs);}
+        else if (!(Array.isArray(refs))) refs=[refs];
+        else {}
+        var i=0, lim=refs.length; while (i<lim) {
+            var refid=refs[i++], ref=refid;
+            if (typeof refid === "string") ref=refmap[refid];
+            if (!((ref instanceof Ref)&&(ref._live)))
+                needrefs.push(refid);}
+        if (needrefs.length)
+            return fdjtAsync.slowmap(
+                function(arg){storage_loader(arg,loaded,storage);},
+                needrefs);
+        else return new Promise(function(resolve){
+            var resolved=[]; var i=0, lim=resolved.length;
+            while (i<lim) {
+                var refid=refs[i++];
+                if (typeof ref==="string")
+                    ref=refmap[refid]; else ref=refid;
+                resolve.push(ref);}
+            return resolve(resolved);});};
 
-                RefDB.prototype.toString=function (){
-                    return "RefDB("+this.name+")";};
+    RefDB.prototype.loadref=function loadRef(ref){
+        if (typeof ref === "string") ref=this.ref(ref);
+        return ref.load();};
+    Ref.prototype.load=function loadRef() {
+        var ref=this, db=this._db;
+        function loadref(resolve){
+            if (ref._live) return resolve(ref);
+            else db.load(ref).then(function(){resolve(ref);});}
+        return new Promise(loadref);};
 
-                RefDB.prototype.ref=function DBref(id){
-                    if (typeof id !== "string") {
-                        if (id instanceof Ref) return id;
-                        else throw new Error("Not a reference");}
-                    else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
-                    var refs=this.refs;
-                    return ((refs.hasOwnProperty(id))&&(refs[id]))||
-                        ((this.refclass)&&(new (this.refclass)(id,this)))||
-                        (new Ref(id,this));};
-                RefDB.prototype.probe=function DBprobe(id){
-                    if (typeof id !== "string") {
-                        if (id instanceof Ref) return id;
-                        else return false;}
-                    else if ((id[0]===":")&&(id[1]==="@")) id=id.slice(1);
-                    var refs=this.refs;
-                    return ((refs.hasOwnProperty(id))&&(refs[id]));};
-                RefDB.prototype.drop=function DBdrop(refset){
-                    var count=0;
-                    var refs=this.refs; var altrefs=this.altrefs;
-                    if (!(id instanceof Array)) refset=[refset];
-                    var i=0, nrefs=refset.length; while (i<nrefs) {
-                        var ref=refset[i++]; var id;
-                        if (ref instanceof Ref) id=ref._id;
-                        else {id=ref; ref=this.probe(id);}
-                        if (!(ref)) continue; else count++;
-                        var aliases=ref.aliases;
-                        var pos=this.allrefs.indexOf(ref);
-                        if (pos>=0) this.allrefs.splice(pos,1);
-                        pos=this.changes.indexOf(ref);
-                        if (pos>=0) this.changes.splice(pos,1);
-                        pos=this.loaded.indexOf(ref);
-                        if (pos>=0) this.loaded.splice(pos,1);
-                        delete refs[id];
-                        if (this.storage instanceof Storage) {
-                            var storage=this.storage;
-                            var key="allids("+this.name+")";
-                            var allidsval=storage[key];
-                            var allids=((allidsval)&&(JSON.parse(allidsval)));
-                            var idpos=allids.indexOf(id);
-                            if (idpos>=0) {
-                                allids.splice(idpos,1);
-                                storage.setItem(key,JSON.stringify(allids));
-                                storage.removeItem(id);}}
-                        if (aliases) {
-                            var j=0, jlim=aliases.length;
-                            while (j<jlim) {delete altrefs[aliases[j++]];}}}
-                    return count;};
-                RefDB.prototype.clearOffline=function refDBclear(callback){
-                    if (!(this.storage)) return false;
-                    else if ((Storage)&&(this.storage instanceof Storage)) {
-                        var storage=this.storage;
-                        var key="allids("+this.name+")";
-                        var allids=this.storage[key];
-                        if (allids) allids=JSON.parse(allids);
-                        if (allids) {
-                            var i=0, lim=allids.length;
-                            while (i<lim) delete storage[allids[i++]];}
-                        delete storage[key];
-                        if (callback) setTimeout(callback,5);}
-                    else if (this.storage instanceof indexedDB) {
-                        // Not yet implemented
-                        return;}
-                    else return false;};
+    // This does a resolve and load for various refs
+    RefDB.load=function RefDBload(spec,dbtype,callback,args){
+        if (typeof spec === "string") {
+            var ref=RefDB.resolve(spec,false,(dbtype||RefDB),true);
+            if (ref) return ref.load(callback,args);
+            else throw {error: "Couldn't resolve "+spec};}
+        else if (spec instanceof Ref)
+            return spec.load(callback,args);
+        else if (spec instanceof Array) {
+            var loads={}, dbs=[]; var i=0, lim=spec.length;
+            while (i<lim) {
+                var s=spec[i++]; var r=false;
+                if (typeof s === "string")
+                    r=RefDB.resolve(s,false,dbtype||RefDB,true);
+                else if (s instanceof Ref) r=s;
+                if (!(r)||(r._live)) continue;
+                var db=r._db, name=db.name;
+                if (loads[name]) loads[name].push(r);
+                else {
+                    loads[name]=[r];
+                    dbs.push(db);}}
+            i=0; lim=dbs.length; while (i<lim) {
+                var loadfrom=dbs[i++];
+                loadfrom.load(loads[loadfrom.name],args);}
+            return loads;}
+        else return false;};
+    
+    RefDB.prototype.saveToStorage=function(refs,updatechanges){
+        var db=this, storage=this.storage;
+        var atid=this.atid; var ids=[];
+        function savingLocally(resolve){
+            var i=0, lim=refs.length; while (i<lim) {
+                var ref=refs[i++];
+                if (typeof ref === "string") ref=db.ref(ref);
+                if (!(ref._live)) continue;
+                if ((ref._saved)&&(!(ref._changed))) continue;
+                var exported=ref.Export();
+                exported._saved=fdjtTime.tick();
+                if (db.absrefs) {
+                    ids.push(ref._id);
+                    storage.setItem(ref._id,JSON.stringify(exported));}
+                else {
+                    if (atid) {}
+                    else if (ref.atid) atid=ref.atid;
+                    else atid=ref.atid=getatid(storage,ref);
+                    var id=atid+"("+ref._id+")"; ids.push(id);
+                    storage.setItem(id,JSON.stringify(exported));}
+                ref._changed=false;}
+            if (updatechanges) {
+                var changes=db.changes, new_changes=[];
+                var j=0, n_changed=changes.length;
+                while (j<n_changed) {
+                    var c=changes[j++];
+                    if (c._changed) new_changes.push(c);}
+                db.changes=new_changes;
+                if (new_changes.length===0) {
+                    db.changed=false;
+                    var pos=changed_dbs.indexOf(db);
+                    if (pos>=0) changed_dbs.splice(pos,1);}}
+            var allids=storage["allids("+db.name+")"];
+            if (allids) allids=JSON.parse(allids); else allids=[];
+            var n=allids.length;
+            allids=merge(allids,ids);
+            if (allids.length!==n) 
+                storage.setItem("allids("+db.name+")",
+                                JSON.stringify(allids));
+            if (resolve) fdjt.ASync(resolve);}
+        return new Promise(savingLocally);};
+    
+    RefDB.prototype.save=function saveRefs(refs,updatechanges){
+        var db=this, storage=this.storage;
+        if (refs===true) refs=this.allrefs;
+        else if (!(refs)) refs=this.changes;
+        else {}
+        function saving(resolve){
+            if (db.storage instanceof Storage)
+                db.saveToStorage(refs,updatechanges).then(function(){
+                    db.changed=false;
+                    db.changes=[];
+                    var pos=changed_dbs.indexOf(db);
+                    if (pos>=0) changed_dbs.splice(pos,1);
+                    if (resolve) resolve();});
+            else if (db.storage instanceof indexedDB) {}
+            else return resolve();}
+        if (!(storage)) return false;
+        else return new Promise(saving);};
+    Ref.prototype.save=function(){
+        var ref=this, db=this._db;
+        function saveref(resolve){
+            if (!(ref._changed)) return resolve(ref);
+            else return db.save([ref]).then(function(){
+                resolve(ref);});}
+        return new Promise(saveref);};
 
-                RefDB.prototype.onLoad=function(method,name,noupdate){
-                    if ((name)&&(this.onloadnames[name])) {
-                        var cur=this.onloadnames[name];
-                        if (cur===method) return;
-                        var pos=this.onload.indexOf(cur);
-                        if (cur<0) {
-                            warn("Couldn't replace named onload method %s for <RefDB %s>",
-                                 name,this.name);
-                            return;}
-                        else {
-                            this.onload[pos]=method;}}
-                    else this.onload.push(method);
-                    if (name) this.onloadnames[name]=method;
-                    if (!(noupdate)) {
-                        var loaded=[].concat(this.loaded);
-                        fdjtAsync.slowmap(method,loaded);}};
+    function getatid(storage,db){
+        if (db.atid) return db.atid;
+        var atid=storage["atid("+db.name+")"];
+        if (atid) {
+            db.atid=atid;
+            return atid;}
+        else {
+            var count=storage["atid.count"];
+            if (!(count)) {
+                atid=count=1; storage["atid.count"]="2";}
+            else {
+                count=parseInt(count,10);
+                atid=db.atid="@@"+count;
+                storage["atid("+db.name+")"]=atid;
+                storage["atid.count"]=count+1;}
+            return atid;}}
+    
+    function getKeyString(val,db){
+        if (val instanceof Ref) {
+            if (val._db===db) return "@"+val._id;
+            else if (val._domain) return "@"+val._id+"@"+val._domain;
+            else return "@"+val._id;}
+        else if (typeof val === "number") 
+            return "#"+val;
+        else if (typeof val === "string")
+            return "\""+val;
+        else if (val.toJSON)
+            return "{"+val.toJSON();
+        else return "&"+val.toString();}
+    RefDB.getKeyString=getKeyString;
+    
+    Ref.prototype.indexRef=function indexRef(key,val,index,db){
+        var keystrings=[]; var rdb=this._db;
+        var refstring=
+            (((!(db))||(rdb===db)||(rdb.absrefs))?(this._id):
+             ((this._qid)||((this.getQID)&&(this.getQID()))));
+        if (!(db)) db=rdb;
+        var indices=db.indices;
+        if (!(index))
+            index=((indices.hasOwnProperty(key))&&(indices[key]));
+        if (!(index)) {
+            warn("No index on %s for %o in %o",key,this,db);
+            return false;}
+        if (val instanceof Ref) {
+            if (rdb===val._db) keystrings=["@"+val._id];
+            else keystrings=["@"+(val._qid||val.getQID())];}
+        else if (val instanceof Array) {
+            db=this._db;
+            var i=0, lim=val.length; while (i<lim) {
+                var elt=val[i++];
+                if (elt instanceof Ref)
+                    keystrings.push("@"+(elt._qid||elt.getQID()));
+                else if (typeof elt === "number") 
+                    keystrings=["#"+elt];
+                else if (typeof elt === "string")
+                    keystrings=["\""+elt];
+                else if (elt._qid)
+                    keystrings.push("@"+(elt._qid||elt.getQID()));
+                else if (elt.getQID)
+                    keystrings.push("@"+(elt.getQID()));
+                else {}}}
+        else if (typeof val === "number") 
+            keystrings=["#"+val];
+        else if (typeof val === "string")
+            keystrings=["\""+val];
+        else keystrings=["?"+val.toString()];
+        if (keystrings.length) {
+            var j=0, jlim=keystrings.length; while (j<jlim) {
+                var keystring=keystrings[j++];
+                var refs=index[keystring];
+                if (refs) refs.push(refstring);
+                else index[keystring]=[refstring];}
+            return keystrings.length;}
+        else return false;};
+    Ref.prototype.dropIndexRef=function dropIndexRef(key,val,index,db){
+        if (!(db)) db=this._db;
+        if (!(index)) index=db.indices[key];
+        if (!(index)) return false;
+        var keystrings=[];
+        if (val instanceof Ref) {
+            if (this._db===val._db) keystrings=["@"+val._id];
+            else keystrings=["@"+(val._qid||val.getQID())];}
+        else if (val instanceof Array) {
+            var i=0, lim=val.length; while (i<lim) {
+                var elt=val[i++];
+                if (elt instanceof Ref) 
+                    keystrings.push("@"+(elt._qid||elt.getQID()));
+                else if (typeof elt === "number") 
+                    keystrings=["#"+val];
+                else if (typeof elt === "string")
+                    keystrings=["\""+val];
+                else if (elt._qid)
+                    keystrings.push("@"+(elt._qid||elt.getQID()));
+                else if (elt.getQID)
+                    keystrings.push("@"+(elt.getQID()));
+                else {}}}
+        else if (typeof val === "number") 
+            keystrings=["#"+val];
+        else if (typeof val === "string")
+            keystrings=["\""+val];
+        else {}
+        if (keystrings.length) {
+            var deleted=0;
+            var j=0, jlim=keystrings.length; while (j<jlim) {
+                var keystring=keystrings[j++]; var refs=index[keystring];
+                if (!(refs)) continue;
+                var pos=refs.indexOf(this._id);
+                if (pos<0) continue;
+                else refs.splice(pos,1);
+                if (refs.length===0) delete index[keystring];
+                deleted++;}
+            return deleted;}
+        else return false;};
 
-                RefDB.prototype.onAdd=function(name,method){
-                    this.onadd[name]=method;};
+    RefDB.prototype.find=function findIDs(key,value){
+        var index=this.indices[key];
+        if (index) {
+            var items=index.getItem(value,this);
+            if (items) return setify(items);
+            else return [];}
+        else return [];};
+    RefDB.prototype.findRefs=function findRefs(key,value){
+        var index=this.indices[key];
+        if (index) {
+            var items=index.getItem(value,this), results=[];
+            if (items) {
+                var i=0, lim=items.length;
+                while (i<lim) {
+                    var item=items[i++];
+                    if (!(item)) {}
+                    else if (typeof item === "string") {
+                        var ref=this.probe(item);
+                        if (ref) results.push(ref);}
+                    else results.push(item);}}
+            return fdjtSet(results);}
+        else return [];};
+    RefDB.prototype.count=function countRefs(key,value){
+        var index=this.indices[key];
+        if (index) {
+            var vals=index.getItem(value,this);
+            return ((vals)?(vals.length||0):(0));}
+        else return 0;};
+    RefDB.prototype.addIndex=function addIndex(key,Constructor){
+        if (!(Constructor)) Constructor=ObjectMap;
+        if (!(this.indices.hasOwnProperty(key))) {
+            var index=this.indices[key]=new Constructor();
+            index.fordb=this;
+            return index;}
+        else return this.indices[key];};
+    
+    // Array utility functions
+    function arr_contains(arr,val,start){
+        return (arr.indexOf(val,start||0)>=0);}
+    function arr_position(arr,val,start){
+        return arr.indexOf(val,start||0);}
 
-                RefDB.prototype.onDrop=function(name,method){
-                    this.ondrop[name]=method;};
-                
-                var refpat=/^(((:|)@(([0-9a-fA-F]+\/[0-9a-fA-F]+)|(\/\w+\/.*)|(@\d+\/.*)))|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}t[0-9a-zA-Z]+)|([^@]+@.+))$/;
-                
-                var getLocal=fdjtState.getLocal;
+    var id_counter=1;
 
-                function resolveRef(arg,db,DBType,force){
-                    if (typeof DBType !== "function") DBType=RefDB;
-                    if (!(arg)) return arg;
-                    else if (arg instanceof Ref) return arg;
-                    else if ((typeof arg === "object")&&(arg.id))
-                        return object2ref(arg,db);
-                    else if ((db)&&(db.refs.hasOwnProperty(arg)))
-                        return db.refs[arg];
-                    // The case above catches direct references inline; the
-                    // case below does a function call (probe) and catches
-                    // aliases
-                    else if ((db)&&(db.probe(arg))) return db.probe(arg);
-                    else if ((typeof arg === "string")&&(refpat.exec(arg))) {
-                        var at=arg.indexOf('@');
-                        if ((at===1)&&(arg[0]===':')) {arg=arg.slice(1); at=0;}
-                        if (at>0) {
-                            // this is the term@domain form
-                            var usedb=false, dbname=arg.slice(at+1), origin;
-                            if ((usedb=refDBProbe(dbname))) {}
-                            else if (refpat.exec(dbname)) {
-                                origin=resolveRef(dbname);
-                                if (origin) force=true;
-                                else dbname=arg.slice(at+1);}
-                            else dbname=arg.slice(at+1);
-                            if ((db)&&(db.name===dbname)) usedb=db;
-                            else usedb=refDBProbe(dbname);
-                            arg=arg.slice(0,at);
-                            if (usedb) db=usedb;
-                            else if (force) {
-                                warn("Creating forced RefDB domain %s for reference %s",dbname,arg);
-                                db=RefDB.open(dbname,DBType);}
-                            else db=refDBProbe(dbname);
-                            if ((db)&&(origin)) {
-                                db.origin=origin;
-                                if (origin.name) db.fullname=origin.name;}
-                            arg=arg.slice(0,at);}
-                        else if (at<0) {
-                            var uuid;
-                            if (arg.search(":#U")===0) uuid=arg.slice(3);
-                            else if (arg.search("#U")===0) uuid=arg.slice(2);
-                            else if (arg.search("U")===0) uuid=arg.slice(1);
-                            else uuid=arg;
-                            var type=uuid.indexOf('t'), tail=arg.length-2;
-                            if (type>0) type="UUID"+uuid.slice(type); else type=false;
-                            if (tail>0) tail="-UUIDTYPE="+uuid.slice(tail);
-                            else tail=false;
-                            var known_db=((type)&&(refdbs[type]||aliases[type]))||
-                                ((tail)&&(refdbs[tail]||aliases[tail]));
-                            if (known_db) db=known_db;
-                            else if ((force)&&(type)&&(DBType)) {
-                                warn("Creating forced RefDB domain %s for reference %s",type,arg);
-                                db=new DBType(type);
-                                if (type) db.addAlias(type);}
-                            else {}}
-                        else if (arg[1]==='@') {
-                            // This is for local references
-                            var idstart=arg.indexOf('/');
-                            var atid=arg.slice(0,idstart);
-                            var atdb=aliases[atid];
-                            if (atdb) db=atdb;
-                            else {
-                                var domain=getLocal(arg.slice(0,idstart),true);
-                                if (domain) {
-                                    db=new RefDB(domain,{aliases: [atid]});}
-                                else {
-                                    warn("Can't find domain for atid %s when resolving %s",atid,arg);
-                                    db=false;}}}
-                        else {
-                            var atprefix, slash;
-                            // Find the slash before the ID
-                            if (arg[1]==='/') {
-                                slash=arg.slice(2).indexOf('/');
-                                if (slash>0) slash=slash+2;}
-                            else slash=arg.indexOf('/');
-                            atprefix=arg.slice(at,slash+1);
-                            db=refdbs[atprefix]||aliases[atprefix]||
-                                ((DBType)&&(new DBType(atprefix)));}}
-                    else {}
-                    if (!(db)) return false;
-                    if (db.refs.hasOwnProperty(arg)) return (db.refs[arg]);
-                    else if (force) return db.ref(arg);
-                    else return false;}
-                RefDB.resolve=resolveRef;
-                RefDB.ref=resolveRef;
-
-                function Ref(id,db,instance){
-                    // Just called for the prototype
-                    if (arguments.length===0) return this;
-                    var at=id.indexOf('@');
-                    if ((at>1)&&(id[at-1]!=='\\')) {
-                        var domain=id.slice(at+1);
-                        if ((domain!==db.name)&&
-                            (db.aliases.indexOf(domain)<0))
-                            warn("Reference to %s being handled by %s",id,db);
-                        id=id.slice(0,at);}
-                    if (db.refs.hasOwnProperty(id)) return db.refs[id];
-                    else if (instance) {
-                        instance._id=id; instance._db=db;
-                        if (!(db.absrefs)) instance._domain=db.name;
-                        db.refs[id]=instance;
-                        db.allrefs.push(instance);
-                        return instance;}
-                    else if ((db.refclass)&&(!(this instanceof db.refclass)))
-                        return new (db.refclass)(id,db);
-                    else {
-                        this._id=id; this._db=db;
-                        if (!(db.absrefs)) this._domain=db.name;
-                        db.refs[id]=this;
-                        db.allrefs.push(this);
-                        return this;}}
-                fdjt.Ref=RefDB.Ref=Ref;
-
-                Ref.prototype.toString=function(){
-                    if (this._qid) return this._qid;
-                    else if (this._domain)
-                        return this._id+"@"+this._domain;
-                    else if (this._db.absrefs) return this._id;
-                    else return this._id+"@"+this._db.name;};
-                Ref.prototype.getQID=function getQID(){
-                    var qid;
-                    if (this._qid) return this._qid;
-                    else if (this._domain) 
-                        qid=this._qid=(this._id+"@"+this._domain);
-                    else if (this._db.absrefs) 
-                        qid=this._qid=this._id;
-                    else {
-                        qid=this._qid=(this._id+"@"+this._db.name);}
-                    return qid;};
-
-                Ref.prototype.addAlias=function addRefAlias(term){
-                    var refs=this._db.refs;
-                    if (refs.hasOwnProperty(term)) {
-                        if (refs[term]===this) return false;
-                        else throw {error: "Ref alias conflict"};}
-                    else if (this._db.altrefs.hasOwnProperty(term)) {
-                        if (this._db.altrefs[term]===this) return false;
-                        else throw {error: "Ref alias conflict"};}
-                    else {
-                        this._db.altrefs[term]=this;
-                        return true;}};
-
-                function object2ref(value,db,dbtype) {
-                    var ref, dbref=false; 
-                    if (value._domain)
-                        dbref=RefDB.probe(value._domain)||(new RefDB(value._domain));
-                    if (dbref) ref=dbref.ref(value._id);
-                    else ref=RefDB.resolve(value._id,db,(dbtype||RefDB),true);
-                    return ref;}
-
-                Ref.prototype.Import=function refImport(data,rules,flags){
-                    var db=this._db; var live=this._live;
-                    var indices=db.indices; var onload=db.onload;
-                    var onadd=((live)&&(db.onadd)), ondrop=((live)&&(db.ondrop));
-                    var aliases=data.aliases;
-                    if (typeof flags === "undefined") flags=default_flags;
-                    if (typeof rules === "undefined")
-                        rules=this.import_rules||db.import_rules;
-                    var indexing=(((flags)&(REFINDEX))!==0);
-                    var loading=(((flags)&(REFLOAD))!==0);
-                    var refstrings=(((flags)&(REFSTRINGS))!==0);
-                    if (aliases) {
-                        var ai=0, alim=aliases.length; while (ai<alim) {
-                            var alias=aliases[ai++];
-                            var cur=((db.refs.hasOwnProperty(alias))&&
-                                     (db.refs[alias]))||
-                                ((db.altrefs.hasOwnProperty(alias))&&
-                                 (db.altrefs[alias]));
-                            if ((cur)&&(cur!==this))
-                                warn("Ambiguous ref %s in %s refers to both %o and %o",
-                                     alias,db,cur.name,this.name);
-                            else aliases[alias]=this;}}
-                    var run_inits=((loading)&&(!(this._live)));
-                    if (run_inits) this._live=fdjtTime();
-                    for (var key in data) {
-                        if ((key==="aliases")||(key==="_id")) {}
-                        else if (data.hasOwnProperty(key)) {
-                            var value=data[key]; var rule=((rules)&&(rules[key]));
-                            if (typeof value !== "undefined") {
-                                if (rule) value=(rule)(this,key,value,data,indexing);
-                                value=importValue(value,db,refstrings);}
-                            var oldval=((live)&&(this[key]));
-                            this[key]=value;
-                            if (oldval) {
-                                var drops=difference(oldval,value||[]);
-                                var adds=((value)?(difference(value,oldval)):([]));
-                                if ((indexing)&&(indices[key])) { 
-                                    if (adds.length)
-                                        this.indexRef(key,adds,indices[key],db);
-                                    if (drops.length)
-                                        this.dropIndexRef(key,drops,indices[key],db);}
-                                if ((adds.length)&&(onadd[key])) {
-                                    var addfn=onadd[key];
-                                    var addi=0, addlen=adds.length;
-                                    while (addi<addlen) {
-                                        addfn(adds[addi++]);}}
-                                if ((drops.length)&&(ondrop[key])) {
-                                    var dropfn=ondrop[key];
-                                    var dropi=0, droplen=drops.length;
-                                    while (dropi<droplen) {
-                                        dropfn(drops[dropi++]);}}}
-                            else if ((value)&&(indexing)&&(indices[key])) 
-                                this.indexRef(key,value,indices[key],db);}}
-                    // These are run-once inits loaded on initial import
-                    if (run_inits) {
-                        // Run the db-specific inits for each reference
-                        if (onload) {
-                            var i=0, lim=onload.length; while (i<lim) {
-                                var loadfn=onload[i++];
-                                loadfn(this);}}
-                        // Run per-instance delayed inits
-                        if (this._onload) {
-                            var onloads=this._onload, inits=onloads.fns;
-                            var j=0, jlim=inits.length; while (j<jlim) {
-                                inits[j++](this);}
-                            delete this._onload;}}
-                    // Record a change if we're not loading and not already changed.
-                    if ((!(loading))&&(!(this._changed))) {
-                        var now=fdjtTime();
-                        this._changed=now;
-                        db.changes.push(this);
-                        if (!(db.changed)) {
-                            db.changed=now; db.changes.push(db);}}};
-                function importValue(value,db,refstrings){
-                    if ((typeof value === "undefined")||
-                        (typeof value === "number")||
-                        (value=== null))
-                        return value;
-                    else if (value instanceof Ref) return value;
-                    else if (value instanceof Array) {
-                        var i=0, lim=value.length; var copied=false;
-                        while (i<lim) {
-                            var v=value[i++], nv=v;
-                            if (v===null) nv=undefined;
-                            else if (v instanceof Ref) nv=v;
-                            else if ((typeof v === "object")&&(v._id)) {
-                                var ref=object2ref(v,db);
-                                if (ref) {
-                                    for (var slot in v) {
-                                        if ((v.hasOwnProperty(slot))&&
-                                            (slot!=="_id")&&(slot!=="_db"))
-                                            ref[slot]=importValue(v[slot],db,refstrings);}
-                                    nv=ref;}}
-                            else if ((refstrings)&&(typeof v === "string")&&
-                                     (refpat.exec(v))) {
-                                nv=resolveRef(v,db)||v;}
-                            if (typeof nv === "undefined") {
-                                if (!(copied)) copied=value.slice(0,i-1);}
-                            else if (copied) copied.push(nv);
-                            else if (nv!==v) {
-                                copied=value.slice(0,i-1);
-                                copied.push(nv);}
-                            else {}}
-                        if (copied) return copied; else return value;}
-                    else if ((typeof value === "object")&&(value._id)) {
-                        var refv=object2ref(value,db);
-                        for (var vslot in value) {
-                            if ((value.hasOwnProperty(vslot))&&
-                                (vslot!=="_id")&&(vslot!=="_db"))
-                                refv[vslot]=importValue(value[vslot],db,refstrings);}
-                        return refv;}
-                    else if ((refstrings)&&(typeof value === "string")&&
-                             (refpat.exec(value)))
-                        return resolveRef(value,db)||value;
-                    else return value;}
-                Ref.prototype.importValue=function(value,refstrings){
-                    return importValue(this._db,value,refstrings);};
-                RefDB.prototype.importValue=function(val,refstrings){
-                    return importValue(val,this,refstrings);};
-                function defImport(item,refs,db,rules,flags){
-                    var ref=resolveRef(item._id,item._domain||db,
-                                       db.constructor,true);
-                    if (!(ref)) warn("Couldn't resolve database for %o",item._id);
-                    else {
-                        refs.push(ref);
-                        ref.Import(item,rules||false,flags);}}
-
-                RefDB.prototype.Import=function refDBImport(data,rules,flags,callback){
-                    var refs=[]; var db=this;
-                    if (!(data instanceof Array)) {
-                        defImport(data,refs,db,rules,flags);
-                        if (callback) {
-                            if (callback.call) 
-                                setTimeout(function(){callback(refs[0]);});
-                            return refs[0];}
-                        else return refs[0];}
-                    if ((!(callback))||(data.length<=7)) {
-                        var i=0, lim=data.length; while (i<lim) {
-                            defImport(data[i++],refs,db,rules,flags);}
-                        if ((callback)&&(callback.call)) 
-                            setTimeout(function(){callback(refs);},10);
-                        return refs;}
-                    else if (!(callback.call))
-                        fdjtAsync.slowmap(function(item){
-                            defImport(item,refs,db,rules,flags);},data);
-                    else fdjtAsync.slowmap(function(item){
-                        defImport(item,refs,db,rules,flags);},
-                                           data,
-                                           {done: function(){callback(refs);}});};
-
-                Ref.prototype.onLoad=function(fn,name){
-                    if (this._live) fn(this);
-                    else if (this._onload) {
-                        if (this._onload[name]) return;
-                        if (name) this._onload[name]=fn;
-                        this._onload.fns.push(fn);}
-                    else {
-                        this._onload={fns:[fn]};
-                        if (name) this._onload[name]=fn;}};
-                
-                Ref.Export=Ref.prototype.Export=function refExport(xforms){
-                    var db=this._id;
-                    var exported={_id: this._id};
-                    if (!(xforms)) xforms=this.export_rules||db.export_rules;
-                    if (!(db.absrefs)) this._domain=db.name;
-                    for (var key in this) {
-                        if (key[0]==="_") continue;
-                        else if (this.hasOwnProperty(key)) {
-                            var value=this[key];
-                            var xform=((xforms)&&(xforms[key]));
-                            if (xform) value=xform(value,key,exported);
-                            if (typeof value === "undefined") {}
-                            else if ((typeof value === "number")||
-                                     (typeof value === "string"))
-                                exported[key]=value;
-                            else if (value instanceof Ref) {
-                                if (value._db.absrefs)
-                                    exported[key]={_id: value._id};
-                                else exported[key]={
-                                    _id: value._id,
-                                    _domain: value._domain||value._db.name};}
-                            else exported[key]=exportValue(value,this._db);}}
-                    return exported;};
-
-                function exportValue(value,db){
-                    if (value instanceof Ref) {
-                        if (value._db===db) return {_id: value._id};
-                        else if (value._db.absrefs) return {_id: value._id};
-                        else return {
-                            _id: value._id,
-                            _domain: value._domain||value._db.name};}
-                    else if (value instanceof Array) {
-                        var i=0, lim=value.length; var exports=false;
-                        while (i<lim) {
-                            var elt=value[i++];
-                            var exported=exportValue(elt,db);
-                            if (elt!==exported) {
-                                if (exports) exports.push(exported);
-                                else {
-                                    exports=value.slice(0,i-1);
-                                    exports.push(exported);}}
-                            else if (exports) exports.push(elt);
-                            else {}}
-                        return exports||value;}
-                    else if (typeof value === "object") {
-                        var copied=false, fields=[];
-                        for (var field in value) {
-                            if (value.hasOwnProperty(field)) {
-                                var fieldval=value[field];
-                                var exportval=exportValue(fieldval,db);
-                                if (fieldval!==exportval) {
-                                    if (!(copied)) {
-                                        copied={};
-                                        if (fields.length) {
-                                            var j=0, jlim=fields.length;
-                                            while (j<jlim) {
-                                                var f=fields[j++];
-                                                copied[f]=value[f];}}}
-                                    copied[field]=exportval;}
-                                else if (copied) copied[field]=fieldval;
-                                else fields.push(field);}}
-                        return copied||value;}
-                    else return value;}
-                Ref.exportValue=exportValue;
-                RefDB.prototype.exportValue=function(val){
-                    return exportValue(val,this);};
-                
-                RefDB.prototype.load=function loadRefs(refs,callback,args){
-                    function docallback(){
-                        if (callback) {
-                            if (args) callback.apply(null,args);
-                            else callback();}}
-                    function load_ref(arg,loaded,storage){
-                        var ref=arg, content;
-                        if (typeof ref === "string")
-                            ref=db.ref(ref,false,true);
-                        if (!(ref)) {
-                            warn("Couldn't resolve ref to %s",arg);
-                            return;}
-                        else if (ref._live) return;
-                        loaded.push(ref);
-                        if (absrefs) content=storage[ref._id];
-                        else if (atid)
-                            content=storage[atid+"("+ref._id+")"];
-                        else {
-                            if (db.atid) atid=db.atid;
-                            else atid=db.atid=getatid(storage,db);
-                            content=storage[atid+"("+ref._id+")"];}
-                        if (!(content))
-                            warn("No item stored for %s",ref._id);
-                        else ref.Import(
-                            JSON.parse(content),false,REFLOAD|REFINDEX);}
-                    if (!(this.storage)) return;
-                    else if (this.storage instanceof Storage) {
-                        if (!(refs)) refs=[].concat(this.allrefs);
-                        else if (refs===true) {
-                            var all=this.storage["allids("+this.name+")"];
-                            if (all) refs=JSON.parse(all).concat(this.allrefs);
-                            else refs=[].concat(this.allrefs);}
-                        else if (refs instanceof Ref) refs=[refs];
-                        else if (typeof refs === "string") refs=[refs];
-                        else if (typeof refs.length === "undefined") refs=[refs];
-                        else {}
-                        var storage=this.storage; var loaded=this.loaded;
-                        var db=this, absrefs=this.absrefs, refmap=this.refs;
-                        var atid=false; var needrefs=[];
-                        var i=0, lim=refs.length; while (i<lim) {
-                            var refid=refs[i++], ref=refid;
-                            if (typeof refid === "string") ref=refmap[refid];
-                            if (!((ref instanceof Ref)&&(ref._live)))
-                                needrefs.push(refid);}
-                        if (needrefs.length) {
-                            var opts=((!(callback))?(false):
-                                      (args)?{done: docallback}:{done: callback});
-                            return fdjtAsync.slowmap(
-                                function(arg){load_ref(arg,loaded,storage);},
-                                needrefs,opts);}
-                        else {
-                            docallback();
-                            return new Promise(function(resolve){
-                                resolve(refs);});}}
-                    else if (this.storage instanceof indexedDB) {
-                        // Not yet implemented
-                        return;}
-                    else {}};
-                RefDB.prototype.loadref=function loadRef(ref,callback,args){
-                    if (typeof ref === "string") ref=this.ref(ref);
-                    if (ref._live) {
-                        if (callback) {
-                            if (args) callback.call(null,args);
-                            else callback();}}
-                    else this.load(ref,callback,args);
-                    return ref;};
-                Ref.prototype.load=function loadRef(callback,args) {
-                    if (this._live) return this;
-                    else {
-                        this._db.load(this,callback,args);
-                        return this;}};
-                RefDB.load=function RefDBload(spec,dbtype,callback,args){
-                    if (typeof spec === "string") {
-                        var ref=RefDB.resolve(spec,false,(dbtype||RefDB),true);
-                        if (ref) return ref.load(callback,args);
-                        else throw {error: "Couldn't resolve "+spec};}
-                    else if (spec instanceof Ref)
-                        return spec.load(callback,args);
-                    else if (spec instanceof Array) {
-                        var loads={}, dbs=[]; var i=0, lim=spec.length;
-                        while (i<lim) {
-                            var s=spec[i++]; var r=false;
-                            if (typeof s === "string")
-                                r=RefDB.resolve(s,false,dbtype||RefDB,true);
-                            else if (s instanceof Ref) r=s;
-                            if (!(r)||(r._live)) continue;
-                            var db=r._db, name=db.name;
-                            if (loads[name]) loads[name].push(r);
-                            else {
-                                loads[name]=[r];
-                                dbs.push(db);}}
-                        i=0; lim=dbs.length; while (i<lim) {
-                            var loadfrom=dbs[i++];
-                            loadfrom.load(loads[loadfrom.name],args);}
-                        return loads;}
-                    else return false;};
-                
-                RefDB.prototype.save=function saveRefs(refs,callback,updatechanges){
-                    var that=this;
-                    if (!(this.storage)) return;
-                    else if (refs===true) {
-                        return this.save(this.allrefs,function(){
-                            that.changed=false;
-                            that.changes=[];
-                            var pos=changed_dbs.indexOf(that);
-                            if (pos>=0) changed_dbs.splice(pos,1);
-                            if (callback) callback();});}
-                    else if (!(refs)) {
-                        return this.save(this.changes,function(){
-                            that.changed=false;
-                            that.changes=[];
-                            var pos=changed_dbs.indexOf(that);
-                            if (pos>=0) changed_dbs.splice(pos,1);
-                            if (callback) callback();});}
-                    else if (this.storage instanceof Storage) {
-                        var storage=this.storage;
-                        var atid=this.atid;
-                        var ids=[];
-                        var i=0, lim=refs.length; while (i<lim) {
-                            var ref=refs[i++];
-                            if (typeof ref === "string") ref=this.ref(ref);
-                            if (!(ref._live)) continue;
-                            if ((ref._saved)&&(!(ref._changed))) continue;
-                            var exported=ref.Export();
-                            exported._saved=fdjtTime.tick();
-                            if (this.absrefs) {
-                                ids.push(ref._id);
-                                storage.setItem(ref._id,JSON.stringify(exported));}
-                            else {
-                                if (atid) {}
-                                else if (ref.atid) atid=ref.atid;
-                                else atid=ref.atid=getatid(storage,ref);
-                                var id=atid+"("+ref._id+")"; ids.push(id);
-                                storage.setItem(id,JSON.stringify(exported));}
-                            ref._changed=false;}
-                        if (updatechanges) {
-                            var changes=this.changes, new_changes=[];
-                            var j=0, n_changed=changes.length;
-                            while (j<n_changed) {
-                                var c=changes[j++];
-                                if (c._changed) new_changes.push(c);}
-                            this.changes=new_changes;
-                            if (new_changes.length===0) {
-                                this.changed=false;
-                                var pos=changed_dbs.indexOf(that);
-                                if (pos>=0) changed_dbs.splice(pos,1);}}
-                        var allids=storage["allids("+this.name+")"];
-                        if (allids) allids=JSON.parse(allids); else allids=[];
-                        var n=allids.length;
-                        allids=merge(allids,ids);
-                        if (allids.length!==n) 
-                            storage.setItem("allids("+this.name+")",
-                                            JSON.stringify(allids));
-                        if (callback) setTimeout(callback,5);}
-                    else if (this.storage instanceof indexedDB) {
-                        // Not yet implemented
-                        return;}
-                    else {}};
-                Ref.prototype.save=function(callback){
-                    if (!(this._changed)) return this;
-                    else this._db.save([this],callback);};
-
-                function getatid(storage,db){
-                    if (db.atid) return db.atid;
-                    var atid=storage["atid("+db.name+")"];
-                    if (atid) {
-                        db.atid=atid;
-                        return atid;}
-                    else {
-                        var count=storage["atid.count"];
-                        if (!(count)) {
-                            atid=count=1; storage["atid.count"]="2";}
-                        else {
-                            count=parseInt(count,10);
-                            atid=db.atid="@@"+count;
-                            storage["atid("+db.name+")"]=atid;
-                            storage["atid.count"]=count+1;}
-                        return atid;}}
-                
-                function getKeyString(val,db){
-                    if (val instanceof Ref) {
-                        if (val._db===db) return "@"+val._id;
-                        else if (val._domain) return "@"+val._id+"@"+val._domain;
-                        else return "@"+val._id;}
-                    else if (typeof val === "number") 
-                        return "#"+val;
-                    else if (typeof val === "string")
-                        return "\""+val;
-                    else if (val.toJSON)
-                        return "{"+val.toJSON();
-                    else return "&"+val.toString();}
-                RefDB.getKeyString=getKeyString;
-                
-                Ref.prototype.indexRef=function indexRef(key,val,index,db){
-                    var keystrings=[]; var rdb=this._db;
-                    var refstring=
-                        (((!(db))||(rdb===db)||(rdb.absrefs))?(this._id):
-                         ((this._qid)||((this.getQID)&&(this.getQID()))));
-                    if (!(db)) db=rdb;
-                    var indices=db.indices;
-                    if (!(index))
-                        index=((indices.hasOwnProperty(key))&&(indices[key]));
-                    if (!(index)) {
-                        warn("No index on %s for %o in %o",key,this,db);
-                        return false;}
-                    if (val instanceof Ref) {
-                        if (rdb===val._db) keystrings=["@"+val._id];
-                        else keystrings=["@"+(val._qid||val.getQID())];}
-                    else if (val instanceof Array) {
-                        db=this._db;
-                        var i=0, lim=val.length; while (i<lim) {
-                            var elt=val[i++];
-                            if (elt instanceof Ref)
-                                keystrings.push("@"+(elt._qid||elt.getQID()));
-                            else if (typeof elt === "number") 
-                                keystrings=["#"+elt];
-                            else if (typeof elt === "string")
-                                keystrings=["\""+elt];
-                            else if (elt._qid)
-                                keystrings.push("@"+(elt._qid||elt.getQID()));
-                            else if (elt.getQID)
-                                keystrings.push("@"+(elt.getQID()));
-                            else {}}}
-                    else if (typeof val === "number") 
-                        keystrings=["#"+val];
-                    else if (typeof val === "string")
-                        keystrings=["\""+val];
-                    else keystrings=["?"+val.toString()];
-                    if (keystrings.length) {
-                        var j=0, jlim=keystrings.length; while (j<jlim) {
-                            var keystring=keystrings[j++];
-                            var refs=index[keystring];
-                            if (refs) refs.push(refstring);
-                            else index[keystring]=[refstring];}
-                        return keystrings.length;}
-                    else return false;};
-                Ref.prototype.dropIndexRef=function dropIndexRef(key,val,index,db){
-                    if (!(db)) db=this._db;
-                    if (!(index)) index=db.indices[key];
-                    if (!(index)) return false;
-                    var keystrings=[];
-                    if (val instanceof Ref) {
-                        if (this._db===val._db) keystrings=["@"+val._id];
-                        else keystrings=["@"+(val._qid||val.getQID())];}
-                    else if (val instanceof Array) {
-                        var i=0, lim=val.length; while (i<lim) {
-                            var elt=val[i++];
-                            if (elt instanceof Ref) 
-                                keystrings.push("@"+(elt._qid||elt.getQID()));
-                            else if (typeof elt === "number") 
-                                keystrings=["#"+val];
-                            else if (typeof elt === "string")
-                                keystrings=["\""+val];
-                            else if (elt._qid)
-                                keystrings.push("@"+(elt._qid||elt.getQID()));
-                            else if (elt.getQID)
-                                keystrings.push("@"+(elt.getQID()));
-                            else {}}}
-                    else if (typeof val === "number") 
-                        keystrings=["#"+val];
-                    else if (typeof val === "string")
-                        keystrings=["\""+val];
-                    else {}
-                    if (keystrings.length) {
-                        var deleted=0;
-                        var j=0, jlim=keystrings.length; while (j<jlim) {
-                            var keystring=keystrings[j++]; var refs=index[keystring];
-                            if (!(refs)) continue;
-                            var pos=refs.indexOf(this._id);
-                            if (pos<0) continue;
-                            else refs.splice(pos,1);
-                            if (refs.length===0) delete index[keystring];
-                            deleted++;}
-                        return deleted;}
-                    else return false;};
-
-                RefDB.prototype.find=function findIDs(key,value){
-                    var index=this.indices[key];
-                    if (index) {
-                        var items=index.getItem(value,this);
-                        if (items) return setify(items);
-                        else return [];}
-                    else return [];};
-                RefDB.prototype.findRefs=function findRefs(key,value){
-                    var index=this.indices[key];
-                    if (index) {
-                        var items=index.getItem(value,this), results=[];
-                        if (items) {
-                            var i=0, lim=items.length;
-                            while (i<lim) {
-                                var item=items[i++];
-                                if (!(item)) {}
-                                else if (typeof item === "string") {
-                                    var ref=this.probe(item);
-                                    if (ref) results.push(ref);}
-                                else results.push(item);}}
-                        return fdjtSet(results);}
-                    else return [];};
-                RefDB.prototype.count=function countRefs(key,value){
-                    var index=this.indices[key];
-                    if (index) {
-                        var vals=index.getItem(value,this);
-                        return ((vals)?(vals.length||0):(0));}
-                    else return 0;};
-                RefDB.prototype.addIndex=function addIndex(key,Constructor){
-                    if (!(Constructor)) Constructor=ObjectMap;
-                    if (!(this.indices.hasOwnProperty(key))) {
-                        var index=this.indices[key]=new Constructor();
-                        index.fordb=this;
-                        return index;}
-                    else return this.indices[key];};
-                
-                // Array utility functions
-                function arr_contains(arr,val,start){
-                    return (arr.indexOf(val,start||0)>=0);}
-                function arr_position(arr,val,start){
-                    return arr.indexOf(val,start||0);}
-
-                var id_counter=1;
-
-                /* Fast sets */
-                function set_sortfn(a,b) {
-                    if (a===b) return 0;
-                    else if (typeof a === typeof b) {
-                        if (typeof a === "number")
-                            return a-b;
-                        else if (typeof a === "string") {
-                            if (a<b) return -1;
-                            else return 1;}
-                        else if (a._qid) {
-                            if (b._qid) {
-                                if (a._qid<b._qid) return -1;
-                                else return 1;}
-                            else return -1;}
-                        else if (b._qid) return 1;
-                        else if ((a._fdjtid)&&(b._fdjtid)) {
-                            if ((a._fdjtid)<(b._fdjtid)) return -1;
-                            else return 1;}
-                        else return 0;}
-                    else if (typeof a < typeof b) return -1;
+    /* Fast sets */
+    function set_sortfn(a,b) {
+        if (a===b) return 0;
+        else if (typeof a === typeof b) {
+            if (typeof a === "number")
+                return a-b;
+            else if (typeof a === "string") {
+                if (a<b) return -1;
+                else return 1;}
+            else if (a._qid) {
+                if (b._qid) {
+                    if (a._qid<b._qid) return -1;
                     else return 1;}
-                RefDB.compare=set_sortfn;
+                else return -1;}
+            else if (b._qid) return 1;
+            else if ((a._fdjtid)&&(b._fdjtid)) {
+                if ((a._fdjtid)<(b._fdjtid)) return -1;
+                else return 1;}
+            else return 0;}
+        else if (typeof a < typeof b) return -1;
+        else return 1;}
+    RefDB.compare=set_sortfn;
 
-                function intersection(set1,set2){
-                    if (typeof set1 === 'string') set1=[set1];
-                    if (typeof set2 === 'string') set2=[set2];
-                    if ((!(set1))||(set1.length===0)) return [];
-                    if ((!(set2))||(set2.length===0)) return [];
-                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-                    var results=[];
-                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-                    var allstrings=set1._allstrings&&set2._allstrings;
-                    var new_allstrings=true;
-                    while ((i<len1) && (j<len2))
-                        if (set1[i]===set2[j]) {
-                            if ((new_allstrings)&&(typeof set1[i] !== 'string'))
-                                new_allstrings=false;
-                            results.push(set1[i]);
-                            i++; j++;}
-                    else if ((allstrings)?
-                             (set1[i]<set2[j]):
-                             (set_sortfn(set1[i],set2[j])<0)) i++;
-                    else j++;
-                    results._allstrings=new_allstrings;
-                    results._sortlen=results.length;
-                    return results;}
-                RefDB.intersection=intersection;
+    function intersection(set1,set2){
+        if (typeof set1 === 'string') set1=[set1];
+        if (typeof set2 === 'string') set2=[set2];
+        if ((!(set1))||(set1.length===0)) return [];
+        if ((!(set2))||(set2.length===0)) return [];
+        if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+        if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+        var results=[];
+        var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+        var allstrings=set1._allstrings&&set2._allstrings;
+        var new_allstrings=true;
+        while ((i<len1) && (j<len2))
+            if (set1[i]===set2[j]) {
+                if ((new_allstrings)&&(typeof set1[i] !== 'string'))
+                    new_allstrings=false;
+                results.push(set1[i]);
+                i++; j++;}
+        else if ((allstrings)?
+                 (set1[i]<set2[j]):
+                 (set_sortfn(set1[i],set2[j])<0)) i++;
+        else j++;
+        results._allstrings=new_allstrings;
+        results._sortlen=results.length;
+        return results;}
+    RefDB.intersection=intersection;
 
-                function difference(set1,set2){
-                    if (typeof set1 === 'string') set1=[set1];
-                    if (typeof set2 === 'string') set2=[set2];
-                    if ((!(set1))||(set1.length===0)) return [];
-                    if ((!(set2))||(set2.length===0)) return set1;
-                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-                    var results=[];
-                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-                    var allstrings=set1._allstrings&&set2._allstrings;
-                    var new_allstrings=true;
-                    while ((i<len1) && (j<len2)) {
-                        if (set1[i]===set2[j]) {
-                            i++; j++;}
-                        else if ((allstrings)?
-                                 (set1[i]<set2[j]):
-                                 (set_sortfn(set1[i],set2[j])<0)) {
-                            if ((new_allstrings)&&(typeof set1[i] !== 'string'))
-                                new_allstrings=false;
-                            results.push(set1[i]);
-                            i++;}
-                        else j++;}
-                    if ((!(new_allstrings))||(set1._allstrings)) 
-                        results=results.concat(set1.slice(i));
-                    else while (i<len1) {
-                        var elt=set1[i++];
-                        if ((new_allstrings)&&(typeof elt !== "string"))
-                            new_allstrings=false;
-                        results.push(elt);}
-                    results._allstrings=new_allstrings;
-                    results._sortlen=results.length;
-                    return results;}
-                RefDB.difference=difference;
-                
-                function union(set1,set2){
-                    if (typeof set1 === 'string') set1=[set1];
-                    if (typeof set2 === 'string') set2=[set2];
-                    if ((!(set1))||(set1.length===0)) return set2;
-                    if ((!(set2))||(set2.length===0)) return set1;
-                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-                    var results=[];
-                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-                    var allstrings=set1._allstrings&&set2._allstrings;
-                    while ((i<len1) && (j<len2))
-                        if (set1[i]===set2[j]) {
-                            results.push(set1[i]); i++; j++;}
-                    else if ((allstrings)?
-                             (set1[i]<set2[j]):
-                             (set_sortfn(set1[i],set2[j])<0))
-                        results.push(set1[i++]);
-                    else results.push(set2[j++]);
-                    while (i<len1) results.push(set1[i++]);
-                    while (j<len2) results.push(set2[j++]);
-                    results._allstrings=allstrings;
-                    results._sortlen=results.length;
-                    return results;}
-                RefDB.union=union;
+    function difference(set1,set2){
+        if (typeof set1 === 'string') set1=[set1];
+        if (typeof set2 === 'string') set2=[set2];
+        if ((!(set1))||(set1.length===0)) return [];
+        if ((!(set2))||(set2.length===0)) return set1;
+        if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+        if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+        var results=[];
+        var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+        var allstrings=set1._allstrings&&set2._allstrings;
+        var new_allstrings=true;
+        while ((i<len1) && (j<len2)) {
+            if (set1[i]===set2[j]) {
+                i++; j++;}
+            else if ((allstrings)?
+                     (set1[i]<set2[j]):
+                     (set_sortfn(set1[i],set2[j])<0)) {
+                if ((new_allstrings)&&(typeof set1[i] !== 'string'))
+                    new_allstrings=false;
+                results.push(set1[i]);
+                i++;}
+            else j++;}
+        if ((!(new_allstrings))||(set1._allstrings)) 
+            results=results.concat(set1.slice(i));
+        else while (i<len1) {
+            var elt=set1[i++];
+            if ((new_allstrings)&&(typeof elt !== "string"))
+                new_allstrings=false;
+            results.push(elt);}
+        results._allstrings=new_allstrings;
+        results._sortlen=results.length;
+        return results;}
+    RefDB.difference=difference;
+    
+    function union(set1,set2){
+        if (typeof set1 === 'string') set1=[set1];
+        if (typeof set2 === 'string') set2=[set2];
+        if ((!(set1))||(set1.length===0)) return set2;
+        if ((!(set2))||(set2.length===0)) return set1;
+        if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+        if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+        var results=[];
+        var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+        var allstrings=set1._allstrings&&set2._allstrings;
+        while ((i<len1) && (j<len2))
+            if (set1[i]===set2[j]) {
+                results.push(set1[i]); i++; j++;}
+        else if ((allstrings)?
+                 (set1[i]<set2[j]):
+                 (set_sortfn(set1[i],set2[j])<0))
+            results.push(set1[i++]);
+        else results.push(set2[j++]);
+        while (i<len1) results.push(set1[i++]);
+        while (j<len2) results.push(set2[j++]);
+        results._allstrings=allstrings;
+        results._sortlen=results.length;
+        return results;}
+    RefDB.union=union;
 
-                function merge(set1,set2){
-                    var merged=[]; merged._sortlen=0;
-                    if (!(set1 instanceof Array)) set1=[set1];
-                    if (!(set2 instanceof Array)) set2=[set2];
-                    if ((!(set1))||(set1.length===0)) {
-                        if ((!(set2))||(set2.length===0)) return merged;
-                        merged=merged.concat(set2);
-                        if (set2._sortlen) {
-                            merged._sortlen=set2._sortlen;
-                            merged._allstrings=set2._allstrings;
-                            return merged;}
-                        else return setify(merged);}
-                    else if ((!(set2))||(set2.length===0))
-                        return merge(set2,set1);
-                    if (set1._sortlen!==set1.length) set1=setify(set1);
-                    if (set2._sortlen!==set2.length) set2=setify(set2);
-                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-                    var allstrings=set1._allstrings&&set2._allstrings;
-                    while ((i<len1) && (j<len2))
-                        if (set1[i]===set2[j]) {
-                            merged.push(set1[i]); i++; j++;}
-                    else if ((allstrings)?
-                             (set1[i]<set2[j]):
-                             (set_sortfn(set1[i],set2[j])<0))
-                        merged.push(set1[i++]);
-                    else merged.push(set2[j++]);
-                    while (i<len1) merged.push(set1[i++]);
-                    while (j<len2) merged.push(set2[j++]);
-                    merged._allstrings=allstrings;
-                    merged._sortlen=merged.length;
-                    return merged;}
-                RefDB.merge=merge;
+    function merge(set1,set2){
+        var merged=[]; merged._sortlen=0;
+        if (!(set1 instanceof Array)) set1=[set1];
+        if (!(set2 instanceof Array)) set2=[set2];
+        if ((!(set1))||(set1.length===0)) {
+            if ((!(set2))||(set2.length===0)) return merged;
+            merged=merged.concat(set2);
+            if (set2._sortlen) {
+                merged._sortlen=set2._sortlen;
+                merged._allstrings=set2._allstrings;
+                return merged;}
+            else return setify(merged);}
+        else if ((!(set2))||(set2.length===0))
+            return merge(set2,set1);
+        if (set1._sortlen!==set1.length) set1=setify(set1);
+        if (set2._sortlen!==set2.length) set2=setify(set2);
+        var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+        var allstrings=set1._allstrings&&set2._allstrings;
+        while ((i<len1) && (j<len2))
+            if (set1[i]===set2[j]) {
+                merged.push(set1[i]); i++; j++;}
+        else if ((allstrings)?
+                 (set1[i]<set2[j]):
+                 (set_sortfn(set1[i],set2[j])<0))
+            merged.push(set1[i++]);
+        else merged.push(set2[j++]);
+        while (i<len1) merged.push(set1[i++]);
+        while (j<len2) merged.push(set2[j++]);
+        merged._allstrings=allstrings;
+        merged._sortlen=merged.length;
+        return merged;}
+    RefDB.merge=merge;
 
-                function overlaps(set1,set2){
-                    if (typeof set1 === 'string') set1=[set1];
-                    if (typeof set2 === 'string') set2=[set2];
-                    if ((!(set1))||(set1.length===0)) return false;
-                    if ((!(set2))||(set2.length===0)) return false;
-                    if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
-                    if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
-                    var i=0; var j=0; var len1=set1.length; var len2=set2.length;
-                    var allstrings=set1._allstrings&&set2._allstrings;
-                    while ((i<len1) && (j<len2))
-                        if (set1[i]===set2[j]) return true;
-                    else if ((allstrings)?
-                             (set1[i]<set2[j]):
-                             (set_sortfn(set1[i],set2[j])<0)) i++;
-                    else j++;
-                    return false;}
-                RefDB.overlaps=overlaps;
+    function overlaps(set1,set2){
+        if (typeof set1 === 'string') set1=[set1];
+        if (typeof set2 === 'string') set2=[set2];
+        if ((!(set1))||(set1.length===0)) return false;
+        if ((!(set2))||(set2.length===0)) return false;
+        if (set1._sortlen!==set1.length) set1=fdjtSet(set1);
+        if (set2._sortlen!==set2.length) set2=fdjtSet(set2);
+        var i=0; var j=0; var len1=set1.length; var len2=set2.length;
+        var allstrings=set1._allstrings&&set2._allstrings;
+        while ((i<len1) && (j<len2))
+            if (set1[i]===set2[j]) return true;
+        else if ((allstrings)?
+                 (set1[i]<set2[j]):
+                 (set_sortfn(set1[i],set2[j])<0)) i++;
+        else j++;
+        return false;}
+    RefDB.overlaps=overlaps;
 
-                /* Sets */
-                /* sets are really arrays that are sorted to simplify set operations.
-                   the ._sortlen property tells how much of the array is sorted */
-                function fdjtSet(arg){
-                    var result=[]; result._sortlen=0;
-                    if (arguments.length===0) return result;
-                    else if (arguments.length===1) {
-                        if (!(arg)) return result;
-                        else if (arg instanceof Array) {
-                            if ((!(arg.length))||(arg._sortlen===arg.length))
-                                return arg;
-                            else if (typeof arg._sortlen === "number")
-                                return setify(arg);
-                            else return setify([].concat(arg));}
-                        else {
-                            result=[arg]; 
-                            if (typeof arg === 'string') result._allstrings=true;
-                            result._sortlen=1;
-                            return result;}}
-                    else {
-                        result=[];
-                        for (arg in arguments)
-                            if (!(arg)) {}
-                        else if (arg instanceof Array)
-                            result=result.concat(arg);
-                        else result.push(arg);
-                        return setify(result);}}
-                RefDB.Set=fdjtSet;
-                fdjt.Set=fdjtSet;
-                RefDB.toSet=fdjtSet;
+    /* Sets */
+    /* sets are really arrays that are sorted to simplify
+       set operations.  the ._sortlen property tells how
+       much of the array is sorted */
+    function fdjtSet(arg){
+        var result=[]; result._sortlen=0;
+        if (arguments.length===0) return result;
+        else if (arguments.length===1) {
+            if (!(arg)) return result;
+            else if (arg instanceof Array) {
+                if ((!(arg.length))||(arg._sortlen===arg.length))
+                    return arg;
+                else if (typeof arg._sortlen === "number")
+                    return setify(arg);
+                else return setify([].concat(arg));}
+            else {
+                result=[arg]; 
+                if (typeof arg === 'string') result._allstrings=true;
+                result._sortlen=1;
+                return result;}}
+        else {
+            result=[];
+            for (arg in arguments)
+                if (!(arg)) {}
+            else if (arg instanceof Array)
+                result=result.concat(arg);
+            else result.push(arg);
+            return setify(result);}}
+    RefDB.Set=fdjtSet;
+    fdjt.Set=fdjtSet;
+    RefDB.toSet=fdjtSet;
 
-                function setify(array) {
-                    var len;
-                    if (array._sortlen===(len=array.length)) return array;
-                    // else if ((array._sortlen)&&(array._sortlen>1))
-                    else if (len===0) {
-                        array._sortlen=0;
-                        return array;}
-                    else if (len===1) {
-                        var elt1=array[0];
-                        array._sortlen=1;
-                        array._allstrings=(typeof elt1 === 'string');
-                        if (typeof elt === "object") {
-                            if ((elt1._qid)||(elt1._fdjtid)) {}
-                            else if (elt1.getQID) elt1._qid=elt1.getQID();
-                            else elt1._fdjtid=++id_counter;}
-                        return array;}
-                    else {
-                        var allstrings=true;
-                        var i=0, lim=array.length;
-                        while (i<lim) {
-                            var elt=array[i++];
-                            if ((allstrings)&&(typeof elt !== 'string')) {
-                                allstrings=false;
-                                if (typeof elt === "object") {
-                                    if ((elt._qid)||(elt._fdjtid)) {}
-                                    else if (elt.getQID) elt._qid=elt.getQID();
-                                    else elt._fdjtid=++id_counter;}}}
-                        array._allstrings=allstrings;
-                        if (lim===1) return array;
-                        if (allstrings) array.sort();
-                        else array.sort(set_sortfn);
-                        // Now remove duplicates
-                        var read=1; var write=1; var readlim=array.length;
-                        var cur=array[0];
-                        while (read<readlim) {
-                            if (array[read]!==cur) {
-                                array[write++]=cur=array[read++];}
-                            else read++;}
-                        array._sortlen=array.length=write;
-                        return array;}}
-                
-                function set_add(set,val) {
-                    if (val instanceof Array) {
-                        var changed=false;
-                        for (var elt in val) 
-                            if (set_add(set,elt)) changed=true;
-                        return changed;}
-                    else if (set.indexOf) {
-                        var pos=set.indexOf(val);
-                        if (pos>=0) return false;
-                        else set.push(val);
-                        return true;}
-                    else {
-                        var i=0; var lim=set.length;
-                        while (i<lim)
-                            if (set[i]===val) return false; else i++;
-                        if (typeof val !== 'string') set._allstrings=false;
-                        set.push(val);
-                        return true;}}
-                
-                function set_drop(set,val) {
-                    if (val instanceof Array) {
-                        var changed=false;
-                        for (var elt in val)
-                            if (set_drop(set,elt)) changed=true;
-                        return changed;}
-                    else if (set.indexOf) {
-                        var pos=set.indexOf(val);
-                        if (pos<0) return false;
-                        else set.splice(pos,1);
-                        return true;}
-                    else {
-                        var i=0; var lim=set.length;
-                        while (i<lim)
-                            if (set[i]===val) {
-                                set.splice(i,1);
-                                return true;}
-                        else i++;
-                        return false;}}
-                
-                /* Refs */
+    function setify(array) {
+        var len;
+        if (array._sortlen===(len=array.length)) return array;
+        // else if ((array._sortlen)&&(array._sortlen>1))
+        else if (len===0) {
+            array._sortlen=0;
+            return array;}
+        else if (len===1) {
+            var elt1=array[0];
+            array._sortlen=1;
+            array._allstrings=(typeof elt1 === 'string');
+            if (typeof elt === "object") {
+                if ((elt1._qid)||(elt1._fdjtid)) {}
+                else if (elt1.getQID) elt1._qid=elt1.getQID();
+                else elt1._fdjtid=++id_counter;}
+            return array;}
+        else {
+            var allstrings=true;
+            var i=0, lim=array.length;
+            while (i<lim) {
+                var elt=array[i++];
+                if ((allstrings)&&(typeof elt !== 'string')) {
+                    allstrings=false;
+                    if (typeof elt === "object") {
+                        if ((elt._qid)||(elt._fdjtid)) {}
+                        else if (elt.getQID) elt._qid=elt.getQID();
+                        else elt._fdjtid=++id_counter;}}}
+            array._allstrings=allstrings;
+            if (lim===1) return array;
+            if (allstrings) array.sort();
+            else array.sort(set_sortfn);
+            // Now remove duplicates
+            var read=1; var write=1; var readlim=array.length;
+            var cur=array[0];
+            while (read<readlim) {
+                if (array[read]!==cur) {
+                    array[write++]=cur=array[read++];}
+                else read++;}
+            array._sortlen=array.length=write;
+            return array;}}
+    
+    function set_add(set,val) {
+        if (val instanceof Array) {
+            var changed=false;
+            for (var elt in val) 
+                if (set_add(set,elt)) changed=true;
+            return changed;}
+        else if (set.indexOf) {
+            var pos=set.indexOf(val);
+            if (pos>=0) return false;
+            else set.push(val);
+            return true;}
+        else {
+            var i=0; var lim=set.length;
+            while (i<lim)
+                if (set[i]===val) return false; else i++;
+            if (typeof val !== 'string') set._allstrings=false;
+            set.push(val);
+            return true;}}
+    
+    function set_drop(set,val) {
+        if (val instanceof Array) {
+            var changed=false;
+            for (var elt in val)
+                if (set_drop(set,elt)) changed=true;
+            return changed;}
+        else if (set.indexOf) {
+            var pos=set.indexOf(val);
+            if (pos<0) return false;
+            else set.splice(pos,1);
+            return true;}
+        else {
+            var i=0; var lim=set.length;
+            while (i<lim)
+                if (set[i]===val) {
+                    set.splice(i,1);
+                    return true;}
+            else i++;
+            return false;}}
+    
+    /* Refs */
 
-                Ref.prototype.get=function refGet(prop){
-                    if (this.hasOwnProperty(prop)) return this[prop];
-                    else if (this._live) return false;
-                    else return undefined;};
-                Ref.prototype.getSet=function refGetSet(prop){
-                    if (this.hasOwnProperty(prop)) {
-                        var val=this[prop];
-                        if (val instanceof Array) {
-                            if (val._sortlen===val.length) return val;
-                            else return setify(val);}
-                        else return setify([val]);}
-                    else if (this._live) return [];
-                    else return undefined;};
-                Ref.prototype.getArray=function refGetArray(prop){
-                    if (this.hasOwnProperty(prop)) {
-                        var val=this[prop];
-                        if (val instanceof Array) return val;
-                        else return [val];}
-                    else if (this._live) return [];
-                    else return undefined;};
-                Ref.prototype.add=function refAdd(prop,val,index){
-                    var db=this._db;
-                    if (typeof index === "undefined") {
-                        if (db.indices.hasOwnProperty(prop)) index=true;
-                        else index=false;}
-                    else if ((index)&&(!(db.indices.hasOwnProperty(prop)))) {
-                        // fdjtLog("Creating index on %s for %o",prop,db);
-                        db.addIndex(prop);}
-                    else {}
-                    if ((val instanceof Array)&&(val._sortlen===0))
-                        return;
-                    else if ((!(this._live))&&(this._db.storage)) {
-                        var that=this;
-                        if (this._onload)
-                            this._onload.push(function(){that.add(prop,val);});
-                        else this._onload=[function(){that.add(prop,val);}];
-                        return this;}
-                    else if ((val instanceof Array)&&
-                             (typeof val._sortlen === "number")) {
-                        var i=0, lim=val.length; while (i<lim) {
-                            this.add(prop,val[i++],index);}
-                        return;}
-                    else if (prop==="aliases") {
-                        if (db.refs[val]===this) return false;
-                        else if (db.altrefs[val]===this) return false;
-                        else {
-                            db.altrefs[val]=this;
-                            if (this.aliases) this.aliases.push(val);
-                            else this.aliases=[val];}}
-                    else if (this.hasOwnProperty(prop)) {
-                        var cur=this[prop];
-                        if (cur===val) return false;
-                        else if (cur instanceof Array) {
-                            if (!(set_add(cur,val))) return false;
-                            else {}}
-                        else this[prop]=fdjtSet([cur,val]);}
-                    else if ((val instanceof Array)&&
-                             (typeof val._sortlen !== "number"))
-                        this[prop]=fdjtSet([val]);
-                    else this[prop]=val;
-                    // If we've gotten through to here, we've made a change,
-                    //  so we update the change structures, run any add methods
-                    //  and index if appropriate
-                    if (!(this._changed)) {
-                        var now=fdjtTime();
-                        if (db.changed) {
-                            db.changed=now;
-                            changed_dbs.push(db);}
-                        this._changed=now;
-                        db.changes.push(this);}
-                    if (db.onadd.hasOwnProperty(prop))
-                        (db.onadd[prop])(this,prop,val);
-                    if ((index)&&(db.indices[prop]))
-                        this.indexRef(prop,this[prop],db.indices[prop]);
-                    return true;};
-                Ref.prototype.drop=function refDrop(prop,val,dropindex){
-                    var db=this._db;
-                    if (typeof dropindex === "undefined")
-                        dropindex=true;
-                    if (prop==='_id') return false;
-                    else if ((!(this._live))&&(this._db.storage)) {
-                        if (db.storage instanceof Storage) {
-                            this.load().then(function(){return this.drop(prop,val);});}
-                        else {
-                            return undefined;}}
-                    else if (this.hasOwnProperty(prop)) {
-                        var cur=this[prop];
-                        if (cur===val) delete this[prop];
-                        else if (cur instanceof Array) {
-                            if (!(set_drop(cur,val))) return false;
-                            if (cur.length===0) delete this[prop];}
-                        else return false;
-                        if (db.ondrop.hasOwnProperty(prop)) 
-                            (db.ondrop[prop])(this,prop,val);
-                        if (!(this._changed)) {
-                            var now=fdjtTime();
-                            if (db.changed) {db.changed=now; changed_dbs.push(db);}
-                            this._changed=now;
-                            db.changes.push(this);}
-                        if ((dropindex)&&(db.indices[prop])) 
-                            this.indexRefDrop(prop,db.indices[prop]);
-                        return true;}
-                    else return false;};
-                Ref.prototype.test=function(prop,val){
-                    if (this.hasOwnProperty(prop)) {
-                        if (typeof val === 'undefined') return true;
-                        var cur=this[prop];
-                        if (cur===val) return true;
-                        else if (cur instanceof Array) {
-                            if (arr_contains(cur,val)) return true;
-                            else if (this._live) return false;
-                            else return undefined;}
-                        else if (this._live) return false;
-                        else return undefined;}
-                    else if (this._live) return false;
-                    else return undefined;};
-                Ref.prototype.store=function(prop,val){
-                    var toadd=[], todrop=[];
-                    if (this.hasOwnProperty(prop)) {
-                        var cur=this[prop];
-                        if (cur===val) return false;
-                        else {
-                            toadd=difference(val,cur);
-                            todrop=difference(cur,val);}}
-                    else if (val instanceof Array)
-                        toadd=val;
-                    else toadd=[val];
-                    var i=0, lim=todrop.length;
-                    while (i<lim) this.drop(prop,todrop[i++]);
-                    i=0; lim=toadd.length; while (i<lim) this.add(prop,toadd[i++]);
-                    return true;};
+    Ref.prototype.get=function refGet(prop){
+        if (this.hasOwnProperty(prop)) return this[prop];
+        else if (this._live) return false;
+        else return undefined;};
+    Ref.prototype.getSet=function refGetSet(prop){
+        if (this.hasOwnProperty(prop)) {
+            var val=this[prop];
+            if (val instanceof Array) {
+                if (val._sortlen===val.length) return val;
+                else return setify(val);}
+            else return setify([val]);}
+        else if (this._live) return [];
+        else return undefined;};
+    Ref.prototype.getArray=function refGetArray(prop){
+        if (this.hasOwnProperty(prop)) {
+            var val=this[prop];
+            if (val instanceof Array) return val;
+            else return [val];}
+        else if (this._live) return [];
+        else return undefined;};
+    Ref.prototype.getValue=function refGet(prop){
+        var ref=this; function getting(resolve,reject){
+            if (ref.hasOwnProperty(prop))
+                return resolve(ref[prop]);
+            else if (ref._live) return resolve(undefined);
+            else if (ref._db.storage)
+                return ref.load().then(function(r){
+                    return resolve(r[prop]);})
+                .catch(reject);
+            else return resolve(undefined);}
+        return new Promise(getting);};
+    function setCall(fn,val){
+        if (Array.isArray(val)) {
+            if ((val._sortlen)&&(val._sortlen===val.length))
+                return fn(val);
+            else return fn(setify(val));}
+        else return fn([val]);}
+    Ref.prototype.getValues=function refGet(prop){
+        var ref=this;
+        function getting(resolve,reject){
+            ref.getValue(prop).then(function(val){
+                return setCall(resolve,val);})
+                .catch(reject);}
+        return new Promise(getting);};
 
-                Ref.prototype.toHTML=function(){
-                    var dom=false;
-                    return ((this._db.forHTML)&&(this._db.forHTML(this)))||
-                        ((this._db.forDOM)&&(dom=this._db.forDOM(this))&&
-                         (dom.outerHTML))||
-                        this._id||this.oid||this.uuid;};
-                Ref.prototype.toDOM=function(){
-                    return ((this._db.forDOM)&&(this._db.forDOM(this)))||
-                        ((this._db.forHTML)&&(fdjtDOM(this._db.forHTML(this))))||
-                        (fdjtDOM("span.fdjtref",this._id||this.oid||this.uuid));};
+    Ref.prototype.add=function refAdd(prop,val,index){
+        var ref=this, db=this._db;
+        function handle_add(resolved){
+            if ((val instanceof Array)&&
+                (typeof val._sortlen === "number")) {
+                var i=0, lim=val.length; while (i<lim) {
+                    ref.add(prop,val[i++],index);}}
+            else if (prop==="aliases") {
+                if ((db.refs[val]===ref)||
+                    (db.altrefs[val]===ref))
+                    return ((resolved)&&(resolved(false)));
+                else {
+                    db.altrefs[val]=ref;
+                    if (ref.aliases) ref.aliases.push(val);
+                    else ref.aliases=[val];
+                    return (resolved)&&(resolved(true));}}
+            else if (ref.hasOwnProperty(prop)) {
+                var cur=ref[prop];
+                if (cur===val)
+                    return (resolved)&&(resolved(false));
+                else if (cur instanceof Array) {
+                    if (!(set_add(cur,val)))
+                        return (resolved)&&(resolved(false));
+                    else {}}
+                else ref[prop]=fdjtSet([cur,val]);}
+            else if ((val instanceof Array)&&
+                     (typeof val._sortlen !== "number"))
+                ref[prop]=fdjtSet([val]);
+            else ref[prop]=val;
+            // If we've gotten through to here, we've made a change,
+            //  so we update the change structures, run any add methods
+            //  and index if appropriate
+            if (!(ref._changed)) {
+                var now=fdjtTime();
+                if (!(db.changed)) changed_dbs.push(db);
+                db.changed=now;
+                ref._changed=now;
+                db.changes.push(ref);}
+            if (db.onadd.hasOwnProperty(prop))
+                (db.onadd[prop])(ref,prop,val);
+            if ((index)&&(db.indices[prop]))
+                ref.indexRef(prop,ref[prop],db.indices[prop]);
+            if (resolved) resolved(true);}
+        function add_onload(){handle_add(false);}
+        if (typeof index === "undefined") {
+            if (db.indices.hasOwnProperty(prop)) index=true;
+            else index=false;}
+        else if ((index)&&(!(db.indices.hasOwnProperty(prop)))) {
+            // fdjtLog("Creating index on %s for %o",prop,db);
+            db.addIndex(prop);}
+        else {}
+        if ((val instanceof Array)&&(val._sortlen===0))
+            return new Promise(function(resolve){return resolve(false);});
+        else if ((!(this._live))&&(this._db.storage)) {
+            if (this._onload) this._onload.push(add_onload);
+            else this._onload=[add_onload];
+            return this.load();}
+        else return new Promise(handle_add);};
+    Ref.prototype.drop=function refDrop(prop,val,dropindex){
+        var ref=this, db=this._db;
+        function handle_drop(resolved){
+            if (ref.hasOwnProperty(prop)) {
+                var cur=ref[prop];
+                if (cur===val) delete ref[prop];
+                else if (cur instanceof Array) {
+                    if (!(set_drop(cur,val)))
+                        return (resolved)&&(resolved(false));
+                    if (cur.length===0) delete ref[prop];}
+                else return (resolved)&&(resolved(false));}
+            else return (resolved)&&(resolved(false));
+            if (db.ondrop.hasOwnProperty(prop)) 
+                (db.ondrop[prop])(ref,prop,val);
+            if (!(ref._changed)) {
+                var now=fdjtTime();
+                if (db.changed) {db.changed=now; changed_dbs.push(db);}
+                ref._changed=now;
+                db.changes.push(ref);}
+            if ((dropindex)&&(db.indices[prop])) 
+                ref.indexRefDrop(prop,db.indices[prop]);
+            return (resolved)&&(resolved(true));}
+        function drop_onload(){handle_drop(false);}
+        if (typeof dropindex === "undefined") dropindex=true;
+        if (prop==='_id')
+            return new Promise(function(resolved){resolved(false);});
+        else if ((!(this._live))&&(this._db.storage)) {
+            if (this._onload) this._onload.push(drop_onload);
+            else this._onload=[drop_onload];
+            return this.load();}
+        else return new Promise(handle_drop);};
+    Ref.prototype.test=function(prop,val){
+        if (this.hasOwnProperty(prop)) {
+            if (typeof val === 'undefined') return true;
+            var cur=this[prop];
+            if (cur===val) return true;
+            else if (cur instanceof Array) {
+                if (arr_contains(cur,val)) return true;
+                else if (this._live) return false;
+                else return undefined;}
+            else if (this._live) return false;
+            else return undefined;}
+        else if (this._live) return false;
+        else return undefined;};
+    Ref.prototype.store=function(prop,val){
+        var toadd=[], todrop=[];
+        if (this.hasOwnProperty(prop)) {
+            var cur=this[prop];
+            if (cur===val) return false;
+            else {
+                toadd=difference(val,cur);
+                todrop=difference(cur,val);}}
+        else if (val instanceof Array)
+            toadd=val;
+        else toadd=[val];
+        var i=0, lim=todrop.length;
+        while (i<lim) this.drop(prop,todrop[i++]);
+        i=0; lim=toadd.length; while (i<lim) this.add(prop,toadd[i++]);
+        return true;};
 
-                /* Maps */
+    Ref.prototype.toHTML=function(){
+        var dom=false;
+        return ((this._db.forHTML)&&(this._db.forHTML(this)))||
+            ((this._db.forDOM)&&(dom=this._db.forDOM(this))&&
+             (dom.outerHTML))||
+            this._id||this.oid||this.uuid;};
+    Ref.prototype.toDOM=function(){
+        return ((this._db.forDOM)&&(this._db.forDOM(this)))||
+            ((this._db.forHTML)&&(fdjtDOM(this._db.forHTML(this))))||
+            (fdjtDOM("span.fdjtref",this._id||this.oid||this.uuid));};
 
-                function ObjectMap() {return this;}
-                ObjectMap.prototype.get=function ObjectMapGet(key) {
-                    var keystring=getKeyString(key,this.fordb);
-                    if (this.hasOwnProperty(keystring))
-                        return this[keystring];
-                    else if (typeof key === "string")
-                        // This is helpful for debugging
-                        return this[key]||this["@"+key];
-                    else return undefined;};
-                ObjectMap.prototype.getItem=ObjectMap.prototype.get;
-                ObjectMap.prototype.set=function(key,val) {
-                    var keystring=getKeyString(key,this.fordb);
-                    if (val instanceof Array)
-                        this[keystring]=[val];
-                    else this[keystring]=val;};
-                ObjectMap.prototype.setItem=ObjectMap.prototype.set;
-                ObjectMap.prototype.increment=function(key,delta) {
-                    var keystring=getKeyString(key,this.fordb);
-                    var cur=this[keystring], next;
-                    if (cur) this[keystring]=next=cur+delta;
-                    else this[keystring]=next=delta;
-                    return next;};
-                ObjectMap.prototype.add=function(key,val) {
-                    var keystring=getKeyString(key,this.fordb);
-                    if (this.hasOwnProperty(keystring)) {
-                        var cur=this[keystring];
-                        if (cur===val) return false;
-                        else if (cur instanceof Array) {
-                            if (arr_contains(cur,val)) return false;
-                            else {cur.push(val); return true;}}
-                        else if (val instanceof Array) {
-                            this[keystring]=setify([cur,val]);
-                            return true;}
-                        else {
-                            this[keystring]=setify([cur,val]);
-                            return true;}}
-                    else if (val instanceof Array) 
-                        this[keystring]=setify([val]);
-                    else this[keystring]=val;};
-                ObjectMap.prototype.drop=function(key,val) {
-                    var keystring=getKeyString(key,this.fordb);
-                    if (this.hasOwnProperty(keystring)) {
-                        var cur=this[keystring];
-                        if (cur===val) {
-                            delete this[keystring];
-                            return true;}
-                        else if (cur instanceof Array) {
-                            var pos=cur.indexOf(val);
-                            if (pos<0) return false;
-                            cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
-                            if (cur.length===1) {
-                                if (!(cur[0] instanceof Array))
-                                    this[keystring]=cur[0];}
-                            return true;}
-                        else return false;}
-                    else return false;};
-                fdjt.Map=ObjectMap;
-                RefDB.ObjectMap=ObjectMap;
-                RefDB.fdjtMap=ObjectMap;
+    /* Maps */
 
-                function StringMap() {return this;}
-                StringMap.prototype.get=function StringMapGet(keystring) {
-                    if (typeof keystring !== "string") return undefined;
-                    if (this.hasOwnProperty(keystring))
-                        return this[keystring];
-                    else return undefined;};
-                StringMap.prototype.getItem=StringMap.prototype.get;
-                StringMap.prototype.set=function(keystring,val) {
-                    if (typeof keystring !== "string") return;
-                    if (val instanceof Array)
-                        this[keystring]=[val];
-                    else this[keystring]=val;};
-                StringMap.prototype.setItem=StringMap.prototype.set;
-                StringMap.prototype.increment=function(keystring,delta) {
-                    if (typeof keystring !== "string") return;
-                    var cur=this[keystring], next;
-                    if (cur) this[keystring]=next=cur+delta;
-                    else this[keystring]=next=delta;
-                    return next;};
-                StringMap.prototype.add=function(keystring,val) {
-                    if (typeof keystring !== "string") return;
-                    if (this.hasOwnProperty(keystring)) {
-                        var cur=this[keystring];
-                        if (cur===val) return false;
-                        else if (cur instanceof Array) {
-                            if (arr_contains(cur,val)) return false;
-                            else {cur.push(val); return true;}}
-                        else if (val instanceof Array) {
-                            this[keystring]=setify([cur,val]);
-                            return true;}
-                        else {
-                            this[keystring]=setify([cur,val]);
-                            return true;}}
-                    else if (val instanceof Array) 
-                        this[keystring]=setify([val]);
-                    else this[keystring]=val;};
-                StringMap.prototype.drop=function(keystring,val) {
-                    if (typeof keystring !== "string") return;
-                    if (this.hasOwnProperty(keystring)) {
-                        var cur=this[keystring];
-                        if (cur===val) {
-                            delete this[keystring];
-                            return true;}
-                        else if (cur instanceof Array) {
-                            var pos=cur.indexOf(val);
-                            if (pos<0) return false;
-                            cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
-                            if (cur.length===1) {
-                                if (!(cur[0] instanceof Array))
-                                    this[keystring]=cur[0];}
-                            return true;}
-                        else return false;}
-                    else return false;};
-                fdjt.StringMap=StringMap;
-                RefDB.StringMap=StringMap;
+    function ObjectMap() {return this;}
+    ObjectMap.prototype.get=function ObjectMapGet(key) {
+        var keystring=getKeyString(key,this.fordb);
+        if (this.hasOwnProperty(keystring))
+            return this[keystring];
+        else if (typeof key === "string")
+            // This is helpful for debugging
+            return this[key]||this["@"+key];
+        else return undefined;};
+    ObjectMap.prototype.getItem=ObjectMap.prototype.get;
+    ObjectMap.prototype.set=function(key,val) {
+        var keystring=getKeyString(key,this.fordb);
+        if (val instanceof Array)
+            this[keystring]=[val];
+        else this[keystring]=val;};
+    ObjectMap.prototype.setItem=ObjectMap.prototype.set;
+    ObjectMap.prototype.increment=function(key,delta) {
+        var keystring=getKeyString(key,this.fordb);
+        var cur=this[keystring], next;
+        if (cur) this[keystring]=next=cur+delta;
+        else this[keystring]=next=delta;
+        return next;};
+    ObjectMap.prototype.add=function(key,val) {
+        var keystring=getKeyString(key,this.fordb);
+        if (this.hasOwnProperty(keystring)) {
+            var cur=this[keystring];
+            if (cur===val) return false;
+            else if (cur instanceof Array) {
+                if (arr_contains(cur,val)) return false;
+                else {cur.push(val); return true;}}
+            else if (val instanceof Array) {
+                this[keystring]=setify([cur,val]);
+                return true;}
+            else {
+                this[keystring]=setify([cur,val]);
+                return true;}}
+        else if (val instanceof Array) 
+            this[keystring]=setify([val]);
+        else this[keystring]=val;};
+    ObjectMap.prototype.drop=function(key,val) {
+        var keystring=getKeyString(key,this.fordb);
+        if (this.hasOwnProperty(keystring)) {
+            var cur=this[keystring];
+            if (cur===val) {
+                delete this[keystring];
+                return true;}
+            else if (cur instanceof Array) {
+                var pos=cur.indexOf(val);
+                if (pos<0) return false;
+                cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
+                if (cur.length===1) {
+                    if (!(cur[0] instanceof Array))
+                        this[keystring]=cur[0];}
+                return true;}
+            else return false;}
+        else return false;};
+    fdjt.Map=ObjectMap;
+    RefDB.ObjectMap=ObjectMap;
+    RefDB.fdjtMap=ObjectMap;
 
-                function RefMap(db) {this._db=db; return this;}
-                RefMap.prototype.get=function(key){
-                    if (typeof key === "string") {
-                        if (this.hasOwnProperty(key)) return this[key];
-                        else return undefined;}
-                    else if (key instanceof Ref) {
-                        var id=((this.uniqueids)&&key._id)||key._qid||key.getQID();
-                        return this[id];}
-                    else return undefined;};
-                RefMap.prototype.set=function(key,val){
-                    if (typeof key === "string") this[key]=val;
-                    else if (key instanceof Ref) {
-                        var id=key._qid||((this.uniqueid)&&key._id)||key.getQID();
-                        this[id]=val;}
-                    else return false;};
-                RefMap.prototype.increment=function(key,delta){
-                    if (typeof key === "string") {
-                        if (this.hasOwnProperty(key))
-                            this[key]=this[key]+delta;
-                        else this[key]=delta;}
-                    else if (key instanceof Ref) {
-                        var id=key._qid||((this.uniqueids)&&key._id)||key.getQID();
-                        this[id]=(this[id]||0)+delta;}
-                    else return false;};
-                fdjt.RefMap=RefDB.RefMap=RefMap;
-                
-                /* Miscellaneous array and table functions */
+    function StringMap() {return this;}
+    StringMap.prototype.get=function StringMapGet(keystring) {
+        if (typeof keystring !== "string") return undefined;
+        if (this.hasOwnProperty(keystring))
+            return this[keystring];
+        else return undefined;};
+    StringMap.prototype.getItem=StringMap.prototype.get;
+    StringMap.prototype.set=function(keystring,val) {
+        if (typeof keystring !== "string") return;
+        if (val instanceof Array)
+            this[keystring]=[val];
+        else this[keystring]=val;};
+    StringMap.prototype.setItem=StringMap.prototype.set;
+    StringMap.prototype.increment=function(keystring,delta) {
+        if (typeof keystring !== "string") return;
+        var cur=this[keystring], next;
+        if (cur) this[keystring]=next=cur+delta;
+        else this[keystring]=next=delta;
+        return next;};
+    StringMap.prototype.add=function(keystring,val) {
+        if (typeof keystring !== "string") return;
+        if (this.hasOwnProperty(keystring)) {
+            var cur=this[keystring];
+            if (cur===val) return false;
+            else if (cur instanceof Array) {
+                if (arr_contains(cur,val)) return false;
+                else {cur.push(val); return true;}}
+            else if (val instanceof Array) {
+                this[keystring]=setify([cur,val]);
+                return true;}
+            else {
+                this[keystring]=setify([cur,val]);
+                return true;}}
+        else if (val instanceof Array) 
+            this[keystring]=setify([val]);
+        else this[keystring]=val;};
+    StringMap.prototype.drop=function(keystring,val) {
+        if (typeof keystring !== "string") return;
+        if (this.hasOwnProperty(keystring)) {
+            var cur=this[keystring];
+            if (cur===val) {
+                delete this[keystring];
+                return true;}
+            else if (cur instanceof Array) {
+                var pos=cur.indexOf(val);
+                if (pos<0) return false;
+                cur.splice(pos,1); if (cur._sortlen) cur._sortlen--;
+                if (cur.length===1) {
+                    if (!(cur[0] instanceof Array))
+                        this[keystring]=cur[0];}
+                return true;}
+            else return false;}
+        else return false;};
+    fdjt.StringMap=StringMap;
+    RefDB.StringMap=StringMap;
 
-                RefDB.add=function(obj,field,val,nodup){
-                    if (arguments.length===2)
-                        return set_add(obj,field);
-                    else if (obj instanceof Ref)
-                        return obj.add.apply(obj,arguments);
-                    else if (nodup) 
-                        if (obj.hasOwnProperty(field)) {
-                            var vals=obj[field];
-                            if (!(arr_contains(vals,val))) obj[field].push(val);
-                            else {}}
-                    else obj[field]=new Array(val);
-                    else if (obj.hasOwnProperty(field))
-                        obj[field].push(val);
-                    else obj[field]=new Array(val);
-                    if ((obj._all) && (!(arr_contains(obj._all,field))))
-                        obj._all.push(field);};
+    function RefMap(db) {this._db=db; return this;}
+    RefMap.prototype.get=function(key){
+        if (typeof key === "string") {
+            if (this.hasOwnProperty(key)) return this[key];
+            else return undefined;}
+        else if (key instanceof Ref) {
+            var id=((this.uniqueids)&&key._id)||key._qid||key.getQID();
+            return this[id];}
+        else return undefined;};
+    RefMap.prototype.set=function(key,val){
+        if (typeof key === "string") this[key]=val;
+        else if (key instanceof Ref) {
+            var id=key._qid||((this.uniqueid)&&key._id)||key.getQID();
+            this[id]=val;}
+        else return false;};
+    RefMap.prototype.increment=function(key,delta){
+        if (typeof key === "string") {
+            if (this.hasOwnProperty(key))
+                this[key]=this[key]+delta;
+            else this[key]=delta;}
+        else if (key instanceof Ref) {
+            var id=key._qid||((this.uniqueids)&&key._id)||key.getQID();
+            this[id]=(this[id]||0)+delta;}
+        else return false;};
+    fdjt.RefMap=RefDB.RefMap=RefMap;
+    
+    /* Miscellaneous array and table functions */
 
-                RefDB.drop=function(obj,field,val){
-                    if (arguments.length===2)
-                        return set_drop(obj,field);
-                    else if (obj instanceof Ref)
-                        return obj.drop.apply(obj,arguments);
-                    else if (!(val))
-                        /* Drop all vals */
-                        obj[field]=[];
-                    else if (obj.hasOwnProperty(field)) {
-                        var vals=obj[field];
-                        var pos=arr_position(vals,val);
-                        if (pos<0) return;
-                        else vals.splice(pos,1);}
-                    else {}};
+    RefDB.add=function(obj,field,val,nodup){
+        if (arguments.length===2)
+            return set_add(obj,field);
+        else if (obj instanceof Ref)
+            return obj.add.apply(obj,arguments);
+        else if (nodup) 
+            if (obj.hasOwnProperty(field)) {
+                var vals=obj[field];
+                if (!(arr_contains(vals,val))) obj[field].push(val);
+                else {}}
+        else obj[field]=new Array(val);
+        else if (obj.hasOwnProperty(field))
+            obj[field].push(val);
+        else obj[field]=new Array(val);
+        if ((obj._all) && (!(arr_contains(obj._all,field))))
+            obj._all.push(field);};
 
-                RefDB.test=function(obj,field,val){
-                    if (arguments.length===2)
-                        return arr_contains(obj,field);
-                    else if (obj instanceof Ref)
-                        return obj.test.apply(obj,arguments);
-                    else if (typeof val === "undefined")
-                        return (((obj.hasOwnProperty) ?
-                                 (obj.hasOwnProperty(field)) : (obj[field])) &&
-                                ((obj[field].length)>0));
-                    else if (obj.hasOwnProperty(field)) { 
-                        if (arr_position(obj[field],val)<0)
-                            return false;
-                        else return true;}
-                    else return false;};
+    RefDB.drop=function(obj,field,val){
+        if (arguments.length===2)
+            return set_drop(obj,field);
+        else if (obj instanceof Ref)
+            return obj.drop.apply(obj,arguments);
+        else if (!(val))
+            /* Drop all vals */
+            obj[field]=[];
+        else if (obj.hasOwnProperty(field)) {
+            var vals=obj[field];
+            var pos=arr_position(vals,val);
+            if (pos<0) return;
+            else vals.splice(pos,1);}
+        else {}};
 
-                RefDB.insert=function(array,value){
-                    if (arr_position(array,value)<0) array.push(value);};
+    RefDB.test=function(obj,field,val){
+        if (arguments.length===2)
+            return arr_contains(obj,field);
+        else if (obj instanceof Ref)
+            return obj.test.apply(obj,arguments);
+        else if (typeof val === "undefined")
+            return (((obj.hasOwnProperty) ?
+                     (obj.hasOwnProperty(field)) : (obj[field])) &&
+                    ((obj[field].length)>0));
+        else if (obj.hasOwnProperty(field)) { 
+            if (arr_position(obj[field],val)<0)
+                return false;
+            else return true;}
+        else return false;};
 
-                RefDB.remove=function(array,value,count){
-                    var pos=arr_position(array,value);
-                    if (pos<0) return array;
-                    array.splice(pos,1);
-                    if (count) {
-                        count--;
-                        while ((count>0) &&
-                               ((pos=arr_position(array,value,pos))>=0)) {
-                            array.splice(pos,1); count--;}}
-                    return array;};
+    RefDB.insert=function(array,value){
+        if (arr_position(array,value)<0) array.push(value);};
 
-                RefDB.indexOf=function(array,elt,pos){
-                    if (pos) return array.indexOf(elt,pos);
-                    else return array.indexOf(elt);};
+    RefDB.remove=function(array,value,count){
+        var pos=arr_position(array,value);
+        if (pos<0) return array;
+        array.splice(pos,1);
+        if (count) {
+            count--;
+            while ((count>0) &&
+                   ((pos=arr_position(array,value,pos))>=0)) {
+                array.splice(pos,1); count--;}}
+        return array;};
 
-                RefDB.contains=arr_contains;
-                RefDB.position=arr_position;
+    RefDB.indexOf=function(array,elt,pos){
+        if (pos) return array.indexOf(elt,pos);
+        else return array.indexOf(elt);};
 
-                function countKeys(obj){
-                    var count=0; for (var key in obj) {
-                        if (obj.hasOwnProperty(key)) count++;}
-                    return count;}
-                RefDB.countKeys=countKeys;
-                function localKeys(obj){
-                    var keys=[]; for (var key in obj) {
-                        if (obj.hasOwnProperty(key)) keys.push(key);}
-                    return keys;}
-                RefDB.localKeys=localKeys;
+    RefDB.contains=arr_contains;
+    RefDB.position=arr_position;
 
-                function Query(dbs,clauses,weights){
-                    if (arguments.length===0) return this;
-                    if (dbs) this.dbs=dbs;
-                    if (clauses) {
-                        if (clauses instanceof Array)
-                            this.clauses=clauses;
-                        else this.clauses=[clauses];}
-                    if (weights) this.weights=weights;
-                    // Figure out if references can be unique IDs
-                    var i=0, n_dbs=dbs.length;
-                    if (n_dbs>1) while (i<n_dbs) {
-                        if (!(dbs[i].absrefs)) return this;
-                        else i++;}
-                    this.uniqueids=true;
-                    return this;}
-                RefDB.Query=Query;
-                Query.prototype.uniqueids=false;
-                
-                function sortbyweight(f1,f2){return f2.weight-f1.weight;}
+    function countKeys(obj){
+        var count=0; for (var key in obj) {
+            if (obj.hasOwnProperty(key)) count++;}
+        return count;}
+    RefDB.countKeys=countKeys;
+    function localKeys(obj){
+        var keys=[]; for (var key in obj) {
+            if (obj.hasOwnProperty(key)) keys.push(key);}
+        return keys;}
+    RefDB.localKeys=localKeys;
 
-                Query.prototype.execute=function executeQuery(){
-                    if (this.scores) return this;
-                    var dbs=this.dbs;
-                    var clauses=this.clauses;
-                    if (!((dbs)&&(dbs.length))) {
-                        var empty_result=this.results=fdjtSet();
-                        warn("No dbs for query %o!",this);
-                        return empty_result;}
-                    else if (!((clauses)&&(clauses.length))) {
-                        var full_result=fdjtSet();
-                        var i=0, lim=dbs.length;
-                        while (i<lim) full_result=
-                            merge(full_result,setify(dbs[i++].allrefs));
-                        this.results=full_result;
-                        return full_result;}
-                    var query_weights=this._weights||this.weights;
-                    var uniqueids=((dbs.length===1)||(this.uniqueids));
-                    var scores=new RefMap();
-                    var counts=new RefMap();
-                    var matches=fdjtSet();
-                    var match_seen={};
-                    // This makes these go faster because they don't bother
-                    // disambiguting _id fields.
-                    counts.uniqueids=scores.uniqueids=uniqueids;
-                    var i_clause=0, n_clauses=clauses.length;
-                    while (i_clause<n_clauses) {
-                        var clause=clauses[i_clause++];
-                        var fields=clause.fields;
-                        var values=clause.values;
-                        var clause_weights=clause.weights;
-                        var findings=[];
-                        if (!(fields instanceof Array)) fields=[fields];
-                        if (!(values instanceof Array)) values=[values];
-                        var i_field=0; var n_fields=fields.length;
-                        while (i_field<n_fields) {
-                            var field=fields[i_field++];
-                            var weight=((clause_weights)&&(clause_weights[field]))||
-                                ((query_weights)&&(query_weights[field]))||
-                                (this.default_weight)||1;
-                            var i_value=0, n_values=values.length;
-                            while (i_value<n_values) {
-                                var value=values[i_value++];
-                                var i_db=0, n_dbs=dbs.length;
-                                while (i_db<n_dbs) {
-                                    var db=dbs[i_db++];
-                                    var hits=db.find(field,value);
-                                    if ((hits)&&(hits.length)) {
-                                        findings.push({
-                                            field: field, hits: setify(hits),
-                                            weight: weight, value: value,
-                                            db: db});}}}}
-                        // Sort so the highest scoring findings go first
-                        findings.sort(sortbyweight);
-                        var finding_i=0, n_findings=findings.length; var seen={};
-                        while (finding_i<n_findings) {
-                            var finding=findings[finding_i++];
-                            var hit_ids=finding.hits, fdb=finding.db, abs=fdb.absrefs;
-                            var i_hit=0, n_hits=hit_ids.length, hit_id, ref;
-                            if ((uniqueids)||(abs)) while (i_hit<n_hits) {
-                                hit_id=hit_ids[i_hit++];
-                                if (seen[hit_id]) continue;
-                                else seen[hit_id]=hit_id;
-                                if (!(match_seen[hit_id])) {
-                                    matches.push(fdb.ref(hit_id));
-                                    match_seen[hit_id]=hit_id;}
-                                counts[hit_id]=(counts[hit_id]||0)+1;
-                                scores[hit_id]=(scores[hit_id]||0)+finding.weight;}
-                            else {
-                                hit_id=hit_ids[i_hit++]; ref=fdb.ref(hit_id);
-                                var fullid=ref._qid||((abs)&&(ref._id))||ref.getQID();
-                                if (seen[fullid]) continue;
-                                else seen[fullid]=fullid;
-                                if (!(match_seen[fullid])) {
-                                    matches.push(ref);
-                                    match_seen[fullid]=fullid;}
-                                counts[fullid]=(counts[fullid]||0)+1;
-                                scores[fullid]=(scores[fullid]||0)+finding.weight;}}}
-                    if (n_clauses>1) {
-                        var results=this.results=[];
-                        var new_scores=new RefMap(), new_counts=new RefMap();
-                        var i_matches=0, n_matches=matches.length;
-                        while (i_matches<n_matches) {
-                            var match=matches[i_matches++];
-                            var count=counts.get(match);
-                            // If there are just two clauses, score their
-                            // intersection; If there are more than two
-                            // clauses (count>=2), score the union of their
-                            // pairwise intersections.
-                            if (count>=2) { /* ((n_clauses===2)||(count>=2)) */
-                                var score=scores.get(match);
-                                new_scores.set(match,score);
-                                new_counts.set(match,count);
-                                results.push(match);}}
-                        results._allstrings=false;
-                        results._sortlen=results.length;
-                        this.results=results;
-                        this.scores=new_scores;
-                        this.counts=new_counts;}
-                    else {
-                        this.results=setify(matches);
-                        this.scores=scores;
-                        this.counts=counts;}
-                    
-                    return this;};
+    function Query(dbs,clauses,weights){
+        if (arguments.length===0) return this;
+        if (dbs) this.dbs=dbs;
+        if (clauses) {
+            if (clauses instanceof Array)
+                this.clauses=clauses;
+            else this.clauses=[clauses];}
+        if (weights) this.weights=weights;
+        // Figure out if references can be unique IDs
+        var i=0, n_dbs=dbs.length;
+        if (n_dbs>1) while (i<n_dbs) {
+            if (!(dbs[i].absrefs)) return this;
+            else i++;}
+        this.uniqueids=true;
+        return this;}
+    RefDB.Query=Query;
+    Query.prototype.uniqueids=false;
+    
+    function sortbyweight(f1,f2){return f2.weight-f1.weight;}
 
-                /* Indexed DB utilities */
-                
-                function useIndexedDB(dbname,version,init,opts){
-                    if ((version)&&(!opts)&&
-                        (typeof version !== "number")&&(version.version)) {
-                        opts=version; version=opts.version;}
-                    else if (!(opts)) opts={};
-                    if (!(init)) init=opts.init||false;
-                    if (!(version)) version=1;
-                    var trace=opts.trace;
-                    var vname=dbname+":"+version;
-                    function usingIndexedDB(resolve,reject){
-                        if ((typeof indexedDB === "undefined")||
-                            (!(indexedDB.open))) {
-                            fdjtLog.warn(
-                                "No indexedDB implementation for opening %:",vname);
-                            if (reject)
-                                reject(new Error("No indexedDB implementation"));
-                            else throw new Error("No indexedDB implementation");}
-                        var req=indexedDB.open(dbname,version), fail=false;
-                        var init_timeout=setTimeout(function(){
-                            fail=true;
-                            fdjtLog.warn("Init timeout for indexedDB %s",vname);
-                            reject(new Error("Init timeout"));},
-                                                    opts.timeout||15000);
-                        req.onerror=function(event){
-                            fail=true;
-                            warn("Error initializing indexedDB layout cache: %o",
-                                 event.errorCode);
-                            if (init_timeout) clearTimeout(init_timeout);
-                            if (reject) return reject(event);
-                            else return event;};
-                        req.onsuccess=function(evt) {
-                            if (fail) {
-                                fdjtLog("Discarding indexedDB %s after failure!",
-                                        vname);
-                                return;}
-                            var db=evt.target.result;
-                            if (init_timeout) clearTimeout(init_timeout);
-                            if (trace)
-                                fdjtLog("Got existing IndexedDB %s %o",
-                                        vname,db);
-                            if (resolve)
-                                return resolve(db);
-                            else return db;};
-                        req.onupgradeneeded=function(evt) {
-                            var db=evt.target.result;
-                            if (!(init)) return resolve(db);
-                            else {
-                                req.onsuccess=function(){
-                                    if (resolve) return resolve(db);
-                                    else return db;};
-                                req.onerror=function(evt){
-                                    fdjtLog("Error upgrading %s %o",vname,evt);
-                                    if (reject) reject(evt);
-                                    else throw new Error(
-                                        "Error upgrading %s",vname);};
-                                if (init.call) {
-                                    try {init(db);
-                                         if (resolve) return resolve(db);
-                                         else return db;}
-                                    catch (ex) {
-                                        fdjtLog("Error upgrading %s:%d: %o",
-                                                dbname,version,ex);
-                                        if (reject) reject(ex);}}
-                                else if (reject) reject(
-                                    new Error("Bad indexDB init: %o",init));
-                                else throw new Error("Bad indexDB init: %o",init);}
-                            return db;};
-                        return req;}
-                    return new Promise(usingIndexedDB);}
-                RefDB.useIndexedDB=useIndexedDB;
+    Query.prototype.execute=function executeQuery(){
+        if (this.scores) return this;
+        var dbs=this.dbs;
+        var clauses=this.clauses;
+        if (!((dbs)&&(dbs.length))) {
+            var empty_result=this.results=fdjtSet();
+            warn("No dbs for query %o!",this);
+            return empty_result;}
+        else if (!((clauses)&&(clauses.length))) {
+            var full_result=fdjtSet();
+            var i=0, lim=dbs.length;
+            while (i<lim) full_result=
+                merge(full_result,setify(dbs[i++].allrefs));
+            this.results=full_result;
+            return full_result;}
+        var query_weights=this._weights||this.weights;
+        var uniqueids=((dbs.length===1)||(this.uniqueids));
+        var scores=new RefMap();
+        var counts=new RefMap();
+        var matches=fdjtSet();
+        var match_seen={};
+        // This makes these go faster because they don't bother
+        // disambiguting _id fields.
+        counts.uniqueids=scores.uniqueids=uniqueids;
+        var i_clause=0, n_clauses=clauses.length;
+        while (i_clause<n_clauses) {
+            var clause=clauses[i_clause++];
+            var fields=clause.fields;
+            var values=clause.values;
+            var clause_weights=clause.weights;
+            var findings=[];
+            if (!(fields instanceof Array)) fields=[fields];
+            if (!(values instanceof Array)) values=[values];
+            var i_field=0; var n_fields=fields.length;
+            while (i_field<n_fields) {
+                var field=fields[i_field++];
+                var weight=((clause_weights)&&(clause_weights[field]))||
+                    ((query_weights)&&(query_weights[field]))||
+                    (this.default_weight)||1;
+                var i_value=0, n_values=values.length;
+                while (i_value<n_values) {
+                    var value=values[i_value++];
+                    var i_db=0, n_dbs=dbs.length;
+                    while (i_db<n_dbs) {
+                        var db=dbs[i_db++];
+                        var hits=db.find(field,value);
+                        if ((hits)&&(hits.length)) {
+                            findings.push({
+                                field: field, hits: setify(hits),
+                                weight: weight, value: value,
+                                db: db});}}}}
+            // Sort so the highest scoring findings go first
+            findings.sort(sortbyweight);
+            var finding_i=0, n_findings=findings.length; var seen={};
+            while (finding_i<n_findings) {
+                var finding=findings[finding_i++];
+                var hit_ids=finding.hits, fdb=finding.db, abs=fdb.absrefs;
+                var i_hit=0, n_hits=hit_ids.length, hit_id, ref;
+                if ((uniqueids)||(abs)) while (i_hit<n_hits) {
+                    hit_id=hit_ids[i_hit++];
+                    if (seen[hit_id]) continue;
+                    else seen[hit_id]=hit_id;
+                    if (!(match_seen[hit_id])) {
+                        matches.push(fdb.ref(hit_id));
+                        match_seen[hit_id]=hit_id;}
+                    counts[hit_id]=(counts[hit_id]||0)+1;
+                    scores[hit_id]=(scores[hit_id]||0)+finding.weight;}
+                else {
+                    hit_id=hit_ids[i_hit++]; ref=fdb.ref(hit_id);
+                    var fullid=ref._qid||((abs)&&(ref._id))||ref.getQID();
+                    if (seen[fullid]) continue;
+                    else seen[fullid]=fullid;
+                    if (!(match_seen[fullid])) {
+                        matches.push(ref);
+                        match_seen[fullid]=fullid;}
+                    counts[fullid]=(counts[fullid]||0)+1;
+                    scores[fullid]=(scores[fullid]||0)+finding.weight;}}}
+        if (n_clauses>1) {
+            var results=this.results=[];
+            var new_scores=new RefMap(), new_counts=new RefMap();
+            var i_matches=0, n_matches=matches.length;
+            while (i_matches<n_matches) {
+                var match=matches[i_matches++];
+                var count=counts.get(match);
+                // If there are just two clauses, score their
+                // intersection; If there are more than two
+                // clauses (count>=2), score the union of their
+                // pairwise intersections.
+                if (count>=2) { /* ((n_clauses===2)||(count>=2)) */
+                    var score=scores.get(match);
+                    new_scores.set(match,score);
+                    new_counts.set(match,count);
+                    results.push(match);}}
+            results._allstrings=false;
+            results._sortlen=results.length;
+            this.results=results;
+            this.scores=new_scores;
+            this.counts=new_counts;}
+        else {
+            this.results=setify(matches);
+            this.scores=scores;
+            this.counts=counts;}
+        
+        return this;};
 
-                return RefDB;})();}
+    /* Indexed DB utilities */
+    
+    function useIndexedDB(dbname,version,init,opts){
+        if ((version)&&(!opts)&&
+            (typeof version !== "number")&&(version.version)) {
+            opts=version; version=opts.version;}
+        else if (!(opts)) opts={};
+        if (!(init)) init=opts.init||false;
+        if (!(version)) version=1;
+        var trace=opts.trace;
+        var vname=dbname+":"+version;
+        function usingIndexedDB(resolve,reject){
+            if ((typeof indexedDB === "undefined")||
+                (!(indexedDB.open))) {
+                fdjtLog.warn(
+                    "No indexedDB implementation for opening %:",vname);
+                if (reject)
+                    reject(new Error("No indexedDB implementation"));
+                else throw new Error("No indexedDB implementation");}
+            var req=indexedDB.open(dbname,version), fail=false;
+            var init_timeout=setTimeout(function(){
+                fail=true;
+                fdjtLog.warn("Init timeout for indexedDB %s",vname);
+                reject(new Error("Init timeout"));},
+                                        opts.timeout||15000);
+            req.onerror=function(event){
+                fail=true;
+                warn("Error initializing indexedDB layout cache: %o",
+                     event.errorCode);
+                if (init_timeout) clearTimeout(init_timeout);
+                if (reject) return reject(event);
+                else return event;};
+            req.onsuccess=function(evt) {
+                if (fail) {
+                    fdjtLog("Discarding indexedDB %s after failure!",
+                            vname);
+                    return;}
+                var db=evt.target.result;
+                if (init_timeout) clearTimeout(init_timeout);
+                if (trace)
+                    fdjtLog("Got existing IndexedDB %s %o",
+                            vname,db);
+                if (resolve)
+                    return resolve(db);
+                else return db;};
+            req.onupgradeneeded=function(evt) {
+                var db=evt.target.result;
+                if (!(init)) return resolve(db);
+                else {
+                    req.onsuccess=function(){
+                        if (resolve) return resolve(db);
+                        else return db;};
+                    req.onerror=function(evt){
+                        fdjtLog("Error upgrading %s %o",vname,evt);
+                        if (reject) reject(evt);
+                        else throw new Error(
+                            "Error upgrading %s",vname);};
+                    if (init.call) {
+                        try {init(db);
+                             if (resolve) return resolve(db);
+                             else return db;}
+                        catch (ex) {
+                            fdjtLog("Error upgrading %s:%d: %o",
+                                    dbname,version,ex);
+                            if (reject) reject(ex);}}
+                    else if (reject) reject(
+                        new Error("Bad indexDB init: %o",init));
+                    else throw new Error("Bad indexDB init: %o",init);}
+                return db;};
+            return req;}
+        return new Promise(usingIndexedDB);}
+    RefDB.useIndexedDB=useIndexedDB;
+
+    return RefDB;})();
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -15338,9 +15396,6 @@ if (!(fdjt.UI)) fdjt.UI={};
     var FDJT_COMPLETE_MATCHCASE=8;
     // Whether to an enter character always picks a completion
     var FDJT_COMPLETE_EAGER=16;
-    // Whether the key fields may contain disjoins (e.g. (dog|friend))
-    // to be accomodated in matching
-    var FDJT_COMPLETE_DISJOINS=32;
     // Default options
     var default_options=
         ((FDJT_COMPLETE_OPTIONS)|
@@ -23982,7 +24037,7 @@ else
 var metaBook={
     mode: false,hudup: false,scrolling: false,query: false,
     head: false,target: false,glosstarget: false,location: false,
-    root: false,start: false,HUD: false,locsync: false,
+    root: false,start: false,HUD: false,locsync: false,useidb: false,
     user: false, loggedin: false, cxthelp: false,
     _setup: false,_user_setup: false,_gloss_setup: false,_social_setup: false,
     // Whether we have a real connection to the server
@@ -24181,6 +24236,7 @@ fdjt.DOM.noautofontadjust=true;
 
 */
 /* jshint browser: true */
+/* globals Promise */
 
 /* Initialize these here, even though they should always be
    initialized before hand.  This will cause various code checkers to
@@ -24210,7 +24266,7 @@ fdjt.DOM.noautofontadjust=true;
 
     var getLocal=fdjtState.getLocal;
     var setLocal=fdjtState.setLocal;
-    var dropLocal=fdjtState.dropLocal;
+    var existsLocal=fdjtState.existsLocal;
     
     var mB=metaBook;
     var Trace=metaBook.Trace;
@@ -24219,7 +24275,7 @@ fdjt.DOM.noautofontadjust=true;
     metaBook.tagscores=new ObjectMap();
 
     function hasLocal(key){
-        if (mB.persist) return fdjtState.existsLocal(key);
+        if (mB.persist) return existsLocal(key);
         else return fdjtState.existsSession(key);}
     metaBook.hasLocal=hasLocal;
     function saveLocal(key,value,unparse){
@@ -24227,8 +24283,13 @@ fdjt.DOM.noautofontadjust=true;
         else fdjtState.setSession(key,value,unparse);}
     metaBook.saveLocal=saveLocal;
     function readLocal(key,parse){
-        if (mB.persist) return getLocal(key,parse)||
-            fdjtState.getSession(key,parse);
+        if (mB.persist) {
+            if (existsLocal(key))
+                return getLocal(key,parse);
+            else if (fdjtState.existsSession(key)) {
+                setLocal(key,fdjtState.getSession(key));
+                return getLocal(key,parse);}
+            else return false;}
         else return fdjtState.getSession(key,parse)||getLocal(key,parse);}
     metaBook.readLocal=readLocal;
     function clearLocal(key){
@@ -24242,38 +24303,53 @@ fdjt.DOM.noautofontadjust=true;
     
     /* Initialize the indexedDB database, when used */
 
-    var metaBookDB=false;
+    var metaBookDB=false, dbwait=[], dbfail=[];
 
+    function getDB(){
+        function gettingdb(resolve,reject){
+            if (metaBookDB) resolve(metaBookDB);
+            else {
+                dbwait.push(resolve);
+                if (reject) dbfail.push(reject);}}
+        return new Promise(gettingdb);}
+    metaBook.getDB=getDB;
+
+    function gotDB(db){
+        metaBook.metaBookDB=metaBookDB=db;
+        fdjtAsync(function(){
+            fdjt.CodexLayout.useIndexedDB(db.name);});
+        var waiting=dbwait; dbwait=[]; dbfail=[];
+        var i=0, len=waiting.length; while (i<len)
+            waiting[i++](db);}
+    function notDB(action,name,ex){
+        var waiting=dbfail; dbwait=[]; dbfail=[];
+        fdjtLog("Error %s database %s: %o",action,name,ex);
+        var i=0, len=waiting.length; while (i<len)
+            waiting[i++](ex);}
+
+    
     if (window.indexedDB) {
         var req=window.indexedDB.open("metaBook",1);
         req.onerror=function(event){
-            fdjtLog("Error initializing the metaBook IndexedDB: %o",
-                    event.errorCode);};
+            notDB("opening","metaBook",event.errorCode);};
         req.onsuccess=function(event) {
             var db=event.target.result;
             fdjtLog("Using existing metaBook IndexedDB");
-            fdjtAsync(function(){
-                fdjt.CodexLayout.useIndexedDB("metaBook");});
-            metaBook.metaBookDB=metaBookDB=db;};
+            gotDB(db);};
         req.onupgradeneeded=function(event) {
             var db=event.target.result;
             db.onerror=function(event){
-                fdjtLog("Unexpected error setting up glossdata cache: %d",
-                        event.target.errorCode);
+                notDB("upgrading","metaBook",event.target.errorCode);
                 event=false;};
             db.onsuccess=function(event){
                 var db=event.target.result;
                 fdjtLog("Initialized metaBook indexedDB");
-                fdjtAsync(function(){
-                    fdjt.CodexLayout.useIndexedDB("metaBook");});
-                metaBook.metaBookDB=metaBookDB=db;};
+                gotDB(db);};
             db.createObjectStore("glossdata",{keyPath: "url"});
             db.createObjectStore("layouts",{keyPath: "layout_id"});
             db.createObjectStore("sources",{keyPath: "_id"});
             db.createObjectStore("docs",{keyPath: "_id"});
-            db.createObjectStore("glosses",{keyPath: "glossid"});
-            fdjtAsync(function(){
-                fdjt.CodexLayout.useIndexedDB("metaBook");});};}
+            db.createObjectStore("glosses",{keyPath: "glossid"});};}
 
     /* Initialize the runtime for the core databases */
 
@@ -24281,6 +24357,8 @@ fdjt.DOM.noautofontadjust=true;
         if (Trace.start>1) fdjtLog("Initializing DB");
         var refuri=(metaBook.refuri||document.location.href);
         if (refuri.indexOf('#')>0) refuri=refuri.slice(0,refuri.indexOf('#'));
+
+        metaBook.setupGlossData();
 
         var taglist=metaBook.taglist||$ID("METABOOKTAGLIST");
         if (!(taglist)) {
@@ -24299,6 +24377,8 @@ fdjt.DOM.noautofontadjust=true;
         
         var knodeToOption=Knodule.knodeToOption;
 
+        var cachelink=/^https:\/\/glossdata.sbooks.net\//;
+        
         var knodule_name=
             fdjtDOM.getMeta("SBOOKS.knodule")||
             fdjtDOM.getMeta("~KNODULE")||
@@ -24313,13 +24393,15 @@ fdjt.DOM.noautofontadjust=true;
                       "tags","*tags","**tags",
                       "tags*","*tags*","**tags*"]};
         var stdspace=fdjtString.stdspace;
-        metaBook.glossdb=new RefDB("glosses@"+metaBook.refuri,glosses_init); {
-            metaBook.glossdb.absrefs=true;
-            metaBook.glossdb.addAlias("glossdb");
-            metaBook.glossdb.addAlias("-UUIDTYPE=61");
-            metaBook.glossdb.addAlias(":@31055/");
-            metaBook.glossdb.addAlias("@31055/");
-            metaBook.glossdb.onLoad(function initGloss(item) {
+        var glossdbname="glosses@"+metaBook.refuri;
+        var glossdb=metaBook.glossdb=new RefDB(glossdbname,glosses_init); {
+            glossdb.absrefs=true;
+            glossdb.dbname="glosses";
+            glossdb.addAlias("glossdb");
+            glossdb.addAlias("-UUIDTYPE=61");
+            glossdb.addAlias(":@31055/");
+            glossdb.addAlias("@31055/");
+            glossdb.onLoad(function initGloss(item) {
                 var info=metaBook.docinfo[item.frag];
                 if (!(info)) {
                     fdjtLog("Gloss refers to nonexistent '%s': %o",
@@ -24332,16 +24414,17 @@ fdjt.DOM.noautofontadjust=true;
                         item.ends_at=info.ends_at+(item.exoff||0)+
                         (stdspace(item.excerpt).length);
                     else item.ends_at=info.ends_at;}
-                if ((!(item.maker))&&(metaBook.user)) item.maker=(metaBook.user);
-                var addTags=metaBook.addTags, addTag2Cloud=metaBook.addTag2Cloud;
+                if ((!(item.maker))&&(metaBook.user))
+                    item.maker=(metaBook.user);
+                var addTags=metaBook.addTags;
+                var addTag2Cloud=metaBook.addTag2Cloud;
                 var empty_cloud=metaBook.empty_cloud;
                 var maker=(item.maker)&&(metaBook.sourcedb.ref(item.maker));
                 if (item.links) {
-                    var links=item.links;
-                    for (var link in links) {
+                    var links=item.links; for (var link in links) {
                         if ((links.hasOwnProperty(link))&&
-                            (link.search("https://glossdata.sbooks.net/")===0))
-                            cacheGlossData(link);}}
+                            (cachelink.exec(link)))
+                            metaBook.cacheGlossData(link);}}
                 if (maker) {
                     metaBook.addTag2Cloud(maker,metaBook.empty_cloud);
                     metaBook.UI.addGlossSource(maker,true);}
@@ -24373,10 +24456,13 @@ fdjt.DOM.noautofontadjust=true;
                                 addTags(item.thread,tags,fragslot);
                                 if (item.replyto!==item.thread)
                                     addTags(item.replyto,tags,fragslot);}
-                            if (info) addTags(info,tags,fragslot,maker_knodule);}}}},
-                                    "initgloss");
-            if ((metaBook.user)&&(mB.persist)&&(metaBook.cacheglosses))
-                metaBook.glossdb.storage=window.localStorage;}
+                            if (info) addTags(
+                                info,tags,fragslot,maker_knodule);}}}},
+                           "initgloss");
+            if ((metaBook.user)&&(mB.persist)&&(metaBook.cacheglosses)) {
+                if (mB.useidb)
+                    getDB(function(db){glossdb.storage=db;});
+                else glossdb.storage=localStorage;}}
         
         function Gloss(){return Ref.apply(this,arguments);}
         Gloss.prototype=new Ref();
@@ -24403,12 +24489,14 @@ fdjt.DOM.noautofontadjust=true;
 
         metaBook.glossdb.refclass=Gloss;
         
-        metaBook.sourcedb=new RefDB("sources@"+metaBook.refuri);{
-            metaBook.sourcedb.absrefs=true;
-            metaBook.sourcedb.oidrefs=true;
-            metaBook.sourcedb.addAlias("@1961/");
-            metaBook.sourcedb.addAlias(":@1961/");            
-            metaBook.sourcedb.forDOM=function(source){
+        var sourcedbname="sources@"+metaBook.refuri;
+        var sourcedb=metaBook.sourcedb=new RefDB(sourcedbname);{
+            sourcedb.absrefs=true;
+            sourcedb.dbname="sources";
+            sourcedb.oidrefs=true;
+            sourcedb.addAlias("@1961/");
+            sourcedb.addAlias(":@1961/");            
+            sourcedb.forDOM=function(source){
                 var spec="span.source"+((source.kind)?".":"")+
                     ((source.kind)?(source.kind.slice(1).toLowerCase()):"");
                 var name=source.name||source.oid||source.uuid||source.uuid;
@@ -24416,79 +24504,114 @@ fdjt.DOM.noautofontadjust=true;
                 if (source.about) span.title=source.about;
                 return span;};}
 
-        metaBook.queued=((metaBook.cacheglosses)&&
-                         (getLocal("metabook.queued("+metaBook.refuri+")",true)))||[];
+        metaBook.queued=
+            ((metaBook.cacheglosses)&&
+             (getLocal("mB.queued("+metaBook.refuri+")",true)))||[];
 
         function setCacheGlosses(value){
             var saveprops=metaBook.saveprops, uri=metaBook.docuri;
             if (value) {
                 if (metaBook.user) {
-                    var storage=((mB.persist)?(window.localStorage):
-                                 (window.sessionStorage));
-                    if (!(metaBook.sourcedb.storage))
-                        metaBook.sourcedb.storage=storage;
-                    if (!metaBook.glossdb.storage)
-                        metaBook.glossdb.storage=storage;
+                    if (mB.useidb) getDB(function(db){
+                        metaBook.sourcedb.storage=db;
+                        metaBook.glossdb.storage=db;});
+                    else {
+                        var storage=((mB.persist)?(window.localStorage):
+                                     (window.sessionStorage));
+                        if (!(metaBook.sourcedb.storage))
+                            metaBook.sourcedb.storage=storage;
+                        if (!metaBook.glossdb.storage)
+                            metaBook.glossdb.storage=storage;}
                     var props=metaBook.saveprops, i=0, lim=props.length;
                     while (i<lim) {
                         var prop=saveprops[i++];
                         if (metaBook[prop]) saveLocal(
-                            "metabook."+prop+"("+uri+")",metaBook[prop],true);}
+                            "mB."+prop+"("+uri+")",metaBook[prop],true);}
                     metaBook.glossdb.save(true);
                     metaBook.sourcedb.save(true);
                     if ((metaBook.queued)&&(metaBook.queued.length)) 
                         metaBook.queued=metaBook.queued.concat(
-                            getLocal("metabook.queued("+uri+")",true)||[]);
+                            getLocal("mB.queued("+uri+")",true)||[]);
                     else metaBook.queued=
-                        getLocal("metabook.queued("+uri+")",true)||[];}
+                        getLocal("mB.queued("+uri+")",true)||[];}
                 metaBook.cacheglosses=true;}
             else {
                 clearOffline(metaBook.docuri);
-                if (uri) fdjtState.dropLocal("metabook.queued("+uri+")");
+                if (uri) fdjtState.dropLocal("mB.queued("+uri+")");
                 metaBook.queued=[];
                 metaBook.cacheglosses=false;}}
         metaBook.setCacheGlosses=setCacheGlosses;
         
+        /* Setting persistence */
+
+        function setPersist(){
+            metaBook.persist=true;
+            var refuri=mB.refuri, docuri=mB.docuri;
+            // We also initialize .refuris/.docuris
+            var refuris=readLocal("mB.refuris",true);
+            var docuris=readLocal("mB.docuris",true);
+            if (!(refuris))
+                saveLocal("mB.refuris",[refuri],true);
+            else if (refuris.indexOf(refuri)<0) {
+                refuris.push(refuri);
+                saveLocal("mB.refuris",refuris,true);}
+            else {}
+            if (!(docuris))
+                saveLocal("mB.docuris",[docuri],true);
+            else if (docuris.indexOf(docuri)<0) {
+                docuris.push(docuri);
+                saveLocal("mB.docuris",docuris,true);}
+            else {}
+            if (mB.sourceid)
+                saveLocal("mB.sourceid("+docuri+")",mB.sourceid);}
+        metaBook.setPersist=setPersist;
+
         /* Clearing offline data */
 
         function clearOffline(uri){
             var dropLocal=fdjtState.dropLocal;
             if (!(uri)) {
-                dropLocal("metabook.user");
+                var books=readLocal("mB.docuris",true);
+                if (books) {
+                    var i=0, lim=books.length;
+                    while (i<lim) clearOffline(books[i++]);}
+                dropLocal("mB.user");
+                dropLocal("mB.docuris");
                 // We clear layouts, because they might
                 //  contain personalized information
                 fdjt.CodexLayout.clearLayouts();
                 fdjtState.clearLocal();
-                fdjtState.clearSession();
-                clearGlossData();}
+                fdjtState.clearSession();}
             else {
                 if (typeof uri !== "string") uri=metaBook.docuri;
+                var sourceid=getLocal("mB.sourceid("+uri+")");
+                if (sourceid) metaBook.clearLayouts(sourceid);
                 metaBook.sync=false;
-                clearLocal("metabook.sources("+uri+")");
-                clearLocal("metabook.outlets("+uri+")");
-                clearLocal("metabook.layers("+uri+")");
-                clearLocal("metabook.etc("+uri+")");
-                clearLocal("metabook.sync("+uri+")");
+                clearLocal("mB.sources("+uri+")");
+                clearLocal("mB.outlets("+uri+")");
+                clearLocal("mB.layers("+uri+")");
+                clearLocal("mB.etc("+uri+")");
+                clearLocal("mB.sync("+uri+")");
                 // We don't currently clear sources when doing book
                 // specific clearing because they might be shared
                 // between books.  This is a bug.
                 metaBook.glossdb.clearOffline(function(){
-                    clearLocal("metabook.sync("+uri+")");});
-                clearGlossData(uri);}}
+                    clearLocal("mB.sync("+uri+")");});
+                metaBook.clearGlossData(uri);}}
         metaBook.clearOffline=clearOffline;
         
         function refreshOffline(){
             var uri=metaBook.docuri;
             metaBook.sync=false;
-            clearLocal("metabook.sources("+uri+")");
-            clearLocal("metabook.outlets("+uri+")");
-            clearLocal("metabook.layers("+uri+")");
-            clearLocal("metabook.etc("+uri+")");
+            clearLocal("mB.sources("+uri+")");
+            clearLocal("mB.outlets("+uri+")");
+            clearLocal("mB.layers("+uri+")");
+            clearLocal("mB.etc("+uri+")");
             // We don't currently clear sources when doing book
             // specific clearing because they might be shared
             // between books
             metaBook.glossdb.clearOffline(function(){
-                clearLocal("metabook.sync("+uri+")");
+                clearLocal("mB.sync("+uri+")");
                 setTimeout(metaBook.updateInfo,25);});}
         metaBook.refreshOffline=refreshOffline;
 
@@ -24501,90 +24624,6 @@ fdjt.DOM.noautofontadjust=true;
 
         if (Trace.start>1) fdjtLog("Initialized DB");}
     metaBook.initDB=initDB;
-
-    /* Noting (and caching) glossdata */
-
-    var glossdata=metaBook.glossdata;
-
-    function cacheGlossData(link){
-        if (link.search("https://glossdata.sbooks.net/")!==0) return;
-        var key="glossdata("+link+")";
-        if (fdjtState.getLocal(key)) return;
-        else fdjtState.setLocal(key,"fetching");
-        var uri="https://glossdata.sbooks.net/U/"+
-            link.slice("https://glossdata.sbooks.net/".length);
-        var req=new XMLHttpRequest();
-        if (Trace.glossdata)
-            fdjtLog("Fetching glossdata %s to cache locally",link);
-        req.onreadystatechange=function () {
-            if (req.readyState === 4) {
-                if (Trace.glossdata)
-                    fdjtLog("Glossdata from %s status %d",req.status);
-                var use_data=((req.status===200)?
-                              (gotGlossData(link,req.responseText)):
-                              (link));
-                var waiting=mB.srcloading[link];
-                if (waiting) {
-                    var i=0, lim=waiting.length;
-                    if (Trace.glossdata)
-                        fdjtLog("Setting glossdata src for %d element(s)",lim);
-                    while (i<lim) waiting[i++].src=use_data;}
-                if (req.status === 200) 
-                    storeGlossData(link,req.responseText);
-                else fdjtState.dropLocal(key);}
-            else {}};
-        req.open("GET",uri);
-        req.withCredentials=true;
-        req.send(null);}
-
-    function gotGlossData(link,datauri){
-        var url=fdjtDOM.data2URL(datauri);
-        glossdata[link]=url;
-        return url;}
-    metaBook.gotGlossData=gotGlossData;
-
-    function storeGlossData(url,datauri){
-        var key="glossdata("+url+")";
-        if (metaBookDB) {
-            var txn=metaBookDB.transaction(["glossdata"],"readwrite");
-            var storage=txn.objectStore("glossdata");
-            var req=storage.put({url: url,datauri: datauri});
-            req.onerror=function(event){
-                fdjtLog("Error saving %s in indexedDB: %o",
-                        url,event.target.errorCode);};
-            req.onsuccess=function(event){
-                event=false; // ignored
-                fdjtState.setLocal(key,"cached");
-                if (Trace.glossdata)
-                    fdjtLog("Saved glossdata for %s in IndexedDB",url);
-                glossDataSaved(url);};}
-        else {
-            fdjtState.setLocal(key,datauri);
-            glossDataSaved(url);}}
-
-    function glossDataSaved(url){
-        fdjtState.pushLocal("glossdata("+mB.docuri+")",url);
-        fdjtState.pushLocal("glossdata()",url);}
-
-    function clearGlossData(url){
-        var key=((url)?("glossdata("+url+")"):("glossdata()"));
-        var urls=getLocal(key,true);
-        if (urls) {
-            var i=0, lim=urls.length; while (i<lim) {
-                var gdurl=urls[i++]; dropLocal("glossdata("+gdurl+")");
-                if (metaBookDB) clearGlossDataFor(gdurl);}}
-        dropLocal(key);}
-
-    function clearGlossDataFor(url){
-        var txn=metaBookDB.transaction(["glossdata"],"readwrite");
-        var storage=txn.objectStore("glossdata");
-        var req=storage['delete'](url);
-        req.onerror=function(event){
-            fdjtLog("Error clearing gloss data for %s: %s",
-                    url,event.target.errorCode);}; 
-        req.onsuccess=function(){
-            if (Trace.glossdata>1)
-                fdjtLog("Cleared gloss data for %s",url);};}
 
     /* Queries */
 
@@ -25008,7 +25047,7 @@ fdjt.DOM.noautofontadjust=true;
             if ((onconnect)&&(onconnect.length)) {
                 var i=0; var lim=onconnect.length;
                 while (i<lim) (onconnect[i++])();}
-            if (fdjtState.getLocal("metabook.queued("+metaBook.refuri+")"))
+            if (fdjtState.getLocal("mB.queued("+metaBook.refuri+")"))
                 metaBook.writeQueuedGlosses();}
         if (((val)&&(!(metaBook.connected)))||
             ((!(val))&&(metaBook.connected)))
@@ -25271,14 +25310,14 @@ fdjt.DOM.noautofontadjust=true;
                 (!(getQuery(setting)))) {
                 saved[setting]=config[setting];}}
         if (Trace.config) fdjtLog("Saving config %o",saved);
-        saveLocal("metabook.config("+mB.docuri+")",JSON.stringify(saved));
+        saveLocal("mB.config("+mB.docuri+")",JSON.stringify(saved));
         saved_config=saved;}
     metaBook.saveConfig=saveConfig;
 
     function initConfig(){
         var setting, value, source, started=fdjtTime(); // changed=false;
-        var config=getLocal("metabook.config("+mB.docuri+")",true)||
-            fdjtState.getSession("metabook.config("+mB.docuri+")",
+        var config=getLocal("mB.config("+mB.docuri+")",true)||
+            fdjtState.getSession("mB.config("+mB.docuri+")",
                                  true);
         metaBook.postconfig=[];
         if (config) {
@@ -25855,10 +25894,6 @@ fdjt.DOM.noautofontadjust=true;
         metaBook.GoTo(target,"JumpTo");}
     metaBook.JumpTo=metaBookJumpTo;
 
-    function getTOCHead(id){
-        var elts=fdjtDOM.$("#METABOOKSTATICTOC div.head[NAME='SBR"+id+"']");
-        return ((elts)&&(elts.length===1)&&(elts[0]));}
-
     // This jumps and disables the HUD at the same time
     function metaBookGoTOC(target){
         if (target) metaBook.GoTo(target,"GoTOC");}
@@ -26350,6 +26385,228 @@ metaBook.DOMScan=(function(){
     
     MetaBookDOMScan.getTOCLevel=getLevel;
     return MetaBookDOMScan;})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ###################### metabook/glossdata.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file implements a Javascript/DHTML web application for reading
+   large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+
+// config.js
+(function(){
+    "use strict";
+    var fdjtLog=fdjt.Log, fdjtState=fdjt.State;
+    var setLocal=fdjtState.setLocal, getLocal=fdjtState.getLocal;
+    var dropLocal=fdjtState.dropLocal;
+    var pushLocal=fdjtState.pushLocal, removeLocal=fdjtState.removeLocal;
+
+    var mB=metaBook, Trace=metaBook.Trace;
+    
+    /* Noting (and caching) glossdata */
+
+    var glossdata=metaBook.glossdata, glossdata_state={};
+    var glossdata_waiting={};
+    var createObjectURL=
+        ((window.URL)&&(window.URL.createObjectURL))||
+        ((window.webkitURL)&&(window.webkitURL.createObjectURL));
+    var Blob=window.Blob;
+
+    function setupGlossData(){
+        var cached=getLocal("mB.glossdata("+mB.docuri+")",true);
+        var i=0, len=cached.length; while (i<len) 
+            glossdata_state[cached[i++]]="cached";}
+    metaBook.setupGlossData=setupGlossData;
+
+    function cacheGlossData(uri){
+        function caching(resolved){
+            if (uri.search("https://glossdata.sbooks.net/")!==0) return;
+            if (glossdata[uri]) return resolved(glossdata[uri]);
+            if (glossdata_state[uri]==="cached") return;
+            else if (glossdata_state[uri]) {
+                if (glossdata_waiting[uri])
+                    glossdata_waiting[uri].push(resolved);
+                else glossdata_waiting[uri]=[resolved];
+                return;}
+            else glossdata_state[uri]="fetching";
+            var req=new XMLHttpRequest(), endpoint, rtype;
+            if ((!(Blob))||(!(createObjectURL))) {
+                // This endpoint returns a datauri as text
+                endpoint="https://glossdata.sbooks.net/U/"+
+                    uri.slice("https://glossdata.sbooks.net/".length);
+                req.responseText=""; rtype="any";}
+            else {
+                endpoint=uri; req.responseType="blob";
+                rtype=req.responseType;}
+            // We provide credentials in the query string because we
+            //  need to have .withCredentials be false to avoid some
+            //  CORS-related errors on redirects to sites like S3.
+            if (fdjt.State.getCookie("SBOOKS:AUTH")) 
+                endpoint=endpoint+"?SBOOKS:AUTH="+
+                encodeURIComponent(fdjt.State.getCookie("SBOOKS:AUTH"));
+            else if (fdjt.State.getCookie("SBOOKS:AUTH-"))
+                endpoint=endpoint+"?SBOOKS:AUTH-="+
+                encodeURIComponent(fdjt.State.getCookie("SBOOKS:AUTH-"));
+            else {}
+            if (Trace.glossdata)
+                fdjtLog("Fetching glossdata %s (%s) to cache locally",uri,rtype);
+            req.onreadystatechange=function () {
+                if ((req.readyState === 4)&&(req.status === 200)) try {
+                    var local_uri=false, data_uri=false;
+                    if (Trace.glossdata)
+                        fdjtLog("Glossdata from %s (%s) status %d",
+                                endpoint,rtype,req.status);
+                    if (rtype!=="blob")
+                        data_uri=local_uri=req.responseText;
+                    else if (createObjectURL) 
+                        local_uri=createObjectURL(req.response);
+                    else local_uri=false;
+                    if (local_uri) gotLocalURL(uri,local_uri,resolved);
+                    if (data_uri) {
+                        glossdata_state[uri]="caching";
+                        cacheDataURI(uri,data_uri);}
+                    else {
+                        // Need to get a data uri
+                        var reader=new FileReader(req.response);
+                        glossdata_state[uri]="reading";
+                        reader.onload=function(){
+                            try {
+                                if (!(local_uri))
+                                    gotLocalURL(uri,reader.result,resolved);
+                                glossdata_state[uri]="caching";
+                                cacheDataURI(uri,reader.result);}
+                            catch (ex) {
+                                fdjtLog.warn("Error encoding %s from %s: %s",
+                                             uri,endpoint,ex);
+                                glossdata_state[uri]=false;}};
+                        reader.readAsDataURL(req.response);}}
+                catch (ex) {
+                    fdjtLog.warn("Error fetching %s via %s: %s",uri,endpoint,ex);
+                    glossdata_state[uri]=false;}};
+            req.open("GET",endpoint);
+            // req.withCredentials=true;
+            req.send(null);}
+        return new Promise(caching);}
+    metaBook.cacheGlossData=cacheGlossData;
+
+    function getGlossData(uri){
+        function getting(resolved){
+            if (glossdata[uri]) resolved(glossdata[uri]);
+            else if (glossdata_state[uri]==="cached")  {
+                metaBook.getDB().then(function(db){
+                    var txn=db.transaction(["glossdata"],"readwrite");
+                    var storage=txn.objectStore("glossdata");
+                    var req=storage.get(uri);
+                    req.onsuccess=function(event){
+                        var object=event.target.result;
+                        gotLocalURL(uri,object.datauri,resolved);};
+                    req.onerror=function(ex){
+                        fdjtLog("Error getting %s from glossdata cache: %s",
+                                uri,ex);
+                        glossdata_state[uri]=false;
+                        setTimeout(function(){cacheGlossData(uri);},2000);};});}
+            else cacheGlossData(uri).then(resolved);}
+        return new Promise(getting);}
+    metaBook.getGlossData=getGlossData;
+
+    function gotLocalURL(uri,local_url,resolved){
+        var i, lim;
+        var waiting_elts=mB.srcloading[uri], waiting=glossdata_waiting[uri];
+        mB.srcloading[uri]=false; glossdata_waiting[uri]=false;
+        glossdata[uri]=local_url;
+        if (resolved) resolved(local_url);
+        if (waiting_elts) {
+            i=0; lim=waiting_elts.length;
+            if (Trace.glossdata)
+                fdjtLog("Setting glossdata src for %d element(s)",lim);
+            while (i<lim) waiting_elts[i++].src=local_url;}
+        if (waiting) {
+            i=0; lim=waiting.length;
+            while (i<lim) waiting[i++](local_url);
+            mB.srcloading[uri]=false;}}
+
+    function cacheDataURI(url,datauri){
+        var key="mB.glossdata("+url+")";
+        metaBook.getDB().then(function(db){
+            var txn=db.transaction(["glossdata"],"readwrite");
+            var storage=txn.objectStore("glossdata");
+            var req=storage.put({url: url,datauri: datauri});
+            var completed=false;
+            req.onerror=function(event){
+                glossdata_state[url]=false; completed=true;
+                fdjtLog("Error saving %s in indexedDB: %o",
+                        url,event.target.errorCode);};
+            req.onsuccess=function(){
+                glossdata_state[url]="cached"; completed=true;
+                if (Trace.glossdata)
+                    fdjtLog("Saved glossdata for %s in IndexedDB",url);
+                glossDataSaved(url);};
+            if ((req.status==="done")&&(!(completed))) req.onsuccess();})
+            .catch(function(){setLocal(key,datauri);});}
+
+    function glossDataSaved(url){
+        if (Trace.glossdata) fdjtLog("GlossData cached for %s",url);
+        pushLocal("mB.glossdata("+mB.docuri+")",url);}
+
+    function clearGlossData(url){
+        var key="mB.glossdata("+url+")", urls=getLocal(key,true);
+        if ((urls)&&(urls.length)) {
+            clearGlossDataCache(urls,key);}
+        else dropLocal(key);}
+    metaBook.clearGlossData=clearGlossData;
+
+    function clearGlossDataCache(urls,key){
+        function clearing(resolve){
+            metaBook.getDB().then(function(db){
+                var txn=db.transaction(["glossdata"],"readwrite");
+                var storage=txn.objectStore("glossdata");
+                storage.openCursor().onsuccess=function(event){
+                    var cursor=event.target.result;
+                    if (cursor) {
+                        if (urls.indexOf(cursor.key)>=0) {
+                            var req=cursor['delete']();
+                            req.onsuccess=function(){
+                                removeLocal(key,cursor.key);
+                                cursor['continue']();};
+                            req.onerror=function(){cursor['continue']();};}
+                        else cursor['continue']();}
+                    else resolve();};});}
+        return new Promise(clearing);}
+
+})();
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -27524,8 +27781,8 @@ metaBook.DOMScan=(function(){
     //  or the initial hash id from the URL (which was saved in
     //  metaBook.inithash).
     metaBook.initState=function initState() {
-        var uri=metaBook.docuri;
-        var state=readLocal("metabook.state("+uri+")",true);
+        var uri=metaBook.docuri, refuri=metaBook.refuri;
+        var state=readLocal("mB.state("+uri+")",true);
         var hash=metaBook.inithash;
         if (hash) {
             if (hash[0]==="#") hash=hash.slice(1);}
@@ -27544,7 +27801,7 @@ metaBook.DOMScan=(function(){
                 state.target=hash;
                 state.location=false;
                 state.changed=fdjtTime.tick;
-                saveLocal("metabook.state("+uri+")",state,true);}}
+                saveLocal("mB.state("+uri+")",state,true);}}
         if (state) metaBook.state=state;};
     
     // This records the current state of the app, bundled into an
@@ -27582,7 +27839,7 @@ metaBook.DOMScan=(function(){
         metaBook.state=state;
         var statestring=JSON.stringify(state);
         var uri=metaBook.docuri;
-        saveLocal("metabook.state("+uri+")",statestring);
+        saveLocal("mB.state("+uri+")",statestring);
         if ((!(syncing))&&(metaBook.locsync)&&(metaBook.user)&&
             ((!(metaBook.xstate))||(state.changed>metaBook.xstate.changed)))
             syncState(true);
@@ -27641,7 +27898,7 @@ metaBook.DOMScan=(function(){
     function clearState(){
         var uri=metaBook.docuri;
         metaBook.state=false;
-        clearLocal("metabook.state("+uri+")");
+        clearLocal("mB.state("+uri+")");
         metaBook.xstate=false;
     } metaBook.clearState=clearState;
 
@@ -27651,7 +27908,7 @@ metaBook.DOMScan=(function(){
         if (state.location) state.maxloc=location;
         state.reset=true;
         var statestring=JSON.stringify(state);
-        saveLocal("metabook.state("+uri+")",statestring);
+        saveLocal("mB.state("+uri+")",statestring);
         syncState(true);}
     metaBook.resetState=resetState;
 
@@ -27843,7 +28100,7 @@ metaBook.DOMScan=(function(){
             state.maxloc=xstate.maxloc;
             var statestring=JSON.stringify(state);
             var uri=metaBook.docuri;
-            saveLocal("metabook.state("+uri+")",statestring);}
+            saveLocal("mB.state("+uri+")",statestring);}
         else {}
         if (state.changed>=xstate.changed) {
             // The locally saved state is newer than the server,
@@ -27985,7 +28242,7 @@ metaBook.DOMScan=(function(){
                 "Cached user information is newer (%o) than loaded (%o)",
                 cursync,sync);}
         if ((navigator.onLine)&&
-            (getLocal("metabook.queued("+metaBook.refuri+")")))
+            (getLocal("mB.queued("+metaBook.refuri+")")))
             metaBook.writeQueuedGlosses();
         metaBook.user=metaBook.sourcedb.Import(
             userinfo,false,RefDB.REFLOAD|RefDB.REFSTRINGS|RefDB.REFINDEX);
@@ -27993,7 +28250,7 @@ metaBook.DOMScan=(function(){
         if (layers) metaBook.layers=layers;
         // No callback needed
         metaBook.user.save();
-        saveLocal("metabook.user",metaBook.user._id);
+        saveLocal("mB.user",metaBook.user._id);
         // We also save it locally so we can get it synchronously
         saveLocal(metaBook.user._id,metaBook.user.Export(),true);
         if (metaBook.locsync) metaBook.setConfig("locsync",true);
@@ -28015,7 +28272,7 @@ metaBook.DOMScan=(function(){
         if (!(metaBook.nodeid)) {
             metaBook.nodeid=nodeid;
             if ((nodeid)&&(metaBook.persist))
-                setLocal("metabook.nodeid("+refuri+")",nodeid,true);}}
+                setLocal("mB.nodeid("+refuri+")",nodeid,true);}}
     metaBook.setNodeID=setNodeID;
 
     function setupUI4User(){
@@ -28119,7 +28376,7 @@ metaBook.DOMScan=(function(){
     function userSetup(){
         // Get any local sync information
         var sync=metaBook.sync=
-            getLocal("metabook.sync("+metaBook.refuri+")",true)||0;
+            getLocal("mB.sync("+metaBook.refuri+")",true)||0;
         var started=fdjtTime();
         var loadinfo=false, userinfo=false;
 
@@ -28129,7 +28386,7 @@ metaBook.DOMScan=(function(){
             metaBook.clearOffline();
 
         if (metaBook.nologin) {}
-        else if ((metaBook.persist)&&(getLocal("metabook.user"))) {
+        else if ((metaBook.persist)&&(getLocal("mB.user"))) {
             initUserOffline();
             if (Trace.storage) 
                 fdjtLog("Local info for %o (%s) from %o",
@@ -28190,9 +28447,9 @@ metaBook.DOMScan=(function(){
 
     function initUserOffline(){
         var refuri=metaBook.refuri;
-        var user=getLocal("metabook.user");
+        var user=getLocal("mB.user");
         var sync=metaBook.sync;
-        var nodeid=getLocal("metabook.nodeid("+refuri+")",true);
+        var nodeid=getLocal("mB.nodeid("+refuri+")",true);
         // We store the information for the current user
         //  in both localStorage and in the "real" sourcedb.
         // We fetch the user from local storage because we
@@ -28207,9 +28464,9 @@ metaBook.DOMScan=(function(){
             fdjtLog("initOffline userinfo=%j",userinfo);
         // Should these really be refs in sourcedb?
         var outlets=metaBook.outlets=
-            getLocal("metabook.outlets("+refuri+")",true)||[];
+            getLocal("mB.outlets("+refuri+")",true)||[];
         var layers=metaBook.layers=
-            getLocal("metabook.layers("+refuri+")",true)||[];
+            getLocal("mB.layers("+refuri+")",true)||[];
         if (userinfo) setUser(userinfo,outlets,layers,sync);
         if (nodeid) setNodeID(nodeid);}
     metaBook.initUserOffline=initUserOffline;
@@ -28311,16 +28568,16 @@ metaBook.DOMScan=(function(){
             return;}
         if (window._sbook_loadinfo!==info)
             metaBook.setConnected(true);
-        if (info.sticky) metaBook.persist=true;
+        if (info.sticky) metaBook.setPersist(true);
         if (!(metaBook.user)) {
             if (info.userinfo)
                 metaBook.setUser(
                     info.userinfo,info.outlets,info.layers,
                     info.sync);
             else {
-                if (getLocal("metabook.queued("+metaBook.refuri+")"))
+                if (getLocal("mB.queued("+metaBook.refuri+")"))
                     metaBook.glossdb.load(
-                        getLocal("metabook.queued("+metaBook.refuri+")",true));
+                        getLocal("mB.queued("+metaBook.refuri+")",true));
                 $ID("METABOOKCOVER").className="bookcover";
                 addClass(document.documentElement||document.body,
                          "_NOUSER");}
@@ -28357,8 +28614,8 @@ metaBook.DOMScan=(function(){
             metaBook.clearOffline();}
         info.loaded=fdjtTime();
         if ((!(metaBook.localglosses))&&
-            ((getLocal("metabook.sync("+refuri+")"))||
-             (getLocal("metabook.queued("+refuri+")"))))
+            ((getLocal("mB.sync("+refuri+")"))||
+             (getLocal("mB.queued("+refuri+")"))))
             initGlossesOffline();
         if (Trace.glosses) {
             fdjtLog("loadInfo for %d %sglosses and %d refs (sync=%d)",
@@ -28543,7 +28800,7 @@ metaBook.DOMScan=(function(){
         var refuri=metaBook.refuri;
         metaBook[name]=qids;
         if (metaBook.cacheglosses)
-            saveLocal("metabook."+name+"("+refuri+")",qids,true);}
+            saveLocal("mB."+name+"("+refuri+")",qids,true);}
     
     // Processes info loaded remotely
     function gotInfo(name,info,persist) {
@@ -28564,7 +28821,7 @@ metaBook.DOMScan=(function(){
                 if (persist) ref.save();
                 metaBook[name]=ref._id;
                 if (persist) saveLocal(
-                    "metabook."+name+"("+metaBook.refuri+")",ref._id,true);}}}
+                    "mB."+name+"("+metaBook.refuri+")",ref._id,true);}}}
 
     function initGlosses(glosses,etc,callback){
         if (typeof callback === "undefined") callback=true;
@@ -28770,7 +29027,7 @@ metaBook.Startup=
             /*
               if ((fdjtDevice.standalone)&&
               (fdjtDevice.ios)&&(fdjtDevice.mobile)&&
-              (!(getLocal("metabook.user")))&&
+              (!(getLocal("mB.user")))&&
               (fdjtState.getQuery("SBOOKS:AUTH-"))) {
               var authkey=fdjt.State.getQuery("SBOOKS:AUTH-");
               fdjtLog("Got auth key %s",authkey);
@@ -28802,8 +29059,8 @@ metaBook.Startup=
 
             // Figure out if we have a user and whether we can keep
             // user information
-            if (getLocal("metabook.user")) {
-                metaBook.persist=true;
+            if (getLocal("mB.user")) {
+                metaBook.setPersist(true);
                 metaBook.userSetup();}
 
             // Initialize the book state (location, targets, etc)
@@ -28812,7 +29069,7 @@ metaBook.Startup=
             // If we have no clue who the user is, ask right away (updateInfo())
             if (!((metaBook.user)||(window._sbook_loadinfo)||
                   (metaBook.userinfo)||(window._userinfo)||
-                  (getLocal("metabook.user")))) {
+                  (getLocal("mB.user")))) {
                 if (Trace.startup)
                     fdjtLog("No local user info, requesting from sBooks server %s",
                             mB.server);
@@ -28909,7 +29166,7 @@ metaBook.Startup=
                 (window.location.protocol==='https:'))
                 metaBook.root=https_root;
             // Whether to suppress login, etc
-            if ((getLocal("metabook.nologin"))||(getQuery("nologin")))
+            if ((getLocal("mB.nologin"))||(getQuery("nologin")))
                 metaBook.nologin=true;
             var sbooksrv=getMeta("SBOOKS.server")||getMeta("SBOOKSERVER");
             if (sbooksrv) metaBook.server=sbooksrv;
@@ -28918,7 +29175,7 @@ metaBook.Startup=
             else metaBook.server=lookupServer(document.domain);
             if (!(metaBook.server)) metaBook.server=metaBook.default_server;
 
-            if (fdjtState.getLocal("metabook.devmode")) {
+            if (fdjtState.getLocal("mB.devmode")) {
                 addClass(document.documentElement,"_DEVMODE");
                 metaBook.devmode=true;}
 
@@ -28969,7 +29226,7 @@ metaBook.Startup=
 
             // Setup the reticle (if desired)
             if ((typeof (body.style["pointer-events"])!== "undefined")&&
-                ((metaBook.demo)||(fdjtState.getLocal("metabook.demo"))||
+                ((metaBook.demo)||(fdjtState.getLocal("mB.demo"))||
                  (fdjtState.getCookie("sbooksdemo"))||
                  (getQuery("demo")))) {
                 fdjtUI.Reticle.setup();}
@@ -29030,7 +29287,7 @@ metaBook.Startup=
             if ((cur)&&(cur>val)) return cur;
             metaBook.sync=val;
             if (metaBook.persist)
-                saveLocal("metabook.sync("+metaBook.docuri+")",val);
+                saveLocal("mB.sync("+metaBook.docuri+")",val);
             return val;};
 
         function readTraceSettings(){
@@ -29297,7 +29554,7 @@ metaBook.Startup=
                 metaBook.hideCover();
             else if ((!(mode))&&(metaBook.user)) {
                 var opened=readLocal(
-                    "metabook.opened("+metaBook.docuri+")",true);
+                    "mB.opened("+metaBook.docuri+")",true);
                 if ((opened)&&((opened+((3600+1800)*1000))>fdjtTime()))
                     metaBook.hideCover();}
             if (fdjtDOM.vischange)
@@ -29312,27 +29569,29 @@ metaBook.Startup=
         function readBookSettings(){
             // Basic stuff
             var refuri=_getsbookrefuri();
+            var docuri=_getsbookdocuri();
             var locuri=window.location.href;
             var hashpos=locuri.indexOf('#');
             if (hashpos>0) metaBook.locuri=locuri.slice(0,hashpos);
             else metaBook.locuri=locuri;
             document.body.refuri=metaBook.refuri=refuri;
-            metaBook.docuri=_getsbookdocuri();
             metaBook.topuri=document.location.href;
+            metaBook.docuri=docuri;
             
-            var refuris=getLocal("metabook.refuris",true)||[];
+            var refuris=getLocal("mB.refuris",true)||[];
+            var docuris=getLocal("mB.docuris",true)||[];
 
             metaBook.sourceid=
                 getMeta("SBOOKS.sourceid")||getMeta("SBOOKS.fileid")||
                 metaBook.docuri;
             metaBook.sourcetime=fdjtTime.parse(getMeta("SBOOKS.sourcetime"));
-            var oldid=getLocal("metabook.sourceid("+metaBook.docuri+")");
+            var oldid=getLocal("mB.sourceid("+metaBook.docuri+")");
             if ((oldid)&&(oldid!==metaBook.sourceid)) {
-                var layouts=getLocal("metabook.layouts("+oldid+")");
+                var layouts=getLocal("mB.layouts("+oldid+")");
                 if ((layouts)&&(layouts.length)) {
                     var i=0, lim=layouts.length; while (i<lim) 
                         CodexLayout.dropLayout(layouts[i++]);}}
-            else saveLocal("metabook.sourceid("+metaBook.docuri+")",
+            else saveLocal("mB.sourceid("+metaBook.docuri+")",
                            metaBook.sourceid);
 
             var bookbuild=getMeta("SBOOKS.buildstamp");
@@ -29358,7 +29617,12 @@ metaBook.Startup=
             metaBook.sbooknoterefs=(((noterefspecs)&&(noterefspecs.length))?
                                     (fdjtDOM.sel(noterefspecs)):(false));
 
-            refuris.push(refuri);
+            if (refuris.indexOf(refuri)<0) {
+                refuris.push(refuri);
+                saveLocal("mB.refuris",refuris,true);}
+            if (docuris.indexOf(docuri)<0) {
+                docuris.push(docuri);
+                saveLocal("mB.docuris",docuris,true);}
 
             var docref=getMeta("SBOOKS.docref");
             if (docref) metaBook.docref=docref;
@@ -29410,8 +29674,7 @@ metaBook.Startup=
             if (!(metaBook.nologin)) {
                 metaBook.mycopyid=getMeta("SBOOKS.mycopyid")||
                     (getLocal("mycopy("+refuri+")"))||
-                    false;}
-            if (metaBook.persist) saveLocal("metabook.refuris",refuris,true);}
+                    false;}}
 
         function setupDevice(){
             var root=document.documentElement||document.body;
@@ -32156,7 +32419,7 @@ metaBook.setMode=
 
         function showCover(){
             if (metaBook._setup)
-                fdjtState.dropLocal("metabook.opened("+metaBook.docuri+")");
+                fdjtState.dropLocal("mB.opened("+metaBook.docuri+")");
             setHUD(false);
             metaBook.closed=true;
             if (metaBook.covermode) {
@@ -32167,7 +32430,7 @@ metaBook.setMode=
         function hideCover(){
             if (metaBook._setup)
                 fdjtState.setLocal(
-                    "metabook.opened("+metaBook.docuri+")",fdjtTime());
+                    "mB.opened("+metaBook.docuri+")",fdjtTime());
             metaBook.closed=false;
             dropClass(document.body,"mbCOVER");
             if (metaBook.mode) {
@@ -35164,9 +35427,9 @@ metaBook.setMode=
         var queued=metaBook.queued;
         queued.push(json.uuid);
         if (metaBook.cacheglosses) {
-            fdjtState.setLocal("metabook.params("+json.uuid+")",params);
+            fdjtState.setLocal("mB.params("+json.uuid+")",params);
             fdjtState.setLocal(
-                "metabook.queued("+metaBook.refuri+")",queued,true);}
+                "mB.queued("+metaBook.refuri+")",queued,true);}
         else queued_data[json.uuid]=params;
         // Now save it to the in-memory database
         var glossdata=
@@ -35236,7 +35499,7 @@ metaBook.setMode=
                 getAttribute("ajaxaction");
             var queued=metaBook.queued; var glossid=queued[0];
             var post_data=((metaBook.nocache)?((queued_data[glossid])):
-                           (fdjtState.getLocal("metabook.params("+glossid+")")));
+                           (fdjtState.getLocal("mB.params("+glossid+")")));
             if (post_data) {
                 var req=new XMLHttpRequest();
                 req.open('POST',ajax_uri);
@@ -35244,7 +35507,7 @@ metaBook.setMode=
                 req.onreadystatechange=function () {
                     if ((req.readyState === 4) &&
                         (req.status>=200) && (req.status<300)) {
-                        fdjtState.dropLocal("metabook.params("+glossid+")");
+                        fdjtState.dropLocal("mB.params("+glossid+")");
                         var pending=metaBook.queued;
                         if ((pending)&&(pending.length)) {
                             var pos=pending.indexOf(glossid);
@@ -35252,11 +35515,11 @@ metaBook.setMode=
                                 pending.splice(pos,1);
                                 if (metaBook.cacheglosses)
                                     fdjtState.setLocal(
-                                        "metabook.queued("+metaBook.refuri+")",pending,true);
+                                        "mB.queued("+metaBook.refuri+")",pending,true);
                                 metaBook.queued=pending;}}
                         addgloss_callback(req,false,false);
                         if (pending.length) setTimeout(writeQueuedGlosses,200);
-                        fdjtState.dropLocal("metabook.queued("+metaBook.refuri+")");}
+                        fdjtState.dropLocal("mB.queued("+metaBook.refuri+")");}
                     else if (req.readyState===4) {
                         metaBook.setConnected(false);}
                     else {}};
@@ -37885,7 +38148,7 @@ metaBook.setMode=
         if (!((evt.shiftKey)||((evt.touches)&&(evt.touches.length>=2)))) {
             var opened=
                 metaBook.readLocal(
-                    "metabook.opened("+metaBook.docuri+")",
+                    "mB.opened("+metaBook.docuri+")",
                     true);
             if ((opened)&&((opened-fdjtTime())>(60*10*1000))) {
                 if ($ID("METABOOKCOVERHOLDER"))
@@ -37969,11 +38232,11 @@ metaBook.setMode=
             if ((now-devmode_click)<1000) {
                 if (mB.devmode)  {
                     metaBook.devmode=false;
-                    fdjtState.dropLocal("metabook.devmode");
+                    fdjtState.dropLocal("mB.devmode");
                     dropClass(root,"_DEVMODE");}
                 else {
                     metaBook.devmode=true;
-                    fdjtState.setLocal("metabook.devmode",true);
+                    fdjtState.setLocal("mB.devmode",true);
                     addClass(root,"_DEVMODE");}
                 devmode_click=false;}
             else devmode_click=now;}
@@ -38479,9 +38742,6 @@ metaBook.setMode=
     "use strict";
 
     var fdjtDOM=fdjt.DOM;
-    var fdjtState=fdjt.State;
-    var fdjtLog=fdjt.Log;
-    var metaBookDB=metaBook.metaBookDB;
 
     var mB=metaBook, $ID=fdjt.ID;
     var addClass=fdjtDOM.addClass;
@@ -38603,43 +38863,13 @@ metaBook.setMode=
             src_elt.src=mB.glossdata[url];
             placeMedia();}
         else if (src_elt) {
-            var cache_key="glossdata("+url+")";
-            var cache_val=fdjtState.getLocal(cache_key);
-            if (cache_val) {
-                if (cache_val.slice(0,5)==="data:")
-                    src_elt.src=cache_val;
-                else if (cache_val==="cached") {
-                    addClass($ID("METABOOKMEDIA"),"loadingcontent");
-                    addClass(src_elt,"loadingcontent");
-                    var txn=metaBookDB.transaction(["glossdata"]);
-                    var storage=txn.objectStore("glossdata");
-                    var req=storage.get(url);
-                    req.onsuccess=function(event){
-                        var target=event.target;
-                        var result=((target)&&(target.result));
-                        dropClass($ID("METABOOKMEDIA"),"loadingcontent");
-                        dropClass(src_elt,"loadingcontent");
-                        if ((result)&&(result.datauri)) {
-                            var objurl=mB.gotGlossData(url,result.datauri);
-                            src_elt.src=objurl;}
-                        else src_elt.src=url;
-                        placeMedia();};
-                    req.onerror=function(event){
-                        fdjtLog("Retrieval of %s from indexedDB failed: %o",
-                                url,event.errorCode);
-                        dropClass($ID("METABOOKMEDIA"),"loadingcontent");
-                        dropClass(src_elt,"loadingcontent");
-                        src_elt.src=url;
-                        placeMedia();};}
-                else if (metaBook.srcloading[url]) {
-                    metaBook.srcloading[url].push(src_elt);
-                    placeMedia();}
-                else {
-                    metaBook.srcloading[url]=[src_elt];
-                    placeMedia();}}
-            else {
-                src_elt.src=url;
-                placeMedia();}}
+            addClass($ID("METABOOKMEDIA"),"loadingcontent");
+            addClass(src_elt,"loadingcontent");
+            metaBook.getGlossData(url).then(function(val){
+                dropClass($ID("METABOOKMEDIA"),"loadingcontent");
+                dropClass(src_elt,"loadingcontent");
+                src_elt.src=val;
+                placeMedia();});}
         else placeMedia();}
     metaBook.showMedia=showMedia;
     function hideMedia(){
@@ -38927,7 +39157,7 @@ metaBook.Paginate=
             var max_layouts=3;
 
             function recordLayout(layout_id,source_id){
-                var key="metabook.layouts("+source_id+")";
+                var key="mB.layouts("+source_id+")";
                 var saved=getLocal(key,true);
                 if (!(saved)) setLocal(key,[layout_id],true);
                 else {
@@ -39150,23 +39380,24 @@ metaBook.Paginate=
             else if (typeof layout_id === "number")
                 layout_id=getLayoutID.apply(null,arguments);
             else {}
-            var layouts=getLocal("metabook.layouts("+metaBook.sourceid+")",true);
+            var layouts=getLocal("mB.layouts("+metaBook.sourceid+")",true);
             return ((layouts)&&(layouts.indexOf(layout_id)>=0));}
         metaBook.layoutCached=layoutCached;
         
         function clearLayouts(source_id){
-            if (typeof source_id === "undefined") source_id=metaBook.sourceid;
+            if (typeof source_id === "undefined")
+                source_id=metaBook.sourceid;
             if (source_id) {
-                var layouts=getLocal("metabook.layouts("+metaBook.sourceid+")",true);
+                var layouts=getLocal("mB.layouts("+source_id+")",true);
                 var i=0, lim=layouts.length; while (i<lim) {
                     var layout=layouts[i++];
                     fdjtLog("Dropping layout %s",layout);
                     CodexLayout.dropLayout(layout);}
-                fdjtState.dropLocal("metabook.layouts("+metaBook.sourceid+")");}
+                fdjtState.dropLocal("mB.layouts("+source_id+")");}
             else {
                 CodexLayout.clearLayouts();
                 CodexLayout.clearAll();
-                fdjtState.dropLocal(/^metabook.layouts\(/g);}}
+                fdjtState.dropLocal(/^mB.layouts\(/g);}}
         metaBook.clearLayouts=clearLayouts;
 
         function getLayoutArgs(){
@@ -39317,7 +39548,7 @@ metaBook.Paginate=
             // We track the sourceid to know when, for example, any
             //  cached layouts need to be invalidated.
             var saved_sourceid=
-                fdjtState.getLocal("metabook.sourceid("+metaBook.refuri+")");
+                fdjtState.getLocal("mB.sourceid("+metaBook.refuri+")");
             if ((saved_sourceid)&&(sourceid)&&(sourceid!==sourceid)) {
                 var layouts=fdjtState.getLocal("fdjtmetaBook.layouts",true);
                 var kept=[];
@@ -39333,7 +39564,7 @@ metaBook.Paginate=
                 else fdjtState.dropLocal("fdjtmetaBook.layouts",kept);}
             
             if (sourceid)
-                fdjtState.setLocal("metabook.sourceid("+metaBook.refuri+")",
+                fdjtState.setLocal("mB.sourceid("+metaBook.refuri+")",
                                    sourceid);
             
             var args={page_height: height,page_width: width,
@@ -41440,15 +41671,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1362-g16340d8';
+fdjt.revision='1.5-1369-gb955d63';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Mon Mar 23 12:53:36 EDT 2015';
-fdjt.builduuid='198411ad-fa01-4bbb-98ae-de81fadc90aa';
+fdjt.buildtime='Wed Mar 25 07:45:15 EDT 2015';
+fdjt.builduuid='4005fbba-b923-45d1-a92b-0ce2cf389135';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='186ccf92-c6ac-4d6f-b446-bb9df334b912-dist';
-metaBook.buildtime='Mon Mar 23 13:05:17 EDT 2015';
+metaBook.buildid='7a4a49ae-9718-44cd-a7fa-291a077498b5-dist';
+metaBook.buildtime='Wed Mar 25 07:45:16 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
