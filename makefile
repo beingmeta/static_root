@@ -21,6 +21,8 @@ BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
 BRANCH=master
+UGLIFY:=`which uglifyjs2 uglifyjs`
+CLEANCSS:=`which cleancss`
 CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
 		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon \
 		*.rct *.ico
@@ -253,7 +255,7 @@ fdjt.css: fdjt/fdjt.css
 	cp fdjt/fdjt.css fdjt.css
 fdjt.min.js: ${FDJT_FILES} fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
-	@uglifyjs2 -b \
+	@$(UGLIFY) -b \
 	  --source-map fdjt.uglify.map \
 	    ${FDJT_FILES} fdjt/buildstamp.js \
 	  > $@
@@ -289,7 +291,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 		> fdjt/codexlayouthash.js 
 	@echo >> fdjt/codexlayouthash.js
 	@echo >> fdjt/codexlayouthash.js
-	@uglifyjs2 -b \
+	@$(UGLIFY) -b \
 	  --source-map metabook.uglify.map \
 	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
@@ -297,7 +299,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	  metabook/autoload.js > $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
-	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 
 fresh:
 	make clean
@@ -343,13 +345,13 @@ dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.clean.css
-	@cleancss --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 	@mv metabook.clean.css metabook.clean.css.map dist
 dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 	    $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    dist/buildstamp.js knodules/buildstamp.js
 	@echo Building dist/metabook.min.js
-	@uglifyjs2 \
+	@$(UGLIFY) \
 	  --source-map metabook.uglify.map \
 	  --source-map-root /static \
 	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
@@ -362,7 +364,7 @@ dist/metabook.min.js: dist/metabook.uglify.js
 
 dist/fdjt.min.js dist/fdjt.uglify.map: $(FDJT_FILES) makefile
 	@echo Rebuilding dist/fdjt.min.js
-	@uglifyjs2                           \
+	@$(UGLIFY)                           \
 	  --source-map dist/fdjt.uglify.map  \
 	  --source-map-root /static          \
 	    $(FDJT_FILES) fdjt/buildstamp.js > $@
@@ -535,3 +537,8 @@ kdiff:
 	cd knodules; git diff
 mdiff:	
 	cd metabook; git diff
+
+metabuild buildbuild:
+	sudo npm install uglify-js -g
+	sudo npm install cleancss -g
+	sudo npm install jshint -g
