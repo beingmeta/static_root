@@ -8649,7 +8649,7 @@ fdjt.DOM=
             return getMeta(name,true,matchcase,true);};
 
         // This gets a LINK href field
-        function getLink(name,multiple,foldcase,dom){
+        function getLink(name,multiple,foldcase,dom,attrib){
             var results=[];
             var elts=((document.getElementsByTagName)?
                       (document.getElementsByTagName("LINK")):
@@ -8664,8 +8664,12 @@ fdjt.DOM=
                 else if (elt.rel.search(rx)>=0) {
                     if (multiple) {
                         if (dom) results.push(elt);
+                        else if (attrib)
+                            results.push(elt.getAttribute("href"));
                         else results.push(elt.href);}
                     else if (dom) return elt;
+                    else if (attrib)
+                        return elt.getAttribute("href");
                     else return elt.href;}
                 else {}}
             if (multiple) return results;
@@ -12348,9 +12352,11 @@ fdjt.Ajax=
             var req=new XMLHttpRequest();
             var uri=((args)?(compose_uri(base_uri,args)):(base_uri));
             req.onreadystatechange=function () {
-                if ((req.readyState === 4) && (req.status === 200)) {
-                    success_callback(req);}
-                else if (other_callback) other_callback(req);};
+                if (req.readyState === 4) {
+                    if (req.status === 200) {
+                        success_callback(req);}
+                    else if (other_callback) other_callback(req);}
+                else {}};
             if (timeout) {
                 req.timeout=timeout;
                 if (other_callback) {
@@ -17849,8 +17855,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1369-gb955d63';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Fri Mar 27 15:21:33 UTC 2015';
-fdjt.builduuid='047ae1dc-3e2b-4b57-8103-15999eca13f4';
+fdjt.revision='1.5-1370-g0cc56a9';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Fri Mar 27 14:20:40 EDT 2015';
+fdjt.builduuid='A6BD38BD-5753-4ECE-98DB-FACF4864B6D2';
 

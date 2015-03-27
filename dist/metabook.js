@@ -25,6 +25,120 @@
 
 */
 
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ###################### metabook/core.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file implements a Javascript/DHTML web application for reading
+   large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+/* globals Promise */
+
+/* Initialize these here, even though they should always be
+   initialized before hand.  This will cause various code checkers to
+   not generate unbound variable warnings when called on individual
+   files. */
+//var fdjt=((typeof fdjt !== "undefined")?(fdjt):({}));
+//var Knodule=((typeof Knodule !== "undefined")?(Knodule):({}));
+//var iScroll=((typeof iScroll !== "undefined")?(iScroll):({}));
+//var fdjtMap=fdjt.Map;
+
+(function(){
+    var start=(new Date()).getTime();
+    var timeout_after=60*1000, check_interval=100;
+    var sample_text="QW@HhsXJ.,+";
+    var html=document.documentElement, body=document.body;
+    var div1=document.createElement("DIV");
+    var div2=document.createElement("DIV");
+    var text1=document.createTextNode(sample_text);
+    var text2=document.createTextNode(sample_text);
+    var style1=div1.style, style2=div2.style;
+    style1.position=style2.position='absolute';
+    style1.top=style2.top="-5000px";
+    style1.left=style2.left='-5000px';
+    style1.pointerEvents=style2.pointerEvents='none';
+    style1.zIndex=style2.zIndex='500';
+    style1.opacity=style2.opacity=0.0;
+    style1.fontSize=style2.fontSize="250px";
+    style1.fontFamily="'Open Sans','Comic Sans MS'";
+    style1.fontFamily="'Comic Sans MS'";
+    div1.id="METABOOK_FONTCHECK1";
+    div2.id="METABOOK_FONTCHECK2";
+    div1.className=div2.className="_ignoreme";
+    div1.appendChild(text1);
+    div2.appendChild(text2);
+    body.appendChild(div1);
+    body.appendChild(div2);
+    var itimer, timeout;
+    function cleanup(){
+	if (itimer) clearInterval(itimer);
+	if (timeout) clearTimeout(timeout);
+        if (div1.parentNode)
+	    div1.parentNode.removeChild(div1);
+        if (div2.parentNode)
+	    div2.parentNode.removeChild(div2);}
+    function checking(){
+	var w1=div1.offsetWidth;
+	var w2=div2.offsetWidth;
+	var now=(new Date()).getTime();
+	if (w1!==w2) {
+	    if (console.log)
+		console.log("["+(now-start)/1000+"s] Open Sans loaded, "+
+			    "divs at @ "+w1+"!="+w2);
+	    if (html.className)
+		html.className=html.className+" _HAVEOPENSANS";
+	    else html.className="_HAVEOPENSANS";
+	    cleanup();
+            return false;}
+	else if (console.log)
+	    console.log("["+(now-start)/1000+"s] unloaded, "+
+			"divs still equal @ "+w1+"!="+w2);
+	else {}
+        return true;}
+    function giveup(){
+	var w1=div1.offsetWidth;
+	var w2=div2.offsetWidth;
+	var now=(new Date()).getTime();
+        if (console.log)
+            console.log("Giving up on loading Open Sans after "+
+                        (now-start)/1000+"s, "+w1+"=="+w2);
+        cleanup();}
+    if (checking()) {
+        itimer=setInterval(checking,check_interval);
+        timeout=setTimeout(giveup,timeout_after);}})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
 /* -*- Mode: Javascript; -*- */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -8676,7 +8790,7 @@ fdjt.DOM=
             return getMeta(name,true,matchcase,true);};
 
         // This gets a LINK href field
-        function getLink(name,multiple,foldcase,dom){
+        function getLink(name,multiple,foldcase,dom,attrib){
             var results=[];
             var elts=((document.getElementsByTagName)?
                       (document.getElementsByTagName("LINK")):
@@ -8691,8 +8805,12 @@ fdjt.DOM=
                 else if (elt.rel.search(rx)>=0) {
                     if (multiple) {
                         if (dom) results.push(elt);
+                        else if (attrib)
+                            results.push(elt.getAttribute("href"));
                         else results.push(elt.href);}
                     else if (dom) return elt;
+                    else if (attrib)
+                        return elt.getAttribute("href");
                     else return elt.href;}
                 else {}}
             if (multiple) return results;
@@ -12375,9 +12493,11 @@ fdjt.Ajax=
             var req=new XMLHttpRequest();
             var uri=((args)?(compose_uri(base_uri,args)):(base_uri));
             req.onreadystatechange=function () {
-                if ((req.readyState === 4) && (req.status === 200)) {
-                    success_callback(req);}
-                else if (other_callback) other_callback(req);};
+                if (req.readyState === 4) {
+                    if (req.status === 200) {
+                        success_callback(req);}
+                    else if (other_callback) other_callback(req);}
+                else {}};
             if (timeout) {
                 req.timeout=timeout;
                 if (other_callback) {
@@ -26467,10 +26587,8 @@ metaBook.DOMScan=(function(){
                 // This endpoint returns a datauri as text
                 endpoint="https://glossdata.sbooks.net/U/"+
                     uri.slice("https://glossdata.sbooks.net/".length);
-                req.responseText=""; rtype="any";}
-            else {
-                endpoint=uri; req.responseType="blob";
-                rtype=req.responseType;}
+                rtype="";}
+            else {endpoint=uri; rtype="blob";}
             // We provide credentials in the query string because we
             //  need to have .withCredentials be false to avoid some
             //  CORS-related errors on redirects to sites like S3.
@@ -26488,7 +26606,7 @@ metaBook.DOMScan=(function(){
                     var local_uri=false, data_uri=false;
                     if (Trace.glossdata)
                         fdjtLog("Glossdata from %s (%s) status %d",
-                                endpoint,rtype,req.status);
+                                endpoint,rtype||"any",req.status);
                     if (rtype!=="blob")
                         data_uri=local_uri=req.responseText;
                     else if (createObjectURL) 
@@ -26517,6 +26635,7 @@ metaBook.DOMScan=(function(){
                     fdjtLog.warn("Error fetching %s via %s: %s",uri,endpoint,ex);
                     glossdata_state[uri]=false;}};
             req.open("GET",endpoint);
+            req.responseType=rtype;
             // req.withCredentials=true;
             req.send(null);}
         return new Promise(caching);}
@@ -26734,7 +26853,8 @@ metaBook.DOMScan=(function(){
             fdjtDOM.stripIDs(coverpage);
             coverpage.id="METABOOKCOVERPAGE";}
         else if (metaBook.coverimage) {
-            var coverimage=fdjtDOM.Image(metaBook.covermage);
+            var coverimage=fdjtDOM.Image(metaBook.coverimage);
+            coverimage.id="METABOOKCOVERIMAGE";
             coverpage=fdjtDOM("div#METABOOKCOVERPAGE",coverimage);}
         else coverpage=false;
         if (coverpage) {
@@ -26987,7 +27107,7 @@ metaBook.DOMScan=(function(){
         if (value) addClass(root,"_SHOWCONSOLE");
         else dropClass(root,"_SHOWCONSOLE");
         var controls=$ID("METABOOKCOVERCONTROLS");
-        fdjtDOM.adjustFontSize(controls);
+        if (controls) fdjtDOM.adjustFontSize(controls);
         fdjt.Async(function(){metaBook.updateSettings(name,value);});});
 
 }());
@@ -29000,6 +29120,12 @@ metaBook.Startup=
                 fdjtLog.apply(null,arguments);}
         metaBook.startupMessage=startupMessage;
 
+        function dropSplashPage(){
+            var splash=$ID("METABOOKSPLASHPAGE");
+            if ((splash)&&(splash.parentNode))
+                splash.parentNode.removeChild(splash);}
+        metaBook.dropSplashPage=dropSplashPage;
+
         function run_inits(){
             var inits=metaBook.inits;
             var i=0, lim=inits.length;
@@ -29327,8 +29453,8 @@ metaBook.Startup=
             // This is all of the startup that we need to do synchronously
             syncStartup();
 
-            metaBook.resizeUI();
-
+            metaBook.resizeUI().then(function(){dropSplashPage();});
+            
             // The rest of the stuff we timeslice
             fdjtAsync.timeslice
             ([  // Scan the DOM for metadata.  This is surprisingly
@@ -29566,6 +29692,9 @@ metaBook.Startup=
         
         var default_config=metaBook.default_config;
 
+        function getRelLink(relname){
+            return getLink(relname,false,true,false,true);}
+
         function readBookSettings(){
             // Basic stuff
             var refuri=_getsbookrefuri();
@@ -29627,17 +29756,16 @@ metaBook.Startup=
             var docref=getMeta("SBOOKS.docref");
             if (docref) metaBook.docref=docref;
 
-            var coverpage=getLink("SBOOKS.coverpage",false,true)||
-                getLink("coverpage",false,true);
+            var coverpage=
+                getRelLink("SBOOKS.coverpage")||getRelLink("coverpage");
             if (coverpage) metaBook.coverpage=coverpage;
-            var coverimage=getLink("SBOOKS.coverimage",false,true)||
-                getLink("coverimage",false,true);
+            var coverimage=
+                getRelLink("SBOOKS.coverimage")||getRelLink("coverimage");
             if (coverimage) metaBook.coverimage=coverimage;
-            var thumbnail=getLink("SBOOKS.thumbnail",false,true)||
-                getLink("thumbnail",false,true);
+            var thumbnail=
+                getRelLink("SBOOKS.thumbnail")||getRelLink("thumbnail");
             if (thumbnail) metaBook.thumbnail=thumbnail;
-            var icon=getLink("SBOOKS.icon",false,true)||
-                getLink("icon",false,true);
+            var icon=getRelLink("SBOOKS.icon")||getRelLink("icon");
             if (icon) metaBook.icon=icon;
             
             var baseid=getMeta("SBOOKS.id")||
@@ -33193,17 +33321,21 @@ metaBook.setMode=
     var resize_default=false;
     
     function resizeUI(wait){
+        function resizing(done){
+            setTimeout(function(){
+                var adjstart=fdjt.Time();
+                var hud=$ID("METABOOKHUD");
+                var cover=$ID("METABOOKCOVER");
+                if (cover) mB.resizeCover(cover);
+                if (hud) mB.resizeHUD(hud);
+                if (done) done();
+                if ((hud)||(cover))
+                    fdjtLog("Resized UI in %fsecs",
+                            ((fdjt.Time()-adjstart)/1000));},
+                       100);}
         if (!(wait)) wait=100;
-        setTimeout(function(){
-            var adjstart=fdjt.Time();
-            var hud=$ID("METABOOKHUD");
-            var cover=$ID("METABOOKCOVER");
-            if (cover) mB.resizeCover(cover);
-            if (hud) mB.resizeHUD(hud);
-            if ((hud)||(cover))
-                fdjtLog("Resized UI in %fsecs",
-                        ((fdjt.Time()-adjstart)/1000));},
-                   100);}
+        return new Promise(resizing);}
+
     metaBook.resizeUI=resizeUI;
 
     function metabookResize(){
@@ -41671,16 +41803,16 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1369-gb955d63';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Fri Mar 27 15:21:33 UTC 2015';
-fdjt.builduuid='047ae1dc-3e2b-4b57-8103-15999eca13f4';
+fdjt.revision='1.5-1370-g0cc56a9';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Fri Mar 27 14:20:40 EDT 2015';
+fdjt.builduuid='A6BD38BD-5753-4ECE-98DB-FACF4864B6D2';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='a6cbfdc8-6217-4683-94be-b7568ab1eab5-dist';
-metaBook.buildtime='Fri Mar 27 15:22:44 UTC 2015';
-metaBook.buildhost='dev.beingmeta.com(dist)';
+metaBook.buildid='7C4A3682-ECE6-4F53-8D8E-01E8F83751FE-dist';
+metaBook.buildtime='Fri Mar 27 15:07:29 EDT 2015';
+metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

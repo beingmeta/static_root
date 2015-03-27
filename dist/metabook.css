@@ -3364,6 +3364,8 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 #METABOOKFRAME {
     /* font-family: 'Open Sans', Arial, Helvetica, sans-serif, sans; */
     font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif, sans;}
+html._HAVEOPENSANS #METABOOKFRAME {
+    font-family: 'Open Sans', Verana, Tahoma, Arial, Helvetica, sans-serif;}
 html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog {
     font-family: 'Open Dyslexic', serif;}
 .wf-inactive #METABOOKFRAME {
@@ -5262,8 +5264,7 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
 /* Hover rules */
 
 #METABOOKHUD .hudbutton.tapholdtarget,
-#METABOOKHUD .hudbutton.tapholdtarget,
-html._MOUSE #METABOOKHUD .hudbutton:hover {
+#METABOOKHUD .hudbutton.tapholdtarget {
     border-color: blue; border-style: dotted;
     opacity: 0.50;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
@@ -5272,6 +5273,16 @@ html._MOUSE #METABOOKHUD .hudbutton:hover {
     -khtml-opacity: 0.50;
     -moz-opacity: 0.50;
     -o-opacity: 0.50;}
+
+html._MOUSE #METABOOKHUD .hudbutton:hover {
+    border-color: blue; border-style: dotted;
+    opacity: 0.20;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+    filter: alpha(opacity=20);
+    -webkit-opacity: 0.20;
+    -khtml-opacity: 0.20;
+    -moz-opacity: 0.20;
+    -o-opacity: 0.20;}
 
 html._MOUSE body:not(.hudup) #METABOOKHUD:hover .hudbutton:not(:hover) {
     opacity: 0.20;
