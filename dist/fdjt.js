@@ -16247,6 +16247,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (th_timer) {clearTimeout(th_timer); th_timer=false;}
             if ((all)&&(tt_timer)) {
                 clearTimeout(tt_timer); tt_timer=false;}
+            th_target=th_target_t=false; th_targets=[];
             swipe_t=start_x=start_y=start_t=
                 touch_x=touch_y=touch_t=touch_n=
                 target_x=target_y=target_t=false;
@@ -16671,8 +16672,9 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                                 thid,th_target,evt,target);
                     new_event=document.createEvent('TouchEvent');
                     new_event.initTouchEvent(
-                        evt.type,true,true,window,0,
-                        touch.screenX,touch.screenY,touch.clientX,touch.clientY,
+                        evt.type,true,true,window,null,
+                        touch.screenX,touch.screenY,
+                        touch.clientX,touch.clientY,
                         evt.ctrlKey,evt.altKey,evt.shiftKey,evt.metaKey,
                         document.createTouchList(touch),
                         document.createTouchList(touch),
@@ -17855,8 +17857,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1370-g0cc56a9';
+fdjt.revision='1.5-1371-g974d4d8';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Mar 27 14:20:40 EDT 2015';
-fdjt.builduuid='A6BD38BD-5753-4ECE-98DB-FACF4864B6D2';
+fdjt.buildtime='Sun Mar 29 15:44:29 EDT 2015';
+fdjt.builduuid='FF1D3941-C639-4344-89B1-40F1F16FE5E1';
 

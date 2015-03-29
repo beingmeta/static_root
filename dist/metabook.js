@@ -16397,6 +16397,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (th_timer) {clearTimeout(th_timer); th_timer=false;}
             if ((all)&&(tt_timer)) {
                 clearTimeout(tt_timer); tt_timer=false;}
+            th_target=th_target_t=false; th_targets=[];
             swipe_t=start_x=start_y=start_t=
                 touch_x=touch_y=touch_t=touch_n=
                 target_x=target_y=target_t=false;
@@ -16821,8 +16822,9 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                                 thid,th_target,evt,target);
                     new_event=document.createEvent('TouchEvent');
                     new_event.initTouchEvent(
-                        evt.type,true,true,window,0,
-                        touch.screenX,touch.screenY,touch.clientX,touch.clientY,
+                        evt.type,true,true,window,null,
+                        touch.screenX,touch.screenY,
+                        touch.clientX,touch.clientY,
                         evt.ctrlKey,evt.altKey,evt.shiftKey,evt.metaKey,
                         document.createTouchList(touch),
                         document.createTouchList(touch),
@@ -36883,6 +36885,14 @@ metaBook.setMode=
             cancel(evt);
             return;}
 
+        if (mB.passage_menu) {
+            if (Trace.gestures)
+                fdjtLog("body_tapped %o closing menu %o",
+                        evt,mB.passage_menu);
+            if (mB.TapHold.body) metaBook.TapHold.body.abort();
+            fdjtUI.cancel(evt);
+            return closePassageMenu(evt);}
+
         if (mB.glosstarget) {
             var glossform=metaBook.glossform;
             if (hasParent(target,mB.glosstarget)) {
@@ -37192,7 +37202,7 @@ metaBook.setMode=
         var spec={choices: choices,
                   spec: "div.fdjtdialog.metabooktaptap",
                   style: "width: "+(max*0.8)+"em"};
-        fdjtUI.choose(spec);}
+        metaBook.passage_menu=fdjtUI.choose(spec);}
 
     function addOptions(passage,choices){
         var scan=passage; while (scan) {
@@ -37206,6 +37216,20 @@ metaBook.setMode=
                 choices.push(opt);}
             scan=scan.parentNode;}}
     
+    function closePassageMenu(evt){
+        evt=evt||window.event;
+        if (!(mB.passage_menu)) return false;
+        if (evt) {
+            var target=fdjtUI.T(evt);
+            if ((mB.passage_menu)&&(hasParent(target,mB.passage_menu)))
+                return false;}
+        var menu=mB.passage_menu;
+        mB.passage_menu=false;
+        fdjt.Dialog.close(menu);
+        if (evt) fdjtUI.cancel(evt);
+        return true;}
+    metaBook.closePassageMenu=closePassageMenu;
+
     function makeOpener(url){
         return function (){window.open(url);};}
     /*
@@ -37225,6 +37249,7 @@ metaBook.setMode=
     var body_tapstart=false;
     function body_touchstart(evt){
         evt=evt||window.event;
+        body_tapstart=false;
         if (mB.zoomed) return;
         var target=fdjtUI.T(evt);
         if (target.id!=="METABOOKBODY") return;
@@ -37235,8 +37260,9 @@ metaBook.setMode=
         if (mB.zoomed) return;
         var target=fdjtUI.T(evt);
         if (target.id!=="METABOOKBODY") return;
-        if ((body_tapstart)&&(true) //((fdjtTime()-body_tapstart)<1000)
-           ) {
+        // If the touch is directly over the BODY, treat it as a
+        // paging gesture
+        if ((body_tapstart)&&((fdjtTime()-body_tapstart)<1000)) {
             if (mB.TapHold.body) metaBook.TapHold.body.abort();
             fdjtUI.cancel(evt);
             var x=(evt.clientX)||
@@ -40725,96 +40751,6 @@ metaBook.HTML.heart=
     "            ID=\"METABOOKDETAILTEXT\">\n"+
     "  </textarea>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKGLOSSATTACH\" class=\"hudpanel\">\n"+
-    "  <form id=\"METABOOKATTACHFORM\" target=\"METABOOKGLOSSCOMM\"\n"+
-    "	method=\"POST\" enctype=\"multipart/form-data\" accept-charset=\"utf-8\"\n"+
-    "        action=\"https://glosses.sbooks.net/1/attach\"\n"+
-    "        class=\"link\">\n"+
-    "    <table class=\"fdjtform\"\n"+
-    "           onclick=\"fdjt.UI.CheckSpan.onclick(event);\">\n"+
-    "      <input TYPE=\"HIDDEN\" NAME=\"GLOSSID\" VALUE=\"\" id=\"METABOOKUPLOADGLOSSID\"/>\n"+
-    "      <input TYPE=\"HIDDEN\" NAME=\"ITEMID\" VALUE=\"\" id=\"METABOOKUPLOADITEMID\"/>\n"+
-    "      <tr class=\"attachtype\">\n"+
-    "        <th class=\"headcell\">\n"+
-    "          Attach<img src=\"{{bmg}}metabook/gloss_attach.svgz\"/></th>\n"+
-    "        <td>\n"+
-    "          <button id=\"METABOOKATTACHDELETE\" NAME=\"ATTACH\" VALUE=\"DELETE\">\n"+
-    "            Delete</button>\n"+
-    "          <span class=\"checkspan ischecked\"\n"+
-    "                title=\"Attach a link to this gloss\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"link\"\n"+
-    "                   onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
-    "                   CHECKED/>\n"+
-    "            Link</span>\n"+
-    "          <span class=\"checkspan\"\n"+
-    "                title=\"Upload a file and attach it to this gloss\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"upload\"\n"+
-    "                   onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
-    "            File</span>\n"+
-    "          <span class=\"checkspan\"\n"+
-    "                title=\"Create or edit a 'body' for this gloss\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"body\"\n"+
-    "                   onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
-    "            Body</span>\n"+
-    "          <span class=\"checkspan disabled\"\n"+
-    "                title=\"Attach audio or video recorded on this device\">\n"+
-    "            <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"capture\"\n"+
-    "                   onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
-    "                   disabled=\"DISABLED\"/>\n"+
-    "            Capture</span>\n"+
-    "        </td>\n"+
-    "        <th class=\"button\">\n"+
-    "          <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"LINK\">\n"+
-    "            Link</button>\n"+
-    "          <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" VALUE=\"UPLOAD\">\n"+
-    "            Save</button>\n"+
-    "          <button id=\"METABOOKUPLOADOK\" NAME=\"ATTACH\" VALUE=\"SAVE\">\n"+
-    "            Save</button>\n"+
-    "          <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"BODY\">\n"+
-    "            Save</button>\n"+
-    "          <button id=\"METABOOKATTACHLINK\" NAME=\"ATTACH\" VALUE=\"DONE\">\n"+
-    "            Done</button>\n"+
-    "          <button id=\"METABOOKATTACHCANCEL\" VALUE=\"CANCEL\">\n"+
-    "            Cancel</button></th>\n"+
-    "      </tr>\n"+
-    "      <tr class=\"title\">\n"+
-    "        <th>Label</th>\n"+
-    "        <td colspan=\"2\">\n"+
-    "          <INPUT TYPE=\"TEXT\" NAME=\"TITLE\" VALUE=\"\" ID=\"METABOOKATTACHTITLE\"\n"+
-    "                 placeholder=\"a descriptive label\"/></tr>\n"+
-    "      <tr class=\"checkspan uploadrights\"\n"+
-    "          id=\"METABOOKUPLOADRIGHTS\">\n"+
-    "        <th><input TYPE=\"CHECKBOX\" NAME=\"FILEOKAY\" VALUE=\"yes\"/></th>\n"+
-    "        <td colspan=\"2\">\n"+
-    "          I affirm that I have the right to use and share this\n"+
-    "          content according to the &sBooks;\n"+
-    "          <a href=\"https://www.sbooks.net/legalia/TOS/\" target=\"_blank\">\n"+
-    "            Terms of Service</a>.</td>\n"+
-    "      </tr>\n"+
-    "      <tr class=\"url\">\n"+
-    "        <th>URL</th>\n"+
-    "        <td colspan=\"2\">\n"+
-    "          <input TYPE=\"TEXT\" NAME=\"URL\" VALUE=\"\"\n"+
-    "                 ID=\"METABOOKATTACHURL\" class=\"fdjturlinput\"\n"+
-    "                 placeholder=\"a URL to attach\"/>\n"+
-    "        </td>\n"+
-    "      </tr>\n"+
-    "      <tr class=\"uploadfile\">\n"+
-    "        <th>Upload<input TYPE=\"FILE\" NAME=\"UPLOAD\" ID=\"METABOOKFILEINPUT\"/></th>\n"+
-    "        <td id=\"METABOOKATTACHFILE\" class=\"nofile\" colspan=\"2\">\n"+
-    "          <span class=\"mbdragmessage\">Drag a file here or click to browse</span>\n"+
-    "          <span class=\"mbmessage\">Tap to find files or media</span>\n"+
-    "          <span class=\"mbfilename\" id=\"METABOOKATTACHFILENAME\"></span>\n"+
-    "        </td></tr>\n"+
-    "      <tbody class=\"glossbody\" id=\"METABOOKGLOSSBODY\">\n"+
-    "        <tr>\n"+
-    "          <td colspan=\"3\">\n"+
-    "            <textarea NAME=\"BODYTEXT\" ID=\"METABOOKGLOSSBODYTEXT\"></textarea>\n"+
-    "        </td></tr>\n"+
-    "      </tbody>\n"+
-    "    </table>\n"+
-    "  </form>\n"+
-    "</div>\n"+
     "<div id=\"METABOOKGLOSSATTACH\" class=\"hudpanel\"></div>\n"+
     "<div id=\"METABOOKSEARCHCLOUD\" class=\"completions cloud searchcloud\"></div>\n"+
     "<div id=\"METABOOKALLTAGS\" class=\"completions searchcloud cloud noinput\">\n"+
@@ -40873,11 +40809,10 @@ metaBook.HTML.attach=
     "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"body\"\n"+
     "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
     "          Body</span>\n"+
-    "        <span class=\"checkspan disabled\"\n"+
+    "        <span class=\"checkspan\"\n"+
     "              title=\"Attach audio or video recorded on this device\">\n"+
     "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"capture\"\n"+
-    "                 onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
-    "                 disabled=\"DISABLED\"/>\n"+
+    "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
     "          Capture</span>\n"+
     "      </td>\n"+
     "      <th class=\"button\">\n"+
@@ -40916,6 +40851,13 @@ metaBook.HTML.attach=
     "               placeholder=\"a URL to attach\"/>\n"+
     "      </td>\n"+
     "    </tr>\n"+
+    "    <tr class=\"capturefile\">\n"+
+    "      <th>Capture</th>\n"+
+    "      <td id=\"METABOOKCAPTUREFILE\" class=\"nofile\" colspan=\"2\">\n"+
+    "	<button NAME=\"CAPTURE\" VALUE=\"AUDIO\">Audio</button>\n"+
+    "	<button NAME=\"CAPTURE\" VALUE=\"VIDEO\">Video</button>\n"+
+    "	<button NAME=\"CAPTURE\" VALUE=\"IMAGE\">Photo</button>\n"+
+    "    </td></tr>\n"+
     "    <tr class=\"uploadfile\">\n"+
     "      <th>Upload<input TYPE=\"FILE\" NAME=\"UPLOAD\" ID=\"METABOOKFILEINPUT\"/></th>\n"+
     "      <td id=\"METABOOKATTACHFILE\" class=\"nofile\" colspan=\"2\">\n"+
@@ -40931,6 +40873,14 @@ metaBook.HTML.attach=
     "    </tbody>\n"+
     "  </table>\n"+
     "</form>\n"+
+    "<!--\n"+
+    "    /* Emacs local variables\n"+
+    "    ;;;  Local variables: ***\n"+
+    "    ;;;  compile-command: \"cd ../..; make\" ***\n"+
+    "    ;;;  indent-tabs-mode: nil ***\n"+
+    "    ;;;  End: ***\n"+
+    "    */\n"+
+    "  -->\n"+
     "";
 /* Mode: Javascript; Character-encoding: utf-8; */
 
@@ -41812,15 +41762,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1370-g0cc56a9';
+fdjt.revision='1.5-1371-g974d4d8';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Mar 27 14:20:40 EDT 2015';
-fdjt.builduuid='A6BD38BD-5753-4ECE-98DB-FACF4864B6D2';
+fdjt.buildtime='Sun Mar 29 15:44:29 EDT 2015';
+fdjt.builduuid='FF1D3941-C639-4344-89B1-40F1F16FE5E1';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='B9E4DFF1-B4FC-42A7-A7C4-59ABF78F261A-dist';
-metaBook.buildtime='Sat Mar 28 20:48:57 EDT 2015';
+metaBook.buildid='950B9608-4B86-4A16-9E1B-7D640F419424-dist';
+metaBook.buildtime='Sun Mar 29 18:12:42 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

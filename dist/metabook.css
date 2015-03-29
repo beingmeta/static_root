@@ -7887,7 +7887,8 @@ body.hudup #METABOOKHUD.addgloss.glossattach {
 
 #METABOOKGLOSSATTACH .upload tr.uploadrights,
 #METABOOKGLOSSATTACH .link tr.url,
-#METABOOKGLOSSATTACH .upload tr.uploadfile {
+#METABOOKGLOSSATTACH .upload tr.uploadfile,
+#METABOOKGLOSSATTACH .capture tr.capturefile {
     display: table-row;}
 
 td#METABOOKATTACHFILE {
@@ -7952,7 +7953,7 @@ html._TOUCH .haveupload #METABOOKATTACHFILE span.mbmessage {
 
 #METABOOKGLOSSATTACH tr.attachtype {
     border-bottom: solid transparent 1em;}
-#METABOOKGLOSSATTACH .attachtype td { vertical-align: middle; }
+#METABOOKGLOSSATTACH .attachtype td { vertical-align: top; }
 #METABOOKGLOSSATTACH .editlink .attachtype td {
     vertical-align: top;}
 #METABOOKGLOSSATTACH .attachtype td .checkspan {
