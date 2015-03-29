@@ -87,8 +87,8 @@ var _checkOpenSans=
         style1.zIndex=style2.zIndex='500';
         style1.opacity=style2.opacity=0.0;
         style1.fontSize=style2.fontSize="250px";
-        style1.fontFamily="'Open Sans','Comic Sans MS','Comic Sans',Arial,Sans";
-        style1.fontFamily="'Comic Sans MS','Comic Sans',Arial,Sans";
+        style1.fontFamily="'Open Sans','Comic Sans MS','Comic Sans',Serif";
+        style2.fontFamily="'Comic Sans MS','Comic Sans',Serif"
         div1.id="METABOOK_FONTCHECK1";
         div2.id="METABOOK_FONTCHECK2";
         div1.className=div2.className="_ignoreme";
@@ -41819,8 +41819,8 @@ fdjt.builduuid='A6BD38BD-5753-4ECE-98DB-FACF4864B6D2';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='876DB927-49B3-46A2-AFA0-3D8851D389E1-dist';
-metaBook.buildtime='Sat Mar 28 20:29:34 EDT 2015';
+metaBook.buildid='B9E4DFF1-B4FC-42A7-A7C4-59ABF78F261A-dist';
+metaBook.buildtime='Sat Mar 28 20:48:57 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
