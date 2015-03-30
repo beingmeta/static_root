@@ -40793,23 +40793,23 @@ metaBook.HTML.attach=
     "      <td>\n"+
     "        <button id=\"METABOOKATTACHDELETE\" NAME=\"ATTACH\" VALUE=\"DELETE\">\n"+
     "          Delete</button>\n"+
-    "        <span class=\"checkspan ischecked\"\n"+
+    "        <span class=\"checkspan ischecked mbaddlink\"\n"+
     "              title=\"Attach a link to this gloss\">\n"+
     "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"link\"\n"+
     "                 onchange=\"metaBook.UI.changeAttachment(event);\"\n"+
     "                 CHECKED/>\n"+
     "          Link</span>\n"+
-    "        <span class=\"checkspan\"\n"+
+    "        <span class=\"checkspan mbupload\"\n"+
     "              title=\"Upload a file and attach it to this gloss\">\n"+
     "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"upload\"\n"+
     "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
     "          File</span>\n"+
-    "        <span class=\"checkspan\"\n"+
+    "        <span class=\"checkspan mbeditbody\"\n"+
     "              title=\"Create or edit a 'body' for this gloss\">\n"+
     "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"body\"\n"+
     "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
     "          Body</span>\n"+
-    "        <span class=\"checkspan\"\n"+
+    "        <span class=\"checkspan mbcapture\"\n"+
     "              title=\"Attach audio or video recorded on this device\">\n"+
     "          <input type=\"RADIO\" NAME=\"ATTACHTYPE\" VALUE=\"capture\"\n"+
     "                 onchange=\"metaBook.UI.changeAttachment(event);\"/>\n"+
@@ -41769,8 +41769,8 @@ fdjt.builduuid='FF1D3941-C639-4344-89B1-40F1F16FE5E1';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='950B9608-4B86-4A16-9E1B-7D640F419424-dist';
-metaBook.buildtime='Sun Mar 29 18:12:42 EDT 2015';
+metaBook.buildid='624ED1A7-DAA5-4344-B234-5A80557C0D4F-dist';
+metaBook.buildtime='Mon Mar 30 09:28:34 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

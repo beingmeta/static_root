@@ -7958,6 +7958,8 @@ html._TOUCH .haveupload #METABOOKATTACHFILE span.mbmessage {
     vertical-align: top;}
 #METABOOKGLOSSATTACH .attachtype td .checkspan {
     display: inline-block; padding-right: 1em;}
+#METABOOKGLOSSATTACH .attachtype td .checkspan.mbcapture { 
+    display: none; }
 
 #METABOOKGLOSSATTACH .upload tr.url,
 #METABOOKGLOSSATTACH .body tr.url,
