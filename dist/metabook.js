@@ -37368,6 +37368,7 @@ metaBook.setMode=
             metaBook.setGlossMode(form.className);}}
     metaBook.initGlossMode=initGlossMode;
 
+    /*
     function body_click(evt){
         evt=evt||window.event;
         if (mB.zoomed) return;
@@ -37380,6 +37381,7 @@ metaBook.setMode=
             return;}
         else if (isClickable(target)) return;
         else fdjtUI.cancel(evt);}
+    */
 
     /* TOC handlers */
 
@@ -38549,7 +38551,7 @@ metaBook.setMode=
                    touchstart: body_touchstart,
                    touchend: body_touchend,
                    touchmove: noDefault,
-                   click: body_click},
+                   click: cancel},
          hud: {touchend: handleXTarget, tap: handleXTarget},
          toc: {tap: toc_tapped,hold: toc_held,
                slip: toc_slipped, release: toc_released,
@@ -41769,8 +41771,8 @@ fdjt.builduuid='FF1D3941-C639-4344-89B1-40F1F16FE5E1';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='624ED1A7-DAA5-4344-B234-5A80557C0D4F-dist';
-metaBook.buildtime='Mon Mar 30 09:28:34 EDT 2015';
+metaBook.buildid='E7E7B50D-BFB4-4E0D-8BEC-1661EC4BE4DA-dist';
+metaBook.buildtime='Mon Mar 30 12:46:08 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
