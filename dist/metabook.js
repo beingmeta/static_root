@@ -25043,10 +25043,10 @@ fdjt.DOM.noautofontadjust=true;
             fdjtDOM.addListener(document,fdjtDOM.vischange,
                                 updateKludgeTimer);
         updateKludgeTimer();}
+    /*
     if ((!(fdjt.device.standalone))&&(fdjt.device.mobilesafari))
         fdjt.addInit(setupKludgeTimer,"setupKludgeTimer");
-    
-
+    */
     
     var isEmpty=fdjtString.isEmpty;
 
@@ -29157,19 +29157,6 @@ metaBook.Startup=
                     mB._setup_start.toString(),
                     mB.root||metaBook.appsource||"somewhere");
             if ($ID("METABOOKBODY")) metaBook.body=$ID("METABOOKBODY");
-
-            /* This was for a problem with saving documents as webapps under
-               iOS, where the webapp doesn't get the authentication cookies
-               of the saved app.  This may no longer be neccessary. */
-            /*
-              if ((fdjtDevice.standalone)&&
-              (fdjtDevice.ios)&&(fdjtDevice.mobile)&&
-              (!(getLocal("mB.user")))&&
-              (fdjtState.getQuery("SBOOKS:AUTH-"))) {
-              var authkey=fdjt.State.getQuery("SBOOKS:AUTH-");
-              fdjtLog("Got auth key %s",authkey);
-              metaBook.authkey=authkey;}
-            */
 
             // Check for any trace settings passed as query arguments
             if (getQuery("cxtrace")) readTraceSettings();
@@ -36871,7 +36858,13 @@ metaBook.setMode=
             fdjt.UI.cancel(evt);
             return false;}
 
-        if (hasParent(target,".glossmark")) {
+        if (hasClass(document.body,"mbSHOWHELP")) {
+            dropClass(document.body,"mbSHOWHELP");
+            cancel(evt);
+            return;}
+
+        if ((hasParent(target,".glossmark"))||
+            (handle_content_click(target))) {
             cancel(evt);
             return false;}
 
@@ -36879,33 +36872,31 @@ metaBook.setMode=
             metaBook.clearFocus(mB.textinput);
             cancel(evt);
             return;}
-
-        if (hasClass(document.body,"mbSHOWHELP")) {
-            dropClass(document.body,"mbSHOWHELP");
-            cancel(evt);
-            return;}
-
+        
         if (mB.passage_menu) {
             if (Trace.gestures)
                 fdjtLog("body_tapped %o closing menu %o",
                         evt,mB.passage_menu);
             if (mB.TapHold.body) metaBook.TapHold.body.abort();
-            fdjtUI.cancel(evt);
+            cancel(evt);
             return closePassageMenu(evt);}
+
+        if (mB.skimming) {
+            if (hasClass("METABOOKSKIMMER","expanded")) 
+                dropClass("METABOOKSKIMMER","expanded");
+            else metaBook.setHUD(false);
+            cancel(evt);
+            return;}
 
         if (mB.glosstarget) {
             var glossform=metaBook.glossform;
             if (hasParent(target,mB.glosstarget)) {
-                metaBook.setMode("addgloss",false);}
-            else metaBook.closeGlossForm(glossform);}
-
-        if (mB.skimming) {
-            fdjtUI.cancel(evt);
-            if (hasClass("METABOOKSKIMMER","expanded")) 
-                dropClass("METABOOKSKIMMER","expanded");
-            else metaBook.setHUD(false);
-            return;}
-
+                metaBook.setMode("addgloss",false);
+                cancel(evt); return;}
+            else {
+                metaBook.closeGlossForm(glossform);
+                cancel(evt); return;}}
+        
         if ((mB.hudup)||(mB.mode)) {
             metaBook.setMode(false); metaBook.setHUD(false);
             if ($ID("METABOOKOPENGLOSSMARK")) {
@@ -36916,18 +36907,7 @@ metaBook.setMode=
             clicked=fdjtTime();
             // if (getTarget(target)) metaBook.setTarget(false);
             return false;}
-
-        // If we're in a glossmark, let its handler apply
-        if (hasParent(target,".glossmark")) {
-            fdjtUI.cancel(evt);
-            return false;}
-
-        // Various kinds of content click handling (anchors, details,
-        // asides, etc)
-        if (handle_body_click(target)) {
-            fdjtUI.cancel(evt);
-            return false;}
-
+        
         if ($ID("METABOOKOPENGLOSSMARK")) {
             $ID("METABOOKOPENGLOSSMARK").id="";
             if (mB.target) metaBook.clearHighlights(mB.target);
@@ -36971,7 +36951,7 @@ metaBook.setMode=
 
     var MetaBookSlice=metaBook.Slice;
 
-    function handle_body_click(target){
+    function handle_content_click(target){
         // Assume 1s gaps are spurious
         if ((clicked)&&((fdjtTime()-clicked)<1000)) return true;
 
@@ -37376,7 +37356,7 @@ metaBook.setMode=
         // This avoids double-handling of clicks
         if ((clicked)&&((fdjtTime()-clicked)<3000))
             fdjtUI.cancel(evt);
-        else if (handle_body_click(target)) {
+        else if (handle_content_click(target)) {
             fdjtUI.cancel(evt);
             return;}
         else if (isClickable(target)) return;
@@ -41771,8 +41751,8 @@ fdjt.builduuid='FF1D3941-C639-4344-89B1-40F1F16FE5E1';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='E7E7B50D-BFB4-4E0D-8BEC-1661EC4BE4DA-dist';
-metaBook.buildtime='Mon Mar 30 12:46:08 EDT 2015';
+metaBook.buildid='A37F875E-B016-4080-8A40-7FDADBCC8884-dist';
+metaBook.buildtime='Mon Mar 30 19:40:46 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
