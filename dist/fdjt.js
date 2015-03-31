@@ -16666,9 +16666,10 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                     new_event.changedTouches=document.createTouchList(touch);
                     target.dispatchEvent(new_event);
                     return;}
-                else if ((cur_holder)&&(holder)) {
+                else if ((cur_holder)&&(holder)&&
+                         (cur_holder!==holder)) {
                     if ((trace>1)||(traceall>1))
-                        fdjtLog("TapHold(%s) Clearing taphold on %o, redispatching %o to %o",
+                        fdjtLog("TapHold(%s) Clearing on %o, moving %o to %o",
                                 thid,th_target,evt,target);
                     new_event=document.createEvent('TouchEvent');
                     new_event.initTouchEvent(
@@ -17857,8 +17858,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1371-g974d4d8';
+fdjt.revision='1.5-1372-gd84530f';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Sun Mar 29 15:44:29 EDT 2015';
-fdjt.builduuid='FF1D3941-C639-4344-89B1-40F1F16FE5E1';
+fdjt.buildtime='Mon Mar 30 20:12:25 EDT 2015';
+fdjt.builduuid='323C0075-1A4C-456C-8A7E-A19374FAE476';
 
