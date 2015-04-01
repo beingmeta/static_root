@@ -113,7 +113,8 @@ span.checkspan.longspan, a.checkspan.longspan {
 .checkspan.ischecked span.checked,
 .checkspan.ischecked a.checked,
 .checkspan.ischecked img.checked { display: inline;} 
-.checkspan.ischecked div.checked { display: block;}
+.checkspan.ischecked div.checked,
+.checkspan.ischecked p.checked { display: block;}
 .checkspan.ischecked li.checked { display: list-item;}
 .checkspan.ischecked input { font-weight: normal; }
 
@@ -3190,67 +3191,67 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
   font-style: normal;
   font-weight: 400;
   src: local('Open Sans'), local('OpenSans'),
-       url('fonts/open_sans/OpenSans-Regular.ttf');}
+       url('/static/fonts/open_sans/OpenSans-Regular.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 200;
   src: local('Open Sans Light'), local('OpenSans-Light'),
-       url('fonts/open_sans/OpenSans-Light.ttf');}
+       url('/static/fonts/open_sans/OpenSans-Light.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 500;
   src: local('Open Sans Semibold'), local('OpenSans-Semibold'),
-       url('fonts/open_sans/OpenSans-Semibold.ttf');}
+       url('/static/fonts/open_sans/OpenSans-Semibold.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 600;
   src: local('Open Sans Semibold'), local('OpenSans-Semibold'),
-       url('fonts/open_sans/OpenSans-Semibold.ttf');}
+       url('/static/fonts/open_sans/OpenSans-Semibold.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 700;
   src: local('Open Sans Bold'), local('OpenSans-Bold'),
-       url('fonts/open_sans/OpenSans-Bold.ttf');}
+       url('/static/fonts/open_sans/OpenSans-Bold.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 400;
   src: local('Open Sans Italic'), local('OpenSans-Italic'),
-       url('fonts/open_sans/OpenSans-Italic.ttf');}
+       url('/static/fonts/open_sans/OpenSans-Italic.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 200;
   src: local('Open Sans Light Italic'), local('OpenSans-LightItalic'),
-       url('fonts/open_sans/OpenSans-LightItalic.ttf');}
+       url('/static/fonts/open_sans/OpenSans-LightItalic.ttf');}
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 600;
   src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'),
-       url('fonts/open_sans/OpenSans-SemiboldItalic.ttf');}
+       url('/static/fonts/open_sans/OpenSans-SemiboldItalic.ttf');}
 @font-face {
   font-family: 'Open Sans Condensed';
   font-style: normal;
   font-weight: 300;
   src: local('Open Sans Condensed'), local('OpenSans-Condensed'),
-       url('fonts/open_sans/OpenSans-CondLight.ttf');}
+       url('/static/fonts/open_sans/OpenSans-CondLight.ttf');}
 @font-face {
   font-family: 'Open Sans Condensed';
   font-style: italic;
   font-weight: 300;
   src: local('Open Sans CondensedItalic'), local('OpenSans-CondensedItalic'),
-       url('fonts/open_sans/OpenSans-CondLightItalic.ttf');}
+       url('/static/fonts/open_sans/OpenSans-CondLightItalic.ttf');}
 @font-face {
   font-family: 'Open Sans Condensed';
   font-style: normal;
   font-weight: 600;
   src: local('Open Sans Condensed Bold'), local('OpenSans-CondensedBold'),
-       url('fonts/open_sans/OpenSans-CondBold.ttf');}
+       url('/static/fonts/open_sans/OpenSans-CondBold.ttf');}
 
 
 /* Emacs local variables
@@ -3296,27 +3297,27 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('fonts/open_dyslexic/OpenDyslexic-Regular.otf');
+    src: url('/static/fonts/open_dyslexic/OpenDyslexic-Regular.otf');
     font-weight: normal;
     font-style: normal;}
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('fonts/open_dyslexic/OpenDyslexic-Bold.otf');
+    src: url('/static/fonts/open_dyslexic/OpenDyslexic-Bold.otf');
     font-weight: 700;
     font-style: normal;}
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('fonts/open_dyslexic/OpenDyslexic-Italic.otf');
+    src: url('/static/fonts/open_dyslexic/OpenDyslexic-Italic.otf');
     font-weight: normal;
     font-style: italic;}
 @font-face {
     font-family: 'Open Dyslexic';
-    src: url('fonts/open_dyslexic/OpenDyslexic-BoldItalic.otf');
+    src: url('/static/fonts/open_dyslexic/OpenDyslexic-BoldItalic.otf');
     font-weight: 700;
     font-style: italic;}
 @font-face {
     font-family: 'Open DyslexicFixed';
-    src: url('fonts/open_dyslexic/OpenDyslexicMono-Regular.otf');
+    src: url('/static/fonts/open_dyslexic/OpenDyslexicMono-Regular.otf');
     font-weight: normal;
     font-style: normal;}
 

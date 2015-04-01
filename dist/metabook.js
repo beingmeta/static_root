@@ -29594,11 +29594,17 @@ metaBook.Startup=
             if (h7.length) addTOCLevel(h7,"7");}
 
         function scanDOM(){
+            if ((Trace.startup)||(Trace.domscan))
+                fdjtLog("Starting DOM scan with %o",metaBook.content);
             var scanmsg=$ID("METABOOKSTARTUPSCAN");
             addClass(scanmsg,"running");
-            var metadata=new metaBook.DOMScan(metaBook.content,metaBook.refuri+"#");
+            var metadata=new metaBook.DOMScan(
+                metaBook.content,metaBook.refuri+"#");
             metaBook.docinfo=metadata;
             metaBook.ends_at=metaBook.docinfo._maxloc;
+            if ((Trace.startup)||(Trace.domscan))
+                fdjtLog("Done with DOM scan yielding %o",
+                        metadata);
             dropClass(scanmsg,"running");
             if ((metaBook.state)&&(metaBook.state.target)&&
                 (!((metaBook.state.location)))) {
@@ -41745,16 +41751,16 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1373-g213641b';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Tue Mar 31 16:33:17 EDT 2015';
-fdjt.builduuid='5122c738-82af-4ada-93c6-d8fe150de120';
+fdjt.revision='1.5-1374-g1507a5f';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed Apr 1 15:04:33 EDT 2015';
+fdjt.builduuid='F9EEDB7B-65D8-468F-914A-63B240888FA4';
 
-Knodule.version='v0.8-151-g02cb238';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='726ddbda-e70e-49c1-a189-8547a516b40f-dist';
-metaBook.buildtime='Wed Apr  1 13:11:06 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com(dist)';
+metaBook.buildid='3574FA94-B9D0-413F-838F-775A2FDDB42D-dist';
+metaBook.buildtime='Wed Apr  1 15:10:44 EDT 2015';
+metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
