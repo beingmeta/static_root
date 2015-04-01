@@ -102,8 +102,8 @@ SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-METABOOK_JS_BUNDLE=metabook/fontcheck.js ${FDJT_FILES} ${KNODULES_FILES} \
-	fdjt/indexed.js fdjt/codexlayout.js \
+METABOOK_JS_BUNDLE=metabook/fontcheck.js fdjt/indexed.js \
+	${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${METABOOK_FILES} ${METABOOK_DERIVED_FILES}
 # removed sbooks/reset.css 
 METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \

@@ -10457,7 +10457,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
    
 */
 
-/* global setTimeout, clearTimeout, indexedDB, Promise */
+/* global setTimeout, clearTimeout, Promise, window, idbModules */
 
 fdjt.RefDB=(function(){
     "use strict";
@@ -10469,6 +10469,8 @@ fdjt.RefDB=(function(){
     var fdjtLog=fdjt.Log;
     var warn=fdjtLog.warn;
 
+    var indexedDB=window.indexedDB||idbModules.indexedDB;
+    
     var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
 
     function RefDB(name,init){
@@ -17858,8 +17860,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1374-g1507a5f';
+fdjt.revision='1.5-1376-ga159ba1';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 1 15:04:33 EDT 2015';
-fdjt.builduuid='F9EEDB7B-65D8-468F-914A-63B240888FA4';
+fdjt.buildtime='Wed Apr 1 19:01:08 EDT 2015';
+fdjt.builduuid='B95DDC90-6447-4350-A3C1-CA99DB798211';
 
