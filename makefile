@@ -312,10 +312,11 @@ metabook.raw.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	fdjt/buildstamp.js knodules/buildstamp.js \
 	metabook/buildstamp.js metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.raw.js
-	@cat sbooks/amalgam.js fdjt/buildstamp.js \
+	@cat sbooks/amalgam.js \
 		$(METABOOK_JS_BUNDLE) metabook/tieoff.js \
-		metabook/buildstamp.js knodules/buildstamp.js \
-		metabook/autoload.js > $@
+		 fdjt/buildstamp.js metabook/buildstamp.js \
+	         knodules/buildstamp.js \
+		 metabook/autoload.js > $@
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		>> $@
 metabook.js: metabook.raw.js

@@ -11622,7 +11622,7 @@ if (!(fdjt.JSON)) fdjt.JSON=JSON;
    
 */
 
-/* global setTimeout, clearTimeout, Promise, window, idbModules */
+/* global setTimeout, clearTimeout, indexedDB, Promise */
 
 fdjt.RefDB=(function(){
     "use strict";
@@ -11634,8 +11634,6 @@ fdjt.RefDB=(function(){
     var fdjtLog=fdjt.Log;
     var warn=fdjtLog.warn;
 
-    var indexedDB=window.indexedDB||idbModules.indexedDB;
-    
     var refdbs={}, all_refdbs=[], changed_dbs=[], aliases={};
 
     function RefDB(name,init){
@@ -20043,7 +20041,6 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
 
 */
 /* jshint browser: true */
-/* global idbModules */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -20082,8 +20079,6 @@ fdjt.CodexLayout=
         else fdjtDOM.addListener(window,"load",function(){
             root_namespace=document.body.namespaceURI;});
         
-        var indexedDB=window.indexedDB||idbModules.indexedDB;
-
         var layoutDB;
 
         function appendChildren(node,children,start,end){
@@ -22527,7 +22522,7 @@ fdjt.CodexLayout=
                     if (doinit) doinit();});}
         CodexLayout.useIndexedDB=useIndexedDB;
         
-        if (indexedDB) {
+        if (typeof indexedDB !== "undefined") {
             fdjt.addInit(function(){
                 if (!(CodexLayout.dbname)) {
                     CodexLayout.dbname="codexlayout";
@@ -24373,7 +24368,7 @@ fdjt.DOM.noautofontadjust=true;
 
 */
 /* jshint browser: true */
-/* globals Promise, idbModules */
+/* globals Promise */
 
 /* Initialize these here, even though they should always be
    initialized before hand.  This will cause various code checkers to
@@ -24407,8 +24402,6 @@ fdjt.DOM.noautofontadjust=true;
     
     var mB=metaBook;
     var Trace=metaBook.Trace;
-
-    var indexedDB=window.indexedDB||idbModules.indexedDB;
 
     metaBook.tagweights=new ObjectMap();
     metaBook.tagscores=new ObjectMap();
@@ -24447,11 +24440,9 @@ fdjt.DOM.noautofontadjust=true;
     function getDB(){
         function gettingdb(resolve,reject){
             if (metaBookDB) resolve(metaBookDB);
-            else if (indexedDB) {
+            else {
                 dbwait.push(resolve);
-                if (reject) dbfail.push(reject);}
-            else if (reject) reject(false);
-            else return;}
+                if (reject) dbfail.push(reject);}}
         return new Promise(gettingdb);}
     metaBook.getDB=getDB;
 
@@ -24602,7 +24593,7 @@ fdjt.DOM.noautofontadjust=true;
                            "initgloss");
             if ((metaBook.user)&&(mB.persist)&&(metaBook.cacheglosses)) {
                 if (mB.useidb)
-                    getDB().then(function(db){glossdb.storage=db;});
+                    getDB(function(db){glossdb.storage=db;});
                 else glossdb.storage=localStorage;}}
         
         function Gloss(){return Ref.apply(this,arguments);}
@@ -24653,7 +24644,7 @@ fdjt.DOM.noautofontadjust=true;
             var saveprops=metaBook.saveprops, uri=metaBook.docuri;
             if (value) {
                 if (metaBook.user) {
-                    if (mB.useidb) getDB().then(function(db){
+                    if (mB.useidb) getDB(function(db){
                         metaBook.sourcedb.storage=db;
                         metaBook.glossdb.storage=db;});
                     else {
@@ -25058,8 +25049,6 @@ fdjt.DOM.noautofontadjust=true;
         fdjt.addInit(setupKludgeTimer,"setupKludgeTimer");
     */
     
-    /* Utility functions */
-
     var isEmpty=fdjtString.isEmpty;
 
     function notEmpty(arg){
@@ -30107,13 +30096,16 @@ metaBook.Startup=
 
         function timeDOM(x){
             var elt;
-            if (typeof x === "string")
-                elt=fdjtDOM("time",x);
-            else elt=fdjtDOM("time",x.toString());
-            if (typeof x === "string")
-                elt.setAttribute("datetime",x);
-            else elt.setAttribute("datetime",x.toISOString());
-            return elt;}
+            try {
+                if (typeof x === "string")
+                    elt=fdjtDOM("time",x);
+                else elt=fdjtDOM("time",x.toString());
+                if (typeof x === "string")
+                    elt.setAttribute("datetime",x);
+                else elt.setAttribute("datetime",x.toISOString());
+                return elt;}
+            catch (ex) {
+                return document.createTextNode("??time??");}}
 
         function setupZoom(){
             var zoom=metaBook.Zoom=fdjtDOM(
@@ -41762,17 +41754,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1376-ga159ba1';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 1 19:01:08 EDT 2015';
-fdjt.builduuid='B95DDC90-6447-4350-A3C1-CA99DB798211';
+fdjt.revision='1.5-1373-g213641b';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Tue Mar 31 16:33:17 EDT 2015';
+fdjt.builduuid='5122c738-82af-4ada-93c6-d8fe150de120';
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='18800AD7-5D6A-461B-ABEF-4FD263FB231E-dist';
-metaBook.buildtime='Wed Apr  1 19:21:10 EDT 2015';
-metaBook.buildhost='Shiny(dist)';
+metaBook.buildid='91fed122-2d82-41b4-b77d-3c63dbe5b2aa-dist';
+metaBook.buildtime='Wed Apr  1 19:23:20 EDT 2015';
+metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='9D1135FE9F83B22C339707D915847ABE15E14797';
+fdjt.CodexLayout.sourcehash='3CCDD12E0B73724CC1D8243043D627D84C680063';
