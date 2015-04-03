@@ -9172,7 +9172,8 @@ fdjt.DOM=
             if (origin) node.setAttribute("data-origin",origin);
             scale_node(node,fudge,origin);
             return node;}
-        scaleToFit.scaleNode=scaleToFit.adjust=scale_node;
+        fdjtDOM.scaleToFit.scaleNode=
+            fdjtDOM.scaleToFit.adjust=scaleToFit.adjust=scale_node;
         fdjtDOM.scaleToFit=scaleToFit;
         
         function scale_revert(node,wrapper){
@@ -9192,14 +9193,14 @@ fdjt.DOM=
                 node.replaceChild(frag,wrapper);
                 return node;}
             else return false;}
-        scaleToFit.revert=scale_revert;
+        fdjtDOM.scaleToFit.revert=scale_revert;
 
         function revertAll(){
             var all=fdjtDOM.$(".fdjtadjusted");
             var i=0, lim=all.length; while (i<lim) {
                 var wrapper=all[i++];
                 scale_revert(wrapper.parentNode,wrapper);}}
-        scaleToFit.revertAll=revertAll;
+        fdjtDOM.scaleToFit.revertAll=revertAll;
 
         fdjt.addInit(scaleAll);
         fdjtDOM.addListener(window,"resize",scaleAll);
@@ -9942,6 +9943,8 @@ fdjt.DOM=
             addListener(window,"focus",windowFocus);
             addListener(window,"blur",windowBlur);}
         fdjt.addInit(trackPageFocus);
+
+        fdjtDOM.trace_adjust=false;
 
         return fdjtDOM;
     })();
@@ -12349,13 +12352,27 @@ fdjt.Ajax=
 
         var trace_ajax=false;
         
+        function statusOK(req,test){
+            var status=req.status;
+            if (!(test))
+                return ((status>=200)&&(status<300))||(status===304);
+            else if (test.call)
+                return test(req);
+            else if (Array.isArray(test)) 
+                return test.indexOf(status)>=0;
+            else return ((status>=200)&&(status<300))||(status===304);}
+
         function fdjtAjax(success_callback,base_uri,args,other_callback,
-                          headers,timeout){
-            var req=new XMLHttpRequest();
+                          headers,opts){
+            var timeout=((typeof opts==="number")?(opts):
+                         ((opts)&&(opts.timeout)));
+            if (typeof opts === "number") opts={};
+            else if (!(opts)) opts={};
+            var req=new XMLHttpRequest(), success=opts.success;
             var uri=((args)?(compose_uri(base_uri,args)):(base_uri));
             req.onreadystatechange=function () {
                 if (req.readyState === 4) {
-                    if (req.status === 200) {
+                    if (statusOK(req,success)) {
                         success_callback(req);}
                     else if (other_callback) other_callback(req);}
                 else {}};
@@ -14998,7 +15015,7 @@ fdjt.Dialog=(function(){
     var Templates=fdjt.Templates;
 
     var hasClass=fdjtDOM.hasClass;
-    var addToClass=fdjtDOM.addToClass;
+    var addClass=fdjtDOM.addClass;
     var addListener=fdjtDOM.addListener;
     var removeListener=fdjtDOM.removeListener;
 
@@ -15115,7 +15132,7 @@ fdjt.Dialog=(function(){
     function alertBox(){
         var args=fdjtDOM.toArray(arguments);
         var box=Dialog.apply(null,[{}].concat(args));
-        addToClass(box,"fdjtalert");}
+        addClass(box,"fdjtalert");}
     Dialog.alertBox=alertBox;
     fdjtUI.alertBox=alertBox;
 
@@ -17860,8 +17877,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1376-ga159ba1';
+fdjt.revision='1.5-1380-g89f79f6';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Apr 1 19:26:33 EDT 2015';
-fdjt.builduuid='bf1e5a3e-fe84-49d3-97e6-0ceb8ff99484';
+fdjt.buildtime='Fri Apr 3 17:58:09 EDT 2015';
+fdjt.builduuid='7b3fa535-eac9-4f86-b0ae-ad8b29368b8d';
 

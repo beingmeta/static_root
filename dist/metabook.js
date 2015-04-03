@@ -10337,7 +10337,8 @@ fdjt.DOM=
             if (origin) node.setAttribute("data-origin",origin);
             scale_node(node,fudge,origin);
             return node;}
-        scaleToFit.scaleNode=scaleToFit.adjust=scale_node;
+        fdjtDOM.scaleToFit.scaleNode=
+            fdjtDOM.scaleToFit.adjust=scaleToFit.adjust=scale_node;
         fdjtDOM.scaleToFit=scaleToFit;
         
         function scale_revert(node,wrapper){
@@ -10357,14 +10358,14 @@ fdjt.DOM=
                 node.replaceChild(frag,wrapper);
                 return node;}
             else return false;}
-        scaleToFit.revert=scale_revert;
+        fdjtDOM.scaleToFit.revert=scale_revert;
 
         function revertAll(){
             var all=fdjtDOM.$(".fdjtadjusted");
             var i=0, lim=all.length; while (i<lim) {
                 var wrapper=all[i++];
                 scale_revert(wrapper.parentNode,wrapper);}}
-        scaleToFit.revertAll=revertAll;
+        fdjtDOM.scaleToFit.revertAll=revertAll;
 
         fdjt.addInit(scaleAll);
         fdjtDOM.addListener(window,"resize",scaleAll);
@@ -11107,6 +11108,8 @@ fdjt.DOM=
             addListener(window,"focus",windowFocus);
             addListener(window,"blur",windowBlur);}
         fdjt.addInit(trackPageFocus);
+
+        fdjtDOM.trace_adjust=false;
 
         return fdjtDOM;
     })();
@@ -13514,13 +13517,27 @@ fdjt.Ajax=
 
         var trace_ajax=false;
         
+        function statusOK(req,test){
+            var status=req.status;
+            if (!(test))
+                return ((status>=200)&&(status<300))||(status===304);
+            else if (test.call)
+                return test(req);
+            else if (Array.isArray(test)) 
+                return test.indexOf(status)>=0;
+            else return ((status>=200)&&(status<300))||(status===304);}
+
         function fdjtAjax(success_callback,base_uri,args,other_callback,
-                          headers,timeout){
-            var req=new XMLHttpRequest();
+                          headers,opts){
+            var timeout=((typeof opts==="number")?(opts):
+                         ((opts)&&(opts.timeout)));
+            if (typeof opts === "number") opts={};
+            else if (!(opts)) opts={};
+            var req=new XMLHttpRequest(), success=opts.success;
             var uri=((args)?(compose_uri(base_uri,args)):(base_uri));
             req.onreadystatechange=function () {
                 if (req.readyState === 4) {
-                    if (req.status === 200) {
+                    if (statusOK(req,success)) {
                         success_callback(req);}
                     else if (other_callback) other_callback(req);}
                 else {}};
@@ -16163,7 +16180,7 @@ fdjt.Dialog=(function(){
     var Templates=fdjt.Templates;
 
     var hasClass=fdjtDOM.hasClass;
-    var addToClass=fdjtDOM.addToClass;
+    var addClass=fdjtDOM.addClass;
     var addListener=fdjtDOM.addListener;
     var removeListener=fdjtDOM.removeListener;
 
@@ -16280,7 +16297,7 @@ fdjt.Dialog=(function(){
     function alertBox(){
         var args=fdjtDOM.toArray(arguments);
         var box=Dialog.apply(null,[{}].concat(args));
-        addToClass(box,"fdjtalert");}
+        addClass(box,"fdjtalert");}
     Dialog.alertBox=alertBox;
     fdjtUI.alertBox=alertBox;
 
@@ -26151,7 +26168,8 @@ metaBook.DOMScan=(function(){
         var scanstate=
             {curlevel: 0,idserial:0,location: 0,
              nodecount: 0,eltcount: 0,headcount: 0,
-             tagstack: [],taggings: [],allinfo: [],locinfo: [], idmap: idmap,
+             tagstack: [],taggings: [],allinfo: [],
+             locinfo: [], idmap: idmap,
              idstate: {prefix: false,count: 0},
              idstack: [{prefix: false,count: 0}],
              pool: metaBook.docdb};
@@ -26279,12 +26297,13 @@ metaBook.DOMScan=(function(){
                 var scan=curhead;
                 var scaninfo=curinfo;
                 var scanlevel=curinfo.level;
-                /* Climb the stack of headers, closing off entries and setting up
-                   prev/next pointers where needed. */
+                /* Climb the stack of headers, closing off entries and
+                   setting up prev/next pointers where needed. */
                 while (scaninfo) {
                     if (Trace.domscan>2)
-                        fdjtLog("Finding head@%d: scan=%o, info=%j, sbook_head=%o, cmp=%o",
-                                scanlevel,scan||false,scaninfo,(scanlevel<level));
+                        fdjtLog("Finding head@%d: s=%o, i=%j, sh=%o, cmp=%o",
+                                scanlevel,scan||false,scaninfo,
+                                (scanlevel<level));
                     if (scanlevel<level) break;
                     if (level===scanlevel) {
                         headinfo.prev=scaninfo;
@@ -26295,7 +26314,7 @@ metaBook.DOMScan=(function(){
                     scan=scaninfo.elt||document.getElementById(scaninfo.frag);
                     scanlevel=((scaninfo)?(scaninfo.level):(0));}
                 if (Trace.domscan>2)
-                    fdjtLog("Found parent: up=%o, upinfo=%o, atlevel=%d, sbook_head=%o",
+                    fdjtLog("Found parent: up=%o, info=%o, leel=%d, sh=%o",
                             scan||false,scaninfo,scaninfo.level,scaninfo.head);
                 /* We've found the enclosing head for this head, so we
                    establish the links. */
@@ -26340,15 +26359,23 @@ metaBook.DOMScan=(function(){
             else {}
             var tag=child.tagName, classname=child.className;
             var id=child.id;
+            
             if (id) id=child.getAttribute('data-tocid')||id;
-            if ((metaBook.ignore)&&(metaBook.ignore.match(child))) return;
+
+            if ((metaBook.ignore)&&(metaBook.ignore.match(child)))
+                return;
+            
             if ((rootns)&&(child.namespaceURI!==rootns)) return;
+            
             if ((classname)&&
                 ((typeof classname !== "string")||
                  (classname.search(/\b(sbookignore|metabookignore)\b/)>=0)))
                 return;
-            if ((child.metabookui)||((id)&&(id.search("METABOOK")===0))) return;
-
+            
+            if ((child.metabookui)||
+                ((id)&&(id.search("METABOOK")===0)))
+                return;
+            
             if (Trace.domscan>3)
                 fdjtLog("Scanning %o level=%o, loc=%o, head=%o: %j",
                         child,curlevel,location,curhead,curinfo);
@@ -26371,7 +26398,8 @@ metaBook.DOMScan=(function(){
                             fdjtLog.warn("Duplicate WSN ID %s: %s",
                                          wsnid,text);}
                         id=child.id=wsnid; idmap[wsnid]=child;}}}
-            else if ((id)&&(metaBook.baseid)&&(id.search(metaBook.baseid)!==0))
+            else if ((id)&&(metaBook.baseid)&&
+                     (id.search(metaBook.baseid)!==0))
                 id=false;
             else if (!(id)) {}
             else if (!(idmap[id])) idmap[id]=child;
@@ -26402,7 +26430,8 @@ metaBook.DOMScan=(function(){
                 var notoc=scanstate.notoc;
                 var headinfo=tocinfo.head;
                 scanstate.curinfo=headinfo;
-                scanstate.curhead=headinfo.elt||document.getElementById(headinfo.frag);
+                scanstate.curhead=headinfo.elt||
+                    document.getElementById(headinfo.frag);
                 scanstate.curlevel=headinfo.level;
                 scanstate.notoc=true;
                 var toc_children=child.childNodes;
@@ -26429,12 +26458,14 @@ metaBook.DOMScan=(function(){
                 docinfo[child.id]=info;
             if (info) {
                 info.starts_at=scanstate.location;
-                info.sbookhead=curhead.getAttribute('data-tocid')||curhead.id;
+                info.sbookhead=
+                    curhead.getAttribute('data-tocid')||curhead.id;
                 info.headstart=curinfo.starts_at;}
             // Set the first content node
             if ((id)&&(info)&&(!start)) metaBook.start=start=child;
             // And the initial content level
-            if ((info)&&(toclevel)&&(!(info.toclevel))) info.toclevel=toclevel;
+            if ((info)&&(toclevel)&&(!(info.toclevel)))
+                info.toclevel=toclevel;
             if ((id)&&(info)) {
                 var tags=
                     ((child.getAttributeNS)&&
@@ -26452,7 +26483,8 @@ metaBook.DOMScan=(function(){
                 info.head=curinfo; info.indexRef('head',curinfo);}
             else {}
 
-            if (((classname)&&(classname.search(/\bsbookterminal\b/)>=0))||
+            if (((classname)&&
+                 (classname.search(/\bsbookterminal\b/)>=0))||
                 ((classname)&&(metaBook.terminals)&&
                  (metaBook.terminals.match(child)))) {
                 scanstate.location=scanstate.location+textWidth(child);}
@@ -26624,15 +26656,12 @@ metaBook.DOMScan=(function(){
             // We provide credentials in the query string because we
             //  need to have .withCredentials be false to avoid some
             //  CORS-related errors on redirects to sites like S3.
-            if (fdjt.State.getCookie("SBOOKS:AUTH")) 
-                endpoint=endpoint+"?SBOOKS:AUTH="+
-                encodeURIComponent(fdjt.State.getCookie("SBOOKS:AUTH"));
-            else if (fdjt.State.getCookie("SBOOKS:AUTH-"))
-                endpoint=endpoint+"?SBOOKS:AUTH-="+
-                encodeURIComponent(fdjt.State.getCookie("SBOOKS:AUTH-"));
-            else {}
-            if (Trace.glossdata)
-                fdjtLog("Fetching glossdata %s (%s) to cache locally",uri,rtype);
+            var bookie=mB.bookie;
+            if (bookie) {
+                endpoint=endpoint+"?BOOKIE="+encodeURIComponent(bookie)+
+                    "&DOC="+encodeURIComponent(mB.docref);}
+            if (Trace.glossdata) {
+                fdjtLog("Fetching glossdata %s (%s) to cache locally",uri,rtype);}
             req.onreadystatechange=function () {
                 if ((req.readyState === 4)&&(req.status === 200)) try {
                     var local_uri=false, data_uri=false;
@@ -28721,6 +28750,7 @@ metaBook.DOMScan=(function(){
         if (window._sbook_loadinfo!==info)
             metaBook.setConnected(true);
         if (info.sticky) metaBook.setPersist(true);
+        if (info.bookie) gotBookie(info.bookie);
         if (!(metaBook.user)) {
             if (info.userinfo)
                 metaBook.setUser(
@@ -28790,6 +28820,7 @@ metaBook.DOMScan=(function(){
         if (info.sources) gotInfo("sources",info.sources,keepdata);
         if (info.outlets) gotInfo("outlets",info.outlets,keepdata);
         if (info.layers) gotInfo("layers",info.layers,keepdata);
+        if (info.bookie) gotBookie(info.bookie);
         metaBook.addOutlets2UI(info.outlets);
         if ((info.sync)&&((!(metaBook.sync))||(info.sync>=metaBook.sync))) {
             metaBook.setSync(info.sync);}
@@ -28835,8 +28866,6 @@ metaBook.DOMScan=(function(){
             ((new Date(metaBook.sync*1000)).toString());
         function gotInfo(req){
             updating=false;
-            // No longer needed, we should have our own authentication keys
-            // metaBook.authkey=false;
             var response=JSON.parse(req.responseText);
             if ((response.glosses)&&(response.glosses.length))
                 fdjtLog("Received %d glosses from the server",
@@ -28954,7 +28983,7 @@ metaBook.DOMScan=(function(){
         if (metaBook.cacheglosses)
             saveLocal("mB."+name+"("+refuri+")",qids,true);}
     
-    // Processes info loaded remotely
+    // Processes loaded info asynchronously
     function gotInfo(name,info,persist) {
         if (info) {
             if (info instanceof Array) {
@@ -29047,6 +29076,28 @@ metaBook.DOMScan=(function(){
                         metaBook.glossdb.allrefs.length,
                         metaBook.sourcedb.allrefs.length);});}
     metaBook.initGlossesOffline=initGlossesOffline;
+
+    function gotBookie(string){
+        if (!(string)) return;
+        if (string===mB.bookie) return;
+        var tickmatch=/:x(\d+)/.exec(string);
+        var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
+        var expires=(tick)&&(new Date(tick*1000));
+        if ((Trace.glosses>1)||(Trace.glossdata))
+            fdjtLog("gotBookie: %s/%s, cur=%s/%s",
+                    string,expires,metaBook.bookie,metaBook.bookie_expires);
+        if (!(expires)) {
+            metaBook.ubookie=string;
+            metaBook.saveLocal("ubookie("+mB.docuri+")",string);}
+        if ((!(metaBook.bookie))||
+            ((!(metaBook.bookie_expires))&&(expires))||
+            ((metaBook.bookie_expires)&&(expires)&&
+             (expires>metaBook.bookie_expires))) {
+            metaBook.bookie=string; metaBook.bookie_expires=expires;
+            metaBook.saveLocal("bookie("+mB.docuri+")",string);}
+        else {}}
+    metaBook.gotBookie=gotBookie;
+
 })();
 
 /* Emacs local variables
@@ -29111,6 +29162,7 @@ metaBook.Startup=
         var fdjtDevice=fdjt.device;
         var fdjtState=fdjt.State;
         var fdjtAsync=fdjt.Async;
+        var fdjtAjax=fdjt.Ajax;
         var fdjtTime=fdjt.Time;
         var fdjtLog=fdjt.Log;
         var fdjtDOM=fdjt.DOM;
@@ -29210,6 +29262,8 @@ metaBook.Startup=
 
             // Initialize the book state (location, targets, etc)
             metaBook.initState(); metaBook.syncState();
+
+            mB.gotBookie(mB.readLocal("bookie("+mB.docuri+")"));
 
             // If we have no clue who the user is, ask right away (updateInfo())
             if (!((metaBook.user)||(window._sbook_loadinfo)||
@@ -29319,6 +29373,7 @@ metaBook.Startup=
                 metaBook.server=fdjtState.getCookie("SBOOKSERVER");
             else metaBook.server=lookupServer(document.domain);
             if (!(metaBook.server)) metaBook.server=metaBook.default_server;
+            updateServerInfo(metaBook.server);
 
             if (fdjtState.getLocal("mB.devmode")) {
                 addClass(document.documentElement,"_DEVMODE");
@@ -29999,6 +30054,35 @@ metaBook.Startup=
             else i++;
             return false;}
 
+        function gotServerInfo(data){
+            var host_spec="<span class='host'>"+metaBook.server+"</span>";
+            if ((metaBook.server_info)&&
+                (metaBook.server_info.ip!==data.ip))
+                fdjtLog.warn(
+                    "Server %s IP change from %s to %s:\n\t%j\n\t%j",
+                    metaBook.server,metaBook.server_info.ip,data.ip,
+                    metaBook.server_info,data);
+            if (data.servername!==metaBook.server)
+                host_spec=host_spec+" / "+
+                "<span class='host'>"+data.servername+"</span>";
+            if (data.hostname!==data.servername)
+                host_spec=host_spec+" / "+
+                "<span class='host'>"+data.hostname+"</span>";
+            host_spec=host_spec+" / "+"<span class='host'>"+data.ip+"</span>";
+            metaBook.server_info=data;
+            var info=fdjt.DOM.$(".metabookserverinfo");
+            var i=0, lim=info.length; while (i<lim) {
+                info[i++].innerHTML="<strong>Glosses</strong> from "+host_spec;}}
+
+        function fetchServerInfo(){
+            var servername=metaBook.server;
+            fdjtDOM.removeListener(window,"online",fetchServerInfo);
+            fdjtAjax.jsonCall(gotServerInfo,"https://"+servername+"/_info");}
+        function updateServerInfo(){
+            if (navigator.onLine) fetchServerInfo();
+            else fdjtDOM.addListener(window,"online",fetchServerInfo);}
+        metaBook.updateServerInfo=updateServerInfo;
+        
         function hasTOCLevel(elt){
             if ((elt.toclevel)||
                 ((elt.getAttributeNS)&&
@@ -38282,7 +38366,7 @@ metaBook.setMode=
 
     function metabookvischange(evt){
         evt=evt||window.event;
-        if (document[fdjtDOM.ishidden]) {
+        if (document[fdjtDOM.isHidden]) {
             if (metaBook.previewing) metaBook.stopPreview();}}
 
     /* Rules */
@@ -41687,6 +41771,7 @@ metaBook.HTML.settings=
     "    <p class=\"metabooksourceinfo\"></p>\n"+
     "    <p class=\"metabookbuildinfo\"></p>\n"+
     "    <p class=\"metabookappinfo\"></p>\n"+
+    "    <p class=\"metabookserverinfo\"></p>\n"+
     "  </div>\n"+
     "  <div class=\"metabookcopyright\">\n"+
     "    <p class=\"metabookcopyrightinfo\"></p>\n"+
@@ -41774,15 +41859,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1376-ga159ba1';
+fdjt.revision='1.5-1380-g89f79f6';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Apr 1 19:26:33 EDT 2015';
-fdjt.builduuid='bf1e5a3e-fe84-49d3-97e6-0ceb8ff99484';
+fdjt.buildtime='Fri Apr 3 17:58:09 EDT 2015';
+fdjt.builduuid='7b3fa535-eac9-4f86-b0ae-ad8b29368b8d';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='afe80d6b-bba7-4af1-bb2f-5df37f47ebb2-dist';
-metaBook.buildtime='Thu Apr  2 09:30:33 EDT 2015';
+metaBook.buildid='31fd2f85-36a5-45be-9a3b-2cf8ee56d604-dist';
+metaBook.buildtime='Fri Apr  3 17:58:11 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
