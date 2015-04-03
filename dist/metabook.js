@@ -10337,9 +10337,8 @@ fdjt.DOM=
             if (origin) node.setAttribute("data-origin",origin);
             scale_node(node,fudge,origin);
             return node;}
-        fdjtDOM.scaleToFit.scaleNode=
-            fdjtDOM.scaleToFit.adjust=scaleToFit.adjust=scale_node;
         fdjtDOM.scaleToFit=scaleToFit;
+        fdjtDOM.scaleToFit.scaleNode=fdjtDOM.scaleToFit.adjust=scale_node;
         
         function scale_revert(node,wrapper){
             if (!(wrapper)) {
@@ -18488,6 +18487,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                         begin=last; break;}
                     else {last=scan; scan=scan.previousSibling;}}
                 if (!(scan)) begin=last;}
+            text=word.innerHTML;
             if (text.search(/[.;!?]/)>=0) end=word;
             else {
                 last=end; scan=end.nextSibling;
@@ -41859,15 +41859,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1380-g89f79f6';
+fdjt.revision='1.5-1381-gc3e4ca6';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Fri Apr 3 17:58:09 EDT 2015';
-fdjt.builduuid='7b3fa535-eac9-4f86-b0ae-ad8b29368b8d';
+fdjt.buildtime='Fri Apr 3 18:10:39 EDT 2015';
+fdjt.builduuid='1fd6cf36-c7ae-4211-ab6f-9b0e34780613';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='31fd2f85-36a5-45be-9a3b-2cf8ee56d604-dist';
-metaBook.buildtime='Fri Apr  3 17:58:11 EDT 2015';
+metaBook.buildid='ed5554a9-de27-4844-b307-982f5f6ad444-dist';
+metaBook.buildtime='Fri Apr  3 18:12:52 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
