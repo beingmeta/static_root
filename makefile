@@ -14,7 +14,7 @@ FDJT_FILES=fdjt/header.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
 	fdjt/textindex.js \
-	fdjt/ui.js fdjt/pager.js fdjt/dialog.js fdjt/completions.js \
+	fdjt/ui.js fdjt/showpage.js fdjt/dialog.js fdjt/completions.js \
 	fdjt/taphold.js fdjt/selecting.js fdjt/scrollever.js \
 	fdjt/globals.js
 BUILDUUID:=`uuidgen`
@@ -296,7 +296,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
-	  metabook/autoload.js > $@
+	  metabook/autoload.js -o $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
 	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
@@ -363,12 +363,13 @@ dist/metabook.uglify.js: sbooks/amalgam.js fdjt/buildstamp.js \
 dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
 
-dist/fdjt.min.js dist/fdjt.uglify.map: $(FDJT_FILES) makefile
+dist/fdjt.uglify.map: dist/fdjt.min.js
+dist/fdjt.min.js: $(FDJT_FILES) makefile
 	@echo Rebuilding dist/fdjt.min.js
 	@$(UGLIFY)                           \
-	  --source-map dist/fdjt.uglify.map  \
+	  --source-map fdjt.uglify.map  \
 	  --source-map-root /static          \
-	    $(FDJT_FILES) fdjt/buildstamp.js > $@
+	    $(FDJT_FILES) fdjt/buildstamp.js -o $@
 
 # Compiled
 
