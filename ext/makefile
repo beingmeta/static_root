@@ -1,5 +1,7 @@
 all: markdown xmarkdown sizzle aloha
 
+pace:
+	git clone git@github.com:beingmeta/pace pace
 markdown:
 	git clone git@github.com:beingmeta/markdown-js markdown
 xmarkdown:
