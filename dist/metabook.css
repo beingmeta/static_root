@@ -1244,6 +1244,44 @@ table.fdjtform .usebaseline td {
 @media all and (max-width: 500px) {
     body:before { content: 'fdjt_phone'; display: none; }}
 
+/* The new pager */
+
+div.fdjtpage.formatting {
+    overflow-y: hidden !important;
+    max-height: 100% !important;}
+div.fdjtpage:not(.getvisible) > div, div.fdjtpage:not(.getvisible) > p {
+    display: none !important;}
+div.fdjtpage > div.fdjtshow, div.fdjtpage > p.fdjtshow {
+    display: block !important;}
+
+div.fdjtpage .fdjtpageinfo {
+    position: absolute; right: 0px; bottom: 0px;
+    padding-right: 0.5ex; padding-left: 0.5ex;
+    color: black; background-color: rgba(0,0,0,0.4);
+    font-size: 150%; opacity: 0.25;
+    pointer-events: none;}
+div.fdjtpage div.fdjtpageinfo span.count { display: none;}
+div.fdjtpage > div.fdjtpageinfo { display: block !important; }
+div.fdjtpage div.fdjtpageinfo {
+    transition-property: opacity; transition-duration: 5s;}
+div.fdjtpage.fdjtfirstpage.fdjtlastpage > div.fdjtpageinfo {
+    display: none;}
+
+div.fdjtpage.formatting div, div.fdjtpage.getvisible div, 
+div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
+    visibility: hidden;}
+div.fdjtpage.formatting {
+    overflow-y: scroll !important;}
+
+div.fdjtpage.newpage div.fdjtpageinfo,
+div.fdjtpage.formatting.newpage div.fdjtpageinfo {
+    opacity: 0.9; visibility: visible;}
+div.fdjtpage.newpage div.fdjtpageinfo span.count,
+div.fdjtpage.formatting.newpage div.fdjtpageinfo span.count {
+    display: inline;}
+div.fdjtpage.newpage div.fdjtpageinfo {
+    pointer-events: all;}
+
 /* The pager */
 
 .pager { overflow-x: scroll; overflow-y: hidden; }
@@ -4130,8 +4168,10 @@ html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
 #METABOOKFRAME.metabookuifontnormal #METABOOKHUD { font-size: 3em; }
 #METABOOKFRAME.metabookuifontsmall #METABOOKHUD { font-size: 1.5em; }
 
-#METABOOKHUD .metabookhelp, #METABOOKHUD .helpbox { font-size: 60%;}
-#METABOOKHUD .metabookslice { font-size: 60%;}
+#METABOOKHUD .metabookhelp,
+#METABOOKHUD .helpbox,
+#METABOOKHUD .metabookslice { 
+    font-size: 80%;}
 
 /* Major HUD components, head and heart */
 
@@ -4608,13 +4648,23 @@ div.completions.hudpanel .normal { line-height: 250%;}
 
 #METABOOKHUD img.hudbutton {
     position: absolute; width: 50px; height: 50px;
-    border: solid transparent 2px; opacity: 0.02;
+    border: solid transparent 2px;}
+#METABOOKHUD .hudbutton {
+    opacity: 0.02;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=02)";
     filter: alpha(opacity=02);
     -webkit-opacity: 0.02;
     -khtml-opacity: 0.02;
     -moz-opacity: 0.02;
     -o-opacity: 0.02;}
+#METABOOKHUD .tapholding .hudbutton {
+    opacity: 0.50;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+    -webkit-opacity: 0.50;
+    -khtml-opacity: 0.50;
+    -moz-opacity: 0.50;
+    -o-opacity: 0.50;}
 
 body.mbSKIMMING #METABOOKHUD img.hudbutton {
     opacity: 0.80;
@@ -4702,8 +4752,12 @@ img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
     margin-top: 0px;}
 
 #METABOOKTOPCENTER {
-    display: inline-block; text-align: center;
-    max-height: 100%;}
+    text-align: center; max-height: 100%;
+    display: none;}
+#METABOOKTOPBAR.tapholding #METABOOKTOPCENTER,
+.hudup #METABOOKTOPCENTER {
+    display: inline-block;}
+
 #METABOOKHUD #METABOOKTOPCENTER .hudbutton {
     position: static;}
 #METABOOKHUD #METABOOKTOPCENTER .hudbutton.left {
@@ -4880,7 +4934,6 @@ body.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER {
 
 #METABOOKSKIMMER div.metabookcardbody {font-size: 75%;}
 #METABOOKSKIMMER.expanded div.metabookcardbody {font-size: 100%;}
-#METABOOKSKIMMER div.metabookcardbody img.button { display: none;}
 #METABOOKSKIMMER.expanded div.metabookcardbody img.button {
     display: inline-block;}
 
@@ -5265,34 +5318,17 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
 /* Hover rules */
 
 #METABOOKHUD .hudbutton.tapholdtarget,
-#METABOOKHUD .hudbutton.tapholdtarget {
+#METABOOKHUD .tapholding .hudbutton.tapholdtarget,
+#METABOOKHUD .tapholding .hudbutton.tapholding {
     border-color: blue; border-style: dotted;
-    opacity: 0.50;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-    filter: alpha(opacity=50);
-    -webkit-opacity: 0.50;
-    -khtml-opacity: 0.50;
-    -moz-opacity: 0.50;
-    -o-opacity: 0.50;}
+    opacity: 0.80;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+    filter: alpha(opacity=80);
+    -webkit-opacity: 0.80;
+    -khtml-opacity: 0.80;
+    -moz-opacity: 0.80;
+    -o-opacity: 0.80;}
 
-html._MOUSE #METABOOKHUD .hudbutton:hover {
-    border-color: blue; border-style: dotted;
-    opacity: 0.20;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-    filter: alpha(opacity=20);
-    -webkit-opacity: 0.20;
-    -khtml-opacity: 0.20;
-    -moz-opacity: 0.20;
-    -o-opacity: 0.20;}
-
-html._MOUSE body:not(.hudup) #METABOOKHUD:hover .hudbutton:not(:hover) {
-    opacity: 0.20;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-    filter: alpha(opacity=20);
-    -webkit-opacity: 0.20;
-    -khtml-opacity: 0.20;
-    -moz-opacity: 0.20;
-    -o-opacity: 0.20;}
 html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKSHOWCOVER {
     display: inline-block;
     pointer-events: all;}
@@ -6606,16 +6642,6 @@ div.metabookslice div.metabookcard.skimpoint .metabookcardbody {
 div.metabookslice div.metabookcard.skimpoint .fdjtclearfloats {
     margin-bottom: 0px;}
 
-div.metabookslice.pager div.pagernav {
-    border-bottom: solid black 1px;}
-html._TOUCH div.metabookslice.pager div.pagernav {
-    font-size: 200%;}
-div.metabookslice.pager.hudpanel div.pagernav {
-    position: absolute; bottom: 0px;
-    border-top: solid black 1px;}
-div.metabookslice.pager.hudpanel div.pagernav>span {
-    border-bottom: 0px; border-top: solid black 1ex;}
-
 /* METABOOKSOURCES */
 
 div.metabooksources {}
@@ -6640,8 +6666,8 @@ div.metabooksources div.button.source {
 
 div.tochead { 
     position: relative; /* width: 100%; */
-    background-color: silver; color: blue;
-    border-top: solid lightblue 2px; border-bottom: solid lightblue 2px;
+    background-color: lightgray; color: blue;
+    border-top: solid black 2px; border-bottom: solid black 4px;
     text-align: left; vertical-align: middle;}
 div.tochead span.spacer, div.idhead span.spacer {
     font-size: 125%; font-weight: bold; font-style: italic;}
@@ -6699,10 +6725,11 @@ div.metabookslice div.metabookcard div.tochead { display: none; }
 div.metabookslice div.metabookcard div.idhead { display: none; }
 
 div.metabookslice div.metabookcard.slicenewhead div.tochead,
-div.metabookslice div.metabookcard.slicenewpassage div.idhead ,
-div.metabookslice  div.pagerblock > div.metabookcard:first-child div.tochead,
-div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
+div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     display: block; }
+
+div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
+    border-top: 0px;}
 
 #METABOOKSKIMMER div.metabookcard div.metabookcardbody {
     border-top: 0px; padding-left: 1em; padding-top: 0.25ex;}
@@ -6806,17 +6833,11 @@ div.metabookslice div.pagerblock > div.metabookcard:first-child div.idhead {
 
 html._TOUCH #METABOOKHUD #METABOOKSTATICTOC.metabookslice {
     font-size: 100%; }
-html._TOUCH #METABOOKHUD #METABOOKSTATICTOC.metabookslice.pager div.pagernav {
-    font-size: 100%;}
 html._TOUCH .mbtoc.mbtoc2 { margin-left: 1em;}
 html._TOUCH .mbtoc.mbtoc3 { margin-left: 2em;}
 html._TOUCH .mbtoc.mbtoc4 { margin-left: 3em;}
 
 #METABOOKSTATICTOC {padding-left: 1em; padding-right: 1em;}
-#METABOOKSTATICTOC.pager {padding-left: 0px; padding-right: 0px;}
-#METABOOKSTATICTOC.pager .pagerblock {
-    padding-left: 1em; padding-right: 1em;
-    padding-top: 1.5ex;}
 
 html._MOUSE .mbtocslice .mbtoc:hover {
     outline: dotted blue 2px;}
@@ -7050,7 +7071,8 @@ div.metabookcard {
     box-sizing: border-box;}
 div.metabookcard > div.idhead, div.metabookcard > div.tochead {
     max-height: 3ex; white-space: nowrap;
-    text-overflow: ellipsis; overflow: hidden;}
+    text-overflow: ellipsis; overflow: hidden;
+    line-height: 100%;}
 
 div.metabookcard > div.idhead { margin-left: -10px;}
 div.metabookcard > div.tochead { margin-left: -20px; }
@@ -7120,18 +7142,17 @@ div.metabookcard > hr {
 .metabookcard .audience .outlet:before {
     content: "→ "; font-weight: bold;}
 
-.metabookcardbody {padding-top: 6px;}
+.metabookcardbody {padding-top: 2px;}
 .metabookcardbody:before, .metabookcard .metabookcardbody:after {
                               content: " "; display: table;}
 .metabookcardbody:after { clear: both; }
 
 .metabookcard .fdjtclearfloats { margin-bottom: 3px;}
-.metabookcard.gloss .metabookcardbody {
+.metabookcardbody {
     border-top: solid purple 2px;}
-.metabookcard.passage .metabookcardbody {
-    border-top: solid purple 1px;}
-.metabookslice > .metabookcard:first-child .metabookcardbody {
-    border-top-width: 0px;}
+.metabookcard.slicenewhead .metabookcardbody,
+.metabookcard:first-child .metabookcardbody {
+    border-top: 0px;}
 
 .metabookcard span.controller { cursor: pointer;}
 .metabookcard .info { 
@@ -7140,17 +7161,18 @@ div.metabookcard > hr {
     float: right; width: 40px;}
 .metabookcard .info span.score {
     color: gold; display: none;}
-.metabookcard span.tags { font-size: 80%; vertical-align: top;}
-.metabookcard span.tags img.tagicon { height: 3ex; width: auto;}
-.metabookcard span.tags span { vertical-align: top;}
+.metabookcard span.tags { 
+    font-size: 80%; padding-left: 1ex;}
+.metabookcard span.tags img.tagicon { 
+    height: 3ex; width: auto;
+    display: none;}
 .metabookcard span.tags span.sectname {
     font-style: italic; color: purple;}
 .metabookcard span.tags span.sectname.longterm {
     font-size: 80%; letter-spacing: -0.5px;}
 .metabookcard.gloss span.tags.fdjtexpanded { display: block;}
 .metabookcard span.tags.fdjtexpanded span.controller {
-    color: black; float: right;
-    vertical-align: top; margin-top: -0.5ex;}
+    color: black; float: right;}
 .metabookcard span.head {
     font-size: 75%;}
 .metabookcard span.headhead {
@@ -7158,17 +7180,15 @@ div.metabookcard > hr {
 .metabookcard span.controller {
     font-weight: bold; color: silver;
     white-space: nowrap;}
-.metabookcard span.note {
-    font-size: 110%; font-style: italic;
-    vertical-align: top;}
-.metabookcard span.excerpt { vertical-align: top; }
+.metabookcard span.note {font-style: italic;}
+.metabookcard span.excerpt { vertical-align: baseline; }
 .metabookcardbody img.glosspic,
 .metabookcardbody img.userpic,
 .metabookcardbody img.sourcepic  {
     float: left; clear: left; margin-right: 3px;
     width: 50px; overflow: hidden; height: auto;
     /* This lines up with the padding on metabookcardbody */
-    margin-top: -6px;}
+    margin-top: -2px;}
 .metabookcardbody div.glosspic,
 .metabookcardbody div.userpic,
 .metabookcardbody div.sourcepic  {
@@ -7179,7 +7199,7 @@ div.metabookcard > hr {
     color: rgba(245, 245, 245, 0.56);
     text-stroke: 2px black; -webkit-text-stroke: 2px black;
     /* This lines up with the padding on metabookcardbody */
-    margin-top: -6px;}
+    margin-top: -2px;}
 .metabookcardbody div.userpic.sbooknopic,
 .metabookcardbody div.sourcepic.sbooknopic {
     background-image:
@@ -7210,7 +7230,7 @@ div.metabookcard > hr {
 .metabookcard .tool img {
     height: 40px; width: 40px; opacity: 0.3; clear: right;
     /* This makes it overlap the date, tightening things up generally */
-    margin-right: 6px; margin-top: -1em;}
+    margin-right: 6px; margin-top: -1ex;}
 html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
 .metabookcard span.glossbody {
     background-color: lightblue; color: black;
@@ -7219,10 +7239,12 @@ html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
     -webkit-border-radius: 1ex; -khtml-border-radius: 1ex;
     -moz-border-radius: 1ex; -o-border-radius: 1ex;}
 .metabookcard .age {
-    color: rgb(18, 141, 238); font-weight: bold;
-    vertical-align: top; padding-right: 0.5em; padding-left: 0.4ex;
+    color: rgb(18, 141, 238); font-size: 80%;
+    padding-right: 0.5em; padding-left: 0.4ex; margin-top: -3px;
+    vertical-align: top; 
     clear: none;}
-body._MOUSE .metabookcard .age:hover {text-decoration: underline;} 
+.metabookcard.timeless .age { display: none;}
+.metabookcard.timeless .tool img { margin-top: -3px;}
 .metabookcard a.deletebutton { 
     color: orange; text-decoration: none;
     padding-right: 3px;}
@@ -7235,6 +7257,13 @@ body._MOUSE .metabookcard .age:hover {text-decoration: underline;}
     font-style: italic; font-size: 80%;
     white-space: nowrap; padding: 2px; padding-top: 0px;
     color: lightblue;}
+
+.metabookcardbody span.maker {
+    color: black; font-weight: bold; padding-right: 1ex;}
+.metabookcardbody span.maker:after { content: ':'; }
+
+.metabookcardbody span.maker { display: none;}
+.metabookcard.personal span.maker { display: inline;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -7316,7 +7345,6 @@ div.resultinfo .stats > span {
     border: outset black 2px; border-top: 0px;
     padding-top: 2px; padding-bottom: 4px;
     line-height: 0.9;}
-div.resultinfo .stats > span > br { display: none; }
 
 div.resultinfo .noresults { display: none;}
 div.resultinfo.noresults .noresults { display: block;}
@@ -7444,10 +7472,9 @@ body.hudup #METABOOKADDGLOSS div.metabookglossform {
 div.metabookglossform form div.textbox,
 div.metabookglossform form div.glossetc {
     max-height: 90%; font-size: 0.6em;
-    clear: left; text-align: left; margin-right: 70px;
-    padding-right: 3px; padding-top: 3px;
-    box-sizing: border-box; -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;}
+    clear: left; text-align: left;
+    padding-right: 3px; margin-right: 60px;
+    box-sizing: border-box;}
 div.metabookglossform.focused form div.textbox,
 div.metabookglossform.focused form div.glossetc {
     max-height: inherit;}
@@ -7731,11 +7758,10 @@ div.metabookglossform form div.glossetc .links span.checkspan a {
 div.metabookglossform form div.glossetc span.checkspan input {}
 
 div.metabookglossform form .button {
-    font-weight: bold; color: black; font-size: 24px;
+    font-weight: bold; color: black; font-size: 24px; padding: 0px;
     border: solid black 2px; background-color: silver;
     border-radius: 4px; -o-border-radius: 4px;
     -moz-border-radius: 4px; -webkit-border-radius: 4px;
-    padding: 0px; padding-right: 2px;  padding-left: 2px; 
     text-align: center; vertical-align: top;
     cursor: pointer;}
 
@@ -8025,13 +8051,17 @@ html._NOSVG #METABOOKRIBBON input[TYPE="TEXT"]#METABOOKADDSHAREINPUT {
 
 /* New menu stuff */
 
+div.metabookglossform form div.addglossmenu,
+div.metabookglossform form div.textbox {
+    box-sizing: border-box; padding-top: 3px;}
+
 div.metabookglossform form div.addglossmenu {
     position: absolute; top: 0px; right: 0px;
     width: 60px; margin-right: 5px; margin-left: 5px;
     z-index: 800;}
 
 div.metabookglossform form div.addglossmenu > img {
-    width: 40px; height: 40px; padding: 2px; 
+    width: 50px; height: 50px; 
     box-sizing: content-box;
     display: none; }
 div.metabookglossform form div.addglossmenu > img.held {
@@ -8140,6 +8170,8 @@ div.metabookglossform.submitdone div.messageoverlay > div.saved {
 
 div.metabookglossform.submitclose form > div {
     opacity: 0.1;}
+div.metabookglossform.submitclose form div.glossetc {
+    display: none;}
 #METABOOKFRAME._ANIMATE div.metabookglossform.submitclose form > div {
     transition-property: opacity; transition-duration: 3s;
     -webkit-transition-property: opacity; -webkit-transition-duration: 3s;
