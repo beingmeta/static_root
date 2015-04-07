@@ -1265,7 +1265,7 @@ div.fdjtpage > div.fdjtpageinfo { display: block !important; }
 div.fdjtpage div.fdjtpageinfo {
     transition-property: opacity; transition-duration: 5s;}
 div.fdjtpage.fdjtfirstpage.fdjtlastpage > div.fdjtpageinfo {
-    display: none;}
+    display: none !important;}
 
 div.fdjtpage.formatting div, div.fdjtpage.getvisible div, 
 div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
@@ -3404,7 +3404,7 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
     /* font-family: 'Open Sans', Arial, Helvetica, sans-serif, sans; */
     font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif, sans;}
 html._HAVEOPENSANS #METABOOKFRAME {
-    font-family: 'Open Sans', Verana, Tahoma, Arial, Helvetica, sans-serif;}
+    font-family: 'Open Sans', Verdana, Tahoma, Arial, Helvetica, sans-serif;}
 html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog {
     font-family: 'Open Dyslexic', serif;}
 .wf-inactive #METABOOKFRAME {
@@ -3820,7 +3820,8 @@ body._MOUSE #METABOOKOPENTAB:hover, #METABOOKOPENTAB.tapholdtarget {
     border-color: blue; border-style: dotted;}
 #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
     width: 7em; color: white;}
-html._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB { font-size: 36px;}
+html._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
+    font-size: 36px; height: 40px;}
 html._TOUCH #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
     width: 5em; }
 
@@ -3881,11 +3882,15 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
     #METABOOKCOVER div.userbox a.sbooks { display: none;}
     #METABOOKCOVER div.userbox a.metabookusername { float: right;}
 }
-@media screen and (max-width: 500px) {
-    #METABOOKCOVER > div { bottom: 120px; }
+
+/* Phone */
+@media only screen and /* (min-width: 320px) and */
+            (max-width: 480px) {
+    #METABOOKCOVER > div { bottom: 120px; top: 50px; }
     html._NOUSER #METABOOKCOVER > div { bottom: 150px; }
     #METABOOKCOVERMESSAGE > div { font-size: 0.7em;}
-    #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB { font-size: 30px;}
+    #METABOOKCOVERMESSAGE > div#METABOOKOPENTAB {
+        font-size: 30px; height: 40px;}
     #METABOOKCOVERMESSAGE > div#METABOOKREADYMESSAGE { font-size: 30px;}
 
     #METABOOKCOVER > div { left: 10px; right: 10px;}
@@ -3900,6 +3905,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE > #METABOOKREADYMESSAGE {
 
     #METABOOKSETTINGS {
         padding: 1ex;
+        padding-top: 2px;
         padding-left: 2px;
         padding-right: 2px;}
     #METABOOKSETTINGS h1 {
@@ -4142,6 +4148,25 @@ form.metabooksettings div.metabookcopyright p {
 
 div.fdjtdialog.fdjtconfirm.mbsettings div.message {
     font-weight: normal;}
+
+/* Phone */
+@media only screen and /* (min-width: 320px) and */
+            (max-width: 480px) {
+    form.metabooksettings { font-size: 0.7rem;}
+    form.metabooksettings>div.fontsizes span.samples {
+        font-size: 100%;}
+    form.metabooksettings div.fontsizes span.checkspan span.sample {
+        padding-right: 0.3rem;}
+    form.metabooksettings .button, form.metabooksettings button {
+        font-size: 0.8rem;}
+    form.metabooksettings .label { font-size: 5vw;}
+    form.metabooksettings .label.smaller { font-size: 3vw;}
+    form.metabooksettings>div.checkspan,
+    form.metabooksettings>div.fontsizes {
+        font-size: 14px;}
+
+}
+
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -4467,23 +4492,6 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEARTBODY div.hudpanel,
 body.hudup #METABOOKHUD.allglosses.openheart #METABOOKHEARTBODY,
 body.hudup #METABOOKHUD.searchresults.openheart #METABOOKHEARTBODY {
     padding-top: 0px;}
-
-body.hudup._ISCROLL #METABOOKHUD.openheart #METABOOKHEARTBODY,
-body._ISCROLL #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY,
-body._ISCROLL #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY,
-body._ISCROLL #METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEARTBODY,
-body._ISCROLL #METABOOKHUD.addgloss.glosseditdetail #METABOOKHEARTBODY,
-body._ISCROLL #METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEARTBODY,
-body._ISCROLL #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY {
-    padding-top: 0px; padding-bottom: 0px;}
-body.hudup._ISCROLL #METABOOKHUD.openheart #METABOOKHEARTBODY #METABOOKHEARTCONTENT,
-body._ISCROLL #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY #METABOOKHEARTCONTENT,
-body._ISCROLL #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY #METABOOKHEARTCONTENT,
-body._ISCROLL #METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEARTBODY #METABOOKHEARTCONTENT,
-body._ISCROLL #METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEARTBODY #METABOOKHEARTCONTENT,
-body._ISCROLL #METABOOKHUD.addgloss.glosseditdetail #METABOOKHEARTBODY #METABOOKHEARTCONTENT,
-body._ISCROLL #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY #METABOOKHEARTCONTENT {
-    padding-top: 1em; padding-bottom: 1em;}
 
 #METABOOKHEARTBODY div.hudpanel > h1:first-child { margin-top: 0px;}
 
@@ -5357,10 +5365,21 @@ body.hudup img.metabookpagebutton {
 
     #METABOOKHUD #METABOOKTOPBAR.tapholding img.hudbutton,
     ._TOUCH #METABOOKHUD #METABOOKFOOT.tapholding
-       img.hudbutton.tapholdtarget,
+    img.hudbutton.tapholdtarget,
     ._TOUCH #METABOOKHUD #METABOOKTOPBAR.tapholding
-       img.hudbutton.tapholdtarget {
-           width: 50px; height: 50px;}
+    img.hudbutton.tapholdtarget {
+        width: 50px; height: 50px;}
+
+    #METABOOKSHOWCOVER {
+        width: 50px; color: transparent;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+        background-size: contain; background-repeat: no-repeat;
+        background-position: top center;
+        background-image: url(g/metabook/book.svgz);}
+    ._NOSVG #METABOOKSHOWCOVER {
+        background-image: url(g/metabook/book50x50.svgz);}
+
 
     #METABOOKHEART {
         border-radius: 1ex;
@@ -5394,7 +5413,7 @@ body.hudup img.metabookpagebutton {
         left: 10px; right: 10px; }
     body.mbSKIMMING #METABOOKTOPBAR {
         display: none;}
- 
+    
     img.metabookclosehud#METABOOKSTOPSKIM {
         bottom: 50px; top: auto;}
 
@@ -5407,7 +5426,9 @@ body.hudup img.metabookpagebutton {
         box-shadow: none; -webkit-box-shadow: none;
         -moz-box-shadow: none; -o-box-shadow: none;}
 }
-@media screen and (max-width: 500px) {
+/* Phone */
+@media only screen and /* (min-width: 320px) and */
+            (max-width: 480px) {
     #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
         left: 5px; right: 5px;}
     body.mbSKIMMING .hudbutton,
@@ -6032,10 +6053,9 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 /* Custom media rules */
 
 /* Phone */
-@media only screen and
-            (min-width: 320px) and
+@media only screen and /* (min-width: 320px) and */
             (max-width: 480px) {
-    #CODEXPAGE {top: 40px; bottom: 40px; left: 15px; right: 15px;}}
+    #CODEXPAGE {top: 10px; bottom: 30px; left: 5px; right: 5px;}}
 /* Tablet */
 @media only screen and
             (min-width: 480px) and
@@ -6735,16 +6755,6 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     border-top: 0px; padding-left: 1em; padding-top: 0.25ex;}
 #METABOOKSKIMMER div.metabookcard div.idhead {
     border-bottom: 0px;}
-
-#METABOOKFRAME._ANIMATE body._ISCROLL div.metabookslice {
-    transition-property: transform;
-    -webkit-transition-property: -webkit-transform;
-    -moz-transition-property: -moz-transform;
-    -o-transition-property: -o-transform;
-    transition-duration: 0.3s; 
-    -webkit-transition-duration: 0.3s;
-    -o-transition-duration: 0.3s;
-    -moz-duration: 0.3s;}
 
 @media (pointer: coarse) and (max-width: 650px) {
     div.metabookslice div.metabookcard { font-size: 120%; }
