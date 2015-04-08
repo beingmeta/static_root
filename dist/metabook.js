@@ -17867,7 +17867,7 @@ fdjt.CodexLayout=
             if (nodeclass.search(/\bcodexdupend\b/g)>=0) {
                 node.className=nodeclass.replace(/\bcodexdupend\b/g,"codexdup");
                 stripBottomStyles(node,true);}
-            else if (nodeclass.search(/\bcodexdupstart\b/g)<0) {
+            else if (nodeclass.search(/\bcodexdup[a-z]*\b/g)<0) {
                 node.className=nodeclass+" codexdupstart";
                 stripBottomStyles(node,true);
                 stripTopStyles(copy,true);
@@ -23259,7 +23259,6 @@ fdjt.DOM.noautofontadjust=true;
         else if (headinfo) {
             if (Trace.target)
                 metaBook.trace("metaBook.setHead",head);
-            metaBook.TOC.setHead(headinfo);
             window.title=headinfo.title+" ("+document.title+")";
             if (metaBook.head) dropClass(metaBook.head,"sbookhead");
             addClass(head,"sbookhead");
@@ -26580,12 +26579,13 @@ metaBook.DOMScan=(function(){
             fdjtLog("Starting initializing glosses from local storage");
         metaBook.sourcedb.load(true);
         var loading=metaBook.glossdb.load(true);
-        loading.then(function(){
-            if ((metaBook.glossdb.allrefs.length)||
-                (metaBook.sourcedb.allrefs.length))
-                fdjtLog("Initialized %d glosses (%d sources) from local storage",
-                        metaBook.glossdb.allrefs.length,
-                        metaBook.sourcedb.allrefs.length);});}
+        if (loading) 
+            loading.then(function(){
+                if ((metaBook.glossdb.allrefs.length)||
+                    (metaBook.sourcedb.allrefs.length))
+                    fdjtLog("Initialized %d glosses (%d sources) from local storage",
+                            metaBook.glossdb.allrefs.length,
+                            metaBook.sourcedb.allrefs.length);});}
     metaBook.initGlossesOffline=initGlossesOffline;
 
     function gotBookie(string){
@@ -26703,10 +26703,6 @@ metaBook.Startup=
 
         /* Initialization */
         
-        function startupLog(){
-            if (!(Trace.startup)) return;
-            fdjtLog.apply(null,arguments);}
-
         function startupMessage(){
             if ((Trace.startup)&&
                 (typeof Trace.startup === "number")&&
@@ -27044,7 +27040,8 @@ metaBook.Startup=
                 //  cache it, though we could.
                 function(){
                     applyTOCRules();
-                    metadata=scanDOM();},
+                    metadata=scanDOM();
+                    metaBook.setupTOC(metadata[metaBook.content.id]);},
                 function(){
                     var hasText=fdjtDOM.hasText;
                     var rules=fdjtDOM.getMeta("SBOOKS.index",true);
@@ -27090,21 +27087,6 @@ metaBook.Startup=
                 function(){
                     if (metaBook.bypage) metaBook.Paginate("initial");
                     else addClass(document.body,"_SCROLL");},
-                // Build the display TOC, both the dynamic (top of
-                // display) and the static (inside the hudheart)
-                function(){
-                    var tocmsg=$ID("METABOOKSTARTUPTOC");
-                    var tocstart=fdjtTime();
-                    if (tocmsg) {
-                        tocmsg.innerHTML=fdjtString(
-                            "Building table of contents based on %d heads",
-                            metaBook.docinfo._headcount);
-                        addClass(tocmsg,"running");}
-                    metaBook.setupTOC(metadata[metaBook.content.id]);
-                    startupLog("Built tables of contents based on %d heads in %fms",
-                               metaBook.docinfo._headcount,
-                               fdjtTime()-tocstart);
-                    if (tocmsg) dropClass(tocmsg,"running");},
                 // Load all source (user,layer,etc) information
                 function(){
                     if (Trace.startup>1) fdjtLog("Loading sourcedb");
@@ -39250,10 +39232,10 @@ fdjt.builduuid='C33C26A3-A76E-4513-AD8C-AC885F76F6FC';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='4A11CF34-C02F-4718-B44F-A85BACED38FB-dist';
-metaBook.buildtime='Wed Apr  8 14:12:32 EDT 2015';
+metaBook.buildid='E29684A1-18C1-4905-8F31-A923C410C497-dist';
+metaBook.buildtime='Wed Apr  8 15:40:45 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='34696A88064BFAE12CE4F9CDF411D8BACD8583FF';
+fdjt.CodexLayout.sourcehash='86368EB2CC5619B77EA4495F3648E619EF617E70';
