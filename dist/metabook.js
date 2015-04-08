@@ -13734,6 +13734,9 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
 
   function showNode(container,node){
     if (!(container=getContainer(container))) return;
+    if (!(hasClass(container,"fdjtpage"))) {
+      if (container.offsetHeight) showPage(container);
+      else return false;}
     var parent=node.parentNode;
     while ((parent)&&(parent!==container)) {
       node=parent; parent=node.parentNode;}
@@ -30248,7 +30251,7 @@ metaBook.setMode=
                               (metaBook.docinfo[metaBook.head.id]));
                 var static_head=$ID("MBTOC4"+headinfo.frag);
                 var toc=fdjt.ID("METABOOKSTATICTOC");
-                if (static_head.hidden)
+                if (static_head.offsetHeight===0)
                     fdjt.showPage.showNode(toc,static_head);
                 else fdjt.showPage.check(toc);}
             else if (mode==="allglosses") {
@@ -39223,15 +39226,15 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1396-gac3dc15';
+fdjt.revision='1.5-1399-gdc4d5da';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 8 14:09:01 EDT 2015';
-fdjt.builduuid='C33C26A3-A76E-4513-AD8C-AC885F76F6FC';
+fdjt.buildtime='Wed Apr 8 16:20:25 EDT 2015';
+fdjt.builduuid='B1240918-E419-49E5-9E6E-A391D72C12B6';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='C32A455F-DCDA-42B3-A55F-7A6C206C4C44-dist';
-metaBook.buildtime='Wed Apr  8 15:51:06 EDT 2015';
+metaBook.buildid='F354EA38-A78E-4848-BEE8-63660027425A-dist';
+metaBook.buildtime='Wed Apr  8 16:29:28 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

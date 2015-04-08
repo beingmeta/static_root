@@ -14837,6 +14837,9 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
 
   function showNode(container,node){
     if (!(container=getContainer(container))) return;
+    if (!(hasClass(container,"fdjtpage"))) {
+      if (container.offsetHeight) showPage(container);
+      else return false;}
     var parent=node.parentNode;
     while ((parent)&&(parent!==container)) {
       node=parent; parent=node.parentNode;}
@@ -17768,8 +17771,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1396-gac3dc15';
+fdjt.revision='1.5-1399-gdc4d5da';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 8 14:09:01 EDT 2015';
-fdjt.builduuid='C33C26A3-A76E-4513-AD8C-AC885F76F6FC';
+fdjt.buildtime='Wed Apr 8 16:20:25 EDT 2015';
+fdjt.builduuid='B1240918-E419-49E5-9E6E-A391D72C12B6';
 
