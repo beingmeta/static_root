@@ -23278,8 +23278,7 @@ fdjt.DOM.noautofontadjust=true;
             fdjtLog("Setting location to %o",location);
         var info=metaBook.Info(metaBook.head);
         while (info) {
-            var tocelt=document.getElementById("METABOOKTOC4"+info.frag);
-            var statictocelt=document.getElementById("METABOOKSTATICTOC4"+info.frag);
+            var tocelt=document.getElementById("MBTOC4"+info.frag);
             var hinfo=info.head, hhlen=((hinfo)&&(hinfo.ends_at-hinfo.starts_at));
             var start=info.starts_at; var end=info.ends_at;
             var progress=((location-start)*100)/hhlen;
@@ -23287,8 +23286,6 @@ fdjt.DOM.noautofontadjust=true;
             if (tocelt) {
                 // tocelt.title=Math.round(progress)+"%";
                 bar=fdjtDOM.getFirstChild(tocelt,".progressbar");}
-            if (statictocelt) {
-                appbar=fdjtDOM.getFirstChild(statictocelt,".progressbar");}
             if (Trace.toc)
                 fdjtLog("For tocbar %o/%o loc=%o start=%o end=%o progress=%o",
                         bar,appbar,location,start,end,progress);
@@ -29640,6 +29637,7 @@ metaBook.TOCSlice=
                 showsize.style.left=((rel_start/outer_length)*100)+"%";
                 elements.appendChild(showsize);}
             elements.appendChild(fdjtDOM("div.posbar"));
+            tocbar.id="MBTOC4"+headinfo.frag;
             tocbar.setAttribute("name","MBTOC4"+headinfo.frag);
             tocbar.setAttribute("data-passage",headinfo.frag);
             tocbar.setAttribute("data-location",headinfo.starts_at);
@@ -30248,7 +30246,7 @@ metaBook.setMode=
             if (mode==="statictoc") {
                 var headinfo=((metaBook.head)&&(metaBook.head.id)&&
                               (metaBook.docinfo[metaBook.head.id]));
-                var static_head=$ID("METABOOKSTATICTOC4"+headinfo.frag);
+                var static_head=$ID("MBTOC4"+headinfo.frag);
                 var toc=fdjt.ID("METABOOKSTATICTOC");
                 if (static_head.hidden)
                     fdjt.showPage.showNode(toc,static_head);
@@ -39232,8 +39230,8 @@ fdjt.builduuid='C33C26A3-A76E-4513-AD8C-AC885F76F6FC';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='E29684A1-18C1-4905-8F31-A923C410C497-dist';
-metaBook.buildtime='Wed Apr  8 15:40:45 EDT 2015';
+metaBook.buildid='C32A455F-DCDA-42B3-A55F-7A6C206C4C44-dist';
+metaBook.buildtime='Wed Apr  8 15:51:06 EDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
