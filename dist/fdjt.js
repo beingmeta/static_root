@@ -14711,7 +14711,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     addClass(start,"fdjtshow");
     addClass(start,((dir<0)?("fdjtendofpage"):("fdjtstartofpage")));
     if (((dir<0)&&(hasClass(start,/fdjtpagebreak(auto)?/)))||
-	(isoversize(container))) {
+        (isoversize(container))) {
       dropClass(container,"formatting");
       return startpos;}
     var endpos=showpage(container,children,startpos,dir);
@@ -14728,7 +14728,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         addClass(end,caboose);}}
     if (startpos===0) addClass(container,"fdjtfirstpage");
     else dropClass(container,"fdjtfirstpage");
-    if (endpos>=lim) addClass(container,"fdjtlastpage");
+    if (endpos>=(lim-1)) addClass(container,"fdjtlastpage");
     else dropClass(container,"fdjtlastpage");
     var minpos=((startpos<=endpos)?(startpos):(endpos));
     var maxpos=((startpos>endpos)?(startpos):(endpos));
@@ -14763,12 +14763,12 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         if (style.display==='none') continue;
         else if ((style.position)&&(style.position!=='static'))
           continue;
-	if (style.pageBreakBefore==="force")
-	  addClass(node,"fdjtpagebreakauto");
-	else dropClass(node,"fdjtpagebreakauto");
-	// We don't currently make these stylable
+        if (style.pageBreakBefore==="force")
+          addClass(node,"fdjtpagebreakauto");
+        else dropClass(node,"fdjtpagebreakauto");
+        // We don't currently make these stylable
         if ((prev)&&(hasClass(prev,"fdjtpagekeep"))) 
-	  addClass(node,"fdjtpagekeep");
+          addClass(node,"fdjtpagekeep");
         if ((prev)&&(hasClass(node,"fdjtpagekeep")))
           addClass(prev,"fdjtpagehead");
         children.push(node);}}
@@ -14780,7 +14780,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
       if ((dir>0)&&(hasClass(scan,/fdjtpagebreak(auto)?/)))
-	return i-dir;
+        return i-dir;
       dropClass(last,caboose); addClass(scan,"fdjtshow"); addClass(scan,caboose);
       if (isoversize(container)) {
         addClass(last,caboose);
@@ -17184,32 +17184,45 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 sel.setRange(start,end);}
             if (sel.loupe) updateLoupe(word,sel,tapped);}
 
+        function nodeSearch(node,pat){
+            if (node.nodeType===3) {
+                return (node.nodeValue.search(pat)>=0);}
+            else if (node.nodeType===1) {
+                var children=node.childNodes;
+                var i=0, lim=((children)?(children.length):(0));
+                while (i<lim) {
+                    var child=children[i++];
+                    if (child.nodeType===3) {
+                        if (child.nodeValue.search(pat)>=0) 
+                            return child;}
+                    else if (child.nodeType===1) {
+                        if (nodeSearch(child,pat)) return child;}
+                    else {}}
+                return false;}
+            else return false;}
+
         function initSelect(word){
             var begin=word, end=word, scan, last;
-            var text=word.innerHTML;
-            if (text.search(/"'\(\[\{/)<0) {
+            if (!(nodeSearch(word,/"'\(\[\{/))) {
                 last=begin; scan=begin.previousSibling;
                 while (scan) {
                     if ((scan.nodeType!==1)||
                         (!(hasClass(scan,"fdjtword")))) {
                         scan=scan.previousSibling; continue;}
-                    text=scan.innerHTML;
-                    if (text.search(/["'\(\[\{]/)>=0) {
+                    if (nodeSearch(scan,/["'\(\[\{]/)) {
                         begin=scan; break;}
-                    else if (text.search(/[.;!?]/)>=0) {
+                    else if (nodeSearch(scan,/[.;!?]/)) {
                         begin=last; break;}
                     else {last=scan; scan=scan.previousSibling;}}
                 if (!(scan)) begin=last;}
-            text=word.innerHTML;
-            if (text.search(/[.;!?]/)>=0) end=word;
+            if (nodeSearch(word,/[.;!?]/)) end=word;
             else {
                 last=end; scan=end.nextSibling;
                 while (scan) {
                     if ((scan.nodeType!==1)||
                         (!(hasClass(scan,"fdjtword")))) {
                         scan=scan.nextSibling; continue;}
-                    text=scan.innerHTML;
-                    if (text.search(/["'.;!?]/)>=0) {
+                    if (nodeSearch(scan,/["'.;!?]/)) {
                         end=scan; break;}
                     else {
                         last=scan; scan=scan.nextSibling;}}
@@ -17755,8 +17768,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1388-g15cc927';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Tue Apr 7 08:33:18 EDT 2015';
-fdjt.builduuid='f747ce4f-2eef-463b-8ccb-7781268a0e97';
+fdjt.revision='1.5-1396-gac3dc15';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed Apr 8 14:09:01 EDT 2015';
+fdjt.builduuid='C33C26A3-A76E-4513-AD8C-AC885F76F6FC';
 

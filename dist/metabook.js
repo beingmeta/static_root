@@ -13608,7 +13608,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     addClass(start,"fdjtshow");
     addClass(start,((dir<0)?("fdjtendofpage"):("fdjtstartofpage")));
     if (((dir<0)&&(hasClass(start,/fdjtpagebreak(auto)?/)))||
-	(isoversize(container))) {
+        (isoversize(container))) {
       dropClass(container,"formatting");
       return startpos;}
     var endpos=showpage(container,children,startpos,dir);
@@ -13660,12 +13660,12 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         if (style.display==='none') continue;
         else if ((style.position)&&(style.position!=='static'))
           continue;
-	if (style.pageBreakBefore==="force")
-	  addClass(node,"fdjtpagebreakauto");
-	else dropClass(node,"fdjtpagebreakauto");
-	// We don't currently make these stylable
+        if (style.pageBreakBefore==="force")
+          addClass(node,"fdjtpagebreakauto");
+        else dropClass(node,"fdjtpagebreakauto");
+        // We don't currently make these stylable
         if ((prev)&&(hasClass(prev,"fdjtpagekeep"))) 
-	  addClass(node,"fdjtpagekeep");
+          addClass(node,"fdjtpagekeep");
         if ((prev)&&(hasClass(node,"fdjtpagekeep")))
           addClass(prev,"fdjtpagehead");
         children.push(node);}}
@@ -13677,7 +13677,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
       if ((dir>0)&&(hasClass(scan,/fdjtpagebreak(auto)?/)))
-	return i-dir;
+        return i-dir;
       dropClass(last,caboose); addClass(scan,"fdjtshow"); addClass(scan,caboose);
       if (isoversize(container)) {
         addClass(last,caboose);
@@ -16081,32 +16081,45 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 sel.setRange(start,end);}
             if (sel.loupe) updateLoupe(word,sel,tapped);}
 
+        function nodeSearch(node,pat){
+            if (node.nodeType===3) {
+                return (node.nodeValue.search(pat)>=0);}
+            else if (node.nodeType===1) {
+                var children=node.childNodes;
+                var i=0, lim=((children)?(children.length):(0));
+                while (i<lim) {
+                    var child=children[i++];
+                    if (child.nodeType===3) {
+                        if (child.nodeValue.search(pat)>=0) 
+                            return child;}
+                    else if (child.nodeType===1) {
+                        if (nodeSearch(child,pat)) return child;}
+                    else {}}
+                return false;}
+            else return false;}
+
         function initSelect(word){
             var begin=word, end=word, scan, last;
-            var text=word.innerHTML;
-            if (text.search(/"'\(\[\{/)<0) {
+            if (!(nodeSearch(word,/"'\(\[\{/))) {
                 last=begin; scan=begin.previousSibling;
                 while (scan) {
                     if ((scan.nodeType!==1)||
                         (!(hasClass(scan,"fdjtword")))) {
                         scan=scan.previousSibling; continue;}
-                    text=scan.innerHTML;
-                    if (text.search(/["'\(\[\{]/)>=0) {
+                    if (nodeSearch(scan,/["'\(\[\{]/)) {
                         begin=scan; break;}
-                    else if (text.search(/[.;!?]/)>=0) {
+                    else if (nodeSearch(scan,/[.;!?]/)) {
                         begin=last; break;}
                     else {last=scan; scan=scan.previousSibling;}}
                 if (!(scan)) begin=last;}
-            text=word.innerHTML;
-            if (text.search(/[.;!?]/)>=0) end=word;
+            if (nodeSearch(word,/[.;!?]/)) end=word;
             else {
                 last=end; scan=end.nextSibling;
                 while (scan) {
                     if ((scan.nodeType!==1)||
                         (!(hasClass(scan,"fdjtword")))) {
                         scan=scan.nextSibling; continue;}
-                    text=scan.innerHTML;
-                    if (text.search(/["'.;!?]/)>=0) {
+                    if (nodeSearch(scan,/["'.;!?]/)) {
                         end=scan; break;}
                     else {
                         last=scan; scan=scan.nextSibling;}}
@@ -18217,6 +18230,7 @@ fdjt.CodexLayout=
 
             var prev=this.prev=false; // The last terminal block we processed
             var prevstyle=this.prevstyle=false;
+            var previnfo=this.previnfo=false;
 
             // this.drag[] contains nodes which will go on the next
             // page when we get there.  The nodes in this.drag[] have
@@ -18334,6 +18348,7 @@ fdjt.CodexLayout=
                     // Start a new page and update the loop state
                     newPage(); prev=layout.prev=root;
                     prevstyle=layout.prevstyle=getStyle(root);
+                    previnfo=layout.previnfo=getBlockInfo(root,prevstyle);
                     pagesDone(newpages); newpages=[];
                     drag=[];
                     if (donefn) donefn(layout);
@@ -18356,18 +18371,19 @@ fdjt.CodexLayout=
                             done=true;}}
                     else {}
                     if (done) {
-                        prev=layout.prev=root;
+                        prev=layout.prev=root; 
                         prevstyle=layout.prevstyle=getStyle(root);
+                        previnfo=layout.previnfo=getBlockInfo(root,prevstyle);
                         pagesDone(newpages); newpages=[];
                         if (donefn) donefn(layout);
                         return;}}
 
-                var blocks=[], terminals=[], styles=[];
+                var blocks=[], terminals=[], blockinfo=[], styles=[];
                 // gather all of the block-level elements
                 // (recursively) in the node, noting which ones are
                 // terminals.  This should be pretty fast, so we do it
                 // synchronously
-                gatherBlocks(root,root,blocks,terminals,styles);
+                gatherBlocks(root,root,blocks,terminals,blockinfo,styles);
                 layout.block_count=layout.block_count+blocks.length;
                 if (trace>1)
                     logfn("Laying out %d blocks from %o; page=%o",
@@ -18386,27 +18402,27 @@ fdjt.CodexLayout=
                 
                 layout.root=cur_root=root;
 
-                var ni=0, nblocks=blocks.length; 
+                var block_i=0, n_blocks=blocks.length; 
                 
                 function step(){
-                    var block=blocks[ni]; var style=styles[ni];
-                    var terminal=terminals[ni]||false;
-                    var next=blocks[ni+1];
+                    var block=blocks[block_i], style=styles[block_i];
+                    var info=blockinfo[block_i], terminal=terminals[block_i]||false;
+                    var next=blocks[block_i+1], nextinfo=blockinfo[block_i+1];
                     var tracing=false;
                     if (block.id) layout.lastid=block.id;
-
+                    
                     if ((trace)&&(block)&&
                         ((trace>3)||((track)&&(track.match(block))))) {
                         logfn("Considering block %o (#%d from %o); page=%o",
-                              block,ni,root,page);
+                              block,block_i,root,page);
                         tracing=true;}
                     
                     // FIRST, HANDLE DRAGGING
-                    handle_dragging(block,terminal,style);
+                    handle_dragging(block,terminal,info,style);
                     
-                    if (block) block=handle_standalone(block,style);
+                    if (block) block=handle_standalone(block,info,style);
                     // If a block is false, continue
-                    if (!(block)) {ni++; return;}
+                    if (!(block)) {block_i++; return;}
                     
                     // Finally, we check if everything fits.  We're
                     // walking through the blocks[] but only advance
@@ -18428,9 +18444,9 @@ fdjt.CodexLayout=
                         ((next)&&(geom.height>3*lh)&&
                          (((page_height-geom.bottom)/page_height)>0.9)&&
                          ((geom.bottom+(getGeom(next).height))>page_height)&&
-                         (!(avoidBreakInside(block,style)))&&
-                         (avoidBreakInside(next))&&
-                         (avoidBreakBefore(next)))) {
+                         (!(info.avoidbreakinside))&&
+                         (nextinfo.avoidbreakinside)&&
+                         (nextinfo.avoidbreakinside))) {
                         var use_height=page_height;
                         if ((geom.bottom-padding_bottom)<=page_height)
                             // This is the case where the block fits
@@ -18444,28 +18460,26 @@ fdjt.CodexLayout=
                             if (tracing)
                                 logfn("Oversize non-terminal %o, continuing",
                                       block);
-                            ni++;}
+                            block_i++;}
                         // If we get here, we're a terminal node
                         // which extends below the bottom of the page
                         else if (((short_page_height)?
                                   (geom.top>short_page_height):
                                   (geom.top>(use_height-lh*1.2)))&&
                                  (drag.length===0)&&
-                                 (!(avoidBreakBefore(block,style))))
+                                 (!(info.avoidbreakbefore)))
                             // Our top is also over the bottom of the page,
                             // and we can break here, so we just push off 
                            block=newPage(block);
-                        else if ((hasClass(block,"codexfloat"))||
-                                 ((floatblocks)&&(floatblocks.match(block)))) {
+                        else if (info.floating) {
                             // If the block can float, let it
-                            floating.push(block); ni++;}
+                            floating.push(block); block_i++;}
                         else if (((!(break_blocks))||
-                                  ((atomic)&&(atomic.match(block)))||
-                                  (avoidBreakInside(block,style))||
+                                  (info.atomic)||(info.avoidbreakinside)||
                                   (hasClass(block,"codexcantsplit")))) {
                             var broken=handle_unbreakable(
-                                block,style,geom,tracing);
-                            if (!(broken)) ni++;
+                                block,info,style,geom,tracing);
+                            if (!(broken)) block_i++;
                             else block=broken;}
                         else {
                             // Now we try to split the block, we store
@@ -18474,38 +18488,41 @@ fdjt.CodexLayout=
                             // it again.
                             if (tracing)
                                 logfn("Splitting block %o @ %o",block,page);
-                            var split=splitBlock(block,style,use_height);
+                            var split=splitBlock(block,info,style,use_height);
                             if ((split)&&(split!==block)) {
-                                blocks[ni]=split;}
+                                blocks[block_i]=split;
+                                styles[block_i]=style=getStyle(split);
+                                blockinfo[block_i]=getBlockInfo(split,style);}
                             else {
                                 geom=getGeom(block,page);
                                 if (geom.bottom>page_height) {
                                     addClass(page,"codexoversize");
                                     layout.drag=drag=[];
                                     newPage();}
-                                ni++;}
+                                block_i++;}
                             layout.drag=drag=[];}}
                     // We fit on the page, so we check if we might
                     // need to be dragged to the next page by the next
                     // block
-                    else if ((avoidBreakAfter(block,style))&&
+                    else if ((info.avoidbreakafter)&&
                              (!(atPageTop(block,page)))) {
                         if ((drag.length===0)||(drag.indexOf(block)<0)) {
                             if (tracing) logfn("Possibly dragging %o",block);
                             drag.push(block);}
-                        ni++;}
+                        block_i++;}
                     else {
-                        layout.drag=drag=[]; ni++;}
+                        layout.drag=drag=[]; block_i++;}
                         
                     // Update the prev pointer for terminals
                     if (terminal) {
                         layout.prev=prev=block;
-                        layout.prevstyle=prevstyle=style;}}
+                        layout.prevstyle=prevstyle=style;
+                        layout.previnfo=previnfo=info;}}
 
                 // Gather all the block-level elements inside a node,
                 // recording which ones are terminals (don't have any
                 // blocks within them)
-                function gatherBlocks(root,node,blocks,terminals,styles,style){
+                function gatherBlocks(root,node,blocks,terminals,info,styles,style){
                     if (node.nodeType!==1) return;
                     if (node.codexui) return;
                     if (!(style)) style=getStyle(node); 
@@ -18520,8 +18537,9 @@ fdjt.CodexLayout=
                             scaleToPage(node,page_width,sw*node.offsetHeight,true);}
                         if ((node.offsetHeight===0)||
                             ((node.offsetHeight)&&
-                             (node.offsetHeight<(page_height*2)))) {
+                             (node.offsetHeight<(page_height*1.5)))) {
                             addClass(node,"codexblock");
+                            info.push(getBlockInfo(node,style));
                             blocks.push(node); styles.push(style);
                             terminals.push(node);
                             moveUp(node);
@@ -18554,12 +18572,12 @@ fdjt.CodexLayout=
                             while (i<len) {
                                 var ch=children[i++];
                                 if (ch.nodeType===1)
-                                    gatherBlocks(
-                                        root,ch,blocks,terminals,styles);}
+                                    gatherBlocks(root,ch,blocks,terminals,info,styles);}
                             if (blocks.length===total_blocks)
                                 terminals[loc]=node;}
                         else terminals[loc]=node;
                         if (terminals[loc]) checkTerminal(node,root);
+                        info.push(getBlockInfo(node,style));
                         moveUp(node);}
                     else if ((style.position==='static')&&
                              (node.tagName==='A')) {
@@ -18570,12 +18588,27 @@ fdjt.CodexLayout=
                             if (child.nodeType!==1) continue;
                             var cstyle=getStyle(child);
                             if (cstyle.display!=='inline')
-                                gatherBlocks(root,child,blocks,terminals,
-                                             styles,cstyle);}
+                                gatherBlocks(root,child,blocks,terminals,styles,info,cstyle);}
                         moveUp(node);}
                     else {}}
 
-                function handle_dragging(block,terminal,style,tracing){
+                function getBlockInfo(node,style){
+                    return {
+                        avoidbreakinside: avoidBreakInside(node,style),
+                        forcebreakbefore: forcedBreakBefore(node,style),
+                        forcebreakafter: forcedBreakAfter(node,style),
+                        avoidbreakbefore: avoidBreakBefore(node,style),
+                        avoidbreakafter: avoidBreakAfter(node,style),
+                        fullpage: ((hasClass(node,/\bcodexfullpage\b/))||
+                                   ((fullpages)&&(testNode(node,fullpages)))),
+                        singlepage: checkSinglePage(node,style),
+                        atomic: ((atomic)&&(atomic.match(node))),
+                        floatpage: ((hasClass(node,/\bcodexfloatpage\b/))||
+                                    ((floatpages)&&(testNode(node,floatpages)))),
+                        floating: ((hasClass(node,"codexfloat"))||
+                                   ((floatblocks)&&(floatblocks.match(node))))};}
+
+                function handle_dragging(block,terminal,info,style,tracing){
                     // If this block is terminal and we don't want to
                     // break before this block or after the preceding
                     // block, drag along the previous block to the new
@@ -18588,38 +18621,32 @@ fdjt.CodexLayout=
                     else if ((prev)&&(drag.indexOf(prev)<0)) {}
                     else if ((prev)&&(atPageTop(prev))) {
                         if (drag.length) layout.drag=drag=[];}
-                    else if ((prev)&&(terminal)&&
-                             (avoidBreakBefore(block,style))) {
+                    else if ((prev)&&(terminal)&&(info.avoidbreakbefore)) {
                         if (tracing) logfn("Possibly dragging %o",prev);
                         if (drag.indexOf(prev)<0) 
                             drag.push(prev);}
-                    else if ((prev)&&(avoidBreakAfter(prev,prevstyle))) {
+                    else if ((prev)&&(info.avoidbreakafter)) {
                         if (tracing) logfn("Possibly dragging %o",prev);
                         if (drag.indexOf(prev)<0) 
                             drag.push(prev);}
                     else if (drag.length) layout.drag=drag=[];
                     else {}}
 
-                function handle_standalone(block,style,tracing){
-                    if ((hasClass(block,/\bcodexfloatpage\b/))||
-                        ((floatblocks)&&(testNode(block,floatblocks)))||
-                        ((floatpages)&&(testNode(block,floatpages)))) {
+                function handle_standalone(block,info,style,tracing){
+                    if ((info.floatpage)||((info.floating)&&(info.singlepage))) {
                         // Float pages just get pushed (until newPage below)
                         if (tracing) logfn("Pushing float page %o",block);
                         floating.push(block);
                         return false;}
-                    else if (checkSinglePage(block,style)) {
+                    else if (info.singlepage) {
                         // Single pages automatically get their own page
                         if (tracing) logfn("Full single page for %o",block);
                         block=newPage(block); newPage();
                         return false;}
                     else if ((page.childNodes.length)&&
-                             ((forcedBreakBefore(block,style))||
-                              ((prev)&&(forcedBreakAfter(prev,prevstyle)))||
-                              ((prev)&&
-                               ((hasClass(prev,/\b(codexfullpage|codexsinglepage)\b/))||
-                                ((fullpages)&&(testNode(prev,fullpages)))||
-                                ((singlepages)&&(testNode(prev,singlepages))))))) {
+                             ((info.forcebreakbefore)||
+                              ((previnfo)&&(previnfo.forcebreakafter))||
+                              ((previnfo)&&((previnfo.fullpage)||(previnfo.fullpage))))) {
                         // This is the easy case.  Note that we don't
                         // force a page break if the current page is
                         // empty.
@@ -18629,7 +18656,7 @@ fdjt.CodexLayout=
                         return newPage(block)||block;}
                     else return moveUp(block);}
 
-                function handle_unbreakable(block,style,geom,tracing) {
+                function handle_unbreakable(block,info,style,geom,tracing) {
                     // We can't break this block (for various reasons)
                     var curpage=page; tracing=false; // ignored
                     var newblock=false;
@@ -18640,7 +18667,7 @@ fdjt.CodexLayout=
                         //  need to make some choices (we're
                         //  in an impossible situation)
                         var oversize_limit=0.2;
-                        if ((!(avoidBreakAfter(block,style)))&&
+                        if ((!(info.avoidbreakafter))&&
                             (((geom.bottom-page_height)/page_height)>1.0)&&
                             (((geom.bottom-page_height)/page_height)<oversize_limit)) {
                             // We leave the block where it is and create an oversize page
@@ -18656,22 +18683,23 @@ fdjt.CodexLayout=
                             newblock=newPage(block);
                             if (page===curpage)
                                 return false; // probably "codexoversize"
-                            else if (((!(break_blocks))||
-                                      ((atomic)&&(atomic.match(newblock)))||
-                                      (avoidBreakInside(newblock))||
-                                      (hasClass(newblock,"codexcantsplit")))) {
+                            else if (block!==newblock) info=getBlockInfo(newblock);
+                            if (((!(break_blocks))||
+                                 (info.atomic)||(info.avoidbreakinside)||
+                                 (hasClass(newblock,"codexcantsplit")))) {
                                 // layout.drag=drag=[];
                                 return false;}
                             else return newblock;}}
                     else {
                         // We just make a new page for the block
                         newblock=newPage(block);
+                        if (block!==newblock) info=getBlockInfo(newblock);
                         if (page===curpage)
                             return false; // probably "codexoversize"
-                        else if (((!(break_blocks))||
-                                  ((atomic)&&(atomic.match(newblock)))||
-                                  (avoidBreakInside(newblock))||
-                                  (hasClass(newblock,"codexcantsplit")))) {
+                        else if (block!==newblock) info=getBlockInfo(newblock);
+                        if (((!(break_blocks))||
+                             (info.atomic)||(info.avoidbreakinside)||
+                             (hasClass(newblock,"codexcantsplit")))) {
                             // layout.drag=drag=[];
                             return false;}
                         else return newblock;}}
@@ -18882,7 +18910,7 @@ fdjt.CodexLayout=
                         while (i<lim) moveUp(drag[i++]);
                         if (node) { /* node */
                             var block=node;
-                            var terminal=((terminals)&&(terminals[ni]));
+                            var terminal=((terminals)&&(terminals[block_i]));
                             if ((block)&&(drag.length)&&(terminal)) {
                                 if ((drag.length===1)||
                                     (avoidBreakBefore(block))||
@@ -18897,7 +18925,7 @@ fdjt.CodexLayout=
                     else return false;}
 
                 // This gets a little complicated
-                function splitBlock(node,style,use_height){
+                function splitBlock(node,info,style,use_height){
                     if (!(use_height)) use_height=page_height;
                     if (!(style)) style=getStyle(node);
                     if ((!(break_blocks))||(avoidBreakInside(node,style))||
@@ -19197,17 +19225,17 @@ fdjt.CodexLayout=
 
                 function loop(){
                     var loop_start=fdjtTime();
-                    while ((ni<nblocks)&&
+                    while ((block_i<n_blocks)&&
                            ((!(timeslice))||(serialize)||
                             ((fdjtTime()-loop_start)<timeslice)))
                         step();
                     if (progressfn) progressfn(layout);
-                    if (ni<nblocks) {
+                    if (block_i<n_blocks) {
                         if (timeslice)
                             layout.timer=setTimeout(loop,timeskip||timeslice);
                         else loop();}
                     else {
-                        var last_block=blocks[nblocks-1];
+                        var last_block=blocks[n_blocks-1];
                         if ((forcedBreakAfter(last_block))||
                             (hasClass(last_block,/\bcodexfullpage\b/))||
                             ((fullpages)&&(testNode(last_block,fullpages))))
@@ -19223,7 +19251,7 @@ fdjt.CodexLayout=
 
                 // This is the inner loop
                 if (!(timeslice)) {
-                    while (ni<nblocks) step();
+                    while (block_i<n_blocks) step();
                     pagesDone(newpages);
                     if (donefn) donefn(layout);}
                 else loop();
@@ -19254,7 +19282,7 @@ fdjt.CodexLayout=
                         ragged.appendChild(fdjtDOM(
                             "span.codexdupleading.fdjtskiptext","leading"));
                     var blocks=getChildren(page,".codexblock");
-                    var j=0, nblocks=blocks.length; while (j<nblocks) {
+                    var j=0, n_blocks=blocks.length; while (j<n_blocks) {
                         var block=blocks[j++];
                         dropClass(block,"codexblock");
                         dropClass(block,"codexterminal");}}}
@@ -19829,6 +19857,8 @@ fdjt.CodexLayout=
                 if ((!(elt))||(elt.nodeType!==1)) return false;
                 if ((hasClass("codexsinglepage"))||(hasClass("codexfullpage")))
                     return true;
+                else if ((singlepages)&&(singlepages.match(elt)))
+                    return true;
                 else {
                     if (!(style)) style=getStyle(elt);
                     return ((style.pageBreakBefore==='always')&&
@@ -19922,7 +19952,7 @@ fdjt.CodexLayout=
             /* Finally return the layout */
             return this;}
 
-        CodexLayout.timeslice=50;
+        CodexLayout.timeslice=80;
         CodexLayout.timeskip=10;
 
         CodexLayout.tracelevel=0;
@@ -21691,7 +21721,7 @@ var metaBook={
     long_layout_thresh: 5000,
     // How long (msecs) to wait for a resize to be 'real'
     resize_wait: 500,
-    // Whether to force new layouts
+    // Whether to force new layouts, set this in default_config, not here
     forcelayout: false,
     // Whether layout is temporarily frozen, for example during text
     // input (on tablets, there may be extraneous resizes when the
@@ -30758,6 +30788,7 @@ metaBook.setMode=
 
 */
 /* jshint browser: true */
+/* globals Promise */
 
 // resize.js
 (function (){
@@ -36701,9 +36732,21 @@ metaBook.Paginate=
 
             // Create a new layout
             var layout_args=getLayoutArgs();
+            if ((init)&&(init.hasOwnProperty("timeslice"))) {
+                layout_args.timeslice=init.timeslice;}
+            
             var layout=new CodexLayout(layout_args);
             layout.bodysize=size; layout.bodyfamily=family;
             metaBook.layout=layout;
+
+            var timeslice=
+                ((layout.hasOwnProperty('timeslice'))?(layout.timeslice):
+                 (CodexLayout.timeslice));
+            var timeskip=
+                ((typeof timeslice === "number")&&
+                 ((layout.hasOwnProperty('timeskip'))?(layout.timeskip):
+                  (CodexLayout.timeskip)));
+            var async=(typeof timeslice === "number");
             
             var layout_id=layout.layout_id;
 
@@ -36788,10 +36831,11 @@ metaBook.Paginate=
                 
                 // Now walk the content
                 var content=metaBook.content;
-                var nodes=toArray(content.childNodes);
-                fdjtLog("Laying out %d root nodes into %dx%d pages (%s), id=%s",
-                        nodes.length,layout.width,layout.height,
-                        (why||""),layout_id);
+                var roots=toArray(content.childNodes);
+                fdjtLog("Laying out %d root nodes into %dx%d pages (%s), id=%s, async=%s",
+                        roots.length,layout.width,layout.height,
+                        (why||""),layout_id,
+                        ((!(timeslice))?("no"):(fdjtString("%d(%d)",timeslice,timeskip))));
                 
                 layoutMessage("Starting new layout",0);
                 
@@ -36802,9 +36846,9 @@ metaBook.Paginate=
                 // Now reset the width
                 metaBook.content.style.width=saved_width;
                 
-                var i=0; var lim=nodes.length;
+                var root_i=0; var n_roots=roots.length;
                 function rootloop(){
-                    if (i>=lim) {
+                    if (root_i>=n_roots) {
                         layout.Finish();
                         layout_progress(layout);
                         var cachethresh=metaBook.cache_layout_thresh;
@@ -36827,29 +36871,27 @@ metaBook.Paginate=
                         if (metaBook.state)
                             metaBook.restoreState(metaBook.state,"layoutDone");
                         metaBook.layout.running=false;
-                        setTimeout(syncLayout,100);
+                        if (async) setTimeout(checkLayout,100);
                         return false;}
                     else {
-                        var root=nodes[i++];
-                        var timeslice=
-                            ((layout.hasOwnProperty('timeslice'))?
-                             (layout.timeslice):
-                             (CodexLayout.timeslice||100));
-                        var timeskip=
-                            ((layout.hasOwnProperty('timeskip'))?
-                             (layout.timeskip):
-                             (CodexLayout.timeskip||50));
-                        if (((root.nodeType===3)&&
-                             (!(isEmpty(root.nodeValue))))||
+                        var root=roots[root_i++];
+                        if (((root.nodeType===3)&&(!(isEmpty(root.nodeValue))))||
                             ((root.nodeType===1)&&
                              (root.tagName!=='LINK')&&(root.tagName!=='META')&&
-                             (root.tagName!=='SCRIPT')&&(root.tagName!=='BASE'))) 
+                             (root.tagName!=='SCRIPT')&&(root.tagName!=='BASE'))) {
                             layout.addContent(root,timeslice,timeskip,
                                               layout.tracelevel,
-                                              layout_progress,rootloop);
-                        else return rootloop();}}
+                                              layout_progress,
+                                              ((async)&&(rootloop)));
+                            if (async) return rootloop;
+                            else return true;}
+                        else if (async) return rootloop();
+                        else return true;}}
 
-                rootloop();}
+                if (async) rootloop();
+                else {
+                    var running=true;
+                    while (running) running=rootloop();}}
             
             if ((metaBook.cache_layout_thresh)&&
                 (!((metaBook.forcelayout)))&&
@@ -36867,8 +36909,9 @@ metaBook.Paginate=
                             fdjtLog("Layout restore error: %o",ex);
                             return new_layout();}}).
                     catch(function(){return new_layout();});}
-            else {
-                setTimeout(new_layout,10);}}
+            else if (async) {
+                setTimeout(new_layout,10);}
+            else return new_layout();}
         metaBook.Paginate=Paginate;
 
         CodexLayout.prototype.onresize=function(){
@@ -37675,17 +37718,25 @@ metaBook.Paginate=
             return page;}
         metaBook.getPage=getPage;
         
-        function refreshLayout(why){
-            metaBook.Paginate(why,{forced: true});}
+        function refreshLayout(why,slice,skip){
+            var opts={forced: true};
+            if (slice) opts.timeslice=slice;
+            if (skip) opts.timeskip=skip;
+            metaBook.Paginate(why||"refreshLayout",opts);}
         metaBook.refreshLayout=refreshLayout;
         
-        function syncLayout(){
+        function syncLayout(why){
+            metaBook.Paginate(why,{forced: true,timeslice: false});}
+        metaBook.syncLayout=syncLayout;
+
+        function checkLayout(){
+            if (metaBook.layout.running) return;
             var geom=getGeometry($ID("CODEXPAGE"),false,true);
             var height=geom.inner_height, width=geom.width;
             if ((metaBook.layout.height===height)&&
                 (metaBook.layout.width===width))
                 return;
-            else refreshLayout("sync_resize");}
+            else refreshLayout("checkLayout");}
 
         function displaySync(){
             if ((metaBook.pagecount)&&(metaBook.curpage))
@@ -39192,17 +39243,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1389-gc8ab1ae';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Tue Apr 7 11:46:59 EDT 2015';
-fdjt.builduuid='a6091310-1d16-4882-b47c-2f575210fa14';
+fdjt.revision='1.5-1396-gac3dc15';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed Apr 8 14:09:01 EDT 2015';
+fdjt.builduuid='C33C26A3-A76E-4513-AD8C-AC885F76F6FC';
 
-Knodule.version='v0.8-151-g02cb238';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='5b921926-76c7-4cff-8178-3762a7391335-dist';
-metaBook.buildtime='Tue Apr  7 12:53:30 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com(dist)';
+metaBook.buildid='4A11CF34-C02F-4718-B44F-A85BACED38FB-dist';
+metaBook.buildtime='Wed Apr  8 14:12:32 EDT 2015';
+metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='E0DA6052C65382E0D2CC39C09DF2539578793EC6';
+fdjt.CodexLayout.sourcehash='34696A88064BFAE12CE4F9CDF411D8BACD8583FF';
