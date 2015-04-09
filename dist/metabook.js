@@ -17867,16 +17867,17 @@ fdjt.CodexLayout=
                            (last_dup.className));
             if (baseid) copy.codexbaseid=baseid;
             // Jigger the class name
-            if (nodeclass.search(/\bcodexdupend\b/g)>=0) {
-                node.className=nodeclass.replace(/\bcodexdupend\b/g,"codexdup");
-                stripBottomStyles(node,true);}
-            else if (nodeclass.search(/\bcodexdup[a-z]*\b/g)<0) {
+            if (!(duplist)) {
                 node.className=nodeclass+" codexdupstart";
                 stripBottomStyles(node,true);
                 stripTopStyles(copy,true);
                 copy.className=nodeclass.replace(/\bcodexrelocated\b/g,"")+
                     " codexdupend";}
-            else {}
+            else copy.className=
+                nodeclass.replace(/\b(codexdupstart|codexdup)\b/,"")+" codexdupend";
+            if (nodeclass.search(/\bcodexdupend\b/g)>=0) {
+                node.className=nodeclass.replace(/\bcodexdupend\b/g,"codexdup");
+                stripBottomStyles(node,true);}
             if ((lastclass)&&
                 (lastclass.search(/\bcodexdupend\b/g)>=0)) {
                 last_dup.className=lastclass.replace(
@@ -39227,17 +39228,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1399-gdc4d5da';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 8 16:20:25 EDT 2015';
-fdjt.builduuid='B1240918-E419-49E5-9E6E-A391D72C12B6';
+fdjt.revision='1.5-1400-g10e1fc2';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Wed Apr 8 17:03:33 EDT 2015';
+fdjt.builduuid='7b16aec2-4eca-48c6-938a-cd1defb0ac68';
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='FDB7F4B4-16B2-4F35-974A-A52DA977CE41-dist';
-metaBook.buildtime='Wed Apr  8 16:37:40 EDT 2015';
-metaBook.buildhost='Shiny(dist)';
+metaBook.buildid='cc7c182d-e86c-433a-9b5f-01f5ae7502ad-dist';
+metaBook.buildtime='Wed Apr  8 20:03:59 EDT 2015';
+metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='86368EB2CC5619B77EA4495F3648E619EF617E70';
+fdjt.CodexLayout.sourcehash='E6537A3B46FAF5B78DD8489886C4728E302225DD';
