@@ -6779,9 +6779,11 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     display: block;}
 .mbtoc {
     font-size: 100%; line-height: 100%;
-    height: 1em; white-space: nowrap; overflow: hidden;
-    margin-bottom: 0.2em; margin-right: 1ex;
+    height: 1.2em; white-space: nowrap; overflow: hidden;
+    margin-bottom: 3px; border-bottom: solid transparent 0.2em;
+    margin-right: 1ex;
     box-sizing: border-box;}
+.mbtoc.skimpoint { border-bottom-color: red;}
 .mbtoc .context .tocpath { padding-left: 1ex; }
 .mbtoc .context {
     color: darkblue;
@@ -6798,7 +6800,9 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     border: solid gray 1px; border-left: 0px;
     background-color: lightblue;
     opacity: 0.8;
-    height: 1em;}
+    height: 0.9em;
+    height: -webkit-calc(1em-2px); height: -moz-calc(1em-2px);
+    height: calc(1em-2px);}
 .mbtoc a.brick.cohi, .mbtoc.cohi a.showsize {
     background-color: gold;}
 .mbtoc .toctext {
@@ -6812,7 +6816,7 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     position: absolute; display: inline-block;
     box-sizing: border-box;
     background-color: lightblue;
-    height: 1em; }
+    height: 1.2em; }
 .mbtoc div.elements a.brick:first-child {
     border-left: solid gray 1px;}
 .mbtoc.mbtoc1 { font-size: 130%;}
@@ -6850,7 +6854,7 @@ html._TOUCH .mbtoc.mbtoc4 { margin-left: 3em;}
 #METABOOKSTATICTOC {padding-left: 1em; padding-right: 1em;}
 
 html._MOUSE .mbtocslice .mbtoc:hover {
-    outline: dotted blue 2px;}
+    border-bottom-color:: silver;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
