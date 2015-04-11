@@ -5378,7 +5378,7 @@ body.hudup img.metabookpagebutton {
         background-position: top center;
         background-image: url(g/metabook/book.svgz);}
     ._NOSVG #METABOOKSHOWCOVER {
-        background-image: url(g/metabook/book50x50.svgz);}
+        background-image: url(g/metabook/book50x50.png);}
 
 
     #METABOOKHEART {
@@ -6778,9 +6778,9 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     text-align: left;
     display: block;}
 .mbtoc {
-    font-size: 100%; line-height: 100%;
-    height: 1.2em; white-space: nowrap; overflow: hidden;
-    margin-bottom: 3px; border-bottom: solid transparent 0.2em;
+    font-size: 100%; line-height: 125%;
+    white-space: nowrap; overflow: hidden;
+    margin-bottom: 0.1em; border-bottom: solid transparent 0.2em;
     margin-right: 1ex;
     box-sizing: border-box;}
 .mbtoc.skimpoint { border-bottom-color: red;}
@@ -6793,21 +6793,18 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
 .mbtoc a.sectname { color: black; z-index: 50;}
 .mbtoc div.elements {
     position: relative; overflow: visible;
-    margin: 0px; padding: 0px; border: 0px;}
+    margin: 0px; padding: 0px; border: 0px;
+    z-index: -50;}
 .mbtoc a.brick {
     position: absolute; display: inline-block;
     box-sizing: border-box;
-    border: solid gray 1px; border-left: 0px;
+    border: 0px; border-right: solid gray 1px;
     background-color: lightblue;
     opacity: 0.8;
-    height: 0.9em;
-    height: -webkit-calc(1em-2px); height: -moz-calc(1em-2px);
-    height: calc(1em-2px);}
+    height: 1.25em;}
 .mbtoc a.brick.cohi, .mbtoc.cohi a.showsize {
     background-color: gold;}
 .mbtoc .toctext {
-    position: absolute;
-    left: 1px; top: 0px; width: 100%;
     pointer-events: none;
     z-index: 100; }
 .mbtoc.cohi a.sectname {
@@ -6817,10 +6814,8 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     box-sizing: border-box;
     background-color: lightblue;
     height: 1.2em; }
-.mbtoc div.elements a.brick:first-child {
-    border-left: solid gray 1px;}
-.mbtoc.mbtoc1 { font-size: 130%;}
-.mbtoc.mbtoc2 { margin-left: 2em; font-size: 120%;}
+.mbtoc.mbtoc1 { font-size: 120%;}
+.mbtoc.mbtoc2 { margin-left: 2em; font-size: 110%;}
 .mbtoc.mbtoc3 { margin-left: 4em; font-size: 100%;}
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
 
@@ -6854,7 +6849,7 @@ html._TOUCH .mbtoc.mbtoc4 { margin-left: 3em;}
 #METABOOKSTATICTOC {padding-left: 1em; padding-right: 1em;}
 
 html._MOUSE .mbtocslice .mbtoc:hover {
-    border-bottom-color:: silver;}
+    border-bottom-color: silver;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -7156,9 +7151,11 @@ div.metabookcard > hr {
 .metabookcard .audience .outlet:before {
     content: "→ "; font-weight: bold;}
 
-.metabookcardbody {padding-top: 2px;}
+.metabookcardbody {
+    color: rgba(0,0,0,0.9);
+    padding-top: 2px;}
 .metabookcardbody:before, .metabookcard .metabookcardbody:after {
-                              content: " "; display: table;}
+    content: " "; display: table;}
 .metabookcardbody:after { clear: both; }
 
 .metabookcard .fdjtclearfloats { margin-bottom: 3px;}
@@ -7167,6 +7164,13 @@ div.metabookcard > hr {
 .metabookcard.slicenewhead .metabookcardbody,
 .metabookcard:first-child .metabookcardbody {
     border-top: 0px;}
+
+.metabookcard span.sample {
+    display: inline-block; white-space: nowrap;
+    font-size: 80%; max-width: 50%;
+    overflow: hidden; text-overflow: ellipsis;}
+.metabookcard span.sample:before {
+    content: '¶'; font-weight: bold; color: steelblue;}
 
 .metabookcard span.controller { cursor: pointer;}
 .metabookcard .info { 
@@ -7443,7 +7447,7 @@ body._ANIMATE .qtags {
         font-size: 250%;}}
 
 @media screen and (min-width: 1000px) {
-    #METABOOKHUD div.resultinfo span.stats { font-size: 2vw; }}
+    #METABOOKHUD div.resultinfo span.stats { font-size: 1.2vw; }}
 
 @media screen and (max-width: 640px) {
     #METABOOKHUD div.resultinfo span.stats { font-size: 3vw; }
