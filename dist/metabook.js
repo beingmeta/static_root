@@ -18471,10 +18471,10 @@ fdjt.CodexLayout=
                                   (geom.top>short_page_height):
                                   (geom.top>(use_height-lh*1.2)))&&
                                  (drag.length===0)&&
-                                 (!(info.avoidbreakbefore)))
+                                 (!(info.avoidbreakbefore))) {
                             // Our top is also over the bottom of the page,
                             // and we can break here, so we just push off 
-                            block=newPage(block,info);
+                            block=newPage(block,info);}
                         else if (info.floating) {
                             // If the block can float, let it
                             floating.push(block); block_i++;}
@@ -18494,9 +18494,14 @@ fdjt.CodexLayout=
                                 logfn("Splitting block %o @ %o",block,page);
                             var split=splitBlock(block,info,style,use_height);
                             if ((split)&&(split!==block)) {
+                                layout.prev=prev=block;
+                                layout.prevstyle=prevstyle=style;
+                                layout.previnfo=previnfo=info;
                                 blocks[block_i]=split;
                                 styles[block_i]=style=getStyle(split);
-                                blockinfo[block_i]=getBlockInfo(split,style);}
+                                blockinfo[block_i]=getBlockInfo(split,style);
+                                blockinfo[block_i].terminal=terminal;
+                                return;}
                             else {
                                 geom=getGeom(block,page);
                                 if (geom.bottom>page_height) {
@@ -18517,7 +18522,7 @@ fdjt.CodexLayout=
                     else {
                         layout.drag=drag=[]; block_i++;}
                         
-                    // Update the prev pointer for terminals
+                    // Update the prev pointer for terminals if we advanced
                     if (terminal) {
                         layout.prev=prev=block;
                         layout.prevstyle=prevstyle=style;
@@ -27852,6 +27857,8 @@ metaBook.Slice=(function () {
     var hasParent=fdjtDOM.hasParent;
     var getChild=fdjtDOM.getChild;
 
+    var stripMarkup=fdjtString.stripMarkup;
+
     var cancel=fdjtUI.cancel;
     
     var TOA=fdjtDOM.toArray;
@@ -27886,6 +27893,8 @@ metaBook.Slice=(function () {
         var note_len=(note)&&note.length;
         var overlay=getoverlay(info);
         var shared=(info.shared)||[];
+        var sample=(query)&&(!(standalone))&&(!(info.maker))&&
+            sampletext(mbID(target_id));
         if (typeof shared === 'string') shared=[shared];
         if (overlay) shared=RefDB.remove(shared,(overlay._qid||overlay._id));
         var body=
@@ -27893,6 +27902,7 @@ metaBook.Slice=(function () {
                     ((score)&&(showscore(info,score,query))),
                     (((info.maker)||(info.tstamp))?(showglossinfo(info)):
                      (showdocinfo(info))),
+                    (sample),
                     ((note_len>0)&&(info.maker)&&(showmaker(info))),
                     ((note_len>0)&&(shownote(info)))," ",
                     ((excerpt_len>0)&&(showexcerpts(info.excerpt)))," ",
@@ -27936,6 +27946,16 @@ metaBook.Slice=(function () {
         return card;}
     metaBook.renderCard=renderCard;
     
+    function sampletext(para,len){
+        if (!(len)) len=80;
+        if (!(para)) return false;
+        var fulltext=fdjtDOM.textify(para);
+        var sample=(para.title)||para.getAttribute("data-summary")||
+            ((fulltext.length<len)?(fulltext):(fulltext.slice(0,len)));
+        var span=fdjtDOM("span.sample",sample);
+        span.title=fulltext;
+        return span;}
+
     function convertNote(note){
         if (note.search(/^{(md|markdown)}/)===0) {
             var close=note.indexOf('}');
@@ -29220,10 +29240,7 @@ metaBook.Slice=(function () {
         var completions=getParent(target,".completions");
         if (completions) {
             fdjtUI.cancel(evt);
-            fdjtDOM.toggleClass(completions,"showall");
-            setTimeout(function(){
-                metaBook.UI.updateScroller(completions);},
-                       100);}}
+            fdjtDOM.toggleClass(completions,"showall");}}
 
     /* Getting query cloud */
 
@@ -29486,8 +29503,7 @@ metaBook.Slice=(function () {
         metaBook.setQuery(metaBook.extendQuery(metaBook.query,value));}
 
     metaBook.UI.searchCloudToggle=function(){
-        fdjtDOM.toggleClass($ID('METABOOKSEARCHCLOUD'),'showall');
-        metaBook.UI.updateScroller($ID('METABOOKSEARCHCLOUD'));};
+        fdjtDOM.toggleClass($ID('METABOOKSEARCHCLOUD'),'showall');};
 
     function setCloudCues(cloud,tags){
         // Clear any current tagcues from the last gloss
@@ -29630,11 +29646,11 @@ metaBook.TOCSlice=
 
         function tocBar(headinfo,context){
             var title=fdjtDOM("a.sectname",headinfo.title);
-            var elements=fdjtDOM("div.elements",
-                                 fdjtDOM("div.toctext",
-                                         ((context)&&(context.cloneNode(true))),
-                                         title));
-            var tocbar=fdjtDOM("div.mbtoc",elements);
+            var elements=fdjtDOM("div.elements");
+            var tocbar=fdjtDOM("div.mbtoc",elements,
+                               fdjtDOM("div.toctext",
+                                       ((context)&&(context.cloneNode(true))),
+                                       title));
             var start=headinfo.starts_at, end=headinfo.ends_at, sectlen=end-start;
             if ((headinfo.sub)&&(headinfo.sub.length)) {
                 var sub=headinfo.sub; var s=0, smax=sub.length;
@@ -31609,9 +31625,6 @@ metaBook.setMode=
                 (completions.prefix!==partial_string)) {
                 target.value=completions.prefix;
                 fdjtDOM.cancel(evt);
-                setTimeout(function(){
-                    metaBook.UI.updateScroller("METABOOKSEARCHCLOUD");},
-                           100);
                 completeinfo.selectNext();}
             else if (evt.shiftKey) completeinfo.selectPrevious();
             else completeinfo.selectNext();}
@@ -31647,8 +31660,7 @@ metaBook.setMode=
                  (input.value.length>4))) {
                 addRawText(cloud,input.value);
                 setTimeout(function(){cloud.complete(input.value);},50);}
-            else {}
-            metaBook.UI.updateScroller("METABOOKSEARCHCLOUD");});}
+            else {}});}
     metaBook.searchUpdate=searchUpdate;
 
     function addRawText(cloud,text,ptree,maxmatch){
@@ -32634,9 +32646,6 @@ metaBook.setMode=
                     else target.value=
                         text.slice(0,replace_start)+cloud.prefix+
                         text.slice(replace_end);
-                    setTimeout(function(){
-                        metaBook.UI.updateScroller("METABOOKGLOSSCLOUD");},
-                               100);
                     return;}
                 else if (evt.shiftKey) cloud.selectPrevious();
                 else cloud.selectNext();
@@ -33557,9 +33566,6 @@ metaBook.setMode=
                 (share_cloud.prefix!==content)) {
                 target.value=share_cloud.prefix;
                 fdjtDOM.cancel(evt);
-                setTimeout(function(){
-                    metaBook.UI.updateScroller("METABOOKGLOSSOUTLETS");},
-                           100);
                 return;}
             else if (evt.shiftKey) share_cloud.selectPrevious();
             else share_cloud.selectNext();}
@@ -33603,9 +33609,6 @@ metaBook.setMode=
                 (gloss_cloud.prefix!==content)) {
                 target.value=gloss_cloud.prefix;
                 fdjtDOM.cancel(evt);
-                setTimeout(function(){
-                    metaBook.UI.updateScroller("METABOOKGLOSSCLOUD");},
-                           100);
                 return;}
             else if (evt.shiftKey) gloss_cloud.selectPrevious();
             else gloss_cloud.selectNext();}
@@ -39250,10 +39253,10 @@ fdjt.builduuid='7b16aec2-4eca-48c6-938a-cd1defb0ac68';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='1bfbee7e-22a5-4bf7-b4cf-2bcbd946c0f0-dist';
-metaBook.buildtime='Thu Apr  9 06:28:05 EDT 2015';
+metaBook.buildid='01aef072-d3d5-4077-b839-cd71c886a6da-dist';
+metaBook.buildtime='Sat Apr 11 11:23:27 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='027CB89F098D8C33080BD54D1624F40A05712ED4';
+fdjt.CodexLayout.sourcehash='45B998294939D64D60D92DABD4B7A88BBCB5C962';
