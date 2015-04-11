@@ -49,12 +49,14 @@
 			" from " (s3loc->string from)
 			" to " (s3loc->string to))
 	  (s3/copy! from to #f '() hdrs))
-	(let ((frominfo (s3/info from))
-	      (toinfo (s3/info to)))
-	  (unless (and (exists? toinfo) (exists? frominfo) frominfo toinfo
-		       (equal? (get toinfo 'etag) (get frominfo 'etag)))
-	    (loginfo "Updating " (s3loc->string from) " to " (s3loc->string to))
-	    (s3/copy! from to #f '() hdrs))))))
+	(let* ((frominfo (s3/info from))
+	       (toinfo (and frominfo (s3/info to))))
+	  (when frominfo
+	    (unless (and (exists? toinfo) (exists? frominfo) frominfo toinfo
+			 (equal? (get toinfo 'etag) (get frominfo 'etag)))
+	      (loginfo "Updating " (s3loc->string from)
+		       " to " (s3loc->string to))
+	      (s3/copy! from to #f '() hdrs)))))))
 
 (define (strip-slash s) (if (has-prefix s "/") (slice s 1) s))
 
@@ -71,12 +73,14 @@
 	     (to (s3/mkpath to (strip-slash (s3loc-path from))))
 	     (frominfo (try (pick fromlist 'loc from)
 			    (s3/info from)))
-	     (toinfo (try (pick tolist 'loc to)
-			  (s3/info to))))
-	(unless (and (exists? toinfo) toinfo
-		     (equal? (get toinfo 'etag)
-			     (get frominfo 'etag)))
-	  (s3/copy! from to #f '() hdrs))))))
+	     (toinfo (and frominfo
+			  (try (pick tolist 'loc to)
+			       (s3/info to)))))
+	(when frominfo
+	  (unless (and (exists? toinfo) toinfo
+		       (equal? (get toinfo 'etag)
+			       (get frominfo 'etag)))
+	    (s3/copy! from to #f '() hdrs)))))))
 
 (define (distribute local changed remotes)
   (set! remotes (map (lambda (x) (if (string? x) (->s3loc x) x))
@@ -84,8 +88,7 @@
   (if (fail? changed)
       (lognotice "No changes under " local " to distribute")
       (lognotice "Distributing " (choice-size changed)
-		 " changes from " local
-		 "\n    through " (gpath->string root) " to "
+		 " changes from " local " through " (gpath->string root) " to "
 		 (dolist (r remotes)
 		   (printout "\n\t" (s3loc->string r)))))
   (when (exists? changed)
@@ -105,8 +108,13 @@
 (define (distribute-web local (retall (config 'COPYALL)))
   (distribute local
 	      (qc (s3/push! local (s3/mkpath root local)
-			    {".css" ".js" ".png" ".svgz"}
+			    #{".css" ".js" ".png" ".svg"}
 			    pubheaders forcewrite retall))
+	      dist-targets)
+  (distribute local
+	      (qc (s3/push! local (s3/mkpath root local)
+			    #{".css.gz" ".js.gz" ".svgz"}
+			    gzheaders forcewrite retall))
 	      dist-targets))
 
 (define media-suffixes
