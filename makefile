@@ -16,6 +16,7 @@ FDJT_FILES=fdjt/header.js \
 	fdjt/ui.js fdjt/showpage.js fdjt/dialog.js fdjt/completions.js \
 	fdjt/taphold.js fdjt/selecting.js \
 	fdjt/globals.js
+FDJT_EXTRA=fdjt/syze.js fdjt/scrollever.js
 BUILDUUID:=`uuidgen`
 BUILDTIME:=`date`
 BUILDHOST:=`hostname`
@@ -241,9 +242,9 @@ clean: tidy
 cleandist undist:
 	rm dist/*; git checkout dist
 
-fdjt/fdjt.js: $(FDJT_FILES)
+fdjt/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA)
 	cd fdjt; make all
-fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_CSS)
+fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_EXTRA) $(FDJT_CSS)
 	cd fdjt; make all
 fdjt/codexlayouthash.js: fdjt/codexlayout.js fdjt/codexlayout.css
 	cd fdjt; make all
@@ -252,11 +253,11 @@ fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
 	cp fdjt/fdjt.js fdjt.js
 fdjt.css: fdjt/fdjt.css
 	cp fdjt/fdjt.css fdjt.css
-fdjt.min.js: ${FDJT_FILES} fdjt/buildstamp.js makefile
+fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
 	@$(UGLIFY) -b \
 	  --source-map fdjt.uglify.map \
-	    ${FDJT_FILES} fdjt/buildstamp.js \
+	    ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js \
 	  > $@
 
 dist/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE) \
@@ -363,12 +364,15 @@ dist/metabook.min.js: dist/metabook.uglify.js
 	@cp dist/metabook.uglify.js dist/metabook.min.js
 
 dist/fdjt.uglify.map: dist/fdjt.min.js
-dist/fdjt.min.js: $(FDJT_FILES) makefile
+dist/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
+	@echo Rebuilding dist/fdjt.js
+	@cat $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js > $@
+dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Rebuilding dist/fdjt.min.js
 	@$(UGLIFY)                           \
 	  --source-map fdjt.uglify.map  \
 	  --source-map-root /static          \
-	    $(FDJT_FILES) fdjt/buildstamp.js -o $@
+	    $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js -o $@
 
 # Compiled
 
