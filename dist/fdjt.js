@@ -10135,6 +10135,35 @@ fdjt.Ajax=
             return fdjtAjax(function(req) {callback(req.responseXML);},
                             base_uri,fdjtDOM.Array(arguments,2));};
         
+        fdjtAjax.fetch=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(req);},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+        fdjtAjax.fetchText=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(req.responseText);},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+        fdjtAjax.fetchJSON=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(JSON.parse(req.responseText));},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+        fdjtAjax.fetchXML=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(JSON.parse(req.responseXML));},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+
         function jsonpCall(uri,id,cleanup){
             if ((id)&&($ID(id))) return false;
             var script_elt=fdjt.DOM("SCRIPT");
@@ -15569,8 +15598,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1400-g10e1fc2';
+fdjt.revision='1.5-1406-g78cff4d';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Apr 8 17:03:33 EDT 2015';
-fdjt.builduuid='7b16aec2-4eca-48c6-938a-cd1defb0ac68';
+fdjt.buildtime='Mon Apr 13 12:53:03 EDT 2015';
+fdjt.builduuid='0bf1d08a-9f35-493e-be3d-f1843d68edb3';
 

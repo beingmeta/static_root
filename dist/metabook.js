@@ -11300,6 +11300,35 @@ fdjt.Ajax=
             return fdjtAjax(function(req) {callback(req.responseXML);},
                             base_uri,fdjtDOM.Array(arguments,2));};
         
+        fdjtAjax.fetch=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(req);},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+        fdjtAjax.fetchText=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(req.responseText);},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+        fdjtAjax.fetchJSON=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(JSON.parse(req.responseText));},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+        fdjtAjax.fetchXML=function(baseuri,args,headers,opts){
+            function fetching(resolved,rejected){
+                fdjtAjax(function(req) {resolved(JSON.parse(req.responseXML));},
+                         baseuri,args,
+                         function(req) {rejected(req);},
+                         headers,opts);}
+            return new Promise(fetching);};
+
         function jsonpCall(uri,id,cleanup){
             if ((id)&&($ID(id))) return false;
             var script_elt=fdjt.DOM("SCRIPT");
@@ -17499,7 +17528,7 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
 */
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
-/* ######################### fdjt/codexlayout.js ###################### */
+/* ######################### fdjt/codexlayout.js ###################### */ 
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
@@ -18570,7 +18599,6 @@ fdjt.CodexLayout=
                         (disp!=='inline')&&
                         (disp!=='table-row')&&
                         (disp!=='table-cell')) {
-                        var loc=blocks.length;
                         addClass(node,"codexblock");
                         nodeinfo=getBlockInfo(node,style);
                         blocks.push(node);
@@ -18599,8 +18627,7 @@ fdjt.CodexLayout=
                             if (child.nodeType!==1) continue;
                             var cstyle=getStyle(child);
                             if (cstyle.display!=='inline')
-                                gatherBlocks(root,child,blocks,
-                                             terminals,styles,info,cstyle);}
+                                gatherBlocks(root,child,blocks,styles,info,cstyle);}
                         moveUp(node);}
                     else {}}
 
@@ -18753,7 +18780,7 @@ fdjt.CodexLayout=
                 function findInfo(node,info){
                     var i=info.length-1; while (i>=0) {
                         var nodeinfo=info[i--];
-                        if (info.node===node) return info;}
+                        if (nodeinfo.node===node) return info;}
                     return false;}
 
                 function checkTerminal(node,root,info){
@@ -22197,6 +22224,8 @@ fdjt.DOM.noautofontadjust=true;
             sourcedb.oidrefs=true;
             sourcedb.addAlias("@1961/");
             sourcedb.addAlias(":@1961/");            
+            sourcedb.addAlias("@acc/");
+            sourcedb.addAlias(":@acc/");            
             sourcedb.forDOM=function(source){
                 var spec="span.source"+((source.kind)?".":"")+
                     ((source.kind)?(source.kind.slice(1).toLowerCase()):"");
@@ -24258,8 +24287,15 @@ metaBook.DOMScan=(function(){
                         fdjtLog("Error getting %s from glossdata cache: %s",
                                 uri,ex);
                         glossdata_state[uri]=false;
-                        setTimeout(function(){cacheGlossData(uri);},2000);};});}
-            else cacheGlossData(uri).then(resolved);}
+                        if ((mB.bookie)&&(mB.bookie_expires<(new Date())))
+                            setTimeout(function(){cacheGlossData(uri);},2000);
+                        else mB.getBookie().then(function(bookie){
+                            if (bookie)
+                                setTimeout(function(){cacheGlossData(uri);},2000);});};});}
+            else if ((mB.bookie)&&(mB.bookie_expires<(new Date())))
+                cacheGlossData(uri).then(resolved);
+            else mB.getBookie().then(function(bookie){
+                if (bookie) cacheGlossData(uri).then(resolved);});}
         return new Promise(getting);}
     metaBook.getGlossData=getGlossData;
 
@@ -26609,26 +26645,54 @@ metaBook.DOMScan=(function(){
                             metaBook.sourcedb.allrefs.length);});}
     metaBook.initGlossesOffline=initGlossesOffline;
 
+    var need_bookie=[];
+
     function gotBookie(string){
-        if (!(string)) return;
-        if (string===mB.bookie) return;
-        var tickmatch=/:x(\d+)/.exec(string);
-        var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
-        var expires=(tick)&&(new Date(tick*1000));
-        if ((Trace.glosses>1)||(Trace.glossdata))
-            fdjtLog("gotBookie: %s/%s, cur=%s/%s",
-                    string,expires,metaBook.bookie,metaBook.bookie_expires);
-        if (!(expires)) {
-            metaBook.ubookie=string;
-            metaBook.saveLocal("ubookie("+mB.docuri+")",string);}
-        if ((!(metaBook.bookie))||
-            ((!(metaBook.bookie_expires))&&(expires))||
-            ((metaBook.bookie_expires)&&(expires)&&
-             (expires>metaBook.bookie_expires))) {
-            metaBook.bookie=string; metaBook.bookie_expires=expires;
-            metaBook.saveLocal("bookie("+mB.docuri+")",string);}
-        else {}}
+        function bookieupdate(resolve){
+            if (!(string)) return resolve(string);
+            if (string===mB.bookie) return resolve(string);
+            var tickmatch=/:x(\d+)/.exec(string);
+            var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
+            var expires=(tick)&&(new Date(tick*1000));
+            if ((Trace.glosses>1)||(Trace.glossdata))
+                fdjtLog("gotBookie: %s/%s, cur=%s/%s",
+                        string,expires,metaBook.bookie,metaBook.bookie_expires);
+            if (!(expires)) {
+                metaBook.ubookie=string;
+                metaBook.saveLocal("ubookie("+mB.docuri+")",string);}
+            if ((!(metaBook.bookie))||
+                ((!(metaBook.bookie_expires))&&(expires))||
+                ((metaBook.bookie_expires)&&(expires)&&
+                 (expires>metaBook.bookie_expires))) {
+                metaBook.bookie=string; metaBook.bookie_expires=expires;
+                metaBook.saveLocal("bookie("+mB.docuri+")",string);}
+            else {}
+            if ((need_bookie)&&(need_bookie.length)) {
+                var needs=need_bookie; need_bookie=[];
+                return fdjtAsync.slowmap(function(fn){fn(string);},needs).
+                    then(function(){resolve(string);});}
+            else return resolve(string);}
+        return new Promise(bookieupdate);}
     metaBook.gotBookie=gotBookie;
+
+    var getting_bookie=false;
+
+    function getBookie(){
+        function getting(resolved){
+            var now=new Date();
+            if ((mB.bookie)&&(mB.bookie_expires>now))
+                resolved(mB.bookie);
+            else {
+                if (!(getting_bookie)) {
+                    getting_bookie=fdjtTime();
+                    fdjtAjax.fetchText("https://auth.sbooks.net/bookie?DOC="+mB.docref).
+                        then(function(bookie){
+                            gotBookie(bookie).then(function(){
+                                resolved(bookie);
+                                getting_bookie=false;});});}
+                need_bookie.push(resolved);}}
+        return new Promise(getting);}
+    metaBook.getBookie=getBookie;
 
 })();
 
@@ -39254,17 +39318,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1400-g10e1fc2';
+fdjt.revision='1.5-1406-g78cff4d';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Apr 8 17:03:33 EDT 2015';
-fdjt.builduuid='7b16aec2-4eca-48c6-938a-cd1defb0ac68';
+fdjt.buildtime='Mon Apr 13 12:53:03 EDT 2015';
+fdjt.builduuid='0bf1d08a-9f35-493e-be3d-f1843d68edb3';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='b7870163-8f41-4614-9c1a-9952649442ac-dist';
-metaBook.buildtime='Sun Apr 12 14:42:32 EDT 2015';
+metaBook.buildid='9ef21515-9a7f-46c8-967c-3cfbf360e5ca-dist';
+metaBook.buildtime='Mon Apr 13 12:56:56 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='45B998294939D64D60D92DABD4B7A88BBCB5C962';
+fdjt.CodexLayout.sourcehash='969A21678BB7CFEA035CC3AA414E254D0F23CA8D';
