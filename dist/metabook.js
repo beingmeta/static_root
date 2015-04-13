@@ -22152,7 +22152,7 @@ fdjt.DOM.noautofontadjust=true;
                     var links=item.links; for (var link in links) {
                         if ((links.hasOwnProperty(link))&&
                             (cachelink.exec(link)))
-                            metaBook.getGlossData(link);}}
+                            metaBook.needGlossData(link);}}
                 if (maker) {
                     metaBook.addTag2Cloud(maker,metaBook.empty_cloud);
                     metaBook.UI.addGlossSource(maker,true);}
@@ -39332,8 +39332,8 @@ fdjt.builduuid='0bf1d08a-9f35-493e-be3d-f1843d68edb3';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='f3b03548-a722-47e8-af33-55bdd9799c62-dist';
-metaBook.buildtime='Mon Apr 13 13:34:17 EDT 2015';
+metaBook.buildid='30635504-b49c-4828-8892-31afe2e9990c-dist';
+metaBook.buildtime='Mon Apr 13 13:38:31 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
