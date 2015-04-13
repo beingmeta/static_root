@@ -24270,7 +24270,14 @@ metaBook.DOMScan=(function(){
             // req.withCredentials=true;
             req.send(null);}
         return new Promise(caching);}
-    metaBook.cacheGlossData=cacheGlossData;
+
+    function needGlossData(uri){
+        if ((glossdata[uri])||(glossdata_state[uri]==="cached")) return;
+        if ((mB.bookie)&&(mB.bookie_expires<(new Date())))
+            cacheGlossData(uri);
+        else mB.getBookie().then(function(bookie){
+            if (bookie) cacheGlossData(uri);});}
+    metaBook.needGlossData=needGlossData;
 
     function getGlossData(uri){
         function getting(resolved){
@@ -39325,8 +39332,8 @@ fdjt.builduuid='0bf1d08a-9f35-493e-be3d-f1843d68edb3';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='92d01eb4-7c36-4bf4-bc98-222e73f606a9-dist';
-metaBook.buildtime='Mon Apr 13 13:28:59 EDT 2015';
+metaBook.buildid='f3b03548-a722-47e8-af33-55bdd9799c62-dist';
+metaBook.buildtime='Mon Apr 13 13:34:17 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
