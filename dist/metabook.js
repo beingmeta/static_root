@@ -7131,7 +7131,8 @@ fdjt.DOM=
                     return 0;
                 else if (typeof node.className!=="string") return 0;
                 else if ((node.className==="fdjtskiptext")||
-                         (node.className.search(/\bfdjtskiptext/)>=0))
+                         ((typeof node.className === "string")&&
+                          (node.className.search(/\bfdjtskiptext/)>=0)))
                     return 0;
                 else if (node.childNodes) {
                     var children=node.childNodes;
@@ -8282,7 +8283,7 @@ fdjt.DOM=
             else if (node.nodeType===1) {
                 var style=getStyle(node);
                 var children=node.childNodes;
-                if ((node.className)&&
+                if ((typeof node.className === "string")&&
                     (node.className.search(/\bfdjtskiptext\b/)>=0))
                     return accum;
                 else if ((style.display==='none')||
@@ -8321,7 +8322,7 @@ fdjt.DOM=
             else if (node.nodeType===1) {
                 var style=getStyle(node);
                 var children=node.childNodes;
-                if ((node.className)&&
+                if ((typeof node.className === "string")&&
                     (node.className.search(/\bfdjtskiptext\b/)>=0))
                     return cur;
                 else if ((style.display==='none')||
@@ -9744,8 +9745,8 @@ fdjt.RefDB=(function(){
                     warn("Ambiguous ref %s in %s refers to both %o and %o",
                          alias,db,cur.name,this.name);
                 else aliases[alias]=this;}}
-        var run_inits=((loading)&&(!(this._live)));
-        if (run_inits) this._live=fdjtTime();
+        var now=fdjtTime();
+        if ((loading)&&(!(this._live))) this._live=now;
         for (var key in data) {
             if ((key==="aliases")||(key==="_id")) {}
             else if (data.hasOwnProperty(key)) {
@@ -9776,21 +9777,20 @@ fdjt.RefDB=(function(){
                 else if ((value)&&(indexing)&&(indices[key])) 
                     this.indexRef(key,value,indices[key],db);}}
         // These are run-once inits loaded on initial import
-        if (run_inits) {
+        if (loading) {
             // Run the db-specific inits for each reference
             if (onload) {
                 var i=0, lim=onload.length; while (i<lim) {
                     var loadfn=onload[i++];
-                    loadfn(this);}}
+                    loadfn(this,now);}}
             // Run per-instance delayed inits
             if (this._onload) {
                 var onloads=this._onload, inits=onloads.fns;
                 var j=0, jlim=inits.length; while (j<jlim) {
-                    inits[j++](this);}
+                    inits[j++](this,now);}
                 delete this._onload;}}
         // Record a change if we're not loading and not already changed.
         if ((!(loading))&&(!(this._changed))) {
-            var now=fdjtTime();
             this._changed=now;
             db.changes.push(this);
             if (!(db.changed)) {
@@ -10020,13 +10020,13 @@ fdjt.RefDB=(function(){
             if (typeof ref === "string") ref=db.ref(ref,false,true);
             if (!(ref)) {warn("Couldn't resolve ref to %s",arg); return;}
             else if (ref._live) return;
-            else loaded.push(ref);
+            else {}
             if (absrefs) content=storage[ref._id];
             else if (atid) content=storage[atid+"("+ref._id+")"];
             else content=storage[atid+"("+ref._id+")"];
-            if (!(content)) warn("No item stored for %s",ref._id);
-            else ref.Import(
-                JSON.parse(content),false,REFLOAD|REFINDEX);}
+            if (content) {
+                loaded.push(ref);
+                ref.Import(JSON.parse(content),false,REFLOAD|REFINDEX);}}
         if (!(refs)) refs=[].concat(db.allrefs);
         else if (refs===true) {
             var all=storage["allids("+db.name+")"]||"[]";
@@ -10043,7 +10043,7 @@ fdjt.RefDB=(function(){
                 function(arg){storage_loader(arg,loaded,storage);},
                 needrefs);
         else return new Promise(function(resolve){
-            var resolved=[]; var i=0, lim=resolved.length;
+            var resolved=[]; var i=0, lim=refs.length;
             while (i<lim) {
                 var refid=refs[i++];
                 if (typeof ref==="string")
@@ -11279,7 +11279,9 @@ fdjt.Ajax=
                         evt=evt||window.event;
                         other_callback(req);};}}
             req.open("GET",uri);
-            req.withCredentials=true;
+            if (opts.hasOwnProperty("credentials"))
+                req.withCredentials=opts.credentials;
+            else req.withCredentials=true;
             if (headers) {
                 for (var key in headers)
                     if (headers.hasOwnProperty(key))
@@ -12195,7 +12197,8 @@ fdjt.UI.Highlight=(function(){
             var children=node.childNodes;
             var i=0, lim=children.length;
             while (i<lim) gatherHighlights(children[i++],classpat,into);}
-        if ((node.className)&&(node.className.search(classpat)>=0)) {
+        if ((node.className)&&(node.className.search)&&
+            (node.className.search(classpat)>=0)) {
             into.push(node);}}
 
     function unwrap_hnode(hnode){
@@ -15933,7 +15936,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             else if (node.nodeType!==1) return node;
             else {
                 var classname=node.className;
-                if ((classname)&&
+                if ((classname)&&(typeof classname === "string")&&
                     ((classname==='fdjtselectwrap')||
                      (node.className==="fdjtskiptext")||
                      (node.className.search(/\bfdjtskiptext\b/)>=0)))
@@ -16042,6 +16045,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             if (!(sel)) {
                 var container=word; while (container) {
                     if ((container.className)&&(container.id)&&
+                        (typeof container.className === "string")&&
                         (container.className.search(/\bfdjtselecting\b/)>=0))
                         break;
                     else container=container.parentNode;}
@@ -18025,7 +18029,7 @@ fdjt.CodexLayout=
                     if (child.nodeType===1) {
                         var style=getStyle(child);
                         if ((style.position!=='static')&&(style.position!=='')) {}
-                        else if ((child.classname)&&
+                        else if ((child.classname)&&(child.classname.search)&&
                                  (child.className.search(/\bfdjtskiptext\b/g)>=0)) {}
                         else return markPageTop(child);}
                     else if (child.nodeType===3) {
@@ -19440,7 +19444,7 @@ fdjt.CodexLayout=
                                     if (ostyle) original.setAttribute(
                                         "data-savedstyle",ostyle);
                                     original.setAttribute("style",style);}
-                                if (classname.search(/\bcodexpagetop\b/)>=0) {
+                                if ((classname.search)&&(classname.search(/\bcodexpagetop\b/)>=0)) {
                                     markPageTop(original,true);}}
                             else if (original) {
                                 saved_ids[id]=original;
@@ -19833,11 +19837,6 @@ fdjt.CodexLayout=
                 if (!(style)) style=getStyle(elt);
                 return (style.pageBreakInside==='avoid')||
                     (style.display==='table-row')||
-                    /*
-                    ((elt.className)&&(elt.className.search)&&
-                     (elt.className.search(page_block_classes)>=0))||
-                    ((avoidbreakinside)&&(testNode(elt,avoidbreakinside)))||
-                    */
                     ((style.display==="block")&&
                      ((lh=parsePX(style.lineHeight))&&
                       ((lh*2.5)>elt.offsetHeight)));}
@@ -20048,7 +20047,8 @@ fdjt.CodexLayout=
                 var info={pagenum: num};
                 var classname=block.className;
                 if (block.id) info.id=block.id;
-                if ((classname)&&(classname.search(/\bcodexdup/g)>=0)) 
+                if (typeof classname !== "string") {}
+                else if (classname.search(/\bcodexdup/g)>=0) 
                     info.html=block.outerHTML;
                 else {
                     if (block.id) info.id=block.id;
@@ -22226,6 +22226,10 @@ fdjt.DOM.noautofontadjust=true;
             sourcedb.addAlias(":@1961/");            
             sourcedb.addAlias("@acc/");
             sourcedb.addAlias(":@acc/");            
+            sourcedb.onLoad(function initSource(item) {
+                if ((item.pic)&&(typeof item.pic === "string")&&
+                    (item.pic.search("data:")===0)) {
+                    item.pic=fdjtDOM.data2URL(item.pic);}});
             sourcedb.forDOM=function(source){
                 var spec="span.source"+((source.kind)?".":"")+
                     ((source.kind)?(source.kind.slice(1).toLowerCase()):"");
@@ -22522,7 +22526,7 @@ fdjt.DOM.noautofontadjust=true;
                 else if (closest) return scan;
                 else if ((target)&&
                          ((scan.tagName==='SECTION')||
-                          ((scan.className)&&
+                          ((scan.className)&&(scan.className.search)&&
                            (scan.className.search(/\bhtml5section\b/i)>=0))))
                     return target;
                 else if ((target)&&(!(fdjt.DOM.isVisible(scan))))
@@ -22606,6 +22610,7 @@ fdjt.DOM.noautofontadjust=true;
        current location.  This IS passed to the homescreen
        standalone app, so we can use it to get a real authentication
        token.*/
+    /*
     function iosHomeKludge(){
         if ((!(metaBook.user))||(fdjt.device.standalone)||
             (!(fdjt.device.mobilesafari)))
@@ -22654,7 +22659,6 @@ fdjt.DOM.noautofontadjust=true;
             fdjtDOM.addListener(document,fdjtDOM.vischange,
                                 updateKludgeTimer);
         updateKludgeTimer();}
-    /*
     if ((!(fdjt.device.standalone))&&(fdjt.device.mobilesafari))
         fdjt.addInit(setupKludgeTimer,"setupKludgeTimer");
     */
@@ -24043,7 +24047,8 @@ metaBook.DOMScan=(function(){
                     (child.getAttribute('tags'))||
                     (child.getAttribute('data-tags'));
                 if (tags) info.atags=tags.split(',');}
-            if (((classname)&&(classname.search(/\bsbookignore\b/)>=0))||
+            if (((classname)&&(classname.search)&&
+                 (classname.search(/\bsbookignore\b/)>=0))||
                 ((metaBook.ignore)&&(metaBook.ignore.match(child))))
                 return;
             if ((toclevel)&&(!(info.tocdone)))
@@ -24053,7 +24058,7 @@ metaBook.DOMScan=(function(){
                 info.head=curinfo; info.indexRef('head',curinfo);}
             else {}
 
-            if (((classname)&&
+            if (((classname)&&(classname.search)&&
                  (classname.search(/\bsbookterminal\b/)>=0))||
                 ((classname)&&(metaBook.terminals)&&
                  (metaBook.terminals.match(child)))) {
@@ -24233,38 +24238,39 @@ metaBook.DOMScan=(function(){
             if (Trace.glossdata) {
                 fdjtLog("Fetching glossdata %s (%s) to cache locally",uri,rtype);}
             req.onreadystatechange=function () {
-                if ((req.readyState === 4)&&(req.status === 200)) try {
-                    var local_uri=false, data_uri=false;
-                    if (Trace.glossdata)
-                        fdjtLog("Glossdata from %s (%s) status %d",
-                                endpoint,rtype||"any",req.status);
-                    if (rtype!=="blob")
-                        data_uri=local_uri=req.responseText;
-                    else if (createObjectURL) 
-                        local_uri=createObjectURL(req.response);
-                    else local_uri=false;
-                    if (local_uri) gotLocalURL(uri,local_uri,resolved);
-                    if (data_uri) {
-                        glossdata_state[uri]="caching";
-                        cacheDataURI(uri,data_uri);}
-                    else {
-                        // Need to get a data uri
-                        var reader=new FileReader(req.response);
-                        glossdata_state[uri]="reading";
-                        reader.onload=function(){
-                            try {
-                                if (!(local_uri))
-                                    gotLocalURL(uri,reader.result,resolved);
-                                glossdata_state[uri]="caching";
-                                cacheDataURI(uri,reader.result);}
-                            catch (ex) {
-                                fdjtLog.warn("Error encoding %s from %s: %s",
-                                             uri,endpoint,ex);
-                                glossdata_state[uri]=false;}};
-                        reader.readAsDataURL(req.response);}}
-                catch (ex) {
-                    fdjtLog.warn("Error fetching %s via %s: %s",uri,endpoint,ex);
-                    glossdata_state[uri]=false;}};
+                if ((req.readyState === 4)&&(req.status === 200)) {
+                    try {
+                        var local_uri=false, data_uri=false;
+                        if (Trace.glossdata)
+                            fdjtLog("Glossdata from %s (%s) status %d",
+                                    endpoint,rtype||"any",req.status);
+                        if (rtype!=="blob")
+                            data_uri=local_uri=req.responseText;
+                        else if (createObjectURL) 
+                            local_uri=createObjectURL(req.response);
+                        else local_uri=false;
+                        if (local_uri) gotLocalURL(uri,local_uri,resolved);
+                        if (data_uri) {
+                            glossdata_state[uri]="caching";
+                            cacheDataURI(uri,data_uri);}
+                        else {
+                            // Need to get a data uri
+                            var reader=new FileReader(req.response);
+                            glossdata_state[uri]="reading";
+                            reader.onload=function(){
+                                try {
+                                    if (!(local_uri))
+                                        gotLocalURL(uri,reader.result,resolved);
+                                    glossdata_state[uri]="caching";
+                                    cacheDataURI(uri,reader.result);}
+                                catch (ex) {
+                                    fdjtLog.warn("Error encoding %s from %s: %s",
+                                                 uri,endpoint,ex);
+                                    glossdata_state[uri]=false;}};
+                            reader.readAsDataURL(req.response);}}
+                    catch (ex) {
+                        fdjtLog.warn("Error fetching %s via %s: %s",uri,endpoint,ex);
+                        glossdata_state[uri]=false;}}};
             req.open("GET",endpoint);
             req.responseType=rtype;
             // req.withCredentials=true;
@@ -24274,9 +24280,10 @@ metaBook.DOMScan=(function(){
     function needGlossData(uri){
         if ((glossdata[uri])||(glossdata_state[uri]==="cached")) return;
         if ((mB.bookie)&&(mB.bookie_expires<(new Date())))
-            cacheGlossData(uri);
-        else mB.getBookie().then(function(bookie){
-            if (bookie) cacheGlossData(uri);});}
+            return cacheGlossData(uri);
+        else {
+            var req=mB.getBookie();
+            return req.then(function(bookie){if (bookie) cacheGlossData(uri);});}}
     metaBook.needGlossData=needGlossData;
 
     function getGlossData(uri){
@@ -26505,12 +26512,10 @@ metaBook.DOMScan=(function(){
             updateInfoJSONP(uri+((user)?(""):("&JUSTUSER=yes")),jsonp);
             return;}
         try { fdjtAjax(gotInfo,
-                       uri+"&CALLBACK=return"+
-                       ((user)?(""):("&JUSTUSER=yes")),
-                       [],
+                       uri+"&CALLBACK=return"+((user)?(""):("&JUSTUSER=yes")),[],
                        ajaxFailed,
                        ajax_headers,
-                       metaBook.update_timeout);}
+                       {timeout: metaBook.update_timeout});}
         catch (ex) {
             fdjtLog.warn(
                 "Ajax call to %s failed, falling back to JSONP",uri);
@@ -26685,21 +26690,21 @@ metaBook.DOMScan=(function(){
     var getting_bookie=false;
 
     function getBookie(){
-        function getting(resolved){
+        function updatebookie(resolved){
             var now=new Date();
             if ((mB.bookie)&&(mB.bookie_expires>now))
-                resolved(mB.bookie);
-            else {
-                if (!(getting_bookie)) {
-                    getting_bookie=fdjtTime();
-                    fdjtAjax.fetchText("https://auth.sbooks.net/getbookie?DOC="+mB.docref).
-                        then(function(bookie){
-                            gotBookie(bookie).then(function(){
-                                resolved(bookie);
-                                getting_bookie=false;});});}
-                need_bookie.push(resolved);}}
-        return new Promise(getting);}
+                return resolved(mB.bookie);
+            else if (!(getting_bookie)) getFreshBookie();
+            need_bookie.push(resolved);}
+        return new Promise(updatebookie);}
     metaBook.getBookie=getBookie;
+
+    function getFreshBookie(){
+        if (getting_bookie) return;
+        getting_bookie=fdjtTime();
+        fdjtAjax.fetchText("https://auth.sbooks.net/getbookie?DOC="+mB.docref).
+            then(function(bookie){
+                gotBookie(bookie).then(function(){getting_bookie=false;});});}
 
 })();
 
@@ -26852,6 +26857,9 @@ metaBook.Startup=
             // This sets various aspects of the environment
             readEnvSettings();
 
+            // Use the cached bookie if available
+            readBookie();
+
             // Figure out if we have a user and whether we can keep
             // user information
             if (getLocal("mB.user")) {
@@ -26979,6 +26987,14 @@ metaBook.Startup=
 
             // Get the settings for scanning the document structure
             getScanSettings();}
+
+        function readBookie(){
+            var string=readLocal("mB.bookie("+mB.docuri+")");
+            if (!(string)) return;
+            var tickmatch=/:x(\d+)/.exec(string);
+            var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
+            var expires=(tick)&&(new Date(tick*1000));
+            if (expires>(new Date())) mB.gotBookie(string);}
 
         function setupApp(){
 
@@ -27663,7 +27679,7 @@ metaBook.Startup=
                  (elt.getAttributeNS('toclevel','http://sbooks.net/')))||
                 (elt.getAttribute('toclevel'))||
                 (elt.getAttribute('data-toclevel'))||
-                ((elt.className)&&
+                ((elt.className)&&(elt.className.search)&&
                  ((elt.className.search(/\bsbook\dhead\b/)>=0)||
                   (elt.className.search(/\bsbooknotoc\b/)>=0)||
                   (elt.className.search(/\bsbookignore\b/)>=0))))
@@ -28041,7 +28057,7 @@ metaBook.Slice=(function () {
             return fdjtDOM("span.maker",maker.name||"From");
         else {
             var temp=fdjtDOM("span.maker","From");
-            maker.load.then(function(m){
+            maker.load().then(function(m){
                 if (m.name) temp.innerHTML=m.name;});
             return temp;}}
 
@@ -28251,36 +28267,40 @@ metaBook.Slice=(function () {
                        gloss.note||gloss.name);
         if ((gloss.links)&&(gloss.links.icon))
             return IMG(gloss.links.icon,"img.glosspic.glossicon");
-        else if ((gloss.maker)&&(gloss.maker._live)&&(gloss.maker.pic)) 
+        var maker=((gloss.maker)&&
+                   ((typeof gloss.maker === "string")?
+                    (gloss.maker=mB.sourcedb.ref(gloss.maker)):
+                    (gloss.maker)));
+        if ((maker)&&(maker._live)&&(maker.pic)) 
             return IMG(gloss.maker.pic,"img.glosspic.userpic",
                        gloss.maker.name);
-        else if ((gloss.maker)&&(gloss.maker._live)&&(gloss.maker.fbid))
+        else if ((maker)&&(maker._live)&&(maker.fbid))
             return IMG("https://graph.facebook.com/"+
                        gloss.maker.fbid+"/picture?type=square",
                        "img.glosspic.userpic.fbpic",
                        gloss.maker.name);
-        else if ((gloss.maker)&&(gloss.maker._live))
+        else if ((maker)&&(maker._live))
             return fdjtDOM("div.glosspic.userpic.sbooknopic",
                            ((gloss.maker.name)?
                             (fdjtString.getInitials(gloss.maker.name,1)):
                             "?"));
-        else if (gloss.maker) {
+        else if (maker) {
             var temp=
                 fdjtDOM("div.glosspic.userpic.sbooknopic",
                         ((gloss.maker.name)?
                          (fdjtString.getInitials(gloss.maker.name,1)):
                          "?"));
-            gloss.maker.load().then(function(maker){
+            maker.load().then(function(maker){
                 var usepic=false;
                 if (!(maker._live)) usepic=false;
                 else if (maker.pic)
-                    usepic=IMG(gloss.maker.pic,"img.glosspic.userpic",
-                               gloss.maker.name);
+                    usepic=IMG(maker.pic,"img.glosspic.userpic",
+                               maker.name);
                 else if (maker.fbid) 
                     usepic=IMG("https://graph.facebook.com/"+
-                               gloss.maker.fbid+"/picture?type=square",
+                               maker.fbid+"/picture?type=square",
                                "img.glosspic.userpic.fbpic",
-                               gloss.maker.name);
+                               maker.name);
                 else {}
                 if (usepic) fdjtDOM.replace(temp,usepic);});
             return temp;}
@@ -34556,7 +34576,7 @@ metaBook.setMode=
             if ((href[0]==="#")&&
                 (((rel)&&
                   (rel.search(/\b((sbooknote)|(footnote)|(endnote)|(note))\b/)>=0))||
-                 ((classname)&&
+                 ((classname)&&(classname.search)&&
                   (classname.search(/\b((sbooknote)|(sbooknoteref))\b/)>=0))||
                  ((mB.sbooknoterefs)&&(mB.sbooknoterefs.match(anchor))))) {
                 var note_node=getNoteNode(href.slice(1));
@@ -39325,17 +39345,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1406-g78cff4d';
+fdjt.revision='1.5-1408-ge2e3842';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Mon Apr 13 12:53:03 EDT 2015';
-fdjt.builduuid='0bf1d08a-9f35-493e-be3d-f1843d68edb3';
+fdjt.buildtime='Tue Apr 14 12:02:41 EDT 2015';
+fdjt.builduuid='7308f091-8b4f-4f36-931c-7b059ddd3c28';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='30635504-b49c-4828-8892-31afe2e9990c-dist';
-metaBook.buildtime='Mon Apr 13 13:38:31 EDT 2015';
+metaBook.buildid='3c07eb4e-e568-40eb-99a4-a01bfcd2b900-dist';
+metaBook.buildtime='Tue Apr 14 12:07:27 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='969A21678BB7CFEA035CC3AA414E254D0F23CA8D';
+fdjt.CodexLayout.sourcehash='2FFB0B2D2801007659B925D69FED9965983F4763';

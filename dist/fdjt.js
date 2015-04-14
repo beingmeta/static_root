@@ -5966,7 +5966,8 @@ fdjt.DOM=
                     return 0;
                 else if (typeof node.className!=="string") return 0;
                 else if ((node.className==="fdjtskiptext")||
-                         (node.className.search(/\bfdjtskiptext/)>=0))
+                         ((typeof node.className === "string")&&
+                          (node.className.search(/\bfdjtskiptext/)>=0)))
                     return 0;
                 else if (node.childNodes) {
                     var children=node.childNodes;
@@ -7117,7 +7118,7 @@ fdjt.DOM=
             else if (node.nodeType===1) {
                 var style=getStyle(node);
                 var children=node.childNodes;
-                if ((node.className)&&
+                if ((typeof node.className === "string")&&
                     (node.className.search(/\bfdjtskiptext\b/)>=0))
                     return accum;
                 else if ((style.display==='none')||
@@ -7156,7 +7157,7 @@ fdjt.DOM=
             else if (node.nodeType===1) {
                 var style=getStyle(node);
                 var children=node.childNodes;
-                if ((node.className)&&
+                if ((typeof node.className === "string")&&
                     (node.className.search(/\bfdjtskiptext\b/)>=0))
                     return cur;
                 else if ((style.display==='none')||
@@ -8579,8 +8580,8 @@ fdjt.RefDB=(function(){
                     warn("Ambiguous ref %s in %s refers to both %o and %o",
                          alias,db,cur.name,this.name);
                 else aliases[alias]=this;}}
-        var run_inits=((loading)&&(!(this._live)));
-        if (run_inits) this._live=fdjtTime();
+        var now=fdjtTime();
+        if ((loading)&&(!(this._live))) this._live=now;
         for (var key in data) {
             if ((key==="aliases")||(key==="_id")) {}
             else if (data.hasOwnProperty(key)) {
@@ -8611,21 +8612,20 @@ fdjt.RefDB=(function(){
                 else if ((value)&&(indexing)&&(indices[key])) 
                     this.indexRef(key,value,indices[key],db);}}
         // These are run-once inits loaded on initial import
-        if (run_inits) {
+        if (loading) {
             // Run the db-specific inits for each reference
             if (onload) {
                 var i=0, lim=onload.length; while (i<lim) {
                     var loadfn=onload[i++];
-                    loadfn(this);}}
+                    loadfn(this,now);}}
             // Run per-instance delayed inits
             if (this._onload) {
                 var onloads=this._onload, inits=onloads.fns;
                 var j=0, jlim=inits.length; while (j<jlim) {
-                    inits[j++](this);}
+                    inits[j++](this,now);}
                 delete this._onload;}}
         // Record a change if we're not loading and not already changed.
         if ((!(loading))&&(!(this._changed))) {
-            var now=fdjtTime();
             this._changed=now;
             db.changes.push(this);
             if (!(db.changed)) {
@@ -8855,13 +8855,13 @@ fdjt.RefDB=(function(){
             if (typeof ref === "string") ref=db.ref(ref,false,true);
             if (!(ref)) {warn("Couldn't resolve ref to %s",arg); return;}
             else if (ref._live) return;
-            else loaded.push(ref);
+            else {}
             if (absrefs) content=storage[ref._id];
             else if (atid) content=storage[atid+"("+ref._id+")"];
             else content=storage[atid+"("+ref._id+")"];
-            if (!(content)) warn("No item stored for %s",ref._id);
-            else ref.Import(
-                JSON.parse(content),false,REFLOAD|REFINDEX);}
+            if (content) {
+                loaded.push(ref);
+                ref.Import(JSON.parse(content),false,REFLOAD|REFINDEX);}}
         if (!(refs)) refs=[].concat(db.allrefs);
         else if (refs===true) {
             var all=storage["allids("+db.name+")"]||"[]";
@@ -8878,7 +8878,7 @@ fdjt.RefDB=(function(){
                 function(arg){storage_loader(arg,loaded,storage);},
                 needrefs);
         else return new Promise(function(resolve){
-            var resolved=[]; var i=0, lim=resolved.length;
+            var resolved=[]; var i=0, lim=refs.length;
             while (i<lim) {
                 var refid=refs[i++];
                 if (typeof ref==="string")
@@ -10114,7 +10114,9 @@ fdjt.Ajax=
                         evt=evt||window.event;
                         other_callback(req);};}}
             req.open("GET",uri);
-            req.withCredentials=true;
+            if (opts.hasOwnProperty("credentials"))
+                req.withCredentials=opts.credentials;
+            else req.withCredentials=true;
             if (headers) {
                 for (var key in headers)
                     if (headers.hasOwnProperty(key))
@@ -11030,7 +11032,8 @@ fdjt.UI.Highlight=(function(){
             var children=node.childNodes;
             var i=0, lim=children.length;
             while (i<lim) gatherHighlights(children[i++],classpat,into);}
-        if ((node.className)&&(node.className.search(classpat)>=0)) {
+        if ((node.className)&&(node.className.search)&&
+            (node.className.search(classpat)>=0)) {
             into.push(node);}}
 
     function unwrap_hnode(hnode){
@@ -14768,7 +14771,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             else if (node.nodeType!==1) return node;
             else {
                 var classname=node.className;
-                if ((classname)&&
+                if ((classname)&&(typeof classname === "string")&&
                     ((classname==='fdjtselectwrap')||
                      (node.className==="fdjtskiptext")||
                      (node.className.search(/\bfdjtskiptext\b/)>=0)))
@@ -14877,6 +14880,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             if (!(sel)) {
                 var container=word; while (container) {
                     if ((container.className)&&(container.id)&&
+                        (typeof container.className === "string")&&
                         (container.className.search(/\bfdjtselecting\b/)>=0))
                         break;
                     else container=container.parentNode;}
@@ -15598,8 +15602,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1406-g78cff4d';
+fdjt.revision='1.5-1408-ge2e3842';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Mon Apr 13 12:53:03 EDT 2015';
-fdjt.builduuid='0bf1d08a-9f35-493e-be3d-f1843d68edb3';
+fdjt.buildtime='Tue Apr 14 12:02:41 EDT 2015';
+fdjt.builduuid='7308f091-8b4f-4f36-931c-7b059ddd3c28';
 
