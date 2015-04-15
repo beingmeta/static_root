@@ -10048,7 +10048,7 @@ fdjt.RefDB=(function(){
                 var refid=refs[i++];
                 if (typeof ref==="string")
                     ref=refmap[refid]; else ref=refid;
-                resolve.push(ref);}
+                resolved.push(ref);}
             return resolve(resolved);});};
 
     RefDB.prototype.loadref=function loadRef(ref){
@@ -11212,7 +11212,8 @@ fdjt.RefDB=(function(){
       http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
       http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 */
-/* jshint browser: true */
+/* jshint browser: true  */
+/* globals Promise */
 
 // var fdjt=((window.fdjt)||{});
 
@@ -24184,6 +24185,7 @@ metaBook.DOMScan=(function(){
 
 */
 /* jshint browser: true */
+/* globals Promise */
 
 // config.js
 (function(){
@@ -26304,6 +26306,7 @@ metaBook.DOMScan=(function(){
 
 */
 /* jshint browser: true */
+/* globals Promise */
 
 // getglosses.js
 (function(){
@@ -27943,8 +27946,6 @@ metaBook.Slice=(function () {
     var getParent=fdjtDOM.getParent;
     var hasParent=fdjtDOM.hasParent;
     var getChild=fdjtDOM.getChild;
-
-    var stripMarkup=fdjtString.stripMarkup;
 
     var cancel=fdjtUI.cancel;
     
@@ -39345,16 +39346,16 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1408-ge2e3842';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Tue Apr 14 12:02:41 EDT 2015';
-fdjt.builduuid='7308f091-8b4f-4f36-931c-7b059ddd3c28';
+fdjt.revision='1.5-1410-gcc26222';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed Apr 15 00:52:52 EDT 2015';
+fdjt.builduuid='5F8807F9-0D8F-4BA3-B724-73625C96066A';
 
-Knodule.version='v0.8-151-g02cb238';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='3c07eb4e-e568-40eb-99a4-a01bfcd2b900-dist';
-metaBook.buildtime='Tue Apr 14 12:07:27 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com(dist)';
+metaBook.buildid='C85EC48C-97CB-4531-821B-FFF06E93822A-dist';
+metaBook.buildtime='Wed Apr 15 00:55:31 EDT 2015';
+metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

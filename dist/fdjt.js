@@ -8883,7 +8883,7 @@ fdjt.RefDB=(function(){
                 var refid=refs[i++];
                 if (typeof ref==="string")
                     ref=refmap[refid]; else ref=refid;
-                resolve.push(ref);}
+                resolved.push(ref);}
             return resolve(resolved);});};
 
     RefDB.prototype.loadref=function loadRef(ref){
@@ -10047,7 +10047,8 @@ fdjt.RefDB=(function(){
       http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
       http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 */
-/* jshint browser: true */
+/* jshint browser: true  */
+/* globals Promise */
 
 // var fdjt=((window.fdjt)||{});
 
@@ -15602,8 +15603,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1408-ge2e3842';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Tue Apr 14 12:02:41 EDT 2015';
-fdjt.builduuid='7308f091-8b4f-4f36-931c-7b059ddd3c28';
+fdjt.revision='1.5-1410-gcc26222';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed Apr 15 00:52:52 EDT 2015';
+fdjt.builduuid='5F8807F9-0D8F-4BA3-B724-73625C96066A';
 
