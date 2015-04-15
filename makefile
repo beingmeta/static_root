@@ -176,7 +176,7 @@ allhints: fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints
 
 cleanhints:
 	rm -f fdjt/*.hint fdjt/fdjt.hints
-	rm -f metabook/root.hints
+	rm -f metabook/*.hint metabook/metabook.hints 
 	rm -f knodules/*.hint knodules/knodules.hints
 	rm -f sbooks/*.hint sbooks/sbooks.hints
 	rm -f showsomeclass/*.hint showsomeclass/sbooks.hints
