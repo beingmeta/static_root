@@ -4228,8 +4228,8 @@ fdjt.State=
                     return false;}
                 else {
                     var val=window.sessionStorage[name];
-                    if (val) return true;
-                    else return false;}}
+                    if (typeof val === "undefined") return false;
+                    else return true;}}
             else return false;}
         fdjtState.existsSession=existsSession;
 
@@ -4345,7 +4345,7 @@ fdjt.State=
                 else {
                     var val=window.localStorage[name];
                     if (typeof val === "undefined") return false;
-                    else return false;}}
+                    else return true;}}
             else return false;}
         fdjtState.existsLocal=existsLocal;
 
@@ -12852,6 +12852,7 @@ fdjt.Dialog=(function(){
         dom.onmouseup=fdjtUI.cancel;
         dom.tabIndex=i;
         if (spec.title) dom.title=spec.title;
+        if (spec.classname) addClass(dom,spec.classname);
         dom.onclick=function(evt){
             evt=evt||window.event;
             var target=fdjtUI.T(evt);
@@ -14396,9 +14397,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                       ((!pressed)||(pressed!==elt))))
                 swiped(target,evt,start_x,start_y,touch_x,touch_y);
             else if ((touched)||(pressed)) {
-                if ((untouchable)&&(untouchable(evt))) return;
-                endpress(evt);}
-            else if ((untouchable)&&(untouchable(evt))) return;
+                if (!((untouchable)&&(untouchable(evt)))) endpress(evt);}
             else {}
             cleartouch();}
 
@@ -15603,8 +15602,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1410-gcc26222';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 15 00:52:52 EDT 2015';
-fdjt.builduuid='5F8807F9-0D8F-4BA3-B724-73625C96066A';
+fdjt.revision='1.5-1413-gf7cb1ac';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Thu Apr 16 15:29:21 EDT 2015';
+fdjt.builduuid='78fa81c9-9b20-426a-8813-18038bb5af12';
 

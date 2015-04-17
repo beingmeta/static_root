@@ -2821,7 +2821,14 @@ span.bma {
     color: blue; }
 
 div.fdjtdialog.metabooktaptap .choices button {
-    width: 12em;}
+     width: 12em; max-height: 3em;}
+div.fdjtdialog.metabooktaptap .choices button.anchor {
+    overflow: hidden; text-overflow: ellipsis; padding: 0px;
+    line-height: 0.8;}
+div.fdjtdialog.metabooktaptap .choices button.anchor .anchortext {
+    color: blue; font-size: 80%;}
+div.fdjtdialog.metabooktaptap .choices button.anchor .anchorcontext {
+    font-size: 50%;}
 
 /* Rules for page references */
 
@@ -7248,7 +7255,7 @@ div.metabookcard > hr {
 .metabookcard .tool img {
     height: 40px; width: 40px; opacity: 0.3; clear: right;
     /* This makes it overlap the date, tightening things up generally */
-    margin-right: 6px; margin-top: -1ex;}
+    margin-right: 6px; margin-top: -1em;}
 html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
 .metabookcard span.glossbody {
     background-color: lightblue; color: black;
@@ -7257,7 +7264,7 @@ html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
     -webkit-border-radius: 1ex; -khtml-border-radius: 1ex;
     -moz-border-radius: 1ex; -o-border-radius: 1ex;}
 .metabookcard .age {
-    color: rgb(18, 141, 238); font-size: 80%;
+    color: rgb(18, 141, 238);
     padding-right: 0.5em; padding-left: 0.4ex; margin-top: -3px;
     vertical-align: top; 
     clear: none;}

@@ -5393,8 +5393,8 @@ fdjt.State=
                     return false;}
                 else {
                     var val=window.sessionStorage[name];
-                    if (val) return true;
-                    else return false;}}
+                    if (typeof val === "undefined") return false;
+                    else return true;}}
             else return false;}
         fdjtState.existsSession=existsSession;
 
@@ -5510,7 +5510,7 @@ fdjt.State=
                 else {
                     var val=window.localStorage[name];
                     if (typeof val === "undefined") return false;
-                    else return false;}}
+                    else return true;}}
             else return false;}
         fdjtState.existsLocal=existsLocal;
 
@@ -14017,6 +14017,7 @@ fdjt.Dialog=(function(){
         dom.onmouseup=fdjtUI.cancel;
         dom.tabIndex=i;
         if (spec.title) dom.title=spec.title;
+        if (spec.classname) addClass(dom,spec.classname);
         dom.onclick=function(evt){
             evt=evt||window.event;
             var target=fdjtUI.T(evt);
@@ -15561,9 +15562,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                       ((!pressed)||(pressed!==elt))))
                 swiped(target,evt,start_x,start_y,touch_x,touch_y);
             else if ((touched)||(pressed)) {
-                if ((untouchable)&&(untouchable(evt))) return;
-                endpress(evt);}
-            else if ((untouchable)&&(untouchable(evt))) return;
+                if (!((untouchable)&&(untouchable(evt)))) endpress(evt);}
             else {}
             cleartouch();}
 
@@ -19103,14 +19102,18 @@ fdjt.CodexLayout=
                         // the child that broke the page.
                         var i=0, n=children.length;
                         while (i<n) {
-                            var child=children[i++];
-                            node.innerHTML="";
-                            appendChildren(node,children,0,i);
+                            var child=children[i++], next=children[i], span=1;
+                            // node.innerHTML="";
+                            //appendChildren(node,children,0,i);
+                            node.appendChild(child);
+                            if ((next)&&(next.nodeType===3)&&
+                                (next.nodeValue.search(/^[.,;~?"'-]/)===0)) {
+                                node.appendChild(children[i++]); span++;}
                             // Add the child back and get the geometry
                             geom=getGeom(node,page);
                             if (geom.bottom>use_page_height) {
                                 page_break=child; breaktype=child.nodeType;
-                                breakpos=i-1;
+                                breakpos=i-span;
                                 break;}
                             else continue;}}
                     if (!(page_break))  // Never went over the edge
@@ -22230,7 +22233,7 @@ fdjt.DOM.noautofontadjust=true;
             sourcedb.onLoad(function initSource(item) {
                 if ((item.pic)&&(typeof item.pic === "string")&&
                     (item.pic.search("data:")===0)) {
-                    item.pic=fdjtDOM.data2URL(item.pic);}});
+                    item._pic=fdjtDOM.data2URL(item.pic);}});
             sourcedb.forDOM=function(source){
                 var spec="span.source"+((source.kind)?".":"")+
                     ((source.kind)?(source.kind.slice(1).toLowerCase()):"");
@@ -23298,19 +23301,25 @@ fdjt.DOM.noautofontadjust=true;
 
     /* Navigation functions */
 
-    function setHead(head){
-        if (!(head)) return;
-        else if (typeof head === "string") 
+    function setHead(arg){
+        var head;
+        if (!(arg)) return;
+        else if (typeof arg === "string") 
             head=getHead(mbID(head))||metaBook.content;
-        else {}
+        else head=arg;
         var headid=head.codexbaseid||head.id;
         var headinfo=metaBook.docinfo[headid];
         while ((headinfo)&&(!(headinfo.level))) {
             headinfo=headinfo.head;
             headid=headinfo.frag;
             head=mbID(headid);}
-        if (Trace.nav)
-            fdjtLog("metaBook.setHead #%s",headid);
+        if ((Trace.nav>1)&&(headinfo))
+            fdjtLog("metaBook.setHead #%s %o from %o info=%o:\n%j",
+                    (headid||"none"),head,arg,headinfo,headinfo);
+        else if (Trace.nav)
+            fdjtLog("metaBook.setHead #%s %o from %o",
+                    (headid||"none"),head,arg);
+
         if (head===metaBook.head) {
             if (Trace.target) fdjtLog("Redundant SetHead");
             return;}
@@ -23565,6 +23574,11 @@ fdjt.DOM.noautofontadjust=true;
         var page=((metaBook.bypage)&&(metaBook.layout)&&
                   (metaBook.getPage(target,location)));
         var pageno=(page)&&(parseInt(page.getAttribute("data-pagenum"),10));
+        if (mB.Trace.nav)
+            fdjtLog("mB.GoTo(%s%s%s%s%s) %o location=%o page=%o pageno=%d arg=%o",
+                    caller||"",((caller)?(":"):("")),((istarget)?("t"):("")),
+                    ((savestate)?("s"):("")),((!(skiphist))?("h"):("")),
+                    target,((location)?(location):("none")),page,pageno,arg);
         if (!(target)) {
             if (metaBook.layout instanceof fdjt.CodexLayout)
                 metaBook.GoToPage(arg,caller,savestate);
@@ -26096,6 +26110,7 @@ metaBook.DOMScan=(function(){
         var maker=fdjtDOM.getInput(form,"MAKER");
         if (maker) maker.value=metaBook.user._id;
         var pic=
+            (metaBook.user._pic)||
             (metaBook.user.pic)||
             ((metaBook.user.fbid)&&
              ("https://graph.facebook.com/"+metaBook.user.fbid+
@@ -27947,6 +27962,8 @@ metaBook.Slice=(function () {
     var hasParent=fdjtDOM.hasParent;
     var getChild=fdjtDOM.getChild;
 
+    var getInitials=fdjtString.getInitials;
+
     var cancel=fdjtUI.cancel;
     
     var TOA=fdjtDOM.toArray;
@@ -28263,8 +28280,8 @@ metaBook.Slice=(function () {
     var IMG=fdjtDOM.Image;
 
     function getglosspic(gloss){
-        if (gloss.pic) 
-            return IMG(gloss.pic,"img.glosspic.glossicon",
+        if (gloss._pic||gloss.pic) 
+            return IMG(gloss._pic||gloss.pic,"img.glosspic.glossicon",
                        gloss.note||gloss.name);
         if ((gloss.links)&&(gloss.links.icon))
             return IMG(gloss.links.icon,"img.glosspic.glossicon");
@@ -28272,9 +28289,9 @@ metaBook.Slice=(function () {
                    ((typeof gloss.maker === "string")?
                     (gloss.maker=mB.sourcedb.ref(gloss.maker)):
                     (gloss.maker)));
-        if ((maker)&&(maker._live)&&(maker.pic)) 
-            return IMG(gloss.maker.pic,"img.glosspic.userpic",
-                       gloss.maker.name);
+        if ((maker)&&(maker._live)&&((maker._pic)||maker.pic)) 
+            return IMG(maker._pic||maker.pic,"img.glosspic.userpic",
+                       maker.name);
         else if ((maker)&&(maker._live)&&(maker.fbid))
             return IMG("https://graph.facebook.com/"+
                        gloss.maker.fbid+"/picture?type=square",
@@ -28283,7 +28300,7 @@ metaBook.Slice=(function () {
         else if ((maker)&&(maker._live))
             return fdjtDOM("div.glosspic.userpic.sbooknopic",
                            ((gloss.maker.name)?
-                            (fdjtString.getInitials(gloss.maker.name,1)):
+                            (getInitials(gloss.maker.name,1)):
                             "?"));
         else if (maker) {
             var temp=
@@ -28294,14 +28311,18 @@ metaBook.Slice=(function () {
             maker.load().then(function(maker){
                 var usepic=false;
                 if (!(maker._live)) usepic=false;
-                else if (maker.pic)
-                    usepic=IMG(maker.pic,"img.glosspic.userpic",
-                               maker.name);
+                else if ((maker._pic)||(maker.pic))
+                    usepic=IMG(maker._pic||maker.pic,"img.glosspic.userpic",
+                               getInitials(gloss.maker.name,1),
+                               ((maker.about)?((maker.name)+": "+maker.about):
+                                (maker.name)));
                 else if (maker.fbid) 
                     usepic=IMG("https://graph.facebook.com/"+
                                maker.fbid+"/picture?type=square",
                                "img.glosspic.userpic.fbpic",
-                               maker.name);
+                               getInitials(gloss.maker.name,1),
+                               ((maker.about)?((maker.name)+": "+maker.about):
+                                (maker.name)));
                 else {}
                 if (usepic) fdjtDOM.replace(temp,usepic);});
             return temp;}
@@ -31118,6 +31139,7 @@ metaBook.setMode=
     var fdjtUI=fdjt.UI;
     var RefDB=fdjt.RefDB, $ID=fdjt.ID;
 
+    var getInitials=fdjtString.getInitials;
     var hasClass=fdjtDOM.hasClass;
     var mbicon=metaBook.icon;
 
@@ -31130,7 +31152,7 @@ metaBook.setMode=
         if (withgloss) {
             var icon=$ID("SBOOKSOURCEICON"+humid);
             if (!(icon)) { // Add icon to the sources bar
-                var pic=(info.pic)||
+                var pic=(info._pic)||(info.pic)||
                     ((info.fbid)&&
                      ("https://graph.facebook.com/"+info.fbid+
                       "/picture?type=square"));
@@ -31144,8 +31166,7 @@ metaBook.setMode=
                 (pic,".button.source",info.name|info.kind,
                  ("click to show/hide glosses from "+info.name));
                 else {
-                    icon=fdjtDOM("div.button.source",
-                                 fdjtString.getInitials(info.name));}
+                    icon=fdjtDOM("div.button.source",getInitials(info.name));}
                 var title=
                     ((kind===':CIRCLE')?("the reading circle "):
                      (kind===':OVERLAY')?("the reading guide "):
@@ -31154,6 +31175,7 @@ metaBook.setMode=
                     ((info.about)?": ":"")+
                     ((info.about)?(info.about):"");
                 icon.title=title; icon.oid=info._id;
+                if (info.name) icon.alt=getInitials(info.name);
                 icon.id="SBOOKSOURCEICON"+humid;
                 fdjtDOM($ID("METABOOKSOURCES")," ",icon);}}
         return info;}
@@ -31215,7 +31237,7 @@ metaBook.setMode=
     metaBook.UI.handlers.sources_ontap=sources_ontap;
 
     function geticon(source){
-        return ((source.pic)||(source.fb_pic)||
+        return ((source._pic)||(source.pic)||(source.fb_pic)||
                 (source.twitter_pic)||(source.gplus_pic)||
                 ((source.fbid)&&
                  ("https://graph.facebook.com/"+
@@ -34304,6 +34326,8 @@ metaBook.setMode=
     var Selector=fdjtDOM.Selector;
 
     var isEmptyString=fdjtString.isEmpty;
+    var decodeEntities=fdjtString.decodeEntities;
+    var fillIn=fdjtString.fillIn;
 
     var getCard=metaBook.UI.getCard;
     var pagers=metaBook.pagers, mbDOM=metaBook.DOM;
@@ -34352,16 +34376,6 @@ metaBook.setMode=
         fdjtDOM.addListeners(node,mB.UI.handlers[mode][type]);}
     metaBook.UI.addHandlers=addHandlers;
 
-    function externClickable(evt){
-        var target=fdjtUI.T(evt);
-        var anchor=getParent(target,"A");
-        if ((anchor)&&(anchor.href)) {
-            if (anchor.href[0]==="#") return false;
-            else if (anchor.getAttribute("href")[0]==="#")
-                return false;
-            else return true;}
-        else return isClickable(evt);}
-
     function setupGestures(domnode){
         var mode=metaBook.ui;
         if (!(mode)) metaBook.ui=mode="mouse";
@@ -34378,7 +34392,6 @@ metaBook.setMode=
                 $ID("METABOOKBODY"),
                 {override: true,noslip: true,id: "METABOOKBODY",
                  maxtouches: 3,taptapmsecs: true,
-                 untouchable: externClickable,
                  movethresh: 10});
             addHandlers(metaBook.HUD,'hud');}
         if (mode) {
@@ -34452,10 +34465,16 @@ metaBook.setMode=
         var sX=evt.screenX, sY=evt.screenY;
         var cX=evt.clientX, cY=evt.clientY;
         var now=fdjtTime(), touch=false;
+        var vw=fdjtDOM.viewWidth();
 
-        if (Trace.gestures)
-            fdjtLog("body_tapped %o c=%d,%d now=%o p=%o",
-                    evt,cX,cY,now,mB.previewing);
+        if ((evt.changedTouches)&&(evt.changedTouches.length)) {
+            touch=evt.changedTouches[0];
+            sX=touch.screenX; sY=touch.screenY;
+            cX=touch.clientX; cY=touch.clientY;}
+
+        if (Trace.gestures) {
+            fdjtLog("body_tapped %o c=%d,%d now=%o p=%o %s",
+                    evt,cX,cY,now,mB.previewing,(touch?("(touch)"):""));}
         
         // If we're previewing, stop it and go to the page we're
         //  previewing (which was touched)
@@ -34492,6 +34511,10 @@ metaBook.setMode=
         if (mB.skimming) {
             if (hasClass("METABOOKSKIMMER","expanded")) 
                 dropClass("METABOOKSKIMMER","expanded");
+            else if ((touch)&&(cX<vw/4)) 
+                pageBackward(evt,true);
+            else  if ((touch)&&(cX<vw/4)) 
+                pageForward(evt,true);
             else metaBook.setHUD(false);
             cancel(evt);
             return;}
@@ -34523,17 +34546,13 @@ metaBook.setMode=
             return;}
 
         // If we get here, we're doing a page flip
-        if ((evt.changedTouches)&&(evt.changedTouches.length)) {
-            touch=evt.changedTouches[0];
-            sX=touch.screenX; sY=touch.screenY;
-            cX=touch.clientX; cY=touch.clientY;}
         if (Trace.gestures)
             fdjtLog("body_tapped/fallthrough (%o) %o, m=%o, @%o,%o, vw=%o",
                     evt,target,mB.mode,cX,cY,fdjtDOM.viewWidth());
         if ((mB.fullheight)&&(!(mB.hudup))&&
             ((cY<50)||(cY>(fdjtDOM.viewHeight()-50)))) 
             metaBook.setHUD(true);
-        else if (cX<(fdjtDOM.viewWidth()/3))
+        else if (cX<(fdjtDOM.viewWidth()*0.4)) 
             pageBackward(evt,true);
         else pageForward(evt,true);
         fdjtUI.cancel(evt); gesture_start=false;
@@ -34797,13 +34816,37 @@ metaBook.setMode=
             var link=passage.getAttribute("data-xref");
             if (link) {
                 var space=link.indexOf(' ');
-                var label=((space>0)?(link.slice(space+1)):(link));
                 var href=((space>0)?(link.slice(0,space)):(link));
-                href=href.replace("{{ID}}",passage.id);
-                var opt={label: label, handler: makeOpener(href)};
+                var label=((space>0)?(link.slice(space+1)):(link));
+                var data={id:passage.id,docid:mB.docref,refuri:mB.refuri,
+                          docuri:mB.docuri};
+                if ((mB.user)&&(mB.user._id)) data.user=mB.user._id;
+                var opt={label: label, handler: makeOpener(fillIn(href,data))};
                 choices.push(opt);}
-            scan=scan.parentNode;}}
+            scan=scan.parentNode;}
+        var anchors=getChildren(passage,"a[href]");
+        var i=0, lim=anchors.length; while (i<lim) {
+            var anchor=anchors[i++];
+            var linkref=decodeEntities(anchor.getAttribute("href"));
+            var uselabel=anchor.title||(getAnchorContext(anchor));
+            var handler=((linkref.search("#")===0)?(makeGoTo(linkref)):
+                         (makeOpener(anchor.href)));
+            var anchor_opt={label: uselabel,handler: handler,
+                            classname: "anchor"};
+            choices.push(anchor_opt);}}
     
+    function getAnchorContext(anchor){
+        var frag=document.createDocumentFragment();
+        var context=fdjtDOM("span.anchorcontext");
+        frag.appendChild(fdjtDOM("span.anchortext",anchor.innerHTML));
+        frag.appendChild(context);
+        if (anchor.title) fdjtDOM(context,anchor.title);
+        else {
+            var next=anchor.nextSibling; while (next) {
+                context.appendChild(next.cloneNode(true));
+                next=next.nextSibling;}}
+        return frag;}
+
     function closePassageMenu(evt){
         evt=evt||window.event;
         if (!(mB.passage_menu)) return false;
@@ -34817,6 +34860,9 @@ metaBook.setMode=
         if (evt) fdjtUI.cancel(evt);
         return true;}
     metaBook.closePassageMenu=closePassageMenu;
+
+    function makeGoTo(href){
+        return function (){metaBook.GoTo(href);};}
 
     function makeOpener(url){
         return function (){window.open(url);};}
@@ -34909,6 +34955,7 @@ metaBook.setMode=
                 else if ((mB.mode)&&(!(mB.skimming))&&
                          (pagers[metaBook.mode]))
                     showPage.forward(pagers[metaBook.mode]);
+                else if (mB.skimming) pageForward(evt);
                 else pageForward(evt,true);}
             else if (dx>(mB.minswipe||10)) {
                 if (evt.ntouches>2) window.history.back();
@@ -34919,6 +34966,8 @@ metaBook.setMode=
                 else if ((mB.mode)&&(!(mB.skimming))&&
                          (pagers[metaBook.mode]))
                     showPage.backward(pagers[metaBook.mode]);
+                else if (mB.skimming)
+                    metaBook.pageBackward(evt);
                 else metaBook.pageBackward(evt,true);}}
         else if (ady>(adx*2)) {
             // Vertical swipe
@@ -35208,11 +35257,18 @@ metaBook.setMode=
         else if (kc===39) metaBook.skimForward(evt); /* arrow right */
         // Don't interrupt text input for space, etc
         else if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
-        else if (kc===32) // Space
-            metaBook.Forward(evt);
-        // backspace or delete
-        else if ((kc===8)||(kc===45))
-            metaBook.Backward(evt);
+        else if (kc===32) { // Space
+            if ((mB.mode)&&(!(mB.skimming))&&
+                (pagers[metaBook.mode]))
+                showPage.forward(pagers[metaBook.mode]);
+            else if (mB.skimming) pageForward(evt);
+            else pageForward(evt,true);}
+        else if ((kc===8)||(kc===45)) { // backspace or delete
+            if ((mB.mode)&&(!(mB.skimming))&&
+                (pagers[metaBook.mode]))
+                showPage.backward(pagers[metaBook.mode]);
+            else if (mB.skimming) pageBackward(evt);
+            else pageBackward(evt,true);}
         // Home goes to the current head.
         else if (kc===36) metaBook.JumpTo(mB.head);
         else if (mB.mode==="addgloss") {
@@ -36191,10 +36247,10 @@ metaBook.setMode=
          "#METABOOKCONSOLEBUTTON": {
              touchstart: cancel, touchend: consolefn},
          "#METABOOKREFRESHOFFLINE": {
-             touchstart: cancel, touchend: refreshOffline},
+             touchstart: refreshOffline, touchend: cancel},
          "#METABOOKREFRESHLAYOUT": {
-             touchstart: cancel, touchend: refreshLayout},
-         "#METABOOKRESETSYNC": {touchstart: cancel, touchend: resetState},
+             touchstart: refreshLayout, touchend: cancel},
+         "#METABOOKRESETSYNC": {touchend: cancel, touchstart: resetState},
          ".clearoffline": {touchstart: cancel, touchend: clearOffline},
          ".metabookclearmode": {touchstart: cancel, touchend: clearMode},
          "#METABOOKGOTOREFHELP": {touchstart: cancel, touchend: clearMode},
@@ -39346,17 +39402,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1410-gcc26222';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 15 00:52:52 EDT 2015';
-fdjt.builduuid='5F8807F9-0D8F-4BA3-B724-73625C96066A';
+fdjt.revision='1.5-1413-gf7cb1ac';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Thu Apr 16 15:29:21 EDT 2015';
+fdjt.builduuid='78fa81c9-9b20-426a-8813-18038bb5af12';
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='C85EC48C-97CB-4531-821B-FFF06E93822A-dist';
-metaBook.buildtime='Wed Apr 15 00:55:31 EDT 2015';
-metaBook.buildhost='Shiny(dist)';
+metaBook.buildid='96fa9e7b-b8cd-4d63-8d2c-d34e2d64c4ea-dist';
+metaBook.buildtime='Fri Apr 17 16:57:09 EDT 2015';
+metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='2FFB0B2D2801007659B925D69FED9965983F4763';
+fdjt.CodexLayout.sourcehash='AF1A798D2EB3876D7847509AF32F138D62CC0485';
