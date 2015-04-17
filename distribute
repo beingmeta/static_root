@@ -117,10 +117,17 @@
 			    gzheaders forcewrite retall))
 	      dist-targets))
 
+(define (distribute-fonts local (retall (config 'COPYALL)))
+  (distribute local
+	      (qc (s3/push! local (s3/mkpath root local)
+			    #{".ttf" ".otf" ".eot" ".woff" ".txt" ".svg"}
+			    pubheaders forcewrite retall))
+	      dist-targets))
+
 (define media-suffixes
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
 (define font-suffixes
-  {".ttf" ".otf" ".eot" ".woff" ".txt"})
+  {".ttf" ".otf" ".eot" ".woff" ".txt" ".svg"})
 
 (define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
 (define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
@@ -139,6 +146,7 @@
   (distribute-web "metabook/")
   (distribute-web "knodules/")
   (distribute-web "fonts/")
+  (distribute-fonts "fonts/")
   (let ((js (filedata "dist/metabook.uglify.js.gz"))
 	(css (filedata "dist/metabook.clean.css.gz")))
     (s3/put (s3/mkpath root "metabook.js") js "text/javascript"
