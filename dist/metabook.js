@@ -21825,7 +21825,8 @@ var metaBook={
     update_timeout: 30*1000,    // Timeout on requests
     update_pause: 30*60*1000,   // Interval to sleep on error or timeout
     // State sync settings (in milliseconds):
-    sync_interval: 60*1000, // Interval between sync checks
+    sync_interval: 180*1000, // Interval between sync checks
+    sync_min: 10*1000, // Minimum interval between sync checks
     sync_timeout: 10000,    // Timeout on sync requests
     sync_pause: 15*60*1000, // Interval to sleep on error or timeout
     // Various handlers, settings, and status information for the
@@ -25552,7 +25553,7 @@ metaBook.DOMScan=(function(){
     //  or the initial hash id from the URL (which was saved in
     //  metaBook.inithash).
     metaBook.initState=function initState() {
-        var uri=metaBook.docuri, refuri=metaBook.refuri;
+        var uri=metaBook.docuri||metaBook.refuri;
         var state=readLocal("mB.state("+uri+")",true);
         var hash=metaBook.inithash;
         if (hash) {
@@ -25576,10 +25577,10 @@ metaBook.DOMScan=(function(){
         if (state) metaBook.state=state;};
     
     // This records the current state of the app, bundled into an
-    //  object and primarily consisting a location, a target, and
+    //  object. It primarily consists a location, a target, and
     //  the time it was last changed.
-    // Mechanically, this fills things out and stores the object
-    //  in metaBook.state as well as in local storage.  If the changed
+    // Mechanically, this procedure fills things out and stores the object
+    //  in both metaBook.state and local/session storage.  If the changed
     //  date is later than the current metaBook.xstate, it also does
     //  an Ajax call to update the server.
     // Finally, unless skiphist is true, it updates the browser
@@ -25683,23 +25684,34 @@ metaBook.DOMScan=(function(){
         syncState(true);}
     metaBook.resetState=resetState;
 
-    var last_sync=false;
+    var sync_req=false, sync_wait=false, last_sync=false;
     // Post the current state and update synced state from what's
     // returned
     function syncState(force){
+        var elapsed=(last_sync)?(fdjtTime.tick()-last_sync):(3600*24*365*10);
         if ((syncing)||(!(metaBook.locsync))) return;
         if (!(metaBook.user)) return;
-        if ((!(force))&&(last_sync)&&
-            ((fdjtTime.tick()-last_sync)<metaBook.sync_interval)) {
+        if (sync_req) {
+            fdjtLog("Skipping state sync because one is already in process");
+            if (sync_wait) clearTimeout(sync_wait);
+            setTimeout(function(){syncState(force);},15000);
+            return;}
+        if ((!(force))&&(elapsed<metaBook.sync_interval)) {
             if (Trace.state)
                 fdjtLog("Skipping state sync because it's too soon");
             return;}
-        if ((!(force))&&(metaBook.state)&&(last_sync)&&
+        if ((!(force))&&(metaBook.state)&&
             ((!(fdjtDOM.isHidden))||(document[fdjtDOM.isHidden]))&&
-            ((fdjtTime.tick()-last_sync)<(5*metaBook.sync_interval))) {
+            (elapsed<(5*metaBook.sync_interval))) {
             if (Trace.state)
                 fdjtLog("Skipping state sync because page is hidden");
             return;}
+        if (elapsed<metaBook.sync_min) {
+            sync_wait=setTimeout(
+                function(){syncState(force);},
+                metaBook.sync_min);
+            return;}
+        else if (sync_wait) {clearTimeout(sync_wait); sync_wait=false;} 
         if ((metaBook.locsync)&&(navigator.onLine)) {
             var uri=metaBook.docuri;
             var traced=(Trace.state)||(Trace.network);
@@ -25738,7 +25750,8 @@ metaBook.DOMScan=(function(){
             if (traced) fdjtLog("syncState(call) %s",sync_uri);
             try {
                 req.open("GET",sync_uri,true);
-                req.send();}
+                req.send();
+                sync_req=req;}
             catch (ex) {
                 try {
                     fdjtLog.warn(
@@ -25754,7 +25767,6 @@ metaBook.DOMScan=(function(){
                            metaBook.sync_pause);}}
     } metaBook.syncState=syncState;
 
-
     function syncTimeout(evt){
         evt=evt||window.event;
         fdjtLog.warn("Sync request timed out, pausing for %ds",
@@ -25767,7 +25779,7 @@ metaBook.DOMScan=(function(){
     var prompted=false;
 
     function freshState(evt){
-        var req=fdjtUI.T(evt);
+        var req=fdjtUI.T(evt); sync_req=false;
         var traced=(Trace.state)||(Trace.network);
         if (req.readyState===4) {
             if ((req.status>=200)&&(req.status<300)) {
@@ -30553,6 +30565,7 @@ metaBook.setMode=
                 var pct=((dir<0)?("-120%"):(dir>0)?("120%"):(false));
                 dropClass(skimmer,"expanded");
                 dropClass(skimmer,"transimate");
+                clone.id="METABOOKSKIM";
                 fdjtDOM.replace("METABOOKSKIM",clone);
                 if ((clone.offsetHeight)>skimmer.offsetHeight)
                     addClass(skimmer,"oversize");
@@ -38145,17 +38158,18 @@ metaBook.HTML.hud=
     "    Press to see the context, tap to start skimming\n"+
     "  </div>\n"+
     "  <div id=\"METABOOKSEETHRUHELP\" class=\"metabookhelp helpbox\">\n"+
-    "    <p><dfn>See Thru:</dfn>  <span class=\"action\">Release</span> to\n"+
-    "      <span class=\"result\">return to the overview</span>.\n"+
-    "      <span class=\"notouch action\">Hit a key</span>\n"+
+    "    <p><span class=\"action\">Release</span> to\n"+
+    "      <span class=\"result\">return</span>.\n"+
+    "      <span class=\"notouch action\">Press any key</span>\n"+
     "      <span class=\"fortouch action\">Tap anywhere else</span>\n"+
     "      to <span class=\"result\">settle</span> here.</p>\n"+
     "  </div>\n"+
     "  <div id=\"METABOOKPAGEBARHELP\" class=\"metabookhelp helpbox\">\n"+
-    "    <p><span class=\"action\">Release</span> <span class=\"fortouch\n"+
-    "                                                        action\">or tap the text</span>\n"+
-    "      to <span class=\"result\">settle</span> here.  <span class=\"action\n"+
-    "                                                                notouch\">Press any key</span> <span class=\"notouch\">or</span>\n"+
+    "    <p><span class=\"action\">Release</span>\n"+
+    "      <span class=\"fortouch action\">or tap the text</span>\n"+
+    "      to <span class=\"result\">settle</span> here.\n"+
+    "      <span class=\"action notouch\">Press any key</span>\n"+
+    "      <span class=\"notouch\">or</span>\n"+
     "      <span class=\"notouch action\">move the pointer away</span>\n"+
     "      <span class=\"action fortouch\">Move your finger away</span>\n"+
     "      to <span class=\"result\">return</span> to where you were.</p>\n"+
@@ -39409,8 +39423,8 @@ fdjt.builduuid='78fa81c9-9b20-426a-8813-18038bb5af12';
 
 Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.buildid='96fa9e7b-b8cd-4d63-8d2c-d34e2d64c4ea-dist';
-metaBook.buildtime='Fri Apr 17 16:57:09 EDT 2015';
+metaBook.buildid='f782e3c4-b576-49b6-8719-45983ec97686-dist';
+metaBook.buildtime='Sun Apr 19 09:36:58 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

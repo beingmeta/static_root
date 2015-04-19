@@ -2735,9 +2735,7 @@ body.openhud .mbhighlightpassage {
 body.mbSKIMMING .mbhighlightsearch,
 body.mbPREVIEW .mbhighlightsearch {
     background-color: gold;}
-.mbpreviewing {
-    color: rgb(122,34,95);
-    background-color: rgba(255,215,0,0.3);}
+.mbpreviewing {color: rgb(122,34,95);}
 section.mbpreviewing, div.html5section.mbpreviewing,
 section.mbpreviewing p, div.html5section.mbpreviewing p,
 section.mbpreviewing h1, div.html5section.mbpreviewing h1,
@@ -4230,6 +4228,9 @@ body._ANIMATE #METABOOKSKIMMER {
     -webkit-transition-property: height; -webkit-transition-duration: 0.3s;
     -moz-transition-property: height; -moz-transition-duration: 0.3s;
     -o-transition-property: height; -o-transition-duration: 0.3s;}
+
+.hudup #METABOOKTOPBAR {
+    background-color: rgba(255,255,255,0.8);}
 
 #METABOOKSKIMMER.flash { background-color: silver;}
 #METABOOKSKIMMER.expanded {
@@ -6067,19 +6068,19 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 @media only screen and
             (min-width: 480px) and
             (max-width: 800px) {
-    #CODEXPAGE {top: 40px; bottom: 50px; left: 25px; right: 25px;}
+    #CODEXPAGE {top: 20px; bottom: 50px; left: 25px; right: 25px;}
 }
 @media only screen and
             (min-width: 800px) and
             (max-width: 1024px) and
             (orientation: portrait) {
-    #CODEXPAGE {top: 50px; bottom: 50px; left: 40px; right: 40px;}
+    #CODEXPAGE {top: 20px; bottom: 50px; left: 40px; right: 40px;}
 }
 @media only screen and
             (min-width: 768px) and
             (max-width: 1024px) and
             (orientation: landscape) {
-    #CODEXPAGE {top: 40px; bottom: 50px; left: 50px; right: 50px;}}
+    #CODEXPAGE {top: 10px; bottom: 50px; left: 50px; right: 50px;}}
 
 /* Handheld media rules */
 
@@ -6794,8 +6795,9 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
 .mbtoc .context .tocpath { padding-left: 1ex; }
 .mbtoc .context {
     color: darkblue;
-    font-size: 60%;
-    float: right; }
+    font-size: 60%; line-height: 1.0; max-width: 50%;
+    text-align: right;
+    float: right;}
 .mbtocslice .mbtoc .context { display: none;}
 .mbtoc a.sectname { color: black; z-index: 50;}
 .mbtoc div.elements {
@@ -6828,7 +6830,6 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
 
 #METABOOKSKIMMER .mbtoc {
     font-weight: bold; padding-top: 2px; height: 2em;}
-#METABOOKSKIMMER .mbtoc .context { font-size: 80%; }
 #METABOOKHUD.statictoc #METABOOKSKIMMER {
     background-color: rgba(70, 130, 180, 0.5);}
 
@@ -8393,7 +8394,8 @@ body.mbPREVIEW.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER {
     border-bottom-right-radius: 1ex;
     -webkit-border-bottom-right-radius: 1ex; 
     -moz-border-radius-bottomright: 1ex;
-    -o-border-radius-bottomright: 1ex;}
+    -o-border-radius-bottomright: 1ex;
+    font-size: 20px; font-size: 1.1rem;}
 #METABOOKPAGEBARHELP.helpbox p, #METABOOKSEETHRUHELP.helpbox p {
     margin: 0px; padding: 0px; text-align: center; text-indent: 0px;
     max-width: inherit;}
@@ -8415,6 +8417,11 @@ body.mbPREVIEW #METABOOKLOCOFF {
     pointer-events: none;}
 
 div.metabookhelp .result span { display: none; }
+
+@media screen and (max-width: 640px) {
+    #METABOOKPAGEBARHELP.helpbox, #METABOOKSEETHRUHELP.helpbox {
+        left: 10px; right: 10px;}
+}
 
 /* Emacs local variables
 ;;;  Local variables: ***
