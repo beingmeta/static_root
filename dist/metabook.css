@@ -4259,6 +4259,7 @@ body.hudup #METABOOKHEAD .hudpanel {
     background-color: rgba(255,255,240,0.6);}
 
 body._FULLHEIGHT #METABOOKTOPBAR {height: 20px;}
+body._FULLHEIGHT #METABOOKTOPBAR.tapholding,
 body._FULLHEIGHT.hudup #METABOOKTOPBAR {height: 50px;}
 
 html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div,
