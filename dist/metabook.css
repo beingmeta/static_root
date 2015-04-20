@@ -6800,21 +6800,34 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
 .mbtoc {
     font-size: 100%; line-height: 125%;
     white-space: nowrap; overflow: hidden;
-    margin-bottom: 0.1em; border-bottom: solid transparent 0.2em;
-    margin-right: 1ex;
+    margin-bottom: 0.1em; margin-right: 1ex;
+    border-bottom: solid transparent 0.2em;
     box-sizing: border-box;}
+.mbtoc { height: 1.5em; }
+.mbtoc
 div.metabookslice .mbtoc.skimpoint {
     background-color: transparent;
     border-bottom-color: red;}
 
 .mbtoc .context .tocpath { padding-left: 1ex; }
 .mbtoc .context {
-    color: darkblue;
-    font-size: 60%; line-height: 1.0; max-width: 50%;
+    color: silver;
+    font-size: 60%; line-height: 1.0;
+    max-width: 35%; white-space: normal;
     text-align: right;
     float: right;}
 .mbtocslice .mbtoc .context { display: none;}
-.mbtoc a.sectname { color: black; z-index: 50;}
+.mbtocslice .mbtoc.fdjtstartofpage .context {
+    display: inline-block;}
+#METABOOKSKIMMER .mbtoc1 .context,
+.mbtocslice .mbtoc.mbtoc1.fdjtstartofpage .context {
+    display: none;}
+.mbtoc a.sectname {
+    color: black; z-index: 50;
+    display: block;}
+.mbtoc.fdjtoversize a.sectname {
+    color: black; z-index: 50;
+    white-space: normal;}
 .mbtoc div.elements {
     position: relative; overflow: visible;
     margin: 0px; padding: 0px; border: 0px;
@@ -6839,9 +6852,13 @@ div.metabookslice .mbtoc.skimpoint {
     background-color: lightblue;
     height: 1.2em; }
 .mbtoc.mbtoc1 { font-size: 120%;}
+.mbtoc.mbtoc1.fdjtoversize { font-size: 105%;}
 .mbtoc.mbtoc2 { margin-left: 2em; font-size: 110%;}
+.mbtoc.mbtoc2.fdjtoversize { font-size: 100%;}
 .mbtoc.mbtoc3 { margin-left: 4em; font-size: 100%;}
+.mbtoc.mbtoc3.fdjtoversize { font-size: 80%;}
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
+.mbtoc.mbtoc4.fdjtoversize { font-size: 70%;}
 
 #METABOOKSKIMMER .mbtoc {
     font-weight: bold; padding-top: 2px; height: 2em;}
