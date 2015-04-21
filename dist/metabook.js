@@ -13597,6 +13597,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var hasClass=fdjtDOM.hasClass;
   var toArray=fdjtDOM.toArray;
   
+  var adjustFonts=fdjtDOM.adjustFonts;
+
   function getContainer(arg){
     var container;
     if (typeof arg === "string")
@@ -13607,8 +13609,14 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if (!(container)) fdjtLog.warn("Bad showPage container arg %s",arg);
     return container;}
     
-  function isoversize(container){
+  function istootall(container){
     return container.scrollHeight>container.offsetHeight;}
+  function isOversize(elt,w,h){
+    if (typeof w === "undefined") w=true;
+    if (typeof h === "undefined") h=true;
+    return ((h)&&(elt.scrollHeight>elt.offsetHeight))||
+      ((w)&&(elt.scrollWidth>elt.offsetWidth));}
+  
   function showPage(container,start,dir){
     if (!(container=getContainer(container))) return;
     var shown=toArray(getChildren(container,".fdjtshow"));
@@ -13635,16 +13643,19 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     addClass(container,"fdjtpage"); addClass(container,"formatting");
     if (!(info)) info=getProgressIndicator(container,startpos,lim);
     // Clear old page
-    if (shown.length) dropClass(shown,"fdjtshow");
+    if (shown.length) {
+      dropClass(shown,"fdjtshow");
+      dropClass(shown,"fdjtoversize");}
     if (curstart) dropClass(curstart,"fdjtstartofpage");
     if (curend) dropClass(curend,"fdjtendofpage");
     addClass(start,"fdjtshow");
     addClass(start,((dir<0)?("fdjtendofpage"):("fdjtstartofpage")));
+    checkOversize(start);
     if (((dir<0)&&(hasClass(start,/fdjtpagebreak(auto)?/)))||
-        (isoversize(container))) {
+        (istootall(container))) {
       dropClass(container,"formatting");
       return startpos;}
-    var endpos=showpage(container,children,startpos,dir);
+    var endpos=showchildren(container,children,startpos,dir);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -13706,14 +13717,17 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     dropClass(container,"getvisible");
     return children;}
 
-  function showpage(container,children,i,dir){
+  function showchildren(container,children,i,dir){
     var lim=children.length, scan=children[i+dir], last=children[i]; 
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
       if ((dir>0)&&(hasClass(scan,/fdjtpagebreak(auto)?/)))
         return i-dir;
-      dropClass(last,caboose); addClass(scan,"fdjtshow"); addClass(scan,caboose);
-      if (isoversize(container)) {
+      dropClass(last,caboose);
+      addClass(scan,"fdjtshow");
+      addClass(scan,caboose);
+      checkOversize(scan);
+      if (istootall(container)) {
         addClass(last,caboose);
         dropClass(scan,"fdjtshow");
         scan.style.display='';
@@ -13722,6 +13736,16 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       if ((dir<0)&&(hasClass(scan,/fdjtpagebreak(auto)?/))) return i;
       i=i+dir; last=scan; scan=children[i];}
     return i-dir;}
+
+  function checkOversize(scan){
+    var saved=scan.style.overflow||'';
+    scan.style.overflow='auto';
+    if (isOversize(scan)) {
+      addClass(scan,"fdjtoversize");
+      if (isOversize(scan)) {
+        adjustFonts(scan);}}
+    scan.style.overflow=saved;}
+  showPage.isOversize=isOversize;
 
   function forwardPage(container){
     if (!(container=getContainer(container))) return;
@@ -17889,6 +17913,15 @@ fdjt.CodexLayout=
         /* Duplicating nodes */
 
         var tmpid_count=1;
+        var dupstate=/\bcodexdup(start|end)?\b/g;
+        var codexstate=/\bcodex(dupstart|dup|dupend|relocated)\b/g;
+        function dupClass(classname,dupclass,pat){
+            if (!(pat)) pat=dupstate;
+            if (classname) {
+                if (classname.search(dupstate)<0)
+                    return classname+" "+dupclass;
+                else return classname.replace(dupstate,"")+" "+dupclass;}
+            else return dupclass;}
 
         // This recreates a node and it's DOM context (containers) on
         //  a new page, calling itself recursively as needed
@@ -17928,18 +17961,15 @@ fdjt.CodexLayout=
             if (baseid) copy.codexbaseid=baseid;
             // Jigger the class name
             if (!(duplist)) {
-                node.className=nodeclass+" codexdupstart";
+                node.className=dupClass(nodeclass,"codexdupstart",codexstate);
                 stripBottomStyles(node,true);
                 stripTopStyles(copy,true);
-                copy.className=nodeclass.replace(/\bcodexrelocated\b/g,"")+
-                    " codexdupend";}
-            else copy.className=
-                nodeclass.replace(/\b(codexdupstart|codexdup)\b/,"")+" codexdupend";
+                copy.className=dupClass(nodeclass,"codexdupend");}
+            else copy.className=dupClass(nodeclass,"codexdupend");
             if (nodeclass.search(/\bcodexdupend\b/g)>=0) {
-                node.className=nodeclass.replace(/\bcodexdupend\b/g,"codexdup");
+                node.className=dupClass(nodeclass,"codexdup");
                 stripBottomStyles(node,true);}
-            if ((lastclass)&&
-                (lastclass.search(/\bcodexdupend\b/g)>=0)) {
+            if ((lastclass)&&(lastclass.search(/\bcodexdupend\b/g)>=0)) {
                 last_dup.className=lastclass.replace(
                         /\bcodexdupend\b/g,"codexdup");
                 stripBottomStyles(last_dup,true);}
@@ -19094,7 +19124,8 @@ fdjt.CodexLayout=
                         // This (dup) is the copied parent of the page
                         // break.  We append all the remaining children
                         // to this duplicated parent on the new page.
-                        if ((hasClass(node,"codexdup"))||(hasClass(node,"codexdupend")))
+                        if ((hasClass(node,"codexdup"))||
+                            (hasClass(node,"codexdupend")))
                             appendChildren(dup,push,1);
                         else moveChildren(dup,push,1);
                         if (trace>1)
@@ -34477,7 +34508,7 @@ metaBook.setMode=
                 $ID("METABOOKBODY"),
                 {override: true,noslip: true,id: "METABOOKBODY",
                  maxtouches: 3,taptapmsecs: true,
-                 movethresh: 10});
+                 movethresh: 10,untouchable: false});
             addHandlers(metaBook.HUD,'hud');}
         if (mode) {
             var handlers=metaBook.UI.handlers[mode];
@@ -39525,17 +39556,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1415-gb143d07';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sun Apr 19 18:54:03 EDT 2015';
-fdjt.builduuid='de5507af-23e1-4816-b02f-a21995229b17';
+fdjt.revision='1.5-1418-gff38080';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Tue Apr 21 13:59:42 CDT 2015';
+fdjt.builduuid='9FD81C3C-4836-474C-9D7A-0D804FAC1583';
 
-Knodule.version='v0.8-151-g02cb238';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='6f90f5d2-e56d-4e26-9e65-d871bd9ee122-dist';
-metaBook.buildtime='Sun Apr 19 18:54:05 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com(dist)';
+metaBook.buildid='1BABFB2C-BCC6-4AE8-B362-AA20B043B0A1-dist';
+metaBook.buildtime='Tue Apr 21 14:03:24 CDT 2015';
+metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='AF1A798D2EB3876D7847509AF32F138D62CC0485';
+fdjt.CodexLayout.sourcehash='5D4911F49222937C326623594FDEC09C70803AC2';

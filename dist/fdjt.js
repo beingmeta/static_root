@@ -12432,6 +12432,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var hasClass=fdjtDOM.hasClass;
   var toArray=fdjtDOM.toArray;
   
+  var adjustFonts=fdjtDOM.adjustFonts;
+
   function getContainer(arg){
     var container;
     if (typeof arg === "string")
@@ -12442,8 +12444,14 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if (!(container)) fdjtLog.warn("Bad showPage container arg %s",arg);
     return container;}
     
-  function isoversize(container){
+  function istootall(container){
     return container.scrollHeight>container.offsetHeight;}
+  function isOversize(elt,w,h){
+    if (typeof w === "undefined") w=true;
+    if (typeof h === "undefined") h=true;
+    return ((h)&&(elt.scrollHeight>elt.offsetHeight))||
+      ((w)&&(elt.scrollWidth>elt.offsetWidth));}
+  
   function showPage(container,start,dir){
     if (!(container=getContainer(container))) return;
     var shown=toArray(getChildren(container,".fdjtshow"));
@@ -12470,16 +12478,19 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     addClass(container,"fdjtpage"); addClass(container,"formatting");
     if (!(info)) info=getProgressIndicator(container,startpos,lim);
     // Clear old page
-    if (shown.length) dropClass(shown,"fdjtshow");
+    if (shown.length) {
+      dropClass(shown,"fdjtshow");
+      dropClass(shown,"fdjtoversize");}
     if (curstart) dropClass(curstart,"fdjtstartofpage");
     if (curend) dropClass(curend,"fdjtendofpage");
     addClass(start,"fdjtshow");
     addClass(start,((dir<0)?("fdjtendofpage"):("fdjtstartofpage")));
+    checkOversize(start);
     if (((dir<0)&&(hasClass(start,/fdjtpagebreak(auto)?/)))||
-        (isoversize(container))) {
+        (istootall(container))) {
       dropClass(container,"formatting");
       return startpos;}
-    var endpos=showpage(container,children,startpos,dir);
+    var endpos=showchildren(container,children,startpos,dir);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -12541,14 +12552,17 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     dropClass(container,"getvisible");
     return children;}
 
-  function showpage(container,children,i,dir){
+  function showchildren(container,children,i,dir){
     var lim=children.length, scan=children[i+dir], last=children[i]; 
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
       if ((dir>0)&&(hasClass(scan,/fdjtpagebreak(auto)?/)))
         return i-dir;
-      dropClass(last,caboose); addClass(scan,"fdjtshow"); addClass(scan,caboose);
-      if (isoversize(container)) {
+      dropClass(last,caboose);
+      addClass(scan,"fdjtshow");
+      addClass(scan,caboose);
+      checkOversize(scan);
+      if (istootall(container)) {
         addClass(last,caboose);
         dropClass(scan,"fdjtshow");
         scan.style.display='';
@@ -12557,6 +12571,16 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       if ((dir<0)&&(hasClass(scan,/fdjtpagebreak(auto)?/))) return i;
       i=i+dir; last=scan; scan=children[i];}
     return i-dir;}
+
+  function checkOversize(scan){
+    var saved=scan.style.overflow||'';
+    scan.style.overflow='auto';
+    if (isOversize(scan)) {
+      addClass(scan,"fdjtoversize");
+      if (isOversize(scan)) {
+        adjustFonts(scan);}}
+    scan.style.overflow=saved;}
+  showPage.isOversize=isOversize;
 
   function forwardPage(container){
     if (!(container=getContainer(container))) return;
@@ -15629,8 +15653,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1415-gb143d07';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Sun Apr 19 18:54:03 EDT 2015';
-fdjt.builduuid='de5507af-23e1-4816-b02f-a21995229b17';
+fdjt.revision='1.5-1418-gff38080';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Tue Apr 21 13:59:42 CDT 2015';
+fdjt.builduuid='9FD81C3C-4836-474C-9D7A-0D804FAC1583';
 
