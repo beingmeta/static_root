@@ -545,5 +545,5 @@ mdiff:
 
 metabuild buildbuild:
 	sudo npm install uglify-js -g
-	sudo npm install cleancss -g
+	sudo npm install clean-css -g
 	sudo npm install jshint -g
