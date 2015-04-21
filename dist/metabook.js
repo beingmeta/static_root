@@ -39563,8 +39563,8 @@ fdjt.builduuid='9FD81C3C-4836-474C-9D7A-0D804FAC1583';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.buildid='1BABFB2C-BCC6-4AE8-B362-AA20B043B0A1-dist';
-metaBook.buildtime='Tue Apr 21 14:03:24 CDT 2015';
+metaBook.buildid='D118C2B6-E517-413D-8FE4-46D75A68709F-dist';
+metaBook.buildtime='Tue Apr 21 14:04:36 CDT 2015';
 metaBook.buildhost='Shiny(dist)';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
