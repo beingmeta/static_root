@@ -39557,9 +39557,9 @@ metaBook.HTML.pageright=
     "";
 // FDJT build information
 fdjt.revision='1.5-1419-g1b57813';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed Apr 22 14:06:36 EDT 2015';
-fdjt.builduuid='32A99835-7969-4415-B06D-C1C234858F01';
+fdjt.buildhost='Venus';
+fdjt.buildtime='Tue Apr 21 17:33:06 EDT 2015';
+fdjt.builduuid='690af7a4-1b68-4a9a-8f3e-6e222ee944b5';
 
 fdjt.CodexLayout.sourcehash='5D4911F49222937C326623594FDEC09C70803AC2';
 
@@ -39567,9 +39567,9 @@ fdjt.CodexLayout.sourcehash='5D4911F49222937C326623594FDEC09C70803AC2';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.5-2746-gb774a7c';
-metaBook.buildid='3D8C1086-D0D7-4B08-A3F9-8AB5282437BB';
-metaBook.buildtime='Tue Apr 21 13:59:44 CDT 2015';
-metaBook.buildhost='Shiny';
+metaBook.buildid='8676a7c6-728c-48ec-a24d-1f1e844c4eff';
+metaBook.buildtime='Tue Apr 21 17:38:12 EDT 2015';
+metaBook.buildhost='Venus';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
