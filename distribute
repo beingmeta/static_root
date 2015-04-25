@@ -149,7 +149,7 @@
   (distribute-fonts "fonts/")
   (let ((js (filedata "dist/metabook.uglify.js.gz"))
 	(css (filedata "dist/metabook.clean.css.gz")))
-    (s3/put (s3/mkpath root "metabook.js") js "text/javascript"
+    (s3/put (s3/mkpath root apps.js) js "text/javascript"
 	    '("x-amz-acl: public-read"
 	      "Content-encoding\: gzip"
 	      "X-SourceMap\: metabook.uglify.map")
@@ -162,7 +162,7 @@
 	       (printout "\n\t" (gpath->string p)))
 	     " with " (length js) " bytes from "
 	     "dist/metabook.uglify.js.gz")
-    (s3/put (s3/mkpath root "metabook.css") css "text/css"
+    (s3/put (s3/mkpath root apps.css) css "text/css"
 	    '("x-amz-acl: public-read"
 	      "Content-encoding\: gzip"
 	      "X-SourceMap\: metabook.clean.css.map")
