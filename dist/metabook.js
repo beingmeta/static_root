@@ -2773,25 +2773,31 @@ fdjt.String=
                 else return '<'+arg.nodeType+'>';}
             else if (arg.oid) return arg.oid;
             else if (arg._fdjtid) return '#@'+arg._fdjtid;
-            else if ((arg.type)&&((arg.target)||arg.srcElement)) {
+            else if ((arg.type)&&((arg.target)||(arg.srcElement))) {
                 var target=arg.target||arg.srcElement;
-                var ox=arg.clientX, oy=arg.clientY;
-                var result="["+arg.type+"@"+stringify(target)+"(m="+
-                    (((arg.shiftKey===true)?"s":"")+
-                     ((arg.ctrlKey===true)?"c":"")+
-                     ((arg.metaKey===true)?"m":"")+
-                     ((arg.altKey===true)?"a":"")+
-                     ((typeof arg.button !== "undefined")?
-                      (",b="+(arg.button)):(""))+
-                     ((typeof arg.which !== "undefined")?
-                      (",w="+(arg.which)):("")));
-                if ((typeof ox === "number")||(typeof oy === "number"))
-                    result=result+",cx="+ox+",cy="+oy;
-                if (arg.touches) result=result+",touches="+arg.touches.length;
-                if (arg.keyCode) result=result+",kc="+arg.keyCode;
-                if (arg.charCode) result=result+",cc="+arg.charCode;
-                return result+")]";}
+                return "["+arg.type+"@"+stringify(target)+
+                    ((((arg.target)||(arg.srcElement)).nodeType)?
+                     (getDOMEventInfo(arg)):(""))+"]";}
             else return ""+arg;}
+
+        function getDOMEventInfo(arg){
+            var info="(m="+
+                ((arg.shiftKey===true)?"s":"")+
+                ((arg.ctrlKey===true)?"c":"")+
+                ((arg.metaKey===true)?"m":"")+
+                ((arg.altKey===true)?"a":"")+
+                ((typeof arg.button !== "undefined")?
+                 (",b="+(arg.button)):(""))+
+                ((typeof arg.which !== "undefined")?
+                 (",w="+(arg.which)):(""));
+            var ox=arg.clientX, oy=arg.clientY;
+            if ((typeof ox === "number")||(typeof oy === "number"))
+                info=info+",cx="+ox+",cy="+oy;
+            if (arg.touches)
+                info=info+",touches="+arg.touches.length;
+            if (arg.keyCode) info=info+",kc="+arg.keyCode;
+            if (arg.charCode) info=info+",cc="+arg.charCode;
+            return info+")";}
 
         var spacechars=" \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff";
 
@@ -3387,6 +3393,26 @@ fdjt.Time=
         fdjtTime.tick2shortstring=function(tick){
             return shortString(new Date(tick*1000));};
 
+        var first_date=false;
+        function compactString(tstamp,curdate){
+            if (typeof tstamp === 'number') {
+                if (tstamp<131592918600)
+                    tstamp=new Date(tstamp*1000);
+                else tstamp=new Date(tstamp);}
+            var date_string=tstamp.toLocaleDateString();
+            if (typeof curdate==="undefined") {
+                if (first_date) curdate=first_date;
+                else first_date=new Date().toLocaleDateString();}
+            var show_date=(date_string!==curdate);
+            var hours=tstamp.getHours(), minutes=tstamp.getMinutes();
+            var seconds=tstamp.getSeconds();
+            return ((show_date)?(date_string):(""))+
+                ((show_date)?(" - "):(""))+
+                ((hours<10)?"0":"")+hours+":"+
+                ((minutes===0)?"00":(((minutes<10)?"0":"")+minutes))+":"+
+                ((seconds===0)?"00":(((seconds<10)?"0":"")+seconds));}
+        fdjtTime.compactString=compactString;
+        
         fdjtTime.tick2string=function(tick){
             return (new Date(tick*1000)).toString();};
         fdjtTime.tick2date=function(tick){
@@ -4911,9 +4937,11 @@ fdjt.Log=(function(){
     var backlog=[];
 
     var use_console_log;
+    var compactString=fdjt.Time.compactString, ET=fdjt.ET;
 
     function fdjtLog(string){
-        var output=false; var now=fdjt.ET(); var i, lim;
+        var output=false; var now=ET(), date=new Date();
+        var i, lim;
         if (((fdjtLog.doformat)||(string.search("%j")))&&
             (typeof fdjtString !== 'undefined'))
             output=fdjtString.apply(null,arguments);
@@ -4921,17 +4949,20 @@ fdjt.Log=(function(){
             if (output) fdjtLog.console_fn.call(fdjtLog.console,output);
             else fdjtLog.console_fn.apply(fdjtLog.console,arguments);}
         if (fdjtLog.logurl) {
-            var msg="["+now+"s] "+fdjtString.apply(null,arguments);
+            var msg="["+now+"s "+compactString(date,false)+"] "+
+                fdjtString.apply(null,arguments);
             if (window.console)
                 window.console.log("remote logging %s",msg);
             remote_log(msg);}
         if (fdjtLog.console) {
             var domconsole=fdjtLog.console;
             var timespan=fdjt.DOM("span.time",now);
+            var abstime=fdjt.DOM("span.abstime",compactString(date));
             var entry=fdjt.DOM("div.fdjtlog");
             if (output) entry.innerHTML=output;
             else entry.innerHTML=fdjtString.apply(null,arguments);
             fdjt.DOM.prepend(entry,timespan);
+            fdjt.DOM.prepend(entry,abstime);
             if (typeof domconsole === 'string') {
                 var found=document.getElementById(domconsole);
                 if (found) {
@@ -4991,7 +5022,8 @@ fdjt.Log=(function(){
 
     fdjtLog.warn=function(){
         if ((!(fdjtLog.console_fn))&&
-            (!(window.console)&&(window.console.log)&&(window.console.log.count))) {
+            (!(window.console)&&(window.console.log)&&
+             (window.console.log.count))) {
             var output=fdjtString.apply(null,arguments);
             window.alert(output);}
         else fdjtLog.apply(null,arguments);};
@@ -21928,7 +21960,7 @@ var metaBook={
         controlc: false},
     // What to trace, for debugging
     Trace: {
-        startup: 0,       // Whether to trace startup
+        startup: 1,       // Whether to trace startup
         config: 0,        // Whether to trace config setup/modification/etc
         mode: false,      // Whether to trace mode changes
         nav: false,       // Whether to trace book navigation
@@ -25580,6 +25612,7 @@ metaBook.DOMScan=(function(){
     var clearLocal=mB.clearLocal;
     var Trace=metaBook.Trace;
     var loc2pct=metaBook.location2pct;
+    var sync_count=0;
 
     var setTarget, setConnected, setConfig;
     function init_local(){
@@ -25587,8 +25620,6 @@ metaBook.DOMScan=(function(){
         setConnected=metaBook.setConnected;
         setConfig=metaBook.setConfig;}
     metaBook.inits.push(init_local);
-
-    
 
     /* Managing the reader state */
 
@@ -25630,7 +25661,7 @@ metaBook.DOMScan=(function(){
                 state.docuri=metaBook.docuri;
                 state.target=hash;
                 state.location=false;
-                state.changed=fdjtTime.tick;
+                state.changed=fdjtTime.tick();
                 saveLocal("mB.state("+uri+")",state,true);}}
         if (state) metaBook.state=state;};
     
@@ -25838,7 +25869,8 @@ metaBook.DOMScan=(function(){
 
     function freshState(evt){
         var req=fdjtUI.T(evt); sync_req=false;
-        var traced=(Trace.state)||(Trace.network);
+        var traced=(Trace.state)||(Trace.network)||
+            ((Trace.startup)&&(sync_count<1));
         if (req.readyState===4) {
             if ((req.status>=200)&&(req.status<300)) {
                 var rtext=req.responseText;
@@ -25851,8 +25883,8 @@ metaBook.DOMScan=(function(){
                                 evt,xstate,metaBook.state);
                     if (xstate.changed>(tick+300))
                         fdjtLog.warn(
-                            "Beware of oracles (future state date): %j ",
-                            xstate);
+                            "Beware of oracles (future state date): %j %s",
+                            xstate,new Date(xstate.changed*1000));
                     else if (!(metaBook.state)) {
                         metaBook.xstate=xstate;
                         restoreState(xstate);}
@@ -25869,7 +25901,8 @@ metaBook.DOMScan=(function(){
                     else {
                         metaBook.xstate=xstate;
                         prompted=fdjtTime.tick();
-                        metaBook.resolveXState(xstate);}}}
+                        metaBook.resolveXState(xstate);}}
+                sync_count++;}
             else if (traced)
                 fdjtLog("syncState(callback/error) %o %d %s",
                         evt,req.status,req.responseText);
@@ -31013,21 +31046,32 @@ metaBook.setMode=
 
     /* Whether to resize by default */
     var resize_default=false;
+    var ui_resize_wait=false, ui_resize_done=[];
+    var ui_width=false, ui_height=false;
     
     function resizeUI(wait){
         function resizing(done){
-            setTimeout(function(){
-                var adjstart=fdjt.Time();
-                var hud=$ID("METABOOKHUD");
-                var cover=$ID("METABOOKCOVER");
-                if (cover) mB.resizeCover(cover);
-                if (hud) mB.resizeHUD(hud);
-                if (done) done();
-                if ((hud)||(cover))
-                    fdjtLog("Resized UI in %fsecs",
-                            ((fdjt.Time()-adjstart)/1000));},
-                       100);}
-        if (!(wait)) wait=100;
+            if (ui_resize_wait) clearTimeout(ui_resize_wait);
+            ui_resize_wait=setTimeout(function(){
+                var h=fdjtDOM.viewHeight(), w=fdjtDOM.viewWidth();
+                if ((w!==ui_width)||(h!=ui_height)) {
+                    var adjstart=fdjt.Time();
+                    var hud=$ID("METABOOKHUD");
+                    var cover=$ID("METABOOKCOVER");
+                    ui_height=h; ui_width=w;
+                    if (cover) mB.resizeCover(cover);
+                    if (hud) mB.resizeHUD(hud);
+                    if ((hud)||(cover))
+                        fdjtLog("Resized UI in %fsecs, running %d callbacks",
+                                ((fdjt.Time()-adjstart)/1000),
+                                ui_resize_done.length);}
+                var when_done=ui_resize_done; 
+                ui_resize_wait=false; ui_resize_done=[];
+                var i=0, n=when_done.length;
+                while (i<n) when_done[i++]();},
+                                      wait);
+            ui_resize_done.push(done);}
+        if (typeof wait !== "number") wait=100;
         return new Promise(resizing);}
 
     metaBook.resizeUI=resizeUI;
@@ -37027,16 +37071,19 @@ metaBook.Paginate=
                 layoutMessage("Using cached layout",0);
                 dropClass(document.body,"_SCROLL");
                 addClass(document.body,"_BYPAGE");
+                layout.started=fdjtTime();
                 layout.restoreLayout(content).then(finish_layout);}
             function finish_layout(layout) {
+                var started=layout.started;
                 $ID("CODEXPAGE").style.visibility='';
                 $ID("CODEXCONTENT").style.visibility='';
                 dropClass(document.body,"mbLAYOUT");
                 metaBook.layout=layout;
                 metaBook.pagecount=layout.pages.length;
                 if (Trace.startup)
-                    fdjtLog("Restored %d-page layout %s, adding glosses",
-                            layout.pages.length,layout_id);
+                    fdjtLog("Restored %d-page layout %s in %ds, adding glosses",
+                            layout.pages.length,layout_id,
+                            (fdjtTime()-started)/1000);
                 var lostids=layout.lostids, moved_ids=lostids._all_ids;
                 var i=0, lim=moved_ids.length;
                 while (i<lim) {
@@ -39556,20 +39603,20 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1419-g1b57813';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Tue Apr 21 17:33:06 EDT 2015';
-fdjt.builduuid='690af7a4-1b68-4a9a-8f3e-6e222ee944b5';
+fdjt.revision='1.5-1422-g8d0451d';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Wed Apr 29 11:46:22 EDT 2015';
+fdjt.builduuid='f46fcf4d-e8a0-4c3c-b59e-55304eab9d1a';
 
 fdjt.CodexLayout.sourcehash='5D4911F49222937C326623594FDEC09C70803AC2';
 
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.version='v0.5-2746-gb774a7c';
-metaBook.buildid='8676a7c6-728c-48ec-a24d-1f1e844c4eff';
-metaBook.buildtime='Tue Apr 21 17:38:12 EDT 2015';
-metaBook.buildhost='Venus';
+metaBook.version='v0.8-4-g07ba80f';
+metaBook.buildid='92258a52-e643-47ee-bf08-8a9da5142672';
+metaBook.buildtime='Wed Apr 29 11:55:00 EDT 2015';
+metaBook.buildhost='moby.dot.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

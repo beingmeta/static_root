@@ -1608,25 +1608,31 @@ fdjt.String=
                 else return '<'+arg.nodeType+'>';}
             else if (arg.oid) return arg.oid;
             else if (arg._fdjtid) return '#@'+arg._fdjtid;
-            else if ((arg.type)&&((arg.target)||arg.srcElement)) {
+            else if ((arg.type)&&((arg.target)||(arg.srcElement))) {
                 var target=arg.target||arg.srcElement;
-                var ox=arg.clientX, oy=arg.clientY;
-                var result="["+arg.type+"@"+stringify(target)+"(m="+
-                    (((arg.shiftKey===true)?"s":"")+
-                     ((arg.ctrlKey===true)?"c":"")+
-                     ((arg.metaKey===true)?"m":"")+
-                     ((arg.altKey===true)?"a":"")+
-                     ((typeof arg.button !== "undefined")?
-                      (",b="+(arg.button)):(""))+
-                     ((typeof arg.which !== "undefined")?
-                      (",w="+(arg.which)):("")));
-                if ((typeof ox === "number")||(typeof oy === "number"))
-                    result=result+",cx="+ox+",cy="+oy;
-                if (arg.touches) result=result+",touches="+arg.touches.length;
-                if (arg.keyCode) result=result+",kc="+arg.keyCode;
-                if (arg.charCode) result=result+",cc="+arg.charCode;
-                return result+")]";}
+                return "["+arg.type+"@"+stringify(target)+
+                    ((((arg.target)||(arg.srcElement)).nodeType)?
+                     (getDOMEventInfo(arg)):(""))+"]";}
             else return ""+arg;}
+
+        function getDOMEventInfo(arg){
+            var info="(m="+
+                ((arg.shiftKey===true)?"s":"")+
+                ((arg.ctrlKey===true)?"c":"")+
+                ((arg.metaKey===true)?"m":"")+
+                ((arg.altKey===true)?"a":"")+
+                ((typeof arg.button !== "undefined")?
+                 (",b="+(arg.button)):(""))+
+                ((typeof arg.which !== "undefined")?
+                 (",w="+(arg.which)):(""));
+            var ox=arg.clientX, oy=arg.clientY;
+            if ((typeof ox === "number")||(typeof oy === "number"))
+                info=info+",cx="+ox+",cy="+oy;
+            if (arg.touches)
+                info=info+",touches="+arg.touches.length;
+            if (arg.keyCode) info=info+",kc="+arg.keyCode;
+            if (arg.charCode) info=info+",cc="+arg.charCode;
+            return info+")";}
 
         var spacechars=" \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff";
 
@@ -2222,6 +2228,26 @@ fdjt.Time=
         fdjtTime.tick2shortstring=function(tick){
             return shortString(new Date(tick*1000));};
 
+        var first_date=false;
+        function compactString(tstamp,curdate){
+            if (typeof tstamp === 'number') {
+                if (tstamp<131592918600)
+                    tstamp=new Date(tstamp*1000);
+                else tstamp=new Date(tstamp);}
+            var date_string=tstamp.toLocaleDateString();
+            if (typeof curdate==="undefined") {
+                if (first_date) curdate=first_date;
+                else first_date=new Date().toLocaleDateString();}
+            var show_date=(date_string!==curdate);
+            var hours=tstamp.getHours(), minutes=tstamp.getMinutes();
+            var seconds=tstamp.getSeconds();
+            return ((show_date)?(date_string):(""))+
+                ((show_date)?(" - "):(""))+
+                ((hours<10)?"0":"")+hours+":"+
+                ((minutes===0)?"00":(((minutes<10)?"0":"")+minutes))+":"+
+                ((seconds===0)?"00":(((seconds<10)?"0":"")+seconds));}
+        fdjtTime.compactString=compactString;
+        
         fdjtTime.tick2string=function(tick){
             return (new Date(tick*1000)).toString();};
         fdjtTime.tick2date=function(tick){
@@ -3746,9 +3772,11 @@ fdjt.Log=(function(){
     var backlog=[];
 
     var use_console_log;
+    var compactString=fdjt.Time.compactString, ET=fdjt.ET;
 
     function fdjtLog(string){
-        var output=false; var now=fdjt.ET(); var i, lim;
+        var output=false; var now=ET(), date=new Date();
+        var i, lim;
         if (((fdjtLog.doformat)||(string.search("%j")))&&
             (typeof fdjtString !== 'undefined'))
             output=fdjtString.apply(null,arguments);
@@ -3756,17 +3784,20 @@ fdjt.Log=(function(){
             if (output) fdjtLog.console_fn.call(fdjtLog.console,output);
             else fdjtLog.console_fn.apply(fdjtLog.console,arguments);}
         if (fdjtLog.logurl) {
-            var msg="["+now+"s] "+fdjtString.apply(null,arguments);
+            var msg="["+now+"s "+compactString(date,false)+"] "+
+                fdjtString.apply(null,arguments);
             if (window.console)
                 window.console.log("remote logging %s",msg);
             remote_log(msg);}
         if (fdjtLog.console) {
             var domconsole=fdjtLog.console;
             var timespan=fdjt.DOM("span.time",now);
+            var abstime=fdjt.DOM("span.abstime",compactString(date));
             var entry=fdjt.DOM("div.fdjtlog");
             if (output) entry.innerHTML=output;
             else entry.innerHTML=fdjtString.apply(null,arguments);
             fdjt.DOM.prepend(entry,timespan);
+            fdjt.DOM.prepend(entry,abstime);
             if (typeof domconsole === 'string') {
                 var found=document.getElementById(domconsole);
                 if (found) {
@@ -3826,7 +3857,8 @@ fdjt.Log=(function(){
 
     fdjtLog.warn=function(){
         if ((!(fdjtLog.console_fn))&&
-            (!(window.console)&&(window.console.log)&&(window.console.log.count))) {
+            (!(window.console)&&(window.console.log)&&
+             (window.console.log.count))) {
             var output=fdjtString.apply(null,arguments);
             window.alert(output);}
         else fdjtLog.apply(null,arguments);};
@@ -15653,8 +15685,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1419-g1b57813';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Tue Apr 21 17:33:06 EDT 2015';
-fdjt.builduuid='690af7a4-1b68-4a9a-8f3e-6e222ee944b5';
+fdjt.revision='1.5-1422-g8d0451d';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Wed Apr 29 11:46:22 EDT 2015';
+fdjt.builduuid='f46fcf4d-e8a0-4c3c-b59e-55304eab9d1a';
 
