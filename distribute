@@ -19,10 +19,16 @@
    "fonts/OmnibusType/Rosario" "fonts/OmnibusType/Unna"
    "fonts/open_dyslexic/" "fonts/open_sans/"})
 
+(defambda (push-target val cur)
+  (if (fail? cur) (list val)
+      (cons val cur)))
+
 (define dist-targets-file (get-component "dist-targets"))
-(define dist-targets
+(define default-dist-targets
   (remove-if empty-string?
 	     (segment (filestring dist-targets-file) "\n")))
+(define dist-targets {})
+(varconfig! target dist-targets #f push-target)
 ;;(set! dist-targets '("s3://beingmeta/static/"))
 
 (config! 'aws:curlcache #t)
@@ -110,19 +116,19 @@
 	      (qc (s3/push! local (s3/mkpath root local)
 			    #{".css" ".js" ".png" ".svg"}
 			    pubheaders forcewrite retall))
-	      dist-targets)
+	      (try dist-targets default-dist-targets))
   (distribute local
 	      (qc (s3/push! local (s3/mkpath root local)
 			    #{".css.gz" ".js.gz" ".svgz"}
 			    gzheaders forcewrite retall))
-	      dist-targets))
+	      (try dist-targets default-dist-targets)))
 
 (define (distribute-fonts local (retall (config 'COPYALL)))
   (distribute local
 	      (qc (s3/push! local (s3/mkpath root local)
 			    #{".ttf" ".otf" ".eot" ".woff" ".txt" ".svg"}
 			    pubheaders forcewrite retall))
-	      dist-targets))
+	      (try dist-targets default-dist-targets)))
 
 (define media-suffixes
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
@@ -135,7 +141,7 @@
 
 (define (main (arg #f))
   (when (and arg (has-prefix arg "+"))
-    (unless (position (slice arg 1) dist-targets)
+    (unless (position (slice arg 1) default-dist-targets)
       (write-file dist-targets-file
 		  (glom (filestring dist-targets-file)
 		    "\n" (slice arg 1))))
@@ -175,7 +181,7 @@
 	       (printout "\n\t" (gpath->string p)))
 	     " with " (length css) " bytes from "
 	     "dist/metabook.clean.css.gz")
-    (dolist (r dist-targets)
+    (dolist (r (try dist-targets default-dist-targets))
       (do-choices (path (choice apps.js apps.css apps.maps))
 	(s3/copy! (s3/mkpath root path) (s3/mkpath r path))
 	(message "Updated " (gpath->string (s3/mkpath r path))))))
@@ -197,7 +203,8 @@
 		    (if arg
 			(qc (s3/mkpath root allfiles))
 			(qc changed-graphics))
-		    (if arg (list arg) dist-targets)))))
+		    (if arg (list arg) 
+			(try dist-targets default-dist-targets))))))
   (do-choices (local fonts)
     (let ((changed-fonts
 	   (s3/push! local (s3/mkpath root local) (qc font-suffixes)
@@ -217,7 +224,8 @@
 		    (if arg
 			(qc (s3/mkpath root allfiles))
 			(qc changed-fonts))
-		    (if arg (list arg) dist-targets))))))
+		    (if arg (list arg) 
+			(try dist-targets default-dist-targets)))))))
 
 
 
