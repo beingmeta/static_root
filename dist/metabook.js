@@ -19072,7 +19072,7 @@ fdjt.CodexLayout=
                 function splitBlock(node,info,style,use_height){
                     if (!(use_height)) use_height=page_height;
                     if (!(style)) style=getStyle(node);
-                    if ((!(break_blocks))||(avoidBreakInside(node,style))||
+                    if ((!(break_blocks))||(info.avoidbreakinside)||
                         (!(node.childNodes))||(node.childNodes.length===0)) {
                         // Simplest case, if we can't split, we just
                         // make a new page starting with the node.
@@ -19124,7 +19124,7 @@ fdjt.CodexLayout=
                     // overall height is small.
                     if ((use_height===page_height)&&
                         ((init_geom.bottom-page_height)<(line_height*1.2))&&
-                        ((init_geom.height)<(line_height*3))) {
+                        ((init_geom.height)>(line_height*3))) {
                         use_height=page_height-floor(line_height);}
                     // When splitChildren called, <node> is already
                     // empty and it's children are all in <children>
@@ -19359,9 +19359,11 @@ fdjt.CodexLayout=
                     while (bi<blen) {
                         var s=breaks[bi++]; var ws;
                         if ((ws=s.search(/\s/))>=0) { /* Includes whitespace */
-                            if (ws===0) { /* Starts with whitespace */
-                                if (word) words.push(word);
-                                if (bi<blen) word=s+breaks[bi++];
+                            if (ws===0) { /* s is a break (it starts with whitespace) */
+                                if (bi>=blen) word=s;
+                                else if ((word)&&(/ +/.exec(s)))
+                                    word=word+s+breaks[bi++];
+                                else if (word) {words.push(word); word=s;}
                                 else word=s;}
                             else {
                                 if (word) words.push(word+s);
@@ -31054,7 +31056,7 @@ metaBook.setMode=
             if (ui_resize_wait) clearTimeout(ui_resize_wait);
             ui_resize_wait=setTimeout(function(){
                 var h=fdjtDOM.viewHeight(), w=fdjtDOM.viewWidth();
-                if ((w!==ui_width)||(h!=ui_height)) {
+                if ((w!==ui_width)||(h!==ui_height)) {
                     var adjstart=fdjt.Time();
                     var hud=$ID("METABOOKHUD");
                     var cover=$ID("METABOOKCOVER");
@@ -39603,21 +39605,21 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1422-g8d0451d';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Apr 29 11:46:22 EDT 2015';
-fdjt.builduuid='f46fcf4d-e8a0-4c3c-b59e-55304eab9d1a';
+fdjt.revision='1.5-1424-g52794cd';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Mon May 11 19:59:44 EEST 2015';
+fdjt.builduuid='F016D9D9-E6ED-4CE5-A482-DA17B5355D1E';
 
-fdjt.CodexLayout.sourcehash='5D4911F49222937C326623594FDEC09C70803AC2';
+fdjt.CodexLayout.sourcehash='A7F700CBDB4DDC27FDA89B48A6ACAA8A04DC4FC1';
 
 
-Knodule.version='v0.8-151-g02cb238';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-4-g07ba80f';
-metaBook.buildid='92258a52-e643-47ee-bf08-8a9da5142672';
-metaBook.buildtime='Wed Apr 29 11:55:00 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com';
+metaBook.version='v0.8-5-g0396306';
+metaBook.buildid='CB981D4F-51F2-4DEB-83F7-E287D4699252';
+metaBook.buildtime='Mon May 11 20:01:56 EEST 2015';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='5D4911F49222937C326623594FDEC09C70803AC2';
+fdjt.CodexLayout.sourcehash='A7F700CBDB4DDC27FDA89B48A6ACAA8A04DC4FC1';
