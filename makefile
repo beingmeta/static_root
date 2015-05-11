@@ -260,7 +260,7 @@ fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	    ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js \
 	  > $@
 
-metabook/buildstamp.js: $(METABOOK_FILES) $(METABOOK_CSS_BUNDLE) \
+metabook/buildstamp.js: $(METABOOK_JS_BUNDLE) $(METABOOK_CSS_BUNDLE) \
 			$(METABOOK_HTML)
 	@$(ECHO) "// sBooks metaBook build information" > $@
 	@cd metabook; echo "metaBook.version='"`git describe`"';" >> \
