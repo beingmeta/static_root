@@ -7273,8 +7273,9 @@ fdjt.DOM=
             if (shyphens) {
                 needle=needle.replace("­","");
                 return ((before||"")+
-                        (needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
-                                /\S/g,"$&­?").replace("­? "," ").replace(/\s+/g,"(\\s+)"))+
+                        (needle.replace(/\S/g,"$&­?").
+                         replace(/([()\[\]\.\?\+\*])­\?/gm,"[$1]").
+                         replace("­? "," ").replace(/\s+/g,"(\\s+)"))+
                         (after||""));}
             else return (((before)||(""))+
                          (needle.replace(/[()\[\]\.\?\+\*]/gm,"[$&]").replace(
@@ -7282,24 +7283,27 @@ fdjt.DOM=
                          ((after)||("")));}
         fdjtDOM.getRegexString=getRegexString;
 
-        function textRegExp(needle,foldcase,before,after){
-            return new RegExp(getRegexString(needle,true,before,after),
+        function textRegExp(needle,foldcase,shyphens,before,after){
+            if (typeof shyphens==="undefined") shyphens=true;
+            return new RegExp(getRegexString(needle,shyphens,before,after),
                               ((foldcase)?("igm"):("gm")));}
         fdjtDOM.textRegExp=textRegExp;
-        function wordRegExp(needle,foldcase){
-            return new RegExp(getRegexString(needle,true,"\\b","\\b"),
+        function wordRegExp(needle,foldcase,shyphens){
+            if (typeof shyphens==="undefined") shyphens=true;
+            return new RegExp(getRegexString(needle,shyphens,"\\b","\\b"),
                               ((foldcase)?("igm"):("gm")));}
         fdjtDOM.wordRegExp=wordRegExp;
 
         function findString(node,needle,off,count){
             if (typeof off === 'undefined') off=0;
             if (typeof count === 'undefined') count=1;
+            needle=needle.replace(/­/mg,"");
             var match=false;
             var fulltext=node2text(node);
             var sub=((off===0)?(fulltext):(fulltext.slice(off)));
             var scan=sub.replace(/­/mg,"");
             var pat=((typeof needle === 'string')?
-                     (textRegExp(needle)):
+                     (textRegExp(needle,false,false)):
                      (needle));
             while ((match=pat.exec(scan))) {
                 if (count===1) {
@@ -15166,8 +15170,9 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     while (i<lim) {
                         var wrapper=wrappers[i++];
                         whole.appendChild(wrapper.cloneNode(true));}}
-                var found=fdjtDOM.findString(whole,string);
-                if (!(found)) return;
+                var found=fdjtDOM.findMatches(whole,string,0,1);
+                if ((!(found))||(found.length===0)) return;
+                else found=found[0];
                 var start=found.startContainer, end=found.endContainer;
                 while ((start)&&(start.nodeType!==1)) start=start.parentNode;
                 while ((end)&&(end.nodeType!==1)) end=end.parentNode;
@@ -15685,8 +15690,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1424-g52794cd';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Tue May 12 04:32:28 UTC 2015';
-fdjt.builduuid='456d4ddc-9d51-4bcb-8626-25ef34d06f07';
+fdjt.revision='1.5-1426-gdf09e64';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Wed May 20 03:53:13 UTC 2015';
+fdjt.builduuid='3f735846-f383-411a-b7d2-4d7ea8f306b0';
 

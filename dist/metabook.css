@@ -2114,8 +2114,8 @@ body._ANIMATE body.metabookfixed div.codexpage {
 
 span.excerpt {
     color: gray;
-    font-family: times,serif;
-    background-color: yellow;}
+    font-family: times,serif; line-height: 1.0;
+    background-color: rgba(255,255,0,0.5);}
 span.excerpt span.content { font-size: 80%; display: none;}
 .showexcerpt span.excerpt span.content { display: inline;}
 .showexcerpt span.excerpt span.ellipsis { display: none;}
@@ -2142,6 +2142,12 @@ html._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
     box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 255, 0, 0.33);}
 .fdjtselectstart, .fdjtselectend {
     box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 215, 0, 0.33);}
+
+.fdjtselecting .fdjtselected {
+    background-color: rgba(255,255,0,0.5); }
+.fdjtselecting .fdjtselectstart, .fdjtselecting .fdjtselectend {
+    background-color: rgba(255,215,0,0.5); }
+
 
 #METABOOKBODY .fdjtselectwrap {
     background-color: transparent; }
@@ -3186,7 +3192,9 @@ body.mbMEDIA #METABOOKMEDIA iframe {
     border-radius: 18px;
     -o-border-radius: 18px;
     -moz-border-radius: 18px;
-    -webkit-border-radius: 18px;}
+    -webkit-border-radius: 18px;
+    z-index: 50;}
+body.hudup #CODEXPAGE {z-index: 0;}
 
 /* In some web debuggers, the HUD intercerpts all attempts to click on
    content elements, even though it's pointer-events: none; this goes
@@ -5080,7 +5088,7 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER.sbookatstart img[alt="beginning"] {disp
 #METABOOKHUD #METABOOKSKIMMER.expanded div.gloss div.tochead {
     display: block;}
 
-#METABOOKSKIMMER.mbfoundhighlights .metabookcard .excerpt { display: none; }
+/* #METABOOKSKIMMER.mbfoundhighlights .metabookcard .excerpt { display: none; } */
 
 #METABOOKHUD div.hudpanel#METABOOKSKIMMER.expanded { max-height: inherit; }
 #METABOOKHUD #METABOOKSKIMMER.expanded img.glosspic {  height: inherit; }
