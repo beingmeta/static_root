@@ -6065,8 +6065,8 @@ fdjt.DOM=
             else return false;}
         fdjtDOM.parsePX=parsePX;
 
-        function getLineHeight(node){
-            var style=getStyle(node);
+        function getLineHeight(node,style){
+            if (!(style)) style=getStyle(node);
             var lh=style.lineHeight, fs=style.fontSize;
             if (lh==="normal") return parsePX(fs);
             else if (lh.search(/px$/)>0) return parsePX(lh);
@@ -17681,6 +17681,7 @@ fdjt.CodexLayout=
         var getParent=fdjtDOM.getParent;
         var getStyle=fdjtDOM.getStyle;
         var parsePX=fdjtDOM.parsePX;
+        var getLineHeight=fdjtDOM.getLineHeight;
         var hasClass=fdjtDOM.hasClass;
         var addClass=fdjtDOM.addClass;
         var dropClass=fdjtDOM.dropClass;
@@ -18561,7 +18562,7 @@ fdjt.CodexLayout=
                     // tweaked Note that we may process an element [i]
                     // more than once if we split the node and part of
                     // the split landed back in [i].
-                    var geom=getGeom(block,page), lh=parsePX(style.lineHeight);
+                    var geom=getGeom(block,page), lh=getLineHeight(block,style);
                     var padding_bottom=parsePX(style.paddingBottom);
                     if ((trace)&&((trace>3)||((track)&&(track.match(block)))))
                         logfn("Layout/geom %o %j",block,geom);
@@ -19110,7 +19111,7 @@ fdjt.CodexLayout=
                         // (we'll adjust afterwards).
                         else use_height=page_height+floor(line_height*1.2);}
                     // Copy all the children into an array
-                    var children=toArray(node.childNodes);
+                    var children=nodeChildren(node);
                     // and remove all of them at once
                     node.innerHTML="";
                     var geom=getGeom(node,page);
@@ -19159,8 +19160,12 @@ fdjt.CodexLayout=
                         page_break=newPage(page_break);
                         var dup=page_break.parentNode;
                         // This (dup) is the copied parent of the page
-                        // break.  We append all the remaining children
-                        // to this duplicated parent on the new page.
+                        // break.  We append all the remaining
+                        // children to this duplicated parent on the
+                        // new page.  We want to keep backpointers
+                        // (crumbs), so we only appendChildren if the
+                        // node is already a dup; otherwise we
+                        // moveChildren to leave crumbs.
                         if ((hasClass(node,"codexdup"))||
                             (hasClass(node,"codexdupend")))
                             appendChildren(dup,push,1);
@@ -19169,6 +19174,24 @@ fdjt.CodexLayout=
                             logfn("Layout/splitBlock %o @ %o into %o on %o",
                                   node,page_break,dup,page);
                         return dup;}}
+
+                function nodeChildren(node){
+                    var children=node.childNodes, results=[];
+                    var i=0, lim=children.length; while (i<lim) {
+                        var child=children[i++];
+                        if (child.nodeType!==3) results.push(child);
+                        else {
+                            var text=child.nodeValue;
+                            var head_match=/^[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+/.exec(text);
+                            if (head_match) {
+                                results.push(document.createTextNode(head_match[0]));
+                                text=text.slice(head_match[0].length);}
+                            var foot_loc=text.search(/[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+$/);
+                            if (foot_loc>=0) {
+                                results.push(document.createTextNode(text.slice(0,foot_loc)));
+                                results.push(document.createTextNode(text.slice(foot_loc)));}
+                            else results.push(document.createTextNode(text));}}
+                    return results;}
 
                 function splitChildren(node,children,init_geom,use_page_height){
                     /* node is an emptied node and children are its
@@ -19263,7 +19286,9 @@ fdjt.CodexLayout=
                         probenode=wprobe; geom=getGeom(node,page);
                         if (geom.bottom>use_page_height) {
                             text_parent.replaceChild(original,probenode);
-                            return children.slice(breakpos);}
+                            if (children.length===1) 
+                                return node;
+                            else return children.slice(breakpos);}
                         else {
                             text_parent.replaceChild(textsplit,wprobe);
                             probenode=textsplit;}}
@@ -19932,15 +19957,14 @@ fdjt.CodexLayout=
             this.mustBreakAfter=mustBreakAfter;
 
             function avoidBreakInside(elt,style){
-                var lh;
+                var lh=getLineHeight(elt,style);
                 if ((!(elt))||(elt.nodeType!==1)) return false;
                 if (elt.tagName==='IMG') return true;
                 if (!(style)) style=getStyle(elt);
                 return (style.pageBreakInside==='avoid')||
                     (style.display==='table-row')||
                     ((style.display==="block")&&
-                     ((lh=parsePX(style.lineHeight))&&
-                      ((lh*2.5)>elt.offsetHeight)));}
+                     ((lh)&&((lh*2.5)>elt.offsetHeight)));}
             this.avoidBreakInside=avoidBreakInside;
             function mustBreakInside(elt){
                 if (avoidBreakInside(elt)) return false;
@@ -39605,20 +39629,20 @@ metaBook.HTML.pageright=
     "";
 // FDJT build information
 fdjt.revision='1.5-1426-gdf09e64';
-fdjt.buildhost='ip-172-30-4-114';
-fdjt.buildtime='Wed May 20 03:53:13 UTC 2015';
-fdjt.builduuid='3f735846-f383-411a-b7d2-4d7ea8f306b0';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed May 20 06:29:27 EEST 2015';
+fdjt.builduuid='9728F85C-4DF8-46AE-A4BB-C814AF36182E';
 
-fdjt.CodexLayout.sourcehash='A7F700CBDB4DDC27FDA89B48A6ACAA8A04DC4FC1';
+fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-17-g922be04';
-metaBook.buildid='c4f394fe-0a90-40e2-a661-6d56c2673481';
-metaBook.buildtime='Wed May 20 04:03:52 UTC 2015';
-metaBook.buildhost='ip-172-30-4-114';
+metaBook.buildid='ED94E33D-BB40-456E-9A3B-396756E42889';
+metaBook.buildtime='Wed May 20 17:17:31 EEST 2015';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='A7F700CBDB4DDC27FDA89B48A6ACAA8A04DC4FC1';
+fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';

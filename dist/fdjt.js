@@ -4900,8 +4900,8 @@ fdjt.DOM=
             else return false;}
         fdjtDOM.parsePX=parsePX;
 
-        function getLineHeight(node){
-            var style=getStyle(node);
+        function getLineHeight(node,style){
+            if (!(style)) style=getStyle(node);
             var lh=style.lineHeight, fs=style.fontSize;
             if (lh==="normal") return parsePX(fs);
             else if (lh.search(/px$/)>0) return parsePX(lh);
@@ -15691,7 +15691,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 // FDJT build information
 fdjt.revision='1.5-1426-gdf09e64';
-fdjt.buildhost='ip-172-30-4-114';
-fdjt.buildtime='Wed May 20 03:53:13 UTC 2015';
-fdjt.builduuid='3f735846-f383-411a-b7d2-4d7ea8f306b0';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Wed May 20 06:29:27 EEST 2015';
+fdjt.builduuid='9728F85C-4DF8-46AE-A4BB-C814AF36182E';
 
