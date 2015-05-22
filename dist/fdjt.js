@@ -7717,6 +7717,33 @@ fdjt.DOM=
         return fdjtDOM;
     })();
 
+/* requestAnimationFrame polyfill */
+(function() {
+    "use strict";
+    var lastTime = 0;
+    var vendors = ['webkit', 'moz'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame =
+          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback) { /* ,element */
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
 /* Emacs local variables
    ;;;  Local variables: ***
    ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
@@ -15690,8 +15717,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1426-gdf09e64';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 20 06:29:27 EEST 2015';
-fdjt.builduuid='9728F85C-4DF8-46AE-A4BB-C814AF36182E';
+fdjt.revision='1.5-1430-gf8e4d10';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Fri May 22 11:43:31 UTC 2015';
+fdjt.builduuid='de17424b-376b-43db-92e1-1b56d221c683';
 
