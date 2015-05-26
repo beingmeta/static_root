@@ -8049,10 +8049,7 @@ fdjt.DOM=
             evt.cancelBubble=true;};
 
         function triggerClick(elt){
-            if (elt.click) {
-                try { elt.click(); return;}
-                catch(ex) {}}
-            else if (document.createEvent) { // in chrome
+            if (document.createEvent) { // in chrome
                 var e = document.createEvent('MouseEvents');
                 e.initEvent( 'click', true, true );
                 elt.dispatchEvent(e);
@@ -34890,8 +34887,8 @@ metaBook.setMode=
                 else {
                     fdjtLog.warn("Couldn't resolve %s",idref);
                     return true;}}
-            else if ((rel.search(iframe_rels))||
-                     (classname.search(iframe_classes))) {
+            else if ((rel.search(iframe_rels)>=0)||
+                     (classname.search(iframe_classes)>=0)) {
                 gesture_start=false;
                 clicked=fdjtTime();
                 fdjtDOM.triggerClick(anchor);
@@ -36426,7 +36423,7 @@ metaBook.setMode=
                    touchstart: body_touchstart,
                    touchend: body_touchend,
                    touchmove: noDefault,
-                   click: cancel},
+                   click: cancelNotAnchor},
          hud: {touchend: handleXTarget, tap: handleXTarget},
          toc: {tap: toc_tapped,hold: toc_held,
                slip: toc_slipped, release: toc_released,
@@ -39705,10 +39702,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1430-gf8e4d10';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Tue May 26 08:53:30 CEST 2015';
-fdjt.builduuid='A54F3036-E4D7-41E4-8E1C-90941D67C369';
+fdjt.revision='1.5-1431-g62cd939';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Tue May 26 07:55:52 UTC 2015';
+fdjt.builduuid='104b0e3e-828d-42bc-8e5b-437b076218ce';
 
 fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
@@ -39716,9 +39713,9 @@ fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-25-g847a1c7';
-metaBook.buildid='1F2BD31D-3A9C-4BB6-B01F-CABB39B450D1';
-metaBook.buildtime='Tue May 26 09:11:21 CEST 2015';
-metaBook.buildhost='Shiny';
+metaBook.buildid='78fbc84b-2a9c-4908-8026-6c60ce59089e';
+metaBook.buildtime='Tue May 26 08:02:28 UTC 2015';
+metaBook.buildhost='ip-172-30-4-114';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

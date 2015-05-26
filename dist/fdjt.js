@@ -6884,10 +6884,7 @@ fdjt.DOM=
             evt.cancelBubble=true;};
 
         function triggerClick(elt){
-            if (elt.click) {
-                try { elt.click(); return;}
-                catch(ex) {}}
-            else if (document.createEvent) { // in chrome
+            if (document.createEvent) { // in chrome
                 var e = document.createEvent('MouseEvents');
                 e.initEvent( 'click', true, true );
                 elt.dispatchEvent(e);
@@ -15731,8 +15728,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1430-gf8e4d10';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Tue May 26 08:53:30 CEST 2015';
-fdjt.builduuid='A54F3036-E4D7-41E4-8E1C-90941D67C369';
+fdjt.revision='1.5-1431-g62cd939';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Tue May 26 07:55:52 UTC 2015';
+fdjt.builduuid='104b0e3e-828d-42bc-8e5b-437b076218ce';
 
