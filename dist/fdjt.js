@@ -6883,6 +6883,20 @@ fdjt.DOM=
             else evt.returnValue=false;
             evt.cancelBubble=true;};
 
+        function triggerClick(elt){
+            if (elt.click) {
+                try { elt.click(); return;}
+                catch(ex) {}}
+            else if (document.createEvent) { // in chrome
+                var e = document.createEvent('MouseEvents');
+                e.initEvent( 'click', true, true );
+                elt.dispatchEvent(e);
+                return;}
+            else {
+                fdjtLog.warn("Couldn't trigger click");
+                return;}}
+        fdjtDOM.triggerClick=triggerClick;
+
         /* Scaling to fit using CSS transforms */
 
         function scale_node(node,fudge,origin,shrink){
@@ -7716,6 +7730,33 @@ fdjt.DOM=
 
         return fdjtDOM;
     })();
+
+/* requestAnimationFrame polyfill */
+(function() {
+    "use strict";
+    var lastTime = 0;
+    var vendors = ['webkit', 'moz'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame =
+          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback) { /* ,element */
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -15690,8 +15731,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1426-gdf09e64';
+fdjt.revision='1.5-1430-gf8e4d10';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 20 06:29:27 EEST 2015';
-fdjt.builduuid='9728F85C-4DF8-46AE-A4BB-C814AF36182E';
+fdjt.buildtime='Tue May 26 08:53:30 CEST 2015';
+fdjt.builduuid='A54F3036-E4D7-41E4-8E1C-90941D67C369';
 
