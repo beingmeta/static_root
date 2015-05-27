@@ -13760,6 +13760,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
     var hasClass=fdjtDOM.hasClass;
     var getParent=fdjtDOM.getParent;
     var hasParent=fdjtDOM.hasParent;
+    var Selector=fdjtDOM.Selector;
     var reticle=fdjtUI.Reticle;
 
     var noBubble=fdjtUI.noBubble;
@@ -13990,6 +13991,13 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         // The level of tracing to use for this TapHold handler
         var trace=0;
         
+        var clickable=
+            ((opts.clickable)&&
+             ((opts.clickable===true)?(new Selector("a[href]")):
+              (typeof opts.clickable === "string")?
+              (new Selector(opts.clickable)):
+              (opts.clickable)));
+
         var serial=serial_count++;
         var thid=(((opts)&&(opts.id))?(opts.id+":"+serial):
                   (elt.id)?("#"+elt.id+":"+serial):
@@ -14489,9 +14497,15 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (cleared>start_t) {
                 abortpress(evt,"up");
                 return;}
+            var target=eTarget(evt);
+            if ((clickable)&&(th_timer)&&
+                (((clickable.match)&&(clickable.match(target)))||
+                 ((clickable.call)&&(clickable(target))))) {
+                // This is really a click
+                abortpress(false,"up/clickable");
+                return;}
             if ((!(bubble))) noBubble(evt);
             if (override) noDefault(evt);
-            var target=eTarget(evt);
             var holder=getParent(target,".tapholder");
             if (holder!==elt) {
                 if ((trace>1)||(traceall>1))
@@ -15730,6 +15744,6 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 // FDJT build information
 fdjt.revision='1.5-1432-gc748633';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 27 06:15:59 CEST 2015';
-fdjt.builduuid='9EA740C3-FF6F-44E7-A0BB-95E9891986A3';
+fdjt.buildtime='Wed May 27 06:56:42 CEST 2015';
+fdjt.builduuid='2B2C7AAD-9E08-4A9F-B909-D369188D6458';
 

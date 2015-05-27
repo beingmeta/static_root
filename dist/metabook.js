@@ -14925,6 +14925,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
     var hasClass=fdjtDOM.hasClass;
     var getParent=fdjtDOM.getParent;
     var hasParent=fdjtDOM.hasParent;
+    var Selector=fdjtDOM.Selector;
     var reticle=fdjtUI.Reticle;
 
     var noBubble=fdjtUI.noBubble;
@@ -15155,6 +15156,13 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         // The level of tracing to use for this TapHold handler
         var trace=0;
         
+        var clickable=
+            ((opts.clickable)&&
+             ((opts.clickable===true)?(new Selector("a[href]")):
+              (typeof opts.clickable === "string")?
+              (new Selector(opts.clickable)):
+              (opts.clickable)));
+
         var serial=serial_count++;
         var thid=(((opts)&&(opts.id))?(opts.id+":"+serial):
                   (elt.id)?("#"+elt.id+":"+serial):
@@ -15654,9 +15662,15 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (cleared>start_t) {
                 abortpress(evt,"up");
                 return;}
+            var target=eTarget(evt);
+            if ((clickable)&&(th_timer)&&
+                (((clickable.match)&&(clickable.match(target)))||
+                 ((clickable.call)&&(clickable(target))))) {
+                // This is really a click
+                abortpress(false,"up/clickable");
+                return;}
             if ((!(bubble))) noBubble(evt);
             if (override) noDefault(evt);
-            var target=eTarget(evt);
             var holder=getParent(target,".tapholder");
             if (holder!==elt) {
                 if ((trace>1)||(traceall>1))
@@ -34631,7 +34645,8 @@ metaBook.setMode=
                 $ID("METABOOKBODY"),
                 {override: true,noslip: true,id: "METABOOKBODY",
                  maxtouches: 3,taptapmsecs: true,
-                 movethresh: 10,untouchable: false});
+                 movethresh: 10,untouchable: false,
+                 clickable: "a.extref"});
             addHandlers(metaBook.HUD,'hud');}
         if (mode) {
             var handlers=metaBook.UI.handlers[mode];
@@ -34890,7 +34905,6 @@ metaBook.setMode=
             else if ((rel.search(iframe_rels)>=0)||
                      (classname.search(iframe_classes)>=0)) {
                 gesture_start=false;
-                clicked=fdjtTime();
                 fdjtDOM.triggerClick(anchor);
                 return true;}
             else {
@@ -34899,7 +34913,6 @@ metaBook.setMode=
                 //  a little iframe in some circumstances
                 if (!(anchor.target)) anchor.target="_blank";
                 gesture_start=false;
-                clicked=fdjtTime();
                 fdjtDOM.triggerClick(anchor);
                 return true;}}
 
@@ -39704,17 +39717,17 @@ metaBook.HTML.pageright=
 // FDJT build information
 fdjt.revision='1.5-1432-gc748633';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 27 06:15:59 CEST 2015';
-fdjt.builduuid='9EA740C3-FF6F-44E7-A0BB-95E9891986A3';
+fdjt.buildtime='Wed May 27 06:56:42 CEST 2015';
+fdjt.builduuid='2B2C7AAD-9E08-4A9F-B909-D369188D6458';
 
 fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-28-g563ac6c';
-metaBook.buildid='817F5C72-6309-4AD5-B883-FC6687F31A28';
-metaBook.buildtime='Wed May 27 06:40:57 CEST 2015';
+metaBook.version='v0.8-30-gc34f28b';
+metaBook.buildid='C194BDDF-8805-421A-8792-B43E98C7AE95';
+metaBook.buildtime='Wed May 27 07:42:10 CEST 2015';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
