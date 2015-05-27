@@ -34887,8 +34887,8 @@ metaBook.setMode=
                 else {
                     fdjtLog.warn("Couldn't resolve %s",idref);
                     return true;}}
-            else if ((rel.search(iframe_rels))||
-                     (classname.search(iframe_classes))) {
+            else if ((rel.search(iframe_rels)>=0)||
+                     (classname.search(iframe_classes)>=0)) {
                 gesture_start=false;
                 clicked=fdjtTime();
                 fdjtDOM.triggerClick(anchor);
@@ -36423,7 +36423,7 @@ metaBook.setMode=
                    touchstart: body_touchstart,
                    touchend: body_touchend,
                    touchmove: noDefault,
-                   click: cancel},
+                   click: cancelNotAnchor},
          hud: {touchend: handleXTarget, tap: handleXTarget},
          toc: {tap: toc_tapped,hold: toc_held,
                slip: toc_slipped, release: toc_released,
@@ -39702,10 +39702,17 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
+<<<<<<< HEAD
 fdjt.revision='1.5-1432-gc748633';
 fdjt.buildhost='Shiny';
 fdjt.buildtime='Wed May 27 06:15:59 CEST 2015';
 fdjt.builduuid='9EA740C3-FF6F-44E7-A0BB-95E9891986A3';
+=======
+fdjt.revision='1.5-1431-g62cd939';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Tue May 26 07:55:52 UTC 2015';
+fdjt.builduuid='104b0e3e-828d-42bc-8e5b-437b076218ce';
+>>>>>>> a7a52141481d4456c59c396b410c0d1913c5bd1e
 
 fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
@@ -39713,9 +39720,15 @@ fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-25-g847a1c7';
+<<<<<<< HEAD
 metaBook.buildid='72ABA01F-0B51-4326-A831-B33B01E8A1B2';
 metaBook.buildtime='Wed May 27 06:16:01 CEST 2015';
 metaBook.buildhost='Shiny';
+=======
+metaBook.buildid='78fbc84b-2a9c-4908-8026-6c60ce59089e';
+metaBook.buildtime='Tue May 26 08:02:28 UTC 2015';
+metaBook.buildhost='ip-172-30-4-114';
+>>>>>>> a7a52141481d4456c59c396b410c0d1913c5bd1e
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

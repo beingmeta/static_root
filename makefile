@@ -242,6 +242,16 @@ clean: tidy
 cleandist undist:
 	rm dist/*; git checkout dist
 
+redist:
+	for x in  fdjt.css.gz fdjt.js fdjt.js.gz              \
+		  fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
+	          metabook.clean.css.gz metabook.css.gz       \
+		  metabook.js metabook.js.gz                  \
+		  metabook.min.js metabook.min.js.gz          \
+		  metabook.uglify.js metabook.uglify.js.gz    \
+	          metabook.uglify.map;                        \
+	  do git add dist/$x; done
+
 fdjt/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA)
 	cd fdjt; make all
 fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_EXTRA) $(FDJT_CSS)
