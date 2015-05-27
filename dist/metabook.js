@@ -15156,13 +15156,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         // The level of tracing to use for this TapHold handler
         var trace=0;
         
-        var clickable=
-            ((opts)&&(opts.clickable)&&
-             ((opts.clickable===true)?(new Selector("a[href]")):
-              (typeof opts.clickable === "string")?
-              (new Selector(opts.clickable)):
-              (opts.clickable)));
-
         var serial=serial_count++;
         var thid=(((opts)&&(opts.id))?(opts.id+":"+serial):
                   (elt.id)?("#"+elt.id+":"+serial):
@@ -15557,20 +15550,15 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 (evt.button)||
                 ((evt.which)&&(evt.which>1)))
                 return;
-            var target=(eTarget(evt));
             var n_touches=((evt.touches)&&(evt.touches.length))||1;
-            if ((clickable)&&(n_touches===1)&&
-                (((clickable.match)&&(clickable.match(target)))||
-                 ((clickable.call)&&(clickable(target))))) {
-                return;}
             mouse_down=true; cleared=0;
             touch_x=(evt.clientX||getClientX(evt)||touch_x)+hot_xoff;
             touch_y=(evt.clientY||getClientY(evt)||touch_y)+hot_yoff;
             start_x=target_x=touch_x; start_y=target_y=touch_y;
-            target=(((hot_xoff)||(hot_yoff))?
-                    (document.elementFromPoint(touch_x,touch_y)):
-                    (eTarget(evt)));
             target_t=touch_t=fdjtTime();
+            var target=(((hot_xoff)||(hot_yoff))?
+                        (document.elementFromPoint(touch_x,touch_y)):
+                        (eTarget(evt)));
             if (!(touch_n)) touch_n=n_touches; else
                 if (n_touches>touch_n) touch_n=n_touches;
             if ((!(bubble))) noBubble(evt);
@@ -15668,12 +15656,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 abortpress(evt,"up");
                 return;}
             var target=eTarget(evt);
-            if ((clickable)&&(th_timer)&&
-                (((clickable.match)&&(clickable.match(target)))||
-                 ((clickable.call)&&(clickable(target))))) {
-                // This is really a click
-                abortpress(false,"up/clickable");
-                return;}
             if ((!(bubble))) noBubble(evt);
             if (override) noDefault(evt);
             var holder=getParent(target,".tapholder");
@@ -34650,8 +34632,7 @@ metaBook.setMode=
                 $ID("METABOOKBODY"),
                 {override: true,noslip: true,id: "METABOOKBODY",
                  maxtouches: 3,taptapmsecs: true,
-                 movethresh: 10,untouchable: false,
-                 clickable: "a.extref"});
+                 movethresh: 10,untouchable: false});
             addHandlers(metaBook.HUD,'hud');}
         if (mode) {
             var handlers=metaBook.UI.handlers[mode];
@@ -39720,19 +39701,19 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1434-g597d132';
+fdjt.revision='1.5-1436-ga5041d6';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 27 07:54:24 CEST 2015';
-fdjt.builduuid='9DDC6760-3540-483F-990B-4383FB897DFF';
+fdjt.buildtime='Wed May 27 08:07:25 CEST 2015';
+fdjt.builduuid='7ACBA27E-AFCD-4B38-98AB-ABFB26E7BA93';
 
 fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-30-gc34f28b';
-metaBook.buildid='E7BA6C8E-6C2D-4ED5-840E-5147AFDD1359';
-metaBook.buildtime='Wed May 27 07:54:25 CEST 2015';
+metaBook.version='v0.8-31-gbbef773';
+metaBook.buildid='3C625A29-681A-42D9-8A29-94EDFCC0045E';
+metaBook.buildtime='Wed May 27 08:07:26 CEST 2015';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
