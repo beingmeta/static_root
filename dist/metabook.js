@@ -15557,20 +15557,25 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 (evt.button)||
                 ((evt.which)&&(evt.which>1)))
                 return;
+            var target=(eTarget(evt));
             var n_touches=((evt.touches)&&(evt.touches.length))||1;
+            if ((clickable)&&(n_touches===1)&&
+                (((clickable.match)&&(clickable.match(target)))||
+                 ((clickable.call)&&(clickable(target))))) {
+                return;}
             mouse_down=true; cleared=0;
             touch_x=(evt.clientX||getClientX(evt)||touch_x)+hot_xoff;
             touch_y=(evt.clientY||getClientY(evt)||touch_y)+hot_yoff;
             start_x=target_x=touch_x; start_y=target_y=touch_y;
+            target=(((hot_xoff)||(hot_yoff))?
+                    (document.elementFromPoint(touch_x,touch_y)):
+                    (eTarget(evt)));
             target_t=touch_t=fdjtTime();
             if (!(touch_n)) touch_n=n_touches; else
                 if (n_touches>touch_n) touch_n=n_touches;
             if ((!(bubble))) noBubble(evt);
             if (override) noDefault(evt);
             var new_event=false;
-            var target=(((hot_xoff)||(hot_yoff))?
-                        (document.elementFromPoint(touch_x,touch_y)):
-                        (eTarget(evt)));
             var holder=getParent(target,".tapholder");
             if ((trace>1)||(traceall>1))
                 fdjtLog("TapHold/down(%s) %o tht=%o target=%o holder=%o elt=%o",
@@ -39717,8 +39722,8 @@ metaBook.HTML.pageright=
 // FDJT build information
 fdjt.revision='1.5-1434-g597d132';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 27 07:46:56 CEST 2015';
-fdjt.builduuid='C9E000F7-038A-435C-A645-3DD36ED620E7';
+fdjt.buildtime='Wed May 27 07:54:24 CEST 2015';
+fdjt.builduuid='9DDC6760-3540-483F-990B-4383FB897DFF';
 
 fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
@@ -39726,8 +39731,8 @@ fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-30-gc34f28b';
-metaBook.buildid='66194937-B389-4F11-92BC-C24C5D63B374';
-metaBook.buildtime='Wed May 27 07:46:57 CEST 2015';
+metaBook.buildid='E7BA6C8E-6C2D-4ED5-840E-5147AFDD1359';
+metaBook.buildtime='Wed May 27 07:54:25 CEST 2015';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
