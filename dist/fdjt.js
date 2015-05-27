@@ -13992,7 +13992,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         var trace=0;
         
         var clickable=
-            ((opts.clickable)&&
+            ((opts)&&(opts.clickable)&&
              ((opts.clickable===true)?(new Selector("a[href]")):
               (typeof opts.clickable === "string")?
               (new Selector(opts.clickable)):
@@ -15742,8 +15742,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1432-gc748633';
+fdjt.revision='1.5-1434-g597d132';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 27 06:56:42 CEST 2015';
-fdjt.builduuid='2B2C7AAD-9E08-4A9F-B909-D369188D6458';
+fdjt.buildtime='Wed May 27 07:46:56 CEST 2015';
+fdjt.builduuid='C9E000F7-038A-435C-A645-3DD36ED620E7';
 
