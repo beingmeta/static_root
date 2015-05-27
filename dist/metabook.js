@@ -8049,10 +8049,7 @@ fdjt.DOM=
             evt.cancelBubble=true;};
 
         function triggerClick(elt){
-            if (elt.click) {
-                try { elt.click(); return;}
-                catch(ex) {}}
-            else if (document.createEvent) { // in chrome
+            if (document.createEvent) { // in chrome
                 var e = document.createEvent('MouseEvents');
                 e.initEvent( 'click', true, true );
                 elt.dispatchEvent(e);
@@ -39705,10 +39702,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1430-gf8e4d10';
+fdjt.revision='1.5-1432-gc748633';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Tue May 26 08:53:30 CEST 2015';
-fdjt.builduuid='A54F3036-E4D7-41E4-8E1C-90941D67C369';
+fdjt.buildtime='Wed May 27 06:15:59 CEST 2015';
+fdjt.builduuid='9EA740C3-FF6F-44E7-A0BB-95E9891986A3';
 
 fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 
@@ -39716,8 +39713,8 @@ fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-25-g847a1c7';
-metaBook.buildid='1F2BD31D-3A9C-4BB6-B01F-CABB39B450D1';
-metaBook.buildtime='Tue May 26 09:11:21 CEST 2015';
+metaBook.buildid='72ABA01F-0B51-4326-A831-B33B01E8A1B2';
+metaBook.buildtime='Wed May 27 06:16:01 CEST 2015';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
