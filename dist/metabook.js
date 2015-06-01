@@ -19223,21 +19223,27 @@ fdjt.CodexLayout=
 
                 function nodeChildren(node){
                     var children=node.childNodes, results=[];
-                    var i=0, lim=children.length; while (i<lim) {
-                        var child=children[i++];
-                        if (child.nodeType!==3) results.push(child);
-                        else {
-                            var text=child.nodeValue;
-                            var head_match=/^[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+/.exec(text);
-                            if (head_match) {
-                                results.push(document.createTextNode(head_match[0]));
-                                text=text.slice(head_match[0].length);}
-                            var foot_loc=text.search(/[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+$/);
-                            if (foot_loc>=0) {
-                                results.push(document.createTextNode(text.slice(0,foot_loc)));
-                                results.push(document.createTextNode(text.slice(foot_loc)));}
-                            else results.push(document.createTextNode(text));}}
-                    return results;}
+                    var last=false, next=children[0];
+                    if (children.length<2) return toArray(children);
+                    else {
+                        var i=0, lim=children.length; while (i<lim) {
+                            var child=children[i++]; next=children[i];
+                            if (child.nodeType!==3) results.push(child);
+                            else {
+                                var text=child.nodeValue;
+                                var head_match=/^[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+/.exec(text);
+                                if ((head_match)&&(last)&&(last.nodeType!==3)) {
+                                    results.push(document.createTextNode(head_match[0]));
+                                    text=text.slice(head_match[0].length);}
+                                var foot_loc=text.search(/[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+$/);
+                                if ((foot_loc>=0)&&(next)&&(next.nodeType!==3)) {
+                                    results.push(document.createTextNode(
+                                        text.slice(0,foot_loc)));
+                                    results.push(document.createTextNode(
+                                        text.slice(foot_loc)));}
+                                else results.push(document.createTextNode(text));}
+                            last=child;}
+                        return results;}}
 
                 function splitChildren(node,children,init_geom,use_page_height){
                     /* node is an emptied node and children are its
@@ -39713,16 +39719,16 @@ fdjt.buildhost='Shiny';
 fdjt.buildtime='Mon Jun 1 18:07:45 CEST 2015';
 fdjt.builduuid='B628155C-5A64-46A7-8EA4-8AA260A6C377';
 
-fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
+fdjt.CodexLayout.sourcehash='F2C252D1F6C84B63D528E1C11F142300DF521C5C';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-31-gbbef773';
-metaBook.buildid='87CB2CC5-38B1-4A4B-9532-5D10A4563CE8';
-metaBook.buildtime='Mon Jun  1 18:07:46 CEST 2015';
+metaBook.buildid='D308A092-F737-4B46-8D35-05D329C5E7E1';
+metaBook.buildtime='Mon Jun  1 19:21:05 CEST 2015';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='7C98D82B59C8B0D826DF745E66CB2F97AD3E9D70';
+fdjt.CodexLayout.sourcehash='F2C252D1F6C84B63D528E1C11F142300DF521C5C';
