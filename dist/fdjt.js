@@ -5208,6 +5208,8 @@ fdjt.DOM=
                     if (sel) compound.push(sel);}
                 this.compound=compound;
                 selectors[spec]=this;
+                if (typeof spec === "string") this.spec=spec;
+                else this.spec=specs.join(",");
                 return this;}
             // Otherwise, parse and set up this
             var elts=spec.match(css_selector_regex);
@@ -5243,8 +5245,13 @@ fdjt.DOM=
             this.rank=[0,((this.id)?(1):(0)),
                        classnames.length+attribs.length,1];
             selectors[spec]=this;
+            this.spec=spec;
             return this;}
         Selector.prototype.match=function(elt){
+            if (elt.matches) 
+                return elt.matches(this.spec);
+            else if (elt.matchesSelector)
+                return elt.matchesSelector(this.spec);
             var i, lim;
             if (this.compound) {
                 var compound=this.compound; i=0; lim=compound.length;
@@ -15729,8 +15736,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1436-ga5041d6';
+fdjt.revision='1.5-1438-g4e8738f';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Wed May 27 08:07:25 CEST 2015';
-fdjt.builduuid='7ACBA27E-AFCD-4B38-98AB-ABFB26E7BA93';
+fdjt.buildtime='Mon Jun 1 18:07:45 CEST 2015';
+fdjt.builduuid='B628155C-5A64-46A7-8EA4-8AA260A6C377';
 
