@@ -14932,7 +14932,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
     var hasClass=fdjtDOM.hasClass;
     var getParent=fdjtDOM.getParent;
     var hasParent=fdjtDOM.hasParent;
-    var Selector=fdjtDOM.Selector;
     var reticle=fdjtUI.Reticle;
 
     var noBubble=fdjtUI.noBubble;
@@ -18715,7 +18714,8 @@ fdjt.CodexLayout=
                         return;
                     if (((atomic)&&(atomic.match(node)))||
                         (style.display==='table-row')||
-                        (avoidBreakInside(node,style))) {
+                        ((node.tagName!=='BR')&&(node.tagName!=='HR')&&
+                         (avoidBreakInside(node,style)))) {
                         if (node.offsetWidth>page_width) {
                             var w=node.offsetWidth, sw=w/page_width;
                             scaleToPage(node,page_width,sw*node.offsetHeight,true);}
@@ -19221,6 +19221,7 @@ fdjt.CodexLayout=
                                   node,page_break,dup,page);
                         return dup;}}
 
+                /*
                 function nodeChildren(node){
                     var children=node.childNodes, results=[];
                     var last=false, next=children[0];
@@ -19230,6 +19231,12 @@ fdjt.CodexLayout=
                             var child=children[i++]; next=children[i];
                             if (child.nodeType!==3) results.push(child);
                             else {
+                                // We separate out leading and
+                                // trailing punctuation because those
+                                // may be attached with preceding or
+                                // succeeding elements and text
+                                // splitting normally operations on
+                                // text runs as a whole.
                                 var text=child.nodeValue;
                                 var head_match=/^[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+/.exec(text);
                                 if ((head_match)&&(last)&&(last.nodeType!==3)) {
@@ -19244,6 +19251,8 @@ fdjt.CodexLayout=
                                 else results.push(document.createTextNode(text));}
                             last=child;}
                         return results;}}
+                */
+                function nodeChildren(node){return toArray(node.childNodes);}
 
                 function splitChildren(node,children,init_geom,use_page_height){
                     /* node is an emptied node and children are its
@@ -19272,18 +19281,15 @@ fdjt.CodexLayout=
                         // the child that broke the page.
                         var i=0, n=children.length;
                         while (i<n) {
-                            var child=children[i++], next=children[i], span=1;
+                            var child=children[i++];
                             // node.innerHTML="";
                             //appendChildren(node,children,0,i);
                             node.appendChild(child);
-                            if ((next)&&(next.nodeType===3)&&
-                                (next.nodeValue.search(/^[.,;~?"'-]/)===0)) {
-                                node.appendChild(children[i++]); span++;}
                             // Add the child back and get the geometry
                             geom=getGeom(node,page);
                             if (geom.bottom>use_page_height) {
                                 page_break=child; breaktype=child.nodeType;
-                                breakpos=i-span;
+                                breakpos=i;
                                 break;}
                             else continue;}}
                     if (!(page_break))  // Never went over the edge
@@ -19329,7 +19335,9 @@ fdjt.CodexLayout=
                         // If the break is at the head, push the whole
                         // node to the next page, otherwise, 
                         if (breakpos===0) return node;
-                        else return children.slice(breakpos);}
+                        else {
+                            original.parentNode.removeChild(original);
+                            return children.slice(breakpos);}}
                     else {
                         // Check if just the first word pushes us over
                         // the edge, a relatively common case
@@ -19338,8 +19346,13 @@ fdjt.CodexLayout=
                         probenode=wprobe; geom=getGeom(node,page);
                         if (geom.bottom>use_page_height) {
                             text_parent.replaceChild(original,probenode);
-                            if (children.length===1) 
-                                return node;
+                            if (children.length===1) return node;
+                            else if (breakpos===0) return node;
+                            else if ((words[0].search(/^[.,;~?!:"'”’)\]-]/))===0) {
+                                if (breakpos===1) return node;
+                                else {
+                                    probenode.parentNode.removeChild(probenode);
+                                    return children.slice(breakpos-1);}}
                             else return children.slice(breakpos);}
                         else {
                             text_parent.replaceChild(textsplit,wprobe);
@@ -20016,6 +20029,7 @@ fdjt.CodexLayout=
                 return (style.pageBreakInside==='avoid')||
                     (style.display==='table-row')||
                     ((style.display==="block")&&
+                     (elt.childNodes)&&(elt.childNodes.length)&&
                      ((lh)&&((lh*2.5)>elt.offsetHeight)));}
             this.avoidBreakInside=avoidBreakInside;
             function mustBreakInside(elt){
@@ -21950,7 +21964,7 @@ var metaBook={
     // How long (msecs) to wait for a resize to be 'real'
     resize_wait: 500,
     // Whether to force new layouts, set this in default_config, not here
-    forcelayout: false,
+    forcelayout: true,
     // Whether layout is temporarily frozen, for example during text
     // input (on tablets, there may be extraneous resizes when the
     // on-screen keyboard appears)
@@ -22028,7 +22042,7 @@ var metaBook={
     //  to initialize local references to common metaBook functions
     inits: [],
     default_config: {
-        layout: 'bypage',forcelayout: false,
+        layout: 'bypage',
         bodysize: 'normal',bodyfamily: 'serif',
         bodycontrast: 'high', textjustify: false,
         linespacing: 'normal',
@@ -23315,7 +23329,6 @@ fdjt.DOM.noautofontadjust=true;
     function metabookPropConfig(name,value){
         metaBook[name]=value;}
     metaBook.propConfig=metabookPropConfig;
-    metaBook.addConfig("forcelayout",metabookPropConfig);
 
     metaBook.addConfig("keyboardhelp",function(name,value){
         metaBook.keyboardhelp=value;
@@ -27680,8 +27693,7 @@ metaBook.Startup=
             if (autofonts.length)
                 fdjt.DOM.autofont=fdjt.DOM.autofont+","+autofonts.join(",");
 
-            if (getMeta("METABOOK.forcelayout"))
-                default_config.forcelayout=true;
+            if (getMeta("METABOOK.forcelayout")) mB.forcelayout=true;
 
             var autotoc=getMeta("SBOOKS.autotoc");
             if (autotoc) {
@@ -29005,7 +29017,9 @@ metaBook.Slice=(function () {
             metaBook.setMode("addgloss");
             return fdjtUI.cancel(evt);}
         else if (mB.mode==="openglossmark") {
-            goToGloss(card); return fdjtUI.cancel(evt);}
+            mB.clearGlossmark();
+            goToGloss(card); 
+            return fdjtUI.cancel(evt);}
         else if (getParent(target,".glossbody"))  {
             var detail=((gloss)&&(gloss.detail));
             if (!(detail)) return;
@@ -30529,8 +30543,11 @@ metaBook.setMode=
                     (mode==='expandsearch'))
                     metaBook.search_mode=mode;
 
-                if ((mode==='addgloss')||(mode==="openglossmark")) 
+                if (mode==='addgloss') 
                     addClass(document.body,"openhud");
+                else if (mode==="openglossmark") {
+                    addClass(document.body,"openhud");
+                    addClass(document.body,"openglossmark");}
                 else if (nohud) {}
                 // And if we're not skimming, we just raise the hud
                 else setHUD(true);
@@ -30563,8 +30580,9 @@ metaBook.setMode=
                 metaBook.last_mode=metaBook.mode;
                 if (hasClass(document.body,"mbCOVER")) hideCover();
                 if ((metaBook.mode==="openglossmark")&&
-                    ($ID("METABOOKOPENGLOSSMARK")))
+                    ($ID("METABOOKOPENGLOSSMARK"))) {
                     $ID("METABOOKOPENGLOSSMARK").id="";
+                    dropClass(document.body,"openglossmark");}
                 if (metaBook.textinput) {
                     metaBook.setFocus(false);}
                 metaBook.focusBody();
@@ -31355,6 +31373,7 @@ metaBook.setMode=
     var addClass=fdjtDOM.addClass, dropClass=fdjtDOM.dropClass;
     var hasClass=fdjtDOM.hasClass, toggleClass=fdjtDOM.toggleClass;
     var mbicon=metaBook.icon;
+    var mB=metaBook;
 
     /* Social UI components */
 
@@ -31552,9 +31571,12 @@ metaBook.setMode=
         var hudwrapper=fdjtDOM("div.hudpanel#METABOOKPOINTGLOSSES",slicediv);
         metaBook.openglossmark=slice;
         if (point) {
+            mB.setMode(false);
             hudwrapper.style.display='block';
             hudwrapper.style.opacity=0.0;
-            fdjtDOM.replace("METABOOKPOINTGLOSSES",hudwrapper);
+            if ($ID("METABOOKPOINTGLOSSES"))
+                fdjtDOM.replace("METABOOKPOINTGLOSSES",hudwrapper);
+            else mB.body.appendChild(hudwrapper);
             var geom=fdjtDOM.getGeometry(slicediv);
             var wgeom=fdjtDOM.getGeometry(hudwrapper);
             var pgeom=fdjtDOM.getGeometry(point);
@@ -38467,10 +38489,6 @@ metaBook.HTML.hud=
     "  </div>\n"+
     "  <div id=\"METABOOKHEARTBODY\"></div>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKPOINTGLOSSES\" class=\"hudpanel\">\n"+
-    "  <!-- This is populated when a glosspoint is tapped.\n"+
-    "       It contains the glosses for a particular passage. -->\n"+
-    "</div>\n"+
     "<div id=\"METABOOKHELPCONTENT\">\n"+
     "  <div id=\"METABOOKHELP\" class=\"hudpanel metabookhelp\">\n"+
     "    <!-- This is the help text for reading the book as a whole (it get's\n"+
@@ -39714,21 +39732,21 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1438-g4e8738f';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Mon Jun 1 18:07:45 CEST 2015';
-fdjt.builduuid='B628155C-5A64-46A7-8EA4-8AA260A6C377';
+fdjt.revision='1.5-1439-gfd07700';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Thu Jun 11 15:09:34 EDT 2015';
+fdjt.builduuid='6bf165a3-4adb-4bd8-8056-7cd8d6734255';
 
-fdjt.CodexLayout.sourcehash='F2C252D1F6C84B63D528E1C11F142300DF521C5C';
+fdjt.CodexLayout.sourcehash='D8B1B80DED704814DD110D964D4A8D3E503EA1AA';
 
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-151-g02cb238';
 // sBooks metaBook build information
-metaBook.version='v0.8-31-gbbef773';
-metaBook.buildid='D308A092-F737-4B46-8D35-05D329C5E7E1';
-metaBook.buildtime='Mon Jun  1 19:21:05 CEST 2015';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-33-g37a6afd';
+metaBook.buildid='52a7e188-e9f7-4e63-ae4c-bb0de5ccee61';
+metaBook.buildtime='Thu Jun 11 17:29:05 EDT 2015';
+metaBook.buildhost='moby.dot.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='F2C252D1F6C84B63D528E1C11F142300DF521C5C';
+fdjt.CodexLayout.sourcehash='D8B1B80DED704814DD110D964D4A8D3E503EA1AA';

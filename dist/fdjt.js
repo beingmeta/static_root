@@ -13767,7 +13767,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
     var hasClass=fdjtDOM.hasClass;
     var getParent=fdjtDOM.getParent;
     var hasParent=fdjtDOM.hasParent;
-    var Selector=fdjtDOM.Selector;
     var reticle=fdjtUI.Reticle;
 
     var noBubble=fdjtUI.noBubble;
@@ -15736,8 +15735,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1438-g4e8738f';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Mon Jun 1 18:07:45 CEST 2015';
-fdjt.builduuid='B628155C-5A64-46A7-8EA4-8AA260A6C377';
+fdjt.revision='1.5-1439-gfd07700';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Thu Jun 11 15:09:34 EDT 2015';
+fdjt.builduuid='6bf165a3-4adb-4bd8-8056-7cd8d6734255';
 
