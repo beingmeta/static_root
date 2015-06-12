@@ -26,6 +26,7 @@ CLEANCSS:=`which cleancss`
 CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
 		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon \
 		*.rct *.ico
+SVN=svn --non-interactive --trust-server-cert
 
 FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js \
@@ -215,7 +216,7 @@ metabook:
 showsomeclass:
 	git clone git@github.com:beingmeta/showsomeclass.git
 g:
-	svn checkout svn+ssh://dev.beingmeta.com/svn/src/graphics/targets g
+	${SVN} checkout svn+ssh://dev.beingmeta.com/svn/src/graphics/targets g
 pagedown:
 	hg clone https://code.google.com/p/pagedown/
 bibliotype:
