@@ -491,7 +491,7 @@ status:
 	cd metabook; git status -uno
 	cd showsomeclass; git status -uno
 	cd g; svn status -q
-pull: fdjt knodules g showsomeclass bibliotype
+pull: fdjt knodules g showsomeclass
 	git pull
 	cd fdjt; git pull
 	cd knodules; git pull
