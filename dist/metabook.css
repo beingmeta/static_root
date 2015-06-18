@@ -2960,7 +2960,7 @@ body.mbMEDIA #METABOOKBODY {
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.openhud #METABOOKFRAME, body.mbSKIMMING #METABOOKFRAME,
 body.mbSHOWHELP #METABOOKFRAME {
-    z-index: 10;}
+    z-index: 50;}
 
 /* Override simple stylesheet definitions in the metaBook frame */
 
@@ -3175,7 +3175,9 @@ body.mbMEDIA #METABOOKMEDIA iframe {
 #METABOOKBODY {
     position: fixed; overflow: visible;
     left: 0px; right: 0px; top: 0px; bottom: 0px;} /* z-index: -50; */
-#METABOOKBODY { background-color: #ffffff; color: #444; }
+#METABOOKBODY { background-color: transparent; color: black; }
+
+.metabookcontent { background-color: white; color: #444; }
 
 /* CODEXCONTENT is where linear content lives for scrolling layout.
    It is also used to determine the width of the content region
@@ -5869,11 +5871,11 @@ html._MOUSE #METABOOKBODY a[href]:hover,
 #METABOOKBODY a[href]:active {
     color: blue; }
 
-#METABOOKBODY {
+#METABOOKBODY .metabookcontent {
     background-color: #ffffff; color: #111; }
-#METABOOKBODY.metabookcontrasthigh { color: #111; }
-#METABOOKBODY.metabookcontrastmedium { color: #444; }
-#METABOOKBODY.metabookcontrastlow {
+#METABOOKBODY.metabookcontrasthigh  .metabookcontent { color: #111; }
+#METABOOKBODY.metabookcontrastmedium .metabookcontent { color: #444; }
+#METABOOKBODY.metabookcontrastlow .metabookcontent {
     background-color: #e5e0d4; color: #333; }
 
 p { line-height: 1.2;}
@@ -6123,21 +6125,23 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
         margin-left: 0px; margin-right: 0px;}}
 
 @media (lightlevel: dim OR lightlevel: washed) {
-    #METABOOKBODY { background-color: #ffffff; color: #111; }
-    #METABOOKBODY.metabookcontrasthigh {
+    #METABOOKBODY .metabookcontent {
         background-color: #ffffff; color: #111; }
-    #METABOOKBODY.metabookcontrastmedium {
+    #METABOOKBODY.metabookcontrasthigh  .metabookcontent {
+        background-color: #ffffff; color: #111; }
+    #METABOOKBODY.metabookcontrastmedium  .metabookcontent {
         background-color: #ffffff; color: #444; }
-    #METABOOKBODY.metabookcontrastlow  {
+    #METABOOKBODY.metabookcontrastlow  .metabookcontent {
         background-color: #e5e0d4; color: #333; }}
 
 @media (lightlevel: bright) {
-    #METABOOKBODY { background-color: #ffffff; color: #444; }
-    #METABOOKBODY.metabookcontrasthigh {
-        background-color: #ffffff; color: #111; }
-    #METABOOKBODY.metabookcontrastmedium {
+    #METABOOKBODY  .metabookcontent {
         background-color: #ffffff; color: #444; }
-    #METABOOKBODY.metabookcontrastlow  {
+    #METABOOKBODY.metabookcontrasthigh .metabookcontent {
+        background-color: #ffffff; color: #111; }
+    #METABOOKBODY.metabookcontrastmedium  .metabookcontent {
+        background-color: #ffffff; color: #444; }
+    #METABOOKBODY.metabookcontrastlow   .metabookcontent {
         background-color: #e5e0d4; color: #333; }}
 
 /* Emacs local variables
@@ -7499,10 +7503,11 @@ html._NOSVG div.resultinfo .qtags .qelt span.redx {
 #METABOOKHUD.searchresults #METABOOKSEARCHINFO {
     display: block;}
 #METABOOKSEARCHINFO .qtags {
-    box-sizing: border-box;
+    box-sizing: border-box; display: inline-block;
     padding-top: 0.5ex; padding-right: 1ex;
-    margin-left: 1em; margin-bottom: 0px;
+    margin-left: 3px; margin-bottom: 0px;
     height: 100%; vertical-align: top;
+    white-space: normal;
     clear: left;}
 .qtags span.variations { display: none; }
 .qtags span.elided { display: inline; }
@@ -7523,7 +7528,8 @@ body._ANIMATE .qtags {
 
 @media screen and (max-width: 640px) {
     #METABOOKHUD div.resultinfo span.stats { font-size: 3vw; }
-    div.resultinfo .stats > span > br { display: initial; }}
+    div.resultinfo .stats > span > br { display: initial; }
+    #METABOOKSEARCHINFO .qtags { max-width: 50%;}}
 
 @media screen and (max-width: 500px) {
     #METABOOKHUD div.resultinfo { font-size: 1rem; }}
