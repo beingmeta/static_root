@@ -4683,10 +4683,11 @@ div.completions.hudpanel .normal { line-height: 250%;}
 
 /* HUD buttons */
 
-#METABOOKHUD img.hudbutton {
+img.hudbutton {
     position: absolute; width: 50px; height: 50px;
-    border: solid transparent 2px;}
-#METABOOKHUD .hudbutton {
+    border: solid transparent 2px;
+    box-sizing: border-box;}
+.hudbutton {
     opacity: 0.02;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=02)";
     filter: alpha(opacity=02);
@@ -4694,6 +4695,9 @@ div.completions.hudpanel .normal { line-height: 250%;}
     -khtml-opacity: 0.02;
     -moz-opacity: 0.02;
     -o-opacity: 0.02;}
+html._MOUSE .hudbutton:hover,
+html._MOUSE #METABOOKTOPBAR:hover .hudbutton,
+html._MOUSE #METABOOKFOOT:hover .hudbutton,
 #METABOOKHUD .tapholding .hudbutton {
     opacity: 0.50;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
@@ -4702,8 +4706,18 @@ div.completions.hudpanel .normal { line-height: 250%;}
     -khtml-opacity: 0.50;
     -moz-opacity: 0.50;
     -o-opacity: 0.50;}
+html._MOUSE #METABOOKTOPBAR:hover .hudbutton:hover,
+html._MOUSE #METABOOKFOOT:hover .hudbutton:hover {
+    opacity: 0.75;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
+    filter: alpha(opacity=75);
+    -webkit-opacity: 0.75;
+    -khtml-opacity: 0.75;
+    -moz-opacity: 0.75;
+    -o-opacity: 0.75;}
+    
 
-body.mbSKIMMING #METABOOKHUD img.hudbutton {
+body.mbSKIMMING img.hudbutton {
     opacity: 0.80;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
     filter: alpha(opacity=80);
@@ -4711,7 +4725,7 @@ body.mbSKIMMING #METABOOKHUD img.hudbutton {
     -khtml-opacity: 0.80;
     -moz-opacity: 0.80;
     -o-opacity: 0.80;}
-#METABOOKHUD .hudbutton {
+.hudbutton {
     transition-property: width, height, opacity;
     transition-duration: 0.2s;
     -moz-transition-property: width, height, opacity;
@@ -4872,14 +4886,14 @@ html._NOUSER a.logout {
 /* HUDUP rules */
 
 body.hudup #METABOOKHUD { }
-body.hudup #METABOOKHUD .hudbutton {
-    opacity: 0.6;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
-    filter: alpha(opacity=60);
-    -webkit-opacity: 0.60;
-    -khtml-opacity: 0.60;
-    -moz-opacity: 0.60;
-    -o-opacity: 0.60;}
+body.hudup .hudbutton {
+    opacity: 0.50;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+    -webkit-opacity: 0.50;
+    -khtml-opacity: 0.50;
+    -moz-opacity: 0.50;
+    -o-opacity: 0.50;}
 body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 
 /* METABOOKPOINTGLOSSES rules */
@@ -5354,9 +5368,9 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
 
 /* Hover rules */
 
-#METABOOKHUD .hudbutton.tapholdtarget,
-#METABOOKHUD .tapholding .hudbutton.tapholdtarget,
-#METABOOKHUD .tapholding .hudbutton.tapholding {
+.hudbutton.tapholdtarget,
+.tapholding .hudbutton.tapholdtarget,
+.tapholding .hudbutton.tapholding {
     border-color: blue; border-style: dotted;
     opacity: 0.80;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
@@ -5385,17 +5399,17 @@ body.hudup img.metabookpagebutton {
 /* Media rules */
 
 @media screen and (max-width: 640px) {
-    .hudup #METABOOKHUD img.hudbutton {
+    .hudup img.hudbutton {
         width: 50px; height: 50px;}
-    .hudup #METABOOKHUD #METABOOKSHOWCOVER img {
+    .hudup #METABOOKSHOWCOVER img {
         width: 50px; height: 50px;}
     body #METABOOKFRAME > #METABOOKHUD > #METABOOKTOPBAR {
         height: 55px; max-height: 55px;}
 
-    #METABOOKHUD #METABOOKTOPBAR.tapholding img.hudbutton,
-    ._TOUCH #METABOOKHUD #METABOOKFOOT.tapholding
+    #METABOOKTOPBAR.tapholding img.hudbutton,
+    ._TOUCH #METABOOKFOOT.tapholding
     img.hudbutton.tapholdtarget,
-    ._TOUCH #METABOOKHUD #METABOOKTOPBAR.tapholding
+    ._TOUCH #METABOOKTOPBAR.tapholding
     img.hudbutton.tapholdtarget {
         width: 50px; height: 50px;}
 

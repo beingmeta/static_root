@@ -7739,27 +7739,31 @@ fdjt.DOM=
 (function() {
     "use strict";
     var lastTime = 0;
-    var vendors = ['webkit', 'moz'];
+    var rAF=window.requestAnimationFrame;
+    var cAF=window.cancelAnimationFrame;
+    var vendors = ['webkit', 'moz','ms','o'];
+
+    function fakeAnimationFrame(callback) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(
+            function() { callback(currTime + timeToCall); },
+            timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;}
+    function cancelFakeAnimationFrame(id){clearTimeout(id);}
+
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame =
-          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-    }
+        rAF=rAF||window[vendors[x]+'RequestAnimationFrame'];
+        cAF=cAF||window[vendors[x]+'CancelAnimationFrame']||
+            window[vendors[x]+'CancelRequestAnimationFrame'];}
 
-    if (!window.requestAnimationFrame)
-        window.requestAnimationFrame = function(callback) { /* ,element */
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-              timeToCall);
-            lastTime = currTime + timeToCall;
-            return id;
-        };
+    if (!(rAF)) {
+        rAF=fakeAnimationFrame;
+        cAF=cancelFakeAnimationFrame;}
 
-    if (!window.cancelAnimationFrame)
-        window.cancelAnimationFrame = function(id) {
-            clearTimeout(id);
-        };
+    fdjt.DOM.rAF=fdjt.DOM.requestAnimationFrame=rAF;
+    fdjt.DOM.cAF=fdjt.DOM.cancelAnimationFrame=cAF;
 }());
 
 /* Emacs local variables
@@ -13157,6 +13161,9 @@ if (!(fdjt.UI)) fdjt.UI={};
     var fdjtUI=fdjt.UI;
     var RefDB=fdjt.RefDB, fdjtID=fdjt.ID;
 
+    var rAF=fdjtDOM.requestAnimationFrame;
+    var async=fdjt.async;
+
     var serial=0;
 
     /* Constants */
@@ -13400,7 +13407,7 @@ if (!(fdjt.UI)) fdjt.UI={};
                 result=getNodes(string,this.prefixtree,this.bykey,
                                 ((this.options)&(FDJT_COMPLETE_MATCHCASE)));
                 if (this.dom) dropClass(this.dom,"noinput");
-                updateDisplay(this,result.matches);}
+                rAF(function(){updateDisplay(this,result.matches);});}
             if ((this.stringmap)&&(this.strings)) {
                 var stringmap=this.stringmap;
                 var strings=this.strings;
@@ -13439,24 +13446,27 @@ if (!(fdjt.UI)) fdjt.UI={};
                     (hasClass(this.input,"isempty"))?(""):
                     (this.input.value));
         if (isEmpty(string)) {
-            if (this.displayed) updateDisplay(this,false);
-            addClass(this.dom,"noinput");
-            dropClass(this.dom,"nomatches");
-            if (callback) callback([]);
+            rAF(function(){
+                if (this.displayed) updateDisplay(this,false);
+                addClass(this.dom,"noinput");
+                dropClass(this.dom,"nomatches");
+                if (callback) async(function(){callback([]);});});
             return [];}
         var result=this.getCompletions(string);
         if ((!(result))||(result.length===0)) {
-            updateDisplay(this,false);
-            dropClass(this.dom,"noinput");
-            addClass(this.dom,"nomatches");
-            if (callback) callback(result);
+            rAF(function(){
+                updateDisplay(this,false);
+                dropClass(this.dom,"noinput");
+                addClass(this.dom,"nomatches");
+                if (callback) async(function(){callback(result);});});
             return [];}
         else {
-            updateDisplay(this,result.matches);
-            dropClass(this.dom,"noinput");
-            dropClass(this.dom,"nomatches");}
-        if (callback) callback(result);
-        return result;};
+            rAF(function(){
+                updateDisplay(this,result.matches);
+                dropClass(this.dom,"noinput");
+                dropClass(this.dom,"nomatches");
+                if (callback) async(function(){callback(result);});});
+            return result;}};
 
     Completions.prototype.getByValue=function(values,spec){
         if (!(this.initialized)) initCompletions(this);
@@ -14766,6 +14776,8 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
         var swapClass=fdjtDOM.swapClass;
         var dropClass=fdjtDOM.dropClass;
 
+        var rAF=fdjtDOM.requestAnimationFrame;
+
         function position(elt,arr){
             if (arr.indexOf) return arr.indexOf(elt);
             else {
@@ -15073,20 +15085,20 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             return true;}
 
         function useWord(word,sel,tapped){
+            var start=sel.start, end=sel.end;
             if (!(word.offsetParent)) return;
             if (!(sel.start)) {
                 var initial=initSelect(word);
-                sel.setRange(initial.start,initial.end);}
-            else if (sel.anchor)
-                sel.setRange(sel.anchor,word);
-            else if (sel.start===sel.end)
+                start=initial.start; end=initial.end;}
+            else if (sel.anchor) {
+                start=sel.anchor; end=word;}
+            else if (sel.start===sel.end) {
                 // Just one word is selected, so use the touched word
                 // as the 'end' and let setRange sort out the correct
                 // order
-                sel.setRange(sel.start,word);
+                start=sel.start; end=word;}
             else {
                 var off=sel.wordnum(word);
-                var start=sel.start, end=sel.end;
                 // Check that you're consistent with the end you're moving
                 if ((sel.adjust==='start')&&(off>sel.max)) return;
                 if ((sel.adjust==='end')&&(off<sel.min)) return;
@@ -15107,9 +15119,10 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 else if ((off-sel.min)>((sel.max-sel.min)/2)) {
                     end=word; sel.setAdjust('end');}
                 else {
-                    start=word; sel.setAdjust('start');}
-                sel.setRange(start,end);}
-            if (sel.loupe) updateLoupe(word,sel,tapped);}
+                    start=word; sel.setAdjust('start');}}
+            rAF(function(){
+                sel.setRange(start,end);
+                if (sel.loupe) updateLoupe(word,sel,tapped);});}
 
         function nodeSearch(node,pat){
             if (node.nodeType===3) {
@@ -15765,8 +15778,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1442-gad46b1b';
+fdjt.revision='1.5-1443-gb360b6b';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Thu Jun 18 09:38:04 EDT 2015';
-fdjt.builduuid='19f6b5b2-5430-459a-964b-d0902752b0d7';
+fdjt.buildtime='Thu Jun 18 12:05:15 EDT 2015';
+fdjt.builduuid='e3b55007-3cde-4ee2-8af8-7ee99837ab58';
 
