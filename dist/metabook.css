@@ -3600,6 +3600,9 @@ html._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
 #METABOOKCOVER > div.userbox {
     padding-top: 0px;}
 
+#METABOOKCOVER > div.controls > div {
+    width: 100%;}
+
 html._NOUSER #METABOOKCOVER > div {
     top: 65px; bottom: 150px; }
 html._USER #METABOOKCOVER > div.userbox {
