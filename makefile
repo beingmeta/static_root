@@ -100,7 +100,7 @@ METABOOK_CSS=\
 # removed sbooks/reset.css
 SBOOKS_FILES=sbooks/sbooks.css \
 	sbooks/app.css sbooks/app.js \
-	sbooks/amalgam.js
+	metabook/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
 METABOOK_JS_BUNDLE=metabook/fontcheck.js fdjt/indexed.js \
@@ -299,7 +299,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	@echo Building ./metabook.min.js and ./metabook.uglify.map
 	@$(UGLIFY) -b \
 	  --source-map metabook.uglify.map \
-	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
 	  metabook/autoload.js -o $@
@@ -319,7 +319,7 @@ metabook.raw.js: $(METABOOK_JS_BUNDLE) makefile \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	metabook/tieoff.js metabook/autoload.js
 	@echo Building ./metabook.raw.js
-	@cat sbooks/amalgam.js \
+	@cat metabook/amalgam.js \
 		$(METABOOK_JS_BUNDLE) \
 		fdjt/buildstamp.js fdjt/codexlayouthash.js \
 		knodules/buildstamp.js metabook/buildstamp.js \
@@ -345,7 +345,7 @@ dist/metabook.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	dist/tieoff.js etc/sha1
 	@echo Building dist/metabook.js
-	@cat sbooks/amalgam.js $(METABOOK_JS_BUNDLE) \
+	@cat metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		fdjt/buildstamp.js fdjt/codexlayouthash.js \
 		knodules/buildstamp.js metabook/buildstamp.js \
 		dist/tieoff.js metabook/autoload.js > $@
@@ -360,7 +360,7 @@ dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 	@mv metabook.clean.css metabook.clean.css.map dist
 
-dist/metabook.uglify.js: sbooks/amalgam.js $(METABOOK_JS_BUNDLE) \
+dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	        knodules/buildstamp.js metabook/buildstamp.js \
 		metabook/tieoff.js metabook/autoload.js
@@ -368,7 +368,7 @@ dist/metabook.uglify.js: sbooks/amalgam.js $(METABOOK_JS_BUNDLE) \
 	@$(UGLIFY) \
 	  --source-map metabook.uglify.map \
 	  --source-map-root /static \
-	    sbooks/amalgam.js $(METABOOK_JS_BUNDLE) \
+	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
 	    metabook/tieoff.js metabook/autoload.js > $@
@@ -395,7 +395,7 @@ dist/metabook.compiled.js: makefile $(METABOOK_JS_BUNDLE) \
 	java -jar closure/compiler.jar \
 		--language_in ECMASCRIPT5 \
 		--create_source_map dist/metabook.compiled.map \
-		sbooks/amalgam.js      \
+		metabook/amalgam.js    \
 		$(METABOOK_JS_BUNDLE)  \
                 metabook/tieoff.js     \
 	        fdjt/buildstamp.js     \
@@ -409,7 +409,7 @@ dist/metabook.advanced.js: makefile $(METABOOK_JS_BUNDLE) \
 		--language_in ECMASCRIPT5 \
 		--create_source_map dist/metabook.advanced.map \
 	        --compilation_level ADVANCED_OPTIMIZATIONS \
-		sbooks/amalgam.js      \
+		metabook/amalgam.js    \
 		$(METABOOK_JS_BUNDLE)  \
                 metabook/tieoff.js     \
 	        fdjt/buildstamp.js     \
