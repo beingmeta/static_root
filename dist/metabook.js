@@ -27272,6 +27272,7 @@ metaBook.Startup=
             fdjtDOM.addAppSchema("SBOOK","http://sbooks.net/");
             fdjtDOM.addAppSchema("SBOOKS","http://sbooks.net/");
             fdjtDOM.addAppSchema("METABOOKS","http://metabooks.net/");
+            fdjtDOM.addAppSchema("MB","http://metabooks.net/");
             fdjtDOM.addAppSchema("metaBook","http://metabook.sbooks.net/");
             fdjtDOM.addAppSchema("DC","http://purl.org/dc/elements/1.1/");
             fdjtDOM.addAppSchema("DCTERMS","http://purl.org/dc/terms/");
@@ -39856,9 +39857,9 @@ fdjt.CodexLayout.sourcehash='D6D4D57F2DB6566DCB275D5FABD36F8EAB0C2BF0';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-52-g13cbc28';
-metaBook.buildid='995c2c28-dac2-4c16-bff2-c6ff02f86587';
-metaBook.buildtime='Mon Jun 22 18:23:37 EDT 2015';
+metaBook.version='v0.8-53-g2d158b4';
+metaBook.buildid='99e74428-f7dd-42db-b367-f09b083fe1be';
+metaBook.buildtime='Mon Jun 22 18:26:13 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
