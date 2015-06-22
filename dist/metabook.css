@@ -3493,7 +3493,7 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
     box-sizing: border-box; -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;}
 
-#METABOOKCOVERPAGE, #METABOOKTITLEPAGE, #METABOOKBLURB,
+#METABOOKCOVERPAGE, #METABOOKCOVERTITLE, #METABOOKBLURB,
 #METABOOKSETTINGS, #METABOOKCONSOLE, #METABOOKAPPHELP {
     display: none;}
 
@@ -3600,7 +3600,7 @@ html._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
 #METABOOKCOVER > div.userbox {
     padding-top: 0px;}
 
-#METABOOKCOVER > div.controls > div {
+#METABOOKCOVER > div.controls > div.fdjtfontwrapper {
     width: 100%;}
 
 html._NOUSER #METABOOKCOVER > div {
@@ -3664,8 +3664,8 @@ html._USER #METABOOKCOVER div.userbox {
 
 #METABOOKCOVER.coverpage > div#METABOOKCOVERPAGE,
 #METABOOKCOVER.bookcover > div#METABOOKCOVERPAGE,
-#METABOOKCOVER.titlepage > div#METABOOKTITLEPAGE,
-#METABOOKCOVER.titlepage > div#METABOOKTITLEPAGEHOLDER,
+#METABOOKCOVER.titlepage > div#METABOOKCOVERTITLE,
+#METABOOKCOVER.titlepage > div#METABOOKCOVERTITLEHOLDER,
 #METABOOKCOVER.bookcredits > div#METABOOKBOOKCREDITS,
 #METABOOKCOVER.bookcredits > div#METABOOKBOOKCREDITSHOLDER,
 #METABOOKCOVER.blurb > div#METABOOKBLURB,
@@ -3712,7 +3712,7 @@ html._USER._CONN .control[data-mode='login'] { display: none;}
 #METABOOKCOVERCONTROLS.nocredits .control[data-mode='creditspage'] {
     display: none;}
 
-#METABOOKTITLEPAGE, #METABOOKABOUTBOOK, #METABOOKBOOKCREDITS,
+#METABOOKCOVERTITLE, #METABOOKABOUTBOOK, #METABOOKBOOKCREDITS,
 #METABOOKABOUTSBOOKS, #METABOOKBLURB, #METABOOKAPPHELP {
     padding-top: 1ex; padding-bottom: 1ex;
     margin-left: auto; margin-right: auto;
@@ -3769,8 +3769,8 @@ html._SHOWCONSOLE .control[alt='Console'] {display: none;}
 
 /* Title page */
 
-#METABOOKTITLEPAGE { display: none; }
-#METABOOKCOVER #METABOOKTITLEPAGE {
+#METABOOKCOVERTITLE { display: none; }
+#METABOOKCOVER #METABOOKCOVERTITLE {
     padding: 16px; padding: 4vh;
     overflow: hidden;}
 
@@ -5899,7 +5899,7 @@ p { line-height: 1.2;}
 #METABOOKPAGES .codexpage.metabookcoversize p { line-height: 1.05;}
 
 .metabookbody .titlepage, .metabookbody .sbooktitlepage,
-#METABOOKTITLEPAGE.sbooktitlepage {
+#METABOOKCOVERTITLE.sbooktitlepage {
     text-align: center;}
 
 .codexpage .sbookcover, .codexpage .sbookcoverpage,

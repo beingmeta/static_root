@@ -14697,7 +14697,9 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             else trace=0;
             return cur;};
 
-        this.debug=function(){debugger;};
+        this.debug=function(){
+            // jshint debug:true
+            debugger;};
         
         if ((trace)||(traceall))
             fdjtLog("New TapHold(%s) for %o: %o opts %j, trace=%o/%o",
@@ -15778,8 +15780,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1443-gb360b6b';
+fdjt.revision='1.5-1447-gf48acbe';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Thu Jun 18 12:05:15 EDT 2015';
-fdjt.builduuid='e3b55007-3cde-4ee2-8af8-7ee99837ab58';
+fdjt.buildtime='Mon Jun 22 11:04:05 EDT 2015';
+fdjt.builduuid='d1bc1562-0de5-4b3f-adc8-af532c8631a6';
 

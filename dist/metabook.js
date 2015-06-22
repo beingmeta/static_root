@@ -1,6 +1,6 @@
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2012 beingmeta, inc.
+/* Copyright (C) 2009-2015 beingmeta, inc.
    This file was created from several component files, some of
       which have different restrictions.
 
@@ -25,6 +25,7 @@
 
 */
 
+window._metabook_amalgam=(document)&&(document.currentScript)&&(document.currentScript.src);
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
 /* ###################### metabook/core.js ###################### */
@@ -15862,7 +15863,9 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             else trace=0;
             return cur;};
 
-        this.debug=function(){debugger;};
+        this.debug=function(){
+            // jshint debug:true
+            debugger;};
         
         if ((trace)||(traceall))
             fdjtLog("New TapHold(%s) for %o: %o opts %j, trace=%o/%o",
@@ -17663,10 +17666,9 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
         if (!((elts)&&(elts.length)))
             elts=fdjtDOM.getLinks("*.knodule",true,true);
         i=0; lim=elts.length; while (i<lim) knoduleLoad(elts[i++],knodule);
-        elts=fdjtDOM.getMeta("SBOOKS.knodef");
+        elts=fdjtDOM.getMeta("knodef");
         i=0; lim=elts.length; while (i<elts.length) {
-            elt=elts[i++];
-            if (elt.name==="KNODEF") knodule.handleEntry(elt.content);}
+            knodule.handleEntry(elts[i++].content);}
         elts=document.getElementsByTagName("META");
         i=0; lim=elts.length; while (i<lim) {
             elt=elts[i++];
@@ -18474,10 +18476,16 @@ fdjt.CodexLayout=
                 (fdjtState.getLocal("codexlayout.trace",true))||0;
             var track=init.track||CodexLayout.track||
                 (fdjtState.getLocal("codexlayout.track"))||false;
+            var debug=init.debug||CodexLayout.debug||
+                fdjtState.getLocal("codexlayout.debug")||false;
             if (track) {
                 this.track=track=fdjtDOM.Selector(track);
                 if (!(trace)) trace=this.tracelevel=1;}
-            else this.track=false;
+            if (debug) {
+                this.debug=debug=fdjtDOM.Selector(debug);
+                if (!(trace)) trace=this.tracelevel=1;}
+            else this.debug=false;
+            if (trace) addClass(document.body,"debugcodexlayout");
             this.roots=init.roots||[]; // Where all roots can be tracked
             this.root_count=0; // Number of root nodes added
             this.block_count=0;
@@ -18637,6 +18645,10 @@ fdjt.CodexLayout=
                               block,block_i,root,page);
                         tracing=true;}
                     
+                    if ((trace)&&(block)&&(debug)&&(debug.match(block))) {
+                        // jshint debug:true
+                        debugger;}
+
                     // FIRST, HANDLE DRAGGING
                     handle_dragging(block,terminal,info,style);
                     
@@ -19332,10 +19344,10 @@ fdjt.CodexLayout=
                             geom=getGeom(node,page);
                             if (geom.bottom>use_page_height) {
                                 page_break=child; breaktype=child.nodeType;
-                                breakpos=i;
+                                breakpos=i-1;
                                 break;}
                             else continue;}}
-                    if (!(page_break))  // Never went over the edge
+                    if (breakpos<0)  // Never went over the edge
                         return false;
                     // If we get here, this child pushed the node over the edge
                     else if (breaktype===3) {
@@ -19383,21 +19395,36 @@ fdjt.CodexLayout=
                             return children.slice(breakpos);}}
                     else {
                         // Check if just the first word pushes us over
-                        // the edge, a relatively common case
+                        // the edge, a relatively common case.  If so,
+                        // we push the whole node over
                         var wprobe=document.createTextNode(words[0]);
                         text_parent.replaceChild(wprobe,probenode);
                         probenode=wprobe; geom=getGeom(node,page);
                         if (geom.bottom>use_page_height) {
                             text_parent.replaceChild(original,probenode);
-                            if (children.length===1) return node;
-                            else if (breakpos===0) return node;
+                            if (breakpos===0) return node;
                             else if ((words[0].search(/^[.,;~?!:"'”’)\]-]/))===0) {
+                                // If the first word is some sort of
+                                // closing punctuation, we really want
+                                // to break at the preceding child.
+                                // If that's the first child
+                                // (breakpos==1), we push the whole
+                                // node, otherwise, we remove the
+                                // probe and return the remainder of
+                                // the children including the previous
+                                // child.
                                 if (breakpos===1) return node;
                                 else {
                                     probenode.parentNode.removeChild(probenode);
                                     return children.slice(breakpos-1);}}
-                            else return children.slice(breakpos);}
+                            else {
+                                // We don't bother splitting this
+                                // text if the first word pushes us
+                                // over the edge.
+                                return children.slice(breakpos);}}
                         else {
+                            // Now we go ahead and use splitWords to
+                            // split the text.
                             text_parent.replaceChild(textsplit,wprobe);
                             probenode=textsplit;}}
                     var foundbreak=splitWords(
@@ -22340,9 +22367,11 @@ fdjt.DOM.noautofontadjust=true;
         
         var knodeToOption=Knodule.knodeToOption;
 
-        var cachelink=/^https:\/\/glossdata.sbooks.net\//;
+        var cachelink=/^https:\/\/glossdata.(sbooks\.net|metabooks\.net|beingmeta\.com)\//;
+        mB.cachelink=cachelink;
         
         var knodule_name=
+            fdjtDOM.getMeta("METABOOK.knodule")||
             fdjtDOM.getMeta("SBOOKS.knodule")||
             fdjtDOM.getMeta("~KNODULE")||
             refuri;
@@ -22685,16 +22714,20 @@ fdjt.DOM.noautofontadjust=true;
                      metaBook.target,metaBook.head,metaBook.skimpoint);}
     metaBook.trace=sbook_trace;
 
+    var uroot_pat=/https?:\/\/[^\/]+\/([^\/]+\/)*/;
+    var mbama=window._metabook_amalgam;
+
     // This is the hostname for the sbookserver.
     metaBook.server=false;
     // This is an array for looking up sbook servers.
-    metaBook.servers=[[/.sbooks.net$/g,"glosses.sbooks.net"]];
+    metaBook.servers=[[/.metabooks.net$/g,/.sbooks.net$/g,"glosses.sbooks.net"]];
     //metaBook.servers=[];
     // This is the default server
     metaBook.default_server="glosses.sbooks.net";
     // There be icons here!
-    metaBook.root=fdjtDOM.getLink("METABOOK.staticroot")||
-        "http://static.beingmeta.com/";
+    metaBook.root=
+        ((mbama)&&(uroot_pat.exec(mbama))&&((uroot_pat.exec(mbama))[0]))||
+        fdjtDOM.getLink("METABOOK.staticroot")||"http://static.beingmeta.com/";
     if (metaBook.root[metaBook.root.length-1]!=="/")
         metaBook.root=metaBook.root+"/";
     metaBook.withsvg=document.implementation.hasFeature(
@@ -22717,6 +22750,9 @@ fdjt.DOM.noautofontadjust=true;
             if (scan.getAttribute("data-refuri"))
                 return scan.getAttribute("data-refuri");
             else if ((scan.getAttributeNS)&&
+                     (scan.getAttributeNS("refuri","http://metabooks.net/")))
+                return scan.getAttributeNS("refuri","http://metabooks.net/");
+            else if ((scan.getAttributeNS)&&
                      (scan.getAttributeNS("refuri","http://sbooks.net/")))
                 return scan.getAttributeNS("refuri","http://sbooks.net/");
             else if (scan.getAttribute("refuri"))
@@ -22731,6 +22767,9 @@ fdjt.DOM.noautofontadjust=true;
             if (scan.getAttribute("data-docuri"))
                 return scan.getAttribute("data-docuri");
             else if ((scan.getAttributeNS)&&
+                     (scan.getAttributeNS("docuri","http://metabooks.net/")))
+                return scan.getAttributeNS("docuri","http://metabooks.net/");
+            else if ((scan.getAttributeNS)&&
                      (scan.getAttributeNS("docuri","http://sbooks.net/")))
                 return scan.getAttributeNS("docuri","http://sbooks.net/");
             else if (scan.getAttribute("docuri"))
@@ -22741,7 +22780,8 @@ fdjt.DOM.noautofontadjust=true;
 
     metaBook.getRefID=function(target){
         if (target.getAttributeNS)
-            return (target.getAttributeNS('sbookid','http://sbooks.net/'))||
+            return (target.getAttributeNS('sbookid','http://metabooks.net/'))||
+            (target.getAttributeNS('sbookid','http://sbooks.net/'))||
             (target.getAttributeNS('sbookid'))||
             (target.getAttributeNS('data-sbookid'))||
             (target.codexbaseid)||(target.id);
@@ -23058,6 +23098,8 @@ fdjt.DOM.noautofontadjust=true;
             else return elt.toclevel;}
         var attrval=
             ((elt.getAttributeNS)&&
+             (elt.getAttributeNS('toclevel','http://metabooks.net')))||
+            ((elt.getAttributeNS)&&
              (elt.getAttributeNS('toclevel','http://sbooks.net')))||
             (elt.getAttribute('toclevel'))||
             (elt.getAttribute('data-toclevel'));
@@ -23066,13 +23108,13 @@ fdjt.DOM.noautofontadjust=true;
             else return parseInt(attrval,10);}
         if (elt.className) {
             var cname=elt.className;
-            if (cname.search(/\bsbooknotoc\b/)>=0) return 0;
-            if (cname.search(/\bsbookignore\b/)>=0) return 0;
-            var tocloc=cname.search(/\bsbook\d+(head|sect)\b/);
+            if (cname.search(/\b(sbook|metabook|sb|mb)notoc\b/)>=0) return 0;
+            if (cname.search(/\b(sbook|metabook|sb|mb)ignore\b/)>=0) return 0;
+            var tocloc=cname.search(/\b(sbook|metabook|sb|mb)\d+(head|sect)\b/);
             if (tocloc>=0)
                 return parseInt(cname.slice(tocloc+5),10);
             else if ((typeof rel ==="number")&&
-                     (cname.search(/\bsbooksubhead\b/)>=0))
+                     (cname.search(/\b(sbook|metabook|sb|mb)subhead\b/)>=0))
                 return rel+1;
             else {}}
         if ((metaBook.notoc)&&(metaBook.notoc.match(elt))) return 0;
@@ -23122,8 +23164,8 @@ fdjt.DOM.noautofontadjust=true;
         "<span class='beingmeta'>being<span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span></span>";
     fdjtString.entities.sBooks="<span class='sbooks'><em>s</em>Books</span>";
     fdjtString.entities.sBook="<span class='sbooks'><em>s</em>Book</span>";
-    fdjtString.entities.metaBook=
-        "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Book<sub>β</sub></span>";
+    fdjtString.entities.metaBooks=
+        "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Books</span>";
     fdjtString.entities.metaBook=
         "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Book</span>";
 
@@ -24025,6 +24067,8 @@ metaBook.DOMScan=(function(){
             var title=
                 (head.toctitle)||
                 ((head.getAttributeNS)&&
+                 (head.getAttributeNS('toctitle','http://metabooks.net')))||
+                ((head.getAttributeNS)&&
                  (head.getAttributeNS('toctitle','http://sbooks.net')))||
                 (head.getAttribute('toctitle'))||
                 (head.getAttribute('data-toctitle'))||
@@ -24032,6 +24076,8 @@ metaBook.DOMScan=(function(){
             if (!(title)) {
                 var head1=fdjtDOM.getFirstChild(head,"H1,H2,H3,H4,H5,H6");
                 if (head1) title=head1.toctitle||
+                    ((head1.getAttributeNS)&&
+                     (head1.getAttributeNS('toctitle','http://metabooks.net')))||
                     ((head1.getAttributeNS)&&
                      (head1.getAttributeNS('toctitle','http://sbooks.net')))||
                     (head1.getAttribute('toctitle'))||
@@ -24297,6 +24343,8 @@ metaBook.DOMScan=(function(){
             if ((id)&&(info)) {
                 var tags=
                     ((child.getAttributeNS)&&
+                     (child.getAttributeNS('tags','http://metabooks.net/')))||
+                    ((child.getAttributeNS)&&
                      (child.getAttributeNS('tags','http://sbooks.net/')))||
                     (child.getAttribute('tags'))||
                     (child.getAttribute('data-tags'));
@@ -24467,7 +24515,7 @@ metaBook.DOMScan=(function(){
 
     function cacheGlossData(uri){
         function caching(resolved){
-            if (uri.search("https://glossdata.sbooks.net/")!==0) return;
+            if (uri.search(mB.cachelink)!==0) return;
             if (glossdata[uri]) return resolved(glossdata[uri]);
             if (glossdata_state[uri]==="cached") return;
             else if (glossdata_state[uri]) {
@@ -24762,11 +24810,11 @@ metaBook.DOMScan=(function(){
             cover.setAttribute("data-defaultclass","titlepage");
             addClass(cover,"titlepage");
             addClass(controls,"nocoverpage");}
-        var titlepage=$ID("METABOOKTITLEPAGE");
+        var titlepage=$ID("METABOOKCOVERTITLE");
         if ((titlepage)&&(hasAnyContent(titlepage))) {
             titlepage=titlepage.cloneNode(true);
             titlepage.removeAttribute("style");
-            titlepage.id="METABOOKTITLEPAGE";}
+            titlepage.id="METABOOKCOVERTITLE";}
         else {
             titlepage=$ID("SBOOKSTITLEPAGE")||
                 $ID("SBOOKTITLEPAGE")||
@@ -24778,11 +24826,11 @@ metaBook.DOMScan=(function(){
                 fdjtDOM.addClass(titlepage,"sbooktitlepage");
                 fdjtDOM.stripIDs(titlepage);
                 titlepage.setAttribute("style","");
-                titlepage.id="METABOOKTITLEPAGE";}
+                titlepage.id="METABOOKCOVERTITLE";}
             else {
                 var info=metaBook.getBookInfo();
                 titlepage=fdjtDOM(
-                    "div#METABOOKTITLEPAGE.sbooktitlepage",
+                    "div#METABOOKCOVERTITLE.sbooktitlepage",
                     fdjtDOM("DIV.title",info.title),
                     fdjtDOM("DIV.credits",
                             ((info.byline)?(fdjtDOM("DIV.byline",info.byline)):
@@ -24794,17 +24842,17 @@ metaBook.DOMScan=(function(){
                              (fdjtDOM("P",info.publisher)))));}}
         if (titlepage) addToCover(cover,titlepage);
 
-        var creditspage=$ID("METABOOKCREDITSPAGE");
+        var creditspage=$ID("METABOOKCOVERCREDITS");
         if (creditspage)
             creditspage=creditspage.cloneNode(true);
         else {
-            creditspage=$ID("SBOOKSCREDITSPAGE")||$ID("CREDITSPAGE");
+            creditspage=$ID("METABOOKCOVERCREDITS")||$ID("SBOOKSCREDITSPAGE")||$ID("CREDITSPAGE");
             if (creditspage) {
                 creditspage=creditspage.cloneNode(true);
                 fdjtDOM.stripIDs(creditspage);
                 creditspage.removeAttribute("style");}}
         if ((creditspage)&&(hasAnyContent(creditspage))) {
-            var curcredits=cover.getElementById("METABOOKCREDITSPAGE");
+            var curcredits=cover.getElementById("METABOOKCOVERCREDITS");
             if (curcredits)
                 curcredits.parentNode.replaceChild(creditspage,curcredits);
             else cover.appendChild(creditspage);}
@@ -24924,7 +24972,7 @@ metaBook.DOMScan=(function(){
         fdjtDOM.adjustFontSize(userbox);
         // fdjt.DOM.resetFontSize(controls);
         // fdjt.DOM.resetFontSize(userbox);            
-        var covertitle=$ID("METABOOKTITLEPAGE");
+        var covertitle=$ID("METABOOKCOVERTITLE");
         if ((covertitle)&&
             (!(hasClass(covertitle,/\b(adjustfont|fdjtadjustfont)\b/))))
             fdjtDOM.adjustFontSize(covertitle);
@@ -24935,8 +24983,8 @@ metaBook.DOMScan=(function(){
     metaBook.resizeCover=resizeCover;
 
     var coverids={"coverpage": "METABOOKCOVERPAGE",
-                  "titlepage": "METABOOKTITLEPAGE",
-                  "creditspage": "METABOOKCREDITSPAGE",
+                  "titlepage": "METABOOKCOVERTITLE",
+                  "creditspage": "METABOOKCOVERCREDITS",
                   "blurb": "METABOOKBLURB",
                   "help": "METABOOKAPPHELP",
                   "settings": "METABOOKSETTINGS",
@@ -25098,8 +25146,8 @@ metaBook.DOMScan=(function(){
             var label_node=
                 getChild(notable,"label")||
                 getChild(notable,"summary")||
-                getChild(notable,".sbooklabel")||
-                getChild(notable,".sbooksummary");
+                getChild(notable,".html5label")||
+                getChild(notable,".html5summary");
             var anchor=fdjtDOM.Anchor(
                 "#"+noteid,"A.mbnoteref.sbooknoteref",
                 ((label_node)?(label_node.cloneNode(true)):
@@ -27205,10 +27253,12 @@ metaBook.Startup=
             return false;}
 
         function showMessage(){
-            var message=fdjt.State.getCookie("SBOOKSPOPUP");
+            var message=fdjt.State.getCookie("METABOOKSPOPUP")||fdjt.State.getCookie("SBOOKSPOPUP");
             if (message) fdjt.UI.alertFor(10,message);
             fdjt.State.clearCookie("SBOOKSPOPUP","/","sbooks.net");
-            fdjt.State.clearCookie("SBOOKSMESSAGE","/","sbooks.net");}
+            fdjt.State.clearCookie("SBOOKSMESSAGE","/","sbooks.net");
+            fdjt.State.clearCookie("SBOOKSPOPUP","/","metabooks.net");
+            fdjt.State.clearCookie("SBOOKSMESSAGE","/","metabooks.net");}
 
         function readEnvSettings() {
 
@@ -27221,6 +27271,7 @@ metaBook.Startup=
             // First, define common schemas
             fdjtDOM.addAppSchema("SBOOK","http://sbooks.net/");
             fdjtDOM.addAppSchema("SBOOKS","http://sbooks.net/");
+            fdjtDOM.addAppSchema("METABOOKS","http://metabooks.net/");
             fdjtDOM.addAppSchema("metaBook","http://metabook.sbooks.net/");
             fdjtDOM.addAppSchema("DC","http://purl.org/dc/elements/1.1/");
             fdjtDOM.addAppSchema("DCTERMS","http://purl.org/dc/terms/");
@@ -27236,8 +27287,17 @@ metaBook.Startup=
             // Whether to suppress login, etc
             if ((getLocal("mB.nologin"))||(getQuery("nologin")))
                 metaBook.nologin=true;
-            var sbooksrv=getMeta("SBOOKS.server")||getMeta("SBOOKSERVER");
+            var sbooksrv=getMeta("MB.server")||getMeta("METABOOK.server")||
+                getMeta("GLOSSDB.server")||getMeta("GLOSSES.server")||
+                getMeta("SBOOKS.server")||getMeta("SBOOKSERVER")||
+                getMeta("GLOSSDB");
             if (sbooksrv) metaBook.server=sbooksrv;
+            else if (fdjtState.getCookie("METABOOKSERVER"))
+                metaBook.server=fdjtState.getCookie("METABOOKSERVER");
+            else if (fdjtState.getCookie("MBSERVER"))
+                metaBook.server=fdjtState.getCookie("MBSERVER");
+            else if (fdjtState.getCookie("GLOSSDB"))
+                metaBook.server=fdjtState.getCookie("GLOSSDB");
             else if (fdjtState.getCookie("SBOOKSERVER"))
                 metaBook.server=fdjtState.getCookie("SBOOKSERVER");
             else metaBook.server=lookupServer(document.domain);
@@ -27611,10 +27671,12 @@ metaBook.Startup=
                 else fdjtUI.alertFor(10,msg);}
             if ((msg=getCookie("APPMESSAGE"))) {
                 fdjtUI.alertFor(10,msg);
-                fdjtState.clearCookie("APPMESSAGE","sbooks.net","/");}
+                fdjtState.clearCookie("APPMESSAGE","sbooks.net","/");
+                fdjtState.clearCookie("APPMESSAGE","metabooks.net","/");}
             if ((msg=getCookie("SBOOKSMESSAGE"))) {
                 fdjtUI.alertFor(10,msg);
-                fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");}
+                fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");
+                fdjtState.clearCookie("METABOOKMESSAGE","metabooks.net","/");}
             if ((!(mode))&&(location.hash)&&(metaBook.state)&&
                 (location.hash.slice(1)!==metaBook.state.target))
                 metaBook.hideCover();
@@ -27943,6 +28005,8 @@ metaBook.Startup=
         
         function hasTOCLevel(elt){
             if ((elt.toclevel)||
+                ((elt.getAttributeNS)&&
+                 (elt.getAttributeNS('toclevel','http://metabooks.net/')))||
                 ((elt.getAttributeNS)&&
                  (elt.getAttributeNS('toclevel','http://sbooks.net/')))||
                 (elt.getAttribute('toclevel'))||
@@ -30280,11 +30344,13 @@ metaBook.setMode=
                 if (Trace.messages)
                     fdjtLog("Got a message from %s with payload %o",
                             origin,evt.data);
-                if (origin.search(/https:\/\/[^\/]+.sbooks.net/)!==0) {
+                if (origin.search(/https:\/\/[^\/]+.(metabooks|sbooks).net/)!==0) {
                     fdjtLog.warn("Rejecting insecure message from %s",
                                  origin);
                     return;}
                 if (evt.data==="sbooksapp") {
+                    setMode("sbooksapp");}
+                else if (evt.data==="metabooksapp") {
                     setMode("sbooksapp");}
                 else if (evt.data==="loggedin") {
                     if (!(metaBook.user)) {
@@ -30500,7 +30566,7 @@ metaBook.setMode=
         var metabookHeartModes=/\b((statictoc)|(search)|(refinesearch)|(expandsearch)|(searchresults)|(allglosses)|(showaside)|(glossaddtag)|(glossaddtag)|(glossaddoutlet)|(glossdetail))\b/g;
         var metabookHeadModes=/\b((overtoc)|(search)|(refinesearch)|(expandsearch)|(searchresults)|(allglosses)|(addgloss)|(shownote))\b/g;
         var metaBookPopModes=/\b((glossdetail))\b/g;
-        var metaBookCoverModes=/\b((welcome)|(help)|(layers)|(login)|(settings)|(cover)|(aboutsbooks)|(console)|(aboutbook)|(titlepage))\b/g;
+        var metaBookCoverModes=/\b((welcome)|(help)|(layers)|(login)|(settings)|(cover)|(aboutsbooks)|(aboutmetabooks)|(console)|(aboutbook)|(titlepage))\b/g;
         var metaBookSearchModes=/((refinesearch)|(searchresults)|(expandsearch))/;
         metaBook.searchModes=metaBookSearchModes;
         var metabook_mode_foci=
@@ -32699,6 +32765,7 @@ metaBook.setMode=
 
     function getTagline(target){
         var attrib=
+            target.getAttributeNS("tagline","https://metabooks.net/")||
             target.getAttributeNS("tagline","https://sbooks.net/")||
             target.getAttribute("data-tagline")||
             target.getAttribute("tagline");
@@ -37595,7 +37662,7 @@ metaBook.Paginate=
                 var topnode=getPageTop(page);
                 var topid=topnode.codexbaseid||topnode.id;
                 var prevpage=(((pagenum)&&(pagenum>1))&&(pages[pagenum-2]));
-                var staticref=getChild(page,".staticpageref,.sbookstaticpageref");
+                var staticref=getChild(page,".staticpageref");
                 var curloc=false;
                 if (staticref) {
                     var pageref=staticref.getAttribute("data-pageref");
@@ -37754,33 +37821,20 @@ metaBook.Paginate=
             if ((abi)&&(abi.length)) args.avoidbreakinside=fdjtDOM.sel(abi);
 
             var fullpages=[".sbookfullpage",".sbooktitlepage",".sbookpage"].
-                concat(
-                    fdjtDOM.getMeta("SBOOKS.fullpage",true)).concat(
-                        fdjtDOM.getMeta("SBOOKS.fullpage",true)).concat(
-                            fdjtDOM.getMeta("sbookfullpage",true));
-            if ((fullpages)&&(fullpages.length))
-                args.fullpages=fdjtDOM.sel(fullpages);
+                concat(fdjtDOM.getMeta("codexfullpage",true));
+            args.fullpages=fdjtDOM.sel(fullpages);
             
-            var floatpages=[".sbookfloatpage"].concat(
-                fdjtDOM.getMeta("SBOOKS.floatpage",true)).concat(
-                    fdjtDOM.getMeta("SBOOKS.floatpage",true)).concat(
-                        fdjtDOM.getMeta("sbookfloatpage",true));
+            var floatpages=[".codexfloatpage"].concat(
+                fdjtDOM.getMeta("codexfloatpage",true));
             if ((floatpages)&&(floatpages.length))
                 args.floatpages=fdjtDOM.sel(floatpages);
             
-            var floating=[".sbookfloatpage"].concat(
-                fdjtDOM.getMeta("SBOOKS.floatpage",true)).concat(
-                    fdjtDOM.getMeta("SBOOKS.floatpage",true)).concat(
-                        fdjtDOM.getMeta("sbookfloatpage",true));
+            var floating=[".codexfloating",".codexfloat"].concat(
+                fdjtDOM.getMeta("codexfloat",true)).concat(
+                    fdjtDOM.getMeta("codexfloating",true));
             if ((floating)&&(floating.length))
                 args.floating=fdjtDOM.sel(floating);
 
-            var scaletopage=fdjtDOM.getMeta("sbookscaletopage",true);
-            if ((scaletopage)&&(scaletopage.length)) 
-                scaletopage.concat([".sbookscaletopage",".sbookpagescaled"]);
-            else scaletopage=[".sbookscaletopage",".sbookpagescaled"];
-            args.scaletopage=scaletopage=scaletopage;
-            
             if ((fdjtDOM.getMeta("metaBook.dontbreakblocks"))||
                 (fdjtDOM.getMeta("metaBook.keepblocks"))||
                 (fdjtDOM.getMeta("~=metaBook.dontbreakblocks"))||
@@ -39344,10 +39398,10 @@ metaBook.HTML.cover=
     "       style=\"max-width: 95%; width: auto; height: 90%;\"\n"+
     "       id=\"METABOOKCOVERIMAGE\"/>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKTITLEPAGE\" class=\"metabooktitlepage\"\n"+
+    "<div id=\"METABOOKCOVERTITLE\" class=\"metabooktitlepage\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCREDITSPAGE\"\n"+
+    "<div id=\"METABOOKCOVERCREDITS\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;\">\n"+
     "</div>\n"+
     "<div id=\"METABOOKBLURB\" class=\"scrolling\"\n"+
@@ -39775,21 +39829,21 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1443-gb360b6b';
+fdjt.revision='1.5-1447-gf48acbe';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Thu Jun 18 12:05:15 EDT 2015';
-fdjt.builduuid='e3b55007-3cde-4ee2-8af8-7ee99837ab58';
+fdjt.buildtime='Mon Jun 22 11:04:05 EDT 2015';
+fdjt.builduuid='d1bc1562-0de5-4b3f-adc8-af532c8631a6';
 
-fdjt.CodexLayout.sourcehash='D8B1B80DED704814DD110D964D4A8D3E503EA1AA';
+fdjt.CodexLayout.sourcehash='D6D4D57F2DB6566DCB275D5FABD36F8EAB0C2BF0';
 
 
-Knodule.version='v0.8-151-g02cb238';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-48-gd8fb33b';
-metaBook.buildid='59f61bfd-f872-40b4-a613-580b8833d75b';
-metaBook.buildtime='Thu Jun 18 16:04:10 EDT 2015';
+metaBook.version='v0.8-51-gc4e864e';
+metaBook.buildid='82540cbc-732b-44ba-9cb9-fcb2d83e5e19';
+metaBook.buildtime='Mon Jun 22 11:57:56 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='D8B1B80DED704814DD110D964D4A8D3E503EA1AA';
+fdjt.CodexLayout.sourcehash='D6D4D57F2DB6566DCB275D5FABD36F8EAB0C2BF0';
