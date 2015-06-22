@@ -27276,6 +27276,9 @@ metaBook.Startup=
             fdjtDOM.addAppSchema("DC","http://purl.org/dc/elements/1.1/");
             fdjtDOM.addAppSchema("DCTERMS","http://purl.org/dc/terms/");
             fdjtDOM.addAppSchema("OLIB","http://openlibrary.org/");
+            fdjtDOM.addAppSchema("TOC","http://beingmeta.com/TOC/");
+            fdjtDOM.addAppSchema("INDEX","http://beingmeta.com/INDEX/");
+            fdjtDOM.addAppSchema("BM","http://beingmeta.com/");
 
             metaBook.devinfo=fdjtState.versionInfo();
             
@@ -27559,31 +27562,45 @@ metaBook.Startup=
                 var i=0, lim=nodes.length; while (i<lim) {
                     nodes[i++].setAttribute("data-toclevel",level);}}}
         function applyTOCRules(){
-            var h1=getMeta("SBOOKS.h1",true,true)
+            var h1=getMeta("TOC.head1")
+                .concat(getMeta("TOC.sect1"))
+                .concat(getMeta("SBOOKS.h1",true,true))
                 .concat(getMeta("SBOOKS.head1",true,true))
                 .concat(getMeta("sbook1head",true));
             if (h1.length) addTOCLevel(h1,"1");
-            var h2=getMeta("SBOOKS.h2",true,true)
+            var h2=getMeta("TOC.head2")
+                .concat(getMeta("TOC.sect2"))
+                .getMeta("SBOOKS.h2",true,true)
                 .concat(getMeta("SBOOKS.head2",true,true))
                 .concat(getMeta("sbook2head",true));
             if (h2.length) addTOCLevel(h2,"2");
-            var h3=getMeta("SBOOKS.h3",true,true)
+            var h3=getMeta("TOC.head3")
+                .concat(getMeta("TOC.sect3"))
+                .getMeta("SBOOKS.h3",true,true)
                 .concat(getMeta("SBOOKS.head3",true,true))
                 .concat(getMeta("sbook3head",true));
             if (h3.length) addTOCLevel(h3,"3");
-            var h4=getMeta("SBOOKS.h4",true,true)
+            var h4=getMeta("TOC.head4")
+                .concat(getMeta("TOC.sect4"))
+                .getMeta("SBOOKS.h4",true,true)
                 .concat(getMeta("SBOOKS.head4",true,true))
                 .concat(getMeta("sbook4head",true));
             if (h4.length) addTOCLevel(h4,"4");
-            var h5=getMeta("SBOOKS.h5",true,true)
+            var h5=getMeta("TOC.head5")
+                .concat(getMeta("TOC.sect5"))
+                .getMeta("SBOOKS.h5",true,true)
                 .concat(getMeta("SBOOKS.head5",true,true))
                 .concat(getMeta("sbook5head",true));
             if (h5.length) addTOCLevel(h5,"5");
-            var h6=getMeta("SBOOKS.h6",true,true)
+            var h6=getMeta("TOC.head6")
+                .concat(getMeta("TOC.sect6"))
+                .getMeta("SBOOKS.h6",true,true)
                 .concat(getMeta("SBOOKS.head6",true,true))
                 .concat(getMeta("sbook6head",true));
             if (h6.length) addTOCLevel(h6,"6");
-            var h7=getMeta("SBOOKS.h7",true,true)
+            var h7=getMeta("TOC.head7")
+                .concat(getMeta("TOC.sect7"))
+                .getMeta("SBOOKS.h7",true,true)
                 .concat(getMeta("SBOOKS.head7",true,true))
                 .concat(getMeta("sbook7head",true));
             if (h7.length) addTOCLevel(h7,"7");}
@@ -39839,9 +39856,9 @@ fdjt.CodexLayout.sourcehash='D6D4D57F2DB6566DCB275D5FABD36F8EAB0C2BF0';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-51-gc4e864e';
-metaBook.buildid='82540cbc-732b-44ba-9cb9-fcb2d83e5e19';
-metaBook.buildtime='Mon Jun 22 11:57:56 EDT 2015';
+metaBook.version='v0.8-52-g13cbc28';
+metaBook.buildid='995c2c28-dac2-4c16-bff2-c6ff02f86587';
+metaBook.buildtime='Mon Jun 22 18:23:37 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
