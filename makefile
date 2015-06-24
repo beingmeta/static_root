@@ -240,9 +240,16 @@ clean: tidy
 	rm -f metabook*js metabook*css fdjt*js fdjt*css *.map
 	rm -f metabook*js.gz metabook*css.gz fdjt*js.gz fdjt*css.gz
 
-cleandist undist:
+undist:
 	rm dist/*; git checkout dist
-
+cleandist:
+	rm fdjt.css.gz fdjt.js fdjt.js.gz              \
+	   fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
+	   metabook.clean.css.gz metabook.css.gz       \
+           metabook.js metabook.js.gz                  \
+           metabook.min.js metabook.min.js.gz          \
+	   metabook.uglify.js metabook.uglify.js.gz    \
+	   metabook.uglify.map;
 redist:
 	for x in  fdjt.css.gz fdjt.js fdjt.js.gz              \
 		  fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
