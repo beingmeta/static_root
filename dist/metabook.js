@@ -19390,9 +19390,7 @@ fdjt.CodexLayout=
                         // If the break is at the head, push the whole
                         // node to the next page, otherwise, 
                         if (breakpos===0) return node;
-                        else {
-                            original.parentNode.removeChild(original);
-                            return children.slice(breakpos);}}
+                        else return children.slice(breakpos);}
                     else {
                         // Check if just the first word pushes us over
                         // the edge, a relatively common case.  If so,
@@ -25849,7 +25847,9 @@ metaBook.DOMScan=(function(){
             //  and update the state.  If it hasn't changed, we assume
             //  that the stored state is still current and dated whenever
             //  it was last changed.
-            if (!((state)&&(state.target===hash))) {
+            if ((!(state))||
+                ((state.hash)&&(state.hash!==hash))||
+                ((!(state.hash))&&(state.target)&&(state.target!==hash))) {
                 if (!(state)) state={};
                 // Hash changed
                 state.refuri=metaBook.refuri;
@@ -25889,6 +25889,10 @@ metaBook.DOMScan=(function(){
         if ((state.maxloc)&&(state.maxloc<state.location))
             state.maxloc=state.location;
         else if (!(state.maxloc)) state.maxloc=state.location;
+        if ((window)&&(window.location)&&(window.location.hash)) {
+            var hash=window.location.hash;
+            if (hash[0]==='#') hash=hash.slice(1);
+            state.hash=hash;}
         if (Trace.state)
             fdjtLog("saveState skiphist=%o force=%o state=%j",
                     skiphist,force,state);
@@ -27563,47 +27567,47 @@ metaBook.Startup=
                 var i=0, lim=nodes.length; while (i<lim) {
                     nodes[i++].setAttribute("data-toclevel",level);}}}
         function applyTOCRules(){
-            var h1=getMeta("TOC.head1")
-                .concat(getMeta("TOC.sect1"))
+            var h1=getMeta("TOC.head1",true,true)
+                .concat(getMeta("TOC.sect1",true,true))
                 .concat(getMeta("SBOOKS.h1",true,true))
                 .concat(getMeta("SBOOKS.head1",true,true))
                 .concat(getMeta("sbook1head",true));
             if (h1.length) addTOCLevel(h1,"1");
-            var h2=getMeta("TOC.head2")
-                .concat(getMeta("TOC.sect2"))
-                .getMeta("SBOOKS.h2",true,true)
+            var h2=getMeta("TOC.head2",true,true)
+                .concat(getMeta("TOC.sect2",true,true))
+                .concat(getMeta("SBOOKS.h2",true,true))
                 .concat(getMeta("SBOOKS.head2",true,true))
-                .concat(getMeta("sbook2head",true));
+                .concat(getMeta("sbook2head",true,true));
             if (h2.length) addTOCLevel(h2,"2");
-            var h3=getMeta("TOC.head3")
-                .concat(getMeta("TOC.sect3"))
-                .getMeta("SBOOKS.h3",true,true)
+            var h3=getMeta("TOC.head3",true,true)
+                .concat(getMeta("TOC.sect3",true,true))
+                .concat(getMeta("SBOOKS.h3",true,true))
                 .concat(getMeta("SBOOKS.head3",true,true))
                 .concat(getMeta("sbook3head",true));
             if (h3.length) addTOCLevel(h3,"3");
-            var h4=getMeta("TOC.head4")
-                .concat(getMeta("TOC.sect4"))
-                .getMeta("SBOOKS.h4",true,true)
+            var h4=getMeta("TOC.head4",true,true)
+                .concat(getMeta("TOC.sect4",true,true))
+                .concat(getMeta("SBOOKS.h4",true,true))
                 .concat(getMeta("SBOOKS.head4",true,true))
-                .concat(getMeta("sbook4head",true));
+                .concat(getMeta("sbook4head",true,true));
             if (h4.length) addTOCLevel(h4,"4");
-            var h5=getMeta("TOC.head5")
-                .concat(getMeta("TOC.sect5"))
-                .getMeta("SBOOKS.h5",true,true)
+            var h5=getMeta("TOC.head5",true,true)
+                .concat(getMeta("TOC.sect5",true,true))
+                .concat(getMeta("SBOOKS.h5",true,true))
                 .concat(getMeta("SBOOKS.head5",true,true))
-                .concat(getMeta("sbook5head",true));
+                .concat(getMeta("sbook5head",true,true));
             if (h5.length) addTOCLevel(h5,"5");
-            var h6=getMeta("TOC.head6")
-                .concat(getMeta("TOC.sect6"))
-                .getMeta("SBOOKS.h6",true,true)
+            var h6=getMeta("TOC.head6",true,true)
+                .concat(getMeta("TOC.sect6",true,true))
+                .concat(getMeta("SBOOKS.h6",true,true))
                 .concat(getMeta("SBOOKS.head6",true,true))
-                .concat(getMeta("sbook6head",true));
+                .concat(getMeta("sbook6head",true,true));
             if (h6.length) addTOCLevel(h6,"6");
-            var h7=getMeta("TOC.head7")
-                .concat(getMeta("TOC.sect7"))
-                .getMeta("SBOOKS.h7",true,true)
+            var h7=getMeta("TOC.head7",true,true)
+                .concat(getMeta("TOC.sect7",true,true))
+                .concat(getMeta("SBOOKS.h7",true,true))
                 .concat(getMeta("SBOOKS.head7",true,true))
-                .concat(getMeta("sbook7head",true));
+                .concat(getMeta("sbook7head",true,true));
             if (h7.length) addTOCLevel(h7,"7");}
 
         function scanDOM(){
@@ -36321,6 +36325,7 @@ metaBook.setMode=
     
     function toggleHelp(evt){
         evt=evt||window.event;
+        if (Trace.gestures) fdjtLog("toggleHelp %o",evt);
         cancel(evt);
         if (mB.cxthelp) {
             dropClass(document.body,"mbSHOWHELP");
@@ -36378,12 +36383,14 @@ metaBook.setMode=
     
     function raiseHUD(evt){
         evt=evt||window.event;
+        if (Trace.gestures) fdjtLog("raiseHUD %o",evt);
         setHUD(true);
         cancel(evt);
         return false;}
     metaBook.raiseHUD=raiseHUD;
     function lowerHUD(evt){
         evt=evt||window.event;
+        if (Trace.gestures) fdjtLog("lowerHUD %o",evt);
         setHUD(false);
         cancel(evt);
         return false;}
@@ -36391,9 +36398,11 @@ metaBook.setMode=
 
     function saveGloss(evt){
         evt=evt||window.event;
+        if (Trace.gestures) fdjtLog("saveGloss %o",evt);
         metaBook.submitGloss();}
     function refreshLayout(evt){
         evt=evt||window.event; cancel(evt);
+        if (Trace.gestures) fdjtLog("refreshLayout %o",evt);
         metaBook.refreshLayout();}
     function resetState(evt){
         evt=evt||window.event; cancel(evt);
@@ -36417,7 +36426,9 @@ metaBook.setMode=
              spec: "div.fdjtdialog.mbsettings"},
             "Reload all glosses and layers?");}
     function clearOffline(evt){
-        evt=evt||window.event; cancel(evt); metaBook.clearOffline();}
+        evt=evt||window.event; cancel(evt);
+        if (Trace.gestures) fdjtLog("clearOffline %o",evt);
+        metaBook.clearOffline();}
     function consolefn(evt){
         evt=evt||window.event; metaBook.consolefn(evt);}
 
@@ -36536,9 +36547,9 @@ metaBook.setMode=
              blur: function(){
                  fdjt.DOM.dropClass('METABOOKCONSOLEINPUT','uptop');}},
          "#METABOOKCONSOLEBUTTON": {click: consolefn},
-         "#METABOOKREFRESHOFFLINE": {click: refreshOffline},
-         "#METABOOKREFRESHLAYOUT": {click: refreshLayout},
-         "#METABOOKRESETSYNC": {click: resetState},
+         "#METABOOKREFRESHOFFLINE": {tap: refreshOffline},
+         "#METABOOKREFRESHLAYOUT": {tp: refreshLayout},
+         "#METABOOKRESETSYNC": {tap: resetState},
          ".clearoffline": {click: clearOffline},
          ".metabookclearmode": {click: clearMode},
          "#METABOOKGOTOREFHELP": {click: clearMode},
@@ -37192,6 +37203,8 @@ metaBook.Paginate=
         var getLocal=fdjtState.getLocal;
         var setLocal=fdjtState.setLocal;
 
+        var getMeta=fdjtDOM.getMeta;
+
         var atoi=parseInt;
 
         function layoutMessage(string,pct){
@@ -37261,10 +37274,13 @@ metaBook.Paginate=
         function Paginate(why,init){
             if (((metaBook.layout)&&(!(metaBook.layout.done)))) return;
             if (!(why)) why="because";
+            if (Trace.layout)
+                fdjtLog("Starting pagination (%s) with %j",why,init);
             layoutMessage("Preparing your book",0);
             dropClass(document.body,"_SCROLL");
             addClass(document.body,"mbLAYOUT");
             scaleLayout(false);
+            if (Trace.layout) fdjtLog("Unscaled layout");
             var forced=((init)&&(init.forced));
             var geom=getGeometry($ID("CODEXPAGE"),false,true);
             var height=geom.inner_height, width=geom.width;
@@ -37291,10 +37307,12 @@ metaBook.Paginate=
                             current.layout_id);
                     return;}
                 // Repaginating, start with reversion
+                if (Trace.layout) fdjtLog("Reverting current layout");
                 metaBook.layout.Revert();
                 metaBook.layout=false;}
 
             // Resize the content
+            if (Trace.layout) fdjtLog("Sizing the content");
             metaBook.sizeContent();
 
             // Create a new layout
@@ -37302,6 +37320,7 @@ metaBook.Paginate=
             if ((init)&&(init.hasOwnProperty("timeslice"))) {
                 layout_args.timeslice=init.timeslice;}
             
+            if (Trace.layout) fdjtLog("Starting content layout");
             var layout=new CodexLayout(layout_args);
             layout.bodysize=size; layout.bodyfamily=family;
             metaBook.layout=layout;
@@ -37796,75 +37815,53 @@ metaBook.Paginate=
             fdjtDOM.replace("METABOOKPAGES",container);
             metaBook.pages=container;
             
-            var avoidbreakclasses=
-                /\b(sbookfullpage)|(sbooktitlepage)|(stanza)\b/;
-            args.avoidbreakinside=[avoidbreakclasses];
-            avoidbreakclasses=
-                fdjtDOM.sel(fdjtDOM.getMeta("avoidbreakinside",true));
-            if (avoidbreakclasses)
-                args.avoidbreakinside.push(avoidbreakclasses);
-            avoidbreakclasses=
-                fdjtDOM.sel(fdjtDOM.getMeta("SBOOKS.avoidbreakinside",true));
-            if (avoidbreakclasses)
-                args.avoidbreakinside.push(avoidbreakclasses);
-
-            var fbb=fdjtDOM.getMeta("alwaysbreakbefore",true).concat(
-                fdjtDOM.getMeta("SBOOKS.alwaysbreakbefore",true)).concat(
-                    fdjtDOM.getMeta("forcebreakbefore",true)).concat(
-                        fdjtDOM.getMeta("SBOOKS.forcebreakbefore",true));
+            var fbb=getMeta("alwaysbreakbefore",true,true).
+                concat(getMeta("forcebreakbefore",true,true));
             if ((fbb)&&(fbb.length)) args.forcebreakbefore=fdjtDOM.sel(fbb);
 
-            var fba=fdjtDOM.getMeta("alwaysbreakafter",true).concat(
-                fdjtDOM.getMeta("SBOOKS.alwaysbreakafter",true)).concat(
-                    fdjtDOM.getMeta("forcebreakafter",true)).concat(
-                        fdjtDOM.getMeta("SBOOKS.forcebreakafter",true));
+            var fba=getMeta("alwaysbreakafter",true,true)
+                .concat(getMeta("forcebreakafter",true,true));
             if ((fba)&&(fba.length)) args.forcebreakafter=fdjtDOM.sel(fba);
-
-            var abb=fdjtDOM.getMeta("avoidbreakbefore",true).concat(
-                fdjtDOM.getMeta("SBOOKS.avoidbreakbefore",true)).concat(
-                    fdjtDOM.getMeta("dontbreakbefore",true)).concat(
-                        fdjtDOM.getMeta("SBOOKS.dontbreakbefore",true));
+            
+            var abb=getMeta("avoidbreakbefore",true,true)
+                .concat(getMeta("dontbreakbefore",true,true));
             if ((abb)&&(abb.length)) args.avoidbreakbefore=fdjtDOM.sel(abb);
 
-            var aba=fdjtDOM.getMeta("avoidbreakafter",true).concat(
-                fdjtDOM.getMeta("SBOOKS.avoidbreakafter",true)).concat(
-                    fdjtDOM.getMeta("dontbreakafter",true)).concat(
-                        fdjtDOM.getMeta("SBOOKS.dontbreakafter",true));
+            var aba=getMeta("avoidbreakafter",true,true)
+                 .concat(getMeta("dontbreakafter",true,true));
             if ((aba)&&(aba.length)) args.avoidbreakafter=fdjtDOM.sel(aba);
-
-            var abi=fdjtDOM.getMeta("avoidbreakinside",true).concat(
-                fdjtDOM.getMeta("SBOOKS.avoidbreakinside",true)).concat(
-                    fdjtDOM.getMeta("dontbreakinside",true)).concat(
-                        fdjtDOM.getMeta("SBOOKS.dontbreakinside",true));
-            if ((abi)&&(abi.length)) args.avoidbreakinside=fdjtDOM.sel(abi);
+            
+            var abi=getMeta("avoidbreakinside",true,true).
+                concat(getMeta("dontbreakinside",true,true));
+            if ((abi)&&(abi.length)) args.avoidbreakinside=abi;
 
             var fullpages=[".sbookfullpage",".sbooktitlepage",".sbookpage"].
-                concat(fdjtDOM.getMeta("codexfullpage",true));
+                concat(getMeta("codexfullpage",true));
             args.fullpages=fdjtDOM.sel(fullpages);
             
             var floatpages=[".codexfloatpage"].concat(
-                fdjtDOM.getMeta("codexfloatpage",true));
+                getMeta("codexfloatpage",true));
             if ((floatpages)&&(floatpages.length))
                 args.floatpages=fdjtDOM.sel(floatpages);
             
             var floating=[".codexfloating",".codexfloat"].concat(
-                fdjtDOM.getMeta("codexfloat",true)).concat(
-                    fdjtDOM.getMeta("codexfloating",true));
+                getMeta("codexfloat",true)).concat(
+                    getMeta("codexfloating",true));
             if ((floating)&&(floating.length))
                 args.floating=fdjtDOM.sel(floating);
 
-            if ((fdjtDOM.getMeta("metaBook.dontbreakblocks"))||
-                (fdjtDOM.getMeta("metaBook.keepblocks"))||
-                (fdjtDOM.getMeta("~=metaBook.dontbreakblocks"))||
-                (fdjtDOM.getMeta("~=metaBook.keepblocks"))||
-                (fdjtDOM.getMeta("~dontbreakblocks"))||
-                (fdjtDOM.getMeta("~keepblocks")))
+            if ((getMeta("metaBook.dontbreakblocks"))||
+                (getMeta("metaBook.keepblocks"))||
+                (getMeta("~=metaBook.dontbreakblocks"))||
+                (getMeta("~=metaBook.keepblocks"))||
+                (getMeta("~dontbreakblocks"))||
+                (getMeta("~keepblocks")))
                 args.break_blocks=false;
             else args.break_blocks=true;
             
-            if ((fdjtDOM.getMeta("metaBook.dontscalepages"))||
-                (fdjtDOM.getMeta("~=metaBook.dontscalepages"))||
-                (fdjtDOM.getMeta("dontscalepages")))
+            if ((getMeta("metaBook.dontscalepages"))||
+                (getMeta("~=metaBook.dontscalepages"))||
+                (getMeta("dontscalepages")))
                 args.scale_pages=false;
             else args.scale_pages=true;
 
@@ -39849,19 +39846,19 @@ metaBook.HTML.pageright=
 // FDJT build information
 fdjt.revision='1.5-1447-gf48acbe';
 fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Mon Jun 22 11:04:05 EDT 2015';
-fdjt.builduuid='d1bc1562-0de5-4b3f-adc8-af532c8631a6';
+fdjt.buildtime='Wed Jun 24 17:53:34 EDT 2015';
+fdjt.builduuid='3869bf7b-6ba6-494f-a5d6-84b49e3f0740';
 
-fdjt.CodexLayout.sourcehash='D6D4D57F2DB6566DCB275D5FABD36F8EAB0C2BF0';
+fdjt.CodexLayout.sourcehash='A74D9741EB5A240B505F0915F5A52829037F7AF3';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-53-g2d158b4';
-metaBook.buildid='99e74428-f7dd-42db-b367-f09b083fe1be';
-metaBook.buildtime='Mon Jun 22 18:26:13 EDT 2015';
+metaBook.version='v0.8-56-gbb87c36';
+metaBook.buildid='03a7cb82-7647-4a9c-8d8b-527176ae1bf3';
+metaBook.buildtime='Wed Jun 24 17:53:44 EDT 2015';
 metaBook.buildhost='moby.dot.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='D6D4D57F2DB6566DCB275D5FABD36F8EAB0C2BF0';
+fdjt.CodexLayout.sourcehash='A74D9741EB5A240B505F0915F5A52829037F7AF3';
