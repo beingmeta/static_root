@@ -243,17 +243,24 @@ clean: tidy
 undist:
 	rm dist/*; git checkout dist
 cleandist:
-	rm fdjt.css.gz fdjt.js fdjt.js.gz              \
+	cd dist; rm -f fdjt.css.gz fdjt.js fdjt.js.gz  \
 	   fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
-	   metabook.clean.css.gz metabook.css.gz       \
+           metabook.css                                \
+	   metabook.clean.css metabook.clean.css.map   \
+           metabook.css.gz metabook.cleancss.gz        \
            metabook.js metabook.js.gz                  \
            metabook.min.js metabook.min.js.gz          \
 	   metabook.uglify.js metabook.uglify.js.gz    \
 	   metabook.uglify.map;
+freshdist:
+	make cleandist
+	make dist
+
 redist:
 	for x in  fdjt.css.gz fdjt.js fdjt.js.gz              \
 		  fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
-	          metabook.clean.css.gz metabook.css.gz       \
+	          metabook.clean.css metabook.clean.css.gz    \
+	          metabook.css metabook.css.gz                \
 		  metabook.js metabook.js.gz                  \
 		  metabook.min.js metabook.min.js.gz          \
 		  metabook.uglify.js metabook.uglify.js.gz    \
