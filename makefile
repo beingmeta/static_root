@@ -400,6 +400,7 @@ dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	  --source-map fdjt.uglify.map  \
 	  --source-map-root /static          \
 	    $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js -o $@
+	@cp fdjt.uglify.map dist
 
 # Compiled
 

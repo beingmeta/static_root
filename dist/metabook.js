@@ -5150,8 +5150,11 @@ fdjt.Log=(function(){
                      inits.length,names.join());
         var i=0; var lim=inits.length;
         while (i<lim) {
-            if (run[i]) i++; else {
-                run[i]=true; inits[i++](); }}
+            if (run[i]) i++; 
+            else {
+                run[i]=true; 
+                inits[i]();
+                i++;}}
         inits_run=true;};
 
     var numpat=/^\d+(\.\d+)$/;
@@ -8876,15 +8879,18 @@ fdjt.DOM=
 
         fdjt.addInit(autoAdjustFonts);
         
-        function addUSClasses(){
+        function addUXClasses(){
             var device=fdjt.device;
             var prefix=fdjt.cxprefix||"_";
-            if (device.ios) addClass(document.body,prefix+"IOS");
-            if (device.touch) addClass(document.body,prefix+"TOUCH");
-            if (device.mouse) addClass(document.body,prefix+"MOUSE");
-            if (device.android) addClass(document.body,prefix+"Android");}
-        fdjtDOM.addUSClasses=addUSClasses;
-        fdjtDOM.addCXClasses=addUSClasses;
+            var html=document.documentElement;
+            if (device.ios) addClass(html,prefix+"IOS");
+            if (device.touch) addClass(html,prefix+"TOUCH");
+            if (device.mouse) addClass(html,prefix+"MOUSE");
+            if (device.android) addClass(html,prefix+"Android");}
+        fdjtDOM.addUXClasses=addUXClasses;
+        fdjtDOM.addUSClasses=addUXClasses;
+        fdjtDOM.addCXClasses=addUXClasses;
+        fdjt.addInit(addUXClasses,"AddUXClasses");
 
         function windowFocus(evt){
             evt=evt||window.event; addClass(document.body,"_FOCUS");}
@@ -39844,20 +39850,20 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1447-gf48acbe';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Wed Jun 24 17:53:34 EDT 2015';
-fdjt.builduuid='3869bf7b-6ba6-494f-a5d6-84b49e3f0740';
+fdjt.revision='1.5-1448-g815cd5f';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Thu Jul 2 06:09:47 EDT 2015';
+fdjt.builduuid='CC21F3D5-0C29-42D9-B592-AE7C3F4F8C9E';
 
 fdjt.CodexLayout.sourcehash='A74D9741EB5A240B505F0915F5A52829037F7AF3';
 
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-153-gf5c2070';
 // sBooks metaBook build information
 metaBook.version='v0.8-59-g947e171';
-metaBook.buildid='c5dfb16f-b24d-4f4c-9630-45d9dfd166fa';
-metaBook.buildtime='Thu Jun 25 11:42:28 EDT 2015';
-metaBook.buildhost='moby.dot.beingmeta.com';
+metaBook.buildid='2C09A8BC-3440-4DAD-85D7-9255C4060424';
+metaBook.buildtime='Thu Jul  2 06:09:48 EDT 2015';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
