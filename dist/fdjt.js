@@ -15694,6 +15694,15 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
             else {
                 fdjtLog.warn("No container %s",container);
                 return;}}
+        var wrapper=spec.wrapper||
+            fdjtDOM.getMeta("~{http://fdjt.org/}scrollwrapper")||
+            fdjtDOM.getMeta("~scrollwrapper")||
+            "FDJTSCROLLWRAPPER";
+        if (typeof wrapper === 'string') {
+            if (fdjtID(wrapper)) wrapper=fdjtID(wrapper);
+            else {
+                fdjtLog.warn("No wrapper %s",container);
+                wrapper=false;}}
         var thresh=spec.thresh||
             fdjtDOM.getMeta("~{http://fdjt.org/}scrollthresh")||
             fdjtDOM.getMeta("~scrollthresh")||
@@ -15761,18 +15770,24 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 
         function scrollChecker(){
             if (busy) return;
-            var iscroll=spec.iscroll||window.iscroller||false;
-            var page_height=(iscroll)?(iscroll.scrollerH):
-                (document.documentElement.scrollHeight);
-            var scroll_pos=(iscroll)?(-iscroll.y):
-                (window.pageYOffset);
-            if ((!(iscroll))&&(typeof scroll_pos !== 'number'))
-                scroll_pos=document.documentElement.scrollTop;
-            var client_height=(iscroll)?(iscroll.wrapperH):
-                (document.documentElement.clientHeight);
-            if (((page_height-(scroll_pos+client_height))<thresh)||
-                (page_height<client_height))
-                getMoreResults();}
+            if (wrapper) {
+                var top=wrapper.scrollTop, sh=wrapper.scrollHeight;
+                var oh=wrapper.offsetHeight;
+                if ((sh<=oh)||((top+(oh*2))>=sh))
+                    getMoreResults();}
+            else {
+                var iscroll=spec.iscroll||window.iscroller||false;
+                var page_height=(iscroll)?(iscroll.scrollerH):
+                    (document.documentElement.scrollHeight);
+                var scroll_pos=(iscroll)?(-iscroll.y):
+                    (window.pageYOffset);
+                if ((!(iscroll))&&(typeof scroll_pos !== 'number'))
+                    scroll_pos=document.documentElement.scrollTop;
+                var client_height=(iscroll)?(iscroll.wrapperH):
+                    (document.documentElement.clientHeight);
+                if (((page_height-(scroll_pos+client_height))<thresh)||
+                    (page_height<client_height))
+                    getMoreResults();}}
         timer=setInterval(scrollChecker,interval);
         return timer;}
     return fdjtScrollEver;})();
@@ -15786,8 +15801,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1448-g815cd5f';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Thu Jul 2 06:09:47 EDT 2015';
-fdjt.builduuid='CC21F3D5-0C29-42D9-B592-AE7C3F4F8C9E';
+fdjt.revision='1.5-1449-g140ce52';
+fdjt.buildhost='moby.dot.beingmeta.com';
+fdjt.buildtime='Fri Jul 3 19:37:41 EDT 2015';
+fdjt.builduuid='12de954f-b0f9-42ff-9da5-ff68a977eb02';
 
