@@ -23,8 +23,8 @@ BUILDHOST:=`hostname`
 BRANCH=master
 UGLIFY:=`which uglifyjs2 uglifyjs`
 CLEANCSS:=`which cleancss`
-AUTOPREFIXER:=`which autoprefixer`
 POSTCSS:=`which postcss`
+AUTOPREFIXER:=`which autoprefixer`
 CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
 		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon \
 		*.rct *.ico
@@ -322,7 +322,8 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
 	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
-	@$(AUTOPREFIXER) metabook.clean.css
+	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
+#	@$(AUTOPREFIXER) metabook.clean.css
 
 fresh:
 	make clean
@@ -375,7 +376,8 @@ dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.clean.css
 	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
-	@$(AUTOPREFIXER) metabook.clean.css
+	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
+#	@$(AUTOPREFIXER) metabook.clean.css
 	@mv metabook.clean.css metabook.clean.css.map dist
 
 dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
