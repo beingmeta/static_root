@@ -2168,7 +2168,7 @@ html._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
     top: -0.2ex;}
 
 .dterm.weak {
-    background-color: silver; rbga(0,0,0,0.8);}
+    background-color: rbga(0,0,0,0.8);}
 .rootform {
     color: rbga(0,0,0,0.8); font-weight: bold;}
 .rawterm, .rootform {

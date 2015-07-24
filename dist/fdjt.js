@@ -433,6 +433,61 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             if (watch_slice<1) watch_slice=vec.length*watch_slice;
             return new Promise(slowmapping);};
 
+        // Returns a function, that, as long as it continues to be invoked, will not
+        // be triggered. The function will be called after it stops being called for
+        // N milliseconds. If `immediate` is passed, trigger the function on the
+        // leading edge, instead of the trailing.
+        function debounce(func, wait, immediate) {
+            var timeout;
+            return function() {
+                var context = this, args = arguments;
+                var later = function() {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        }
+        fdjtAsync.debounce=debounce;
+
+        function poll(fn, callback, errback, timeout, interval) {
+            var endTime = Number(new Date()) + (timeout || 2000);
+            interval = interval || 100;
+
+            (function p() {
+                // If the condition is met, we're done! 
+                if(fn()) {
+                    callback();
+                }
+                // If the condition isn't met but the timeout hasn't elapsed, go again
+                else if (Number(new Date()) < endTime) {
+                    setTimeout(p, interval);
+                }
+                // Didn't match and too much time, reject!
+                else {
+                    errback(new Error('timed out for ' + fn + ': ' + arguments));
+                }
+            })();
+        }
+        fdjtAsync.poll=poll;
+
+        function once(fn, context) { 
+            var result;
+
+            return function() { 
+                if(fn) {
+                    result = fn.apply(context || this, arguments);
+                    fn = null;
+                }
+
+                return result;
+            };
+        }
+        fdjtAsync.once=once;
+
         return fdjtAsync;})();
 
 /* Emacs local variables
@@ -4093,6 +4148,7 @@ fdjt.Log=(function(){
         if (isRedHat) device.redhat=true;
         if (isLinux) device.linux=true;
         if (isTouch) device.touch=true;
+        else device.mouse=true;
         fdjtLog("Device: %j",device);}
     
     (function(){
@@ -15801,8 +15857,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1449-g140ce52';
-fdjt.buildhost='moby.dot.beingmeta.com';
-fdjt.buildtime='Fri Jul 3 19:37:41 EDT 2015';
-fdjt.builduuid='12de954f-b0f9-42ff-9da5-ff68a977eb02';
+fdjt.revision='1.5-1452-gaf76090';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Fri Jul 24 14:30:54 PDT 2015';
+fdjt.builduuid='4C75A8A0-8F88-4D07-BCE4-22AD2403F957';
 
