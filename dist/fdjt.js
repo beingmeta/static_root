@@ -15858,7 +15858,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 // FDJT build information
 fdjt.revision='1.5-1452-gaf76090';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Jul 24 14:30:54 PDT 2015';
-fdjt.builduuid='4C75A8A0-8F88-4D07-BCE4-22AD2403F957';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Mon Jul 27 20:06:04 UTC 2015';
+fdjt.builduuid='26979900-b3a6-4fa3-b96f-c48b7030d74c';
 

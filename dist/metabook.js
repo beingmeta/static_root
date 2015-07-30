@@ -22142,10 +22142,10 @@ var metaBook={
     update_timeout: 30*1000,    // Timeout on requests
     update_pause: 30*60*1000,   // Interval to sleep on error or timeout
     // State sync settings (in milliseconds):
-    sync_interval: 180*1000, // Interval between sync checks
-    sync_min: 10*1000, // Minimum interval between sync checks
-    sync_timeout: 10000,    // Timeout on sync requests
-    sync_pause: 15*60*1000, // Interval to sleep on error or timeout
+    sync_interval: 180, // Interval between sync checks
+    sync_min: 10, // Minimum interval between sync checks
+    sync_timeout: 10,    // Timeout on sync requests
+    sync_pause: 15*60, // Interval to sleep on error or timeout
     // Various handlers, settings, and status information for the
     // metaBook interface
     UI: {
@@ -22202,7 +22202,7 @@ var metaBook={
         savegloss: 0,     // When glosses are saved to the server
         glosses: 0,       // How much we're tracing gloss processing
         addgloss: 0,      // Note whenever a gloss post completes
-        glossdata: 0,     // Whether to trace caching/retrieval of glossdata
+        glossdata: 1,     // Whether to trace caching/retrieval of glossdata
         slices: 0,        // How much to trace slice creation and layout
         pagers: 0,        // How much to trace Pager layout
         layout: 0,        // How much to trace document layout
@@ -22427,7 +22427,7 @@ fdjt.DOM.noautofontadjust=true;
         
         var knodeToOption=Knodule.knodeToOption;
 
-        var cachelink=/^https:\/\/glossdata.(sbooks\.net|metabooks\.net|beingmeta\.com)\//;
+        var cachelink=/^https:\/\/glossdata.(sbooks\.net|metabooks\.net|beingmeta\.com|bookhub\.io)\//;
         mB.cachelink=cachelink;
         
         var knodule_name=
@@ -22474,6 +22474,14 @@ fdjt.DOM.noautofontadjust=true;
                 var maker=(item.maker)&&(metaBook.sourcedb.ref(item.maker));
                 if (item.links) {
                     var links=item.links; for (var link in links) {
+                        if (!(links.hasOwnProperty(link))) continue;
+                        if (!(links[link])) continue;
+                        if (cachelink.exec(link)) {
+                            var newlink=link.replace("//glossdata.sbooks.net/","//glossdata.bookhub.io/");
+                            if (link!==newlink) {
+                                links[newlink]=links[link];
+                                delete links[link];
+                                link=newlink;}}
                         if ((links.hasOwnProperty(link))&&
                             (cachelink.exec(link)))
                             metaBook.needGlossData(link);}}
@@ -22780,10 +22788,10 @@ fdjt.DOM.noautofontadjust=true;
     // This is the hostname for the sbookserver.
     metaBook.server=false;
     // This is an array for looking up sbook servers.
-    metaBook.servers=[[/.metabooks.net$/g,/.sbooks.net$/g,"glosses.sbooks.net"]];
+    metaBook.servers=[];
     //metaBook.servers=[];
     // This is the default server
-    metaBook.default_server="glosses.sbooks.net";
+    metaBook.default_server="glosses.bookhub.io";
     // There be icons here!
     metaBook.root=
         ((mbama)&&(uroot_pat.exec(mbama))&&((uroot_pat.exec(mbama))[0]))||
@@ -22813,6 +22821,9 @@ fdjt.DOM.noautofontadjust=true;
                      (scan.getAttributeNS("refuri","http://metabooks.net/")))
                 return scan.getAttributeNS("refuri","http://metabooks.net/");
             else if ((scan.getAttributeNS)&&
+                     (scan.getAttributeNS("refuri","http://beingmeta.com/METABOOK/")))
+                return scan.getAttributeNS("refuri","http://beingmeta.com/METABOOK/");
+            else if ((scan.getAttributeNS)&&
                      (scan.getAttributeNS("refuri","http://sbooks.net/")))
                 return scan.getAttributeNS("refuri","http://sbooks.net/");
             else if (scan.getAttribute("refuri"))
@@ -22827,6 +22838,9 @@ fdjt.DOM.noautofontadjust=true;
             if (scan.getAttribute("data-docuri"))
                 return scan.getAttribute("data-docuri");
             else if ((scan.getAttributeNS)&&
+                     (scan.getAttributeNS("docuri","http://beingmeta.com/METABOOK/")))
+                return scan.getAttributeNS("docuri","http://beingmeta.com/METABOOK/");
+            else if ((scan.getAttributeNS)&&
                      (scan.getAttributeNS("docuri","http://metabooks.net/")))
                 return scan.getAttributeNS("docuri","http://metabooks.net/");
             else if ((scan.getAttributeNS)&&
@@ -22840,7 +22854,8 @@ fdjt.DOM.noautofontadjust=true;
 
     metaBook.getRefID=function(target){
         if (target.getAttributeNS)
-            return (target.getAttributeNS('sbookid','http://metabooks.net/'))||
+            return (target.getAttributeNS('sbookid','http://beingmeta.com/METABOOK/'))||
+            (target.getAttributeNS('sbookid','http://metabooks.net/'))||
             (target.getAttributeNS('sbookid','http://sbooks.net/'))||
             (target.getAttributeNS('sbookid'))||
             (target.getAttributeNS('data-sbookid'))||
@@ -23157,6 +23172,10 @@ fdjt.DOM.noautofontadjust=true;
                 return false;}
             else return elt.toclevel;}
         var attrval=
+            ((elt.getAttributeNS)&&
+             (elt.getAttributeNS('toclevel','http://beingmeta.com/TOC/')))||
+            ((elt.getAttributeNS)&&
+             (elt.getAttributeNS('toclevel','http://beingmeta.com/METABOOK/')))||
             ((elt.getAttributeNS)&&
              (elt.getAttributeNS('toclevel','http://metabooks.net')))||
             ((elt.getAttributeNS)&&
@@ -24127,6 +24146,10 @@ metaBook.DOMScan=(function(){
             var title=
                 (head.toctitle)||
                 ((head.getAttributeNS)&&
+                 (head.getAttributeNS('toctitle','http://beingmeta.com/TOC/')))||
+                ((head.getAttributeNS)&&
+                 (head.getAttributeNS('toctitle','http://beingmeta.com/METABOOK/')))||
+                ((head.getAttributeNS)&&
                  (head.getAttributeNS('toctitle','http://metabooks.net')))||
                 ((head.getAttributeNS)&&
                  (head.getAttributeNS('toctitle','http://sbooks.net')))||
@@ -24136,6 +24159,10 @@ metaBook.DOMScan=(function(){
             if (!(title)) {
                 var head1=fdjtDOM.getFirstChild(head,"H1,H2,H3,H4,H5,H6");
                 if (head1) title=head1.toctitle||
+                    ((head1.getAttributeNS)&&
+                     (head1.getAttributeNS('toctitle','http://beingmeta.com/TOC/')))||
+                    ((head1.getAttributeNS)&&
+                     (head1.getAttributeNS('toctitle','http://beingmeta.com/METABOOK/')))||
                     ((head1.getAttributeNS)&&
                      (head1.getAttributeNS('toctitle','http://metabooks.net')))||
                     ((head1.getAttributeNS)&&
@@ -24403,6 +24430,10 @@ metaBook.DOMScan=(function(){
             if ((id)&&(info)) {
                 var tags=
                     ((child.getAttributeNS)&&
+                     (child.getAttributeNS('tags','http://beingmeta.com/INDEX/')))||
+                    ((child.getAttributeNS)&&
+                     (child.getAttributeNS('tags','http://beingmeta.com/METABOOK/')))||
+                    ((child.getAttributeNS)&&
                      (child.getAttributeNS('tags','http://metabooks.net/')))||
                     ((child.getAttributeNS)&&
                      (child.getAttributeNS('tags','http://sbooks.net/')))||
@@ -24587,8 +24618,8 @@ metaBook.DOMScan=(function(){
             var req=new XMLHttpRequest(), endpoint, rtype;
             if ((!(Blob))||(!(createObjectURL))) {
                 // This endpoint returns a datauri as text
-                endpoint="https://glossdata.sbooks.net/U/"+
-                    uri.slice("https://glossdata.sbooks.net/".length);
+                endpoint="https://glossdata.bookhub.io/U/"+
+                    uri.slice("https://glossdata.bookhub.io/".length);
                 rtype="";}
             else {endpoint=uri; rtype="blob";}
             // We provide credentials in the query string because we
@@ -26036,7 +26067,7 @@ metaBook.DOMScan=(function(){
     // returned
     function syncState(force){
         var elapsed=(last_sync)?(fdjtTime.tick()-last_sync):(3600*24*365*10);
-        if ((syncing)||(!(metaBook.locsync))) return;
+        if ((syncing)||((!(force))&&(!(metaBook.locsync)))) return;
         if (!(metaBook.user)) return;
         if (sync_req) {
             fdjtLog("Skipping state sync because one is already in process");
@@ -26053,10 +26084,10 @@ metaBook.DOMScan=(function(){
             if (Trace.state)
                 fdjtLog("Skipping state sync because page is hidden");
             return;}
-        if (elapsed<metaBook.sync_min) {
+        if ((!(force))&&(elapsed<(metaBook.sync_min))) {
             sync_wait=setTimeout(
                 function(){syncState(force);},
-                metaBook.sync_min);
+                1000*metaBook.sync_min);
             return;}
         else if (sync_wait) {clearTimeout(sync_wait); sync_wait=false;} 
         if ((metaBook.locsync)&&(navigator.onLine)) {
@@ -26066,7 +26097,7 @@ metaBook.DOMScan=(function(){
             var refuri=
                 ((metaBook.target)&&(metaBook.getRefURI(metaBook.target)))||
                 (metaBook.refuri);
-            var sync_uri="https://sync.sbooks.net/v1/sync"+
+            var sync_uri="https://sync.bookhub.io/v1/sync"+
                 "?REFURI="+encodeURIComponent(refuri)+
                 "&DOCURI="+encodeURIComponent(metaBook.docuri)+
                 "&NOW="+fdjtTime.tick();
@@ -26104,14 +26135,14 @@ metaBook.DOMScan=(function(){
                     fdjtLog.warn(
                         "Sync request %s returned status %d %j, pausing for %ds",
                         uri,req.status,JSON.parse(req.responseText),
-                        metaBook.sync_pause/1000);}
+                        metaBook.sync_pause);}
                 catch (err) {
                     fdjtLog.warn(
                         "Sync request %s returned status %d, pausing for %ds",
                         uri,req.status,metaBook.sync_pause/1000);}
                 metaBook.locsync=false;
                 setTimeout(function(){metaBook.locsync=true;},
-                           metaBook.sync_pause);}}
+                           1000*metaBook.sync_pause);}}
     } metaBook.syncState=syncState;
 
     function syncTimeout(evt){
@@ -26121,7 +26152,7 @@ metaBook.DOMScan=(function(){
         metaBook.locsync=false;
         setTimeout(function(){
             metaBook.locsync=true;},
-                   metaBook.sync_pause);}
+                   1000*metaBook.sync_pause);}
 
     var prompted=false;
 
@@ -26488,7 +26519,7 @@ metaBook.DOMScan=(function(){
                 var idlink=idlinks[i++];
                 idlink.target='_blank';
                 idlink.title='click to edit your personal information';
-                idlink.href='https://auth.sbooks.net/my/profile';}}
+                idlink.href='https://my.bookhub.io/profile';}}
         if (metaBook.user.friends) {
             var friends=metaBook.user.friends; var sourcedb=metaBook.sourcedb;
             i=0; lim=friends.length; while (i<lim) {
@@ -27076,7 +27107,7 @@ metaBook.DOMScan=(function(){
     function getFreshMyCopyId(){
         if (getting_mycopyid) return;
         getting_mycopyid=fdjtTime();
-        fdjtAjax.fetchText("https://auth.sbooks.net/getmycopyid?DOC="+mB.docref).
+        fdjtAjax.fetchText("https://auth.bookhub.io/getmycopyid?DOC="+mB.docref).
             then(function(mycopyid){
                 gotMyCopyId(mycopyid).then(function(){getting_mycopyid=false;});});}
 
@@ -27319,27 +27350,27 @@ metaBook.Startup=
             return false;}
 
         function showMessage(){
-            var message=fdjt.State.getCookie("METABOOKSPOPUP")||fdjt.State.getCookie("SBOOKSPOPUP");
+            var message=fdjt.State.getCookie("APPMESSAGE");
             if (message) fdjt.UI.alertFor(10,message);
-            fdjt.State.clearCookie("SBOOKSPOPUP","/","sbooks.net");
-            fdjt.State.clearCookie("SBOOKSMESSAGE","/","sbooks.net");
-            fdjt.State.clearCookie("SBOOKSPOPUP","/","metabooks.net");
-            fdjt.State.clearCookie("SBOOKSMESSAGE","/","metabooks.net");}
+            fdjt.State.clearCookie("APPMESSAGE","/","bookhub.io");
+            fdjt.State.clearCookie("APPMESSAGE","/","sbooks.net");
+            fdjt.State.clearCookie("APPMESSAGE","/","metabooks.net");}
 
         function readEnvSettings() {
 
             // Initialize domain and origin for browsers which care
-            try {document.domain="sbooks.net";}
+            try {document.domain="bookhub.io";}
             catch (ex) {fdjtLog.warn("Error setting document.domain");}
-            try {document.origin="sbooks.net";}
+            try {document.origin="bookhub.io";}
             catch (ex) {fdjtLog.warn("Error setting document.origin");}
 
             // First, define common schemas
             fdjtDOM.addAppSchema("SBOOK","http://sbooks.net/");
             fdjtDOM.addAppSchema("SBOOKS","http://sbooks.net/");
-            fdjtDOM.addAppSchema("METABOOKS","http://metabooks.net/");
-            fdjtDOM.addAppSchema("MB","http://metabooks.net/");
-            fdjtDOM.addAppSchema("metaBook","http://metabook.sbooks.net/");
+            fdjtDOM.addAppSchema("METABOOK","http://beingmeta.com/METABOOK/");
+            fdjtDOM.addAppSchema("METABOOKS","http://beingmeta.com/METABOOK/");
+            fdjtDOM.addAppSchema("MB","http://beingmeta.com/METABOOK/");
+            fdjtDOM.addAppSchema("metaBook","http://beingmeta.com/METABOOK");
             fdjtDOM.addAppSchema("DC","http://purl.org/dc/elements/1.1/");
             fdjtDOM.addAppSchema("DCTERMS","http://purl.org/dc/terms/");
             fdjtDOM.addAppSchema("OLIB","http://openlibrary.org/");
@@ -27755,12 +27786,9 @@ metaBook.Startup=
                 else fdjtUI.alertFor(10,msg);}
             if ((msg=getCookie("APPMESSAGE"))) {
                 fdjtUI.alertFor(10,msg);
+                fdjtState.clearCookie("APPMESSAGE","bookhub.io","/");
                 fdjtState.clearCookie("APPMESSAGE","sbooks.net","/");
                 fdjtState.clearCookie("APPMESSAGE","metabooks.net","/");}
-            if ((msg=getCookie("SBOOKSMESSAGE"))) {
-                fdjtUI.alertFor(10,msg);
-                fdjtState.clearCookie("SBOOKSMESSAGE","sbooks.net","/");
-                fdjtState.clearCookie("METABOOKMESSAGE","metabooks.net","/");}
             if ((!(mode))&&(location.hash)&&(metaBook.state)&&
                 (location.hash.slice(1)!==metaBook.state.target))
                 metaBook.hideCover();
@@ -28090,9 +28118,7 @@ metaBook.Startup=
         function hasTOCLevel(elt){
             if ((elt.toclevel)||
                 ((elt.getAttributeNS)&&
-                 (elt.getAttributeNS('toclevel','http://metabooks.net/')))||
-                ((elt.getAttributeNS)&&
-                 (elt.getAttributeNS('toclevel','http://sbooks.net/')))||
+                 (elt.getAttributeNS('toclevel','http://beingmeta.com/TOC/')))||
                 (elt.getAttribute('toclevel'))||
                 (elt.getAttribute('data-toclevel'))||
                 ((elt.className)&&(elt.className.search)&&
@@ -28579,7 +28605,8 @@ metaBook.Slice=(function () {
         for (url in refs) {
             if (url[0]==='_') continue;
             var urlinfo=refs[url], elt=false;
-            var openinbook=(url.search("https://glossdata.sbooks.net/")===0)||
+            var openinbook=(url.search("https://glossdata.bookhub.io/")===0)||
+                (url.search("https://glossdata.sbooks.net/")===0)||
                 (url.search("resources/")===0);
             var title; var icon=false, type=false, useclass=false;
             if (!(openinbook)) {
@@ -32849,6 +32876,7 @@ metaBook.setMode=
 
     function getTagline(target){
         var attrib=
+            target.getAttributeNS("tagline","https://beingmeta.com/METABOOK/")||
             target.getAttributeNS("tagline","https://metabooks.net/")||
             target.getAttributeNS("tagline","https://sbooks.net/")||
             target.getAttribute("data-tagline")||
@@ -34265,7 +34293,7 @@ metaBook.setMode=
                                        "I have the right to use and share this ",
                                        "file according to the sBooks ",
                                        fdjtDOM.Anchor(
-                                           "https://www.sbooks.net/legalia/TOS/",
+                                           "https://www.bookhub.io/legalia/TOS/",
                                            "A[target='_blank']",
                                            "Terms of Service"),
                                        "."));
@@ -34385,7 +34413,7 @@ metaBook.setMode=
         var filename=file.name, filetype=file.type;
         // var reader=new FileReader();
         var savereq=new XMLHttpRequest();
-        var endpoint="https://glossdata.sbooks.net/"+
+        var endpoint="https://glossdata.bookhub.io/"+
             glossid+"/"+itemid+"/"+filename;
         var aborted=false, done=false;
         function attaching_file(resolve,reject){        
@@ -38418,8 +38446,8 @@ metaBook.HTML.searchbox=
 /*   generated from the file "metabook/html/addgloss.html" */
 
 metaBook.HTML.addgloss=
-    "<form action=\"https://glosses.sbooks.net/glosses\"\n"+
-    "      ajaxaction=\"https://glosses.sbooks.net/glosses\"\n"+
+    "<form action=\"https://glosses.bookhub.io/glosses\"\n"+
+    "      ajaxaction=\"https://glosses.bookhub.io/glosses\"\n"+
     "      method=\"POST\" target=\"addgloss\"\n"+
     "      accept-charset=\"utf-8\">\n"+
     "  <div class=\"messageoverlay\">\n"+
@@ -38883,7 +38911,7 @@ metaBook.HTML.heart=
 metaBook.HTML.attach=
     "<form id=\"METABOOKATTACHFORM\" target=\"METABOOKGLOSSCOMM\"\n"+
     "      method=\"POST\" enctype=\"multipart/form-data\" accept-charset=\"utf-8\"\n"+
-    "      action=\"https://glosses.sbooks.net/1/attach\"\n"+
+    "      action=\"https://glossdata.bookhub.io/1/attach\"\n"+
     "      class=\"link\">\n"+
     "  <table class=\"fdjtform\"\n"+
     "         onclick=\"fdjt.UI.CheckSpan.onclick(event);\">\n"+
@@ -38942,7 +38970,7 @@ metaBook.HTML.attach=
     "      <td colspan=\"2\">\n"+
     "        I affirm that I have the right to use and share this\n"+
     "        content according to the &sBooks;\n"+
-    "        <a href=\"https://www.sbooks.net/legalia/TOS/\" target=\"_blank\">\n"+
+    "        <a href=\"https://www.bookhub.io/legalia/TOS/\" target=\"_blank\">\n"+
     "          Terms of Service</a>.</td>\n"+
     "    </tr>\n"+
     "    <tr class=\"url\">\n"+
@@ -39544,14 +39572,14 @@ metaBook.HTML.cover=
     "     data-maxfont=\"120%\" id=\"METABOOKUSERBOX\">\n"+
     "  <span class=\"bookplate\">\n"+
     "    <span class=\"text\">This</span>\n"+
-    "    <a class=\"sbooks\" href=\"https://www.sbooks.net/\" target=\"_blank\"\n"+
+    "    <a class=\"sbooks\" href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
     "       title=\"Learn more about sBooks\" tabindex=\"9\">\n"+
-    "      <em>s</em>Book</a>\n"+
-    "    <a class=\"sbookslogo\" href=\"https://www.sbooks.net/\" target=\"_blank\"\n"+
+    "      <em>meta</em>Book</a>\n"+
+    "    <a class=\"sbookslogo\" href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
     "       title=\"Learn more about sBooks\" tabindex=\"9\">\n"+
     "      <em>s</em>Books</a>\n"+
     "    <span class=\"text\">is personalized for</span>\n"+
-    "    <a href=\"https://admin.sbooks.net/account/\" class=\"metabookusername\"\n"+
+    "    <a href=\"https://my.bookhub.io/profile/\" class=\"metabookusername\"\n"+
     "       title=\"Edit your profile, add social networks, etc\"\n"+
     "       target=\"_blank\" tabindex=\"10\">\n"+
     "      you</a></span>\n"+
@@ -39907,19 +39935,19 @@ metaBook.HTML.pageright=
     "";
 // FDJT build information
 fdjt.revision='1.5-1452-gaf76090';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Jul 24 14:30:54 PDT 2015';
-fdjt.builduuid='4C75A8A0-8F88-4D07-BCE4-22AD2403F957';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Mon Jul 27 20:06:04 UTC 2015';
+fdjt.builduuid='26979900-b3a6-4fa3-b96f-c48b7030d74c';
 
 fdjt.CodexLayout.sourcehash='A74D9741EB5A240B505F0915F5A52829037F7AF3';
 
 
 Knodule.version='v0.8-153-gf5c2070';
 // sBooks metaBook build information
-metaBook.version='v0.8-61-g69b18e7';
-metaBook.buildid='30EB70E5-5B93-4422-B16A-FC1F47138E0D';
-metaBook.buildtime='Fri Jul 24 14:31:05 PDT 2015';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-65-ge7ff388';
+metaBook.buildid='395639ba-14cc-45ad-8661-d2588f662031';
+metaBook.buildtime='Thu Jul 30 04:05:16 UTC 2015';
+metaBook.buildhost='ip-172-30-4-114';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
