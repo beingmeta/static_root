@@ -27284,7 +27284,7 @@ metaBook.Startup=
                   (metaBook.userinfo)||(window._userinfo)||
                   (getLocal("mB.user")))) {
                 if (Trace.startup)
-                    fdjtLog("No local user info, requesting from sBooks server %s",
+                    fdjtLog("No local user info, requesting from bookhub server %s",
                             mB.server);
                 // When metaBook.user is not defined, this just
                 // requests identity information
@@ -27352,9 +27352,7 @@ metaBook.Startup=
         function showMessage(){
             var message=fdjt.State.getCookie("APPMESSAGE");
             if (message) fdjt.UI.alertFor(10,message);
-            fdjt.State.clearCookie("APPMESSAGE","/","bookhub.io");
-            fdjt.State.clearCookie("APPMESSAGE","/","sbooks.net");
-            fdjt.State.clearCookie("APPMESSAGE","/","metabooks.net");}
+            fdjt.State.clearCookie("APPMESSAGE","/","bookhub.io");}
 
         function readEnvSettings() {
 
@@ -27365,12 +27363,9 @@ metaBook.Startup=
             catch (ex) {fdjtLog.warn("Error setting document.origin");}
 
             // First, define common schemas
-            fdjtDOM.addAppSchema("SBOOK","http://sbooks.net/");
-            fdjtDOM.addAppSchema("SBOOKS","http://sbooks.net/");
-            fdjtDOM.addAppSchema("METABOOK","http://beingmeta.com/METABOOK/");
-            fdjtDOM.addAppSchema("METABOOKS","http://beingmeta.com/METABOOK/");
-            fdjtDOM.addAppSchema("MB","http://beingmeta.com/METABOOK/");
-            fdjtDOM.addAppSchema("metaBook","http://beingmeta.com/METABOOK");
+            fdjtDOM.addAppSchema("METABOOK","http://metabook.bookhub.io/");
+            fdjtDOM.addAppSchema("BOOKHUB","http://bookhub.io/");
+            fdjtDOM.addAppSchema("PUBTOOL","http://pubtool.bookhub.io/");
             fdjtDOM.addAppSchema("DC","http://purl.org/dc/elements/1.1/");
             fdjtDOM.addAppSchema("DCTERMS","http://purl.org/dc/terms/");
             fdjtDOM.addAppSchema("OLIB","http://openlibrary.org/");
@@ -27388,19 +27383,12 @@ metaBook.Startup=
             // Whether to suppress login, etc
             if ((getLocal("mB.nologin"))||(getQuery("nologin")))
                 metaBook.nologin=true;
-            var sbooksrv=getMeta("MB.server")||getMeta("METABOOK.server")||
-                getMeta("GLOSSDB.server")||getMeta("GLOSSES.server")||
-                getMeta("SBOOKS.server")||getMeta("SBOOKSERVER")||
-                getMeta("GLOSSDB");
-            if (sbooksrv) metaBook.server=sbooksrv;
+            var glosshost=getMeta("BOOKHUB.server")||getMeta("GLOSSDB");
+            if (glosshost) metaBook.server=glosshost;
             else if (fdjtState.getCookie("METABOOKSERVER"))
                 metaBook.server=fdjtState.getCookie("METABOOKSERVER");
-            else if (fdjtState.getCookie("MBSERVER"))
-                metaBook.server=fdjtState.getCookie("MBSERVER");
             else if (fdjtState.getCookie("GLOSSDB"))
                 metaBook.server=fdjtState.getCookie("GLOSSDB");
-            else if (fdjtState.getCookie("SBOOKSERVER"))
-                metaBook.server=fdjtState.getCookie("SBOOKSERVER");
             else metaBook.server=lookupServer(document.domain);
             if (!(metaBook.server)) metaBook.server=metaBook.default_server;
             updateServerInfo(metaBook.server);
@@ -27463,8 +27451,8 @@ metaBook.Startup=
             // Setup the reticle (if desired)
             if ((typeof (body.style["pointer-events"])!== "undefined")&&
                 ((metaBook.demo)||(fdjtState.getLocal("mB.demo"))||
-                 (fdjtState.getCookie("sbooksdemo"))||
-                 (getQuery("demo")))) {
+                 (fdjtState.getCookie("crosshair"))||
+                 (getQuery("crosshair")))) {
                 fdjtUI.Reticle.setup();}
 
             if (Trace.startup)
@@ -27575,7 +27563,10 @@ metaBook.Startup=
                     metaBook.setupTOC(metadata[metaBook.content.id]);},
                 function(){
                     var hasText=fdjtDOM.hasText;
-                    var rules=fdjtDOM.getMeta("SBOOKS.index",true);
+                    var rules=fdjtDOM.getMeta("METABOOK.index",true)
+                        .concat(fdjtDOM.getMeta("PUBTOOL.index",true))
+                        .concat(fdjtDOM.getMeta("INDEX.include",true))
+                        .concat(fdjtDOM.getMeta("textindex",true));
                     var content=$ID("CODEXCONTENT");
                     rules.push("p,li,ul,blockquote,div");
                     rules.push("h1,h2,h3,h4,h5,h6,h7,hgroup,.sbookindex");
@@ -27662,44 +27653,30 @@ metaBook.Startup=
         function applyTOCRules(){
             var h1=getMeta("TOC.head1",true,true)
                 .concat(getMeta("TOC.sect1",true,true))
-                .concat(getMeta("SBOOKS.h1",true,true))
-                .concat(getMeta("SBOOKS.head1",true,true))
                 .concat(getMeta("sbook1head",true));
             if (h1.length) addTOCLevel(h1,"1");
             var h2=getMeta("TOC.head2",true,true)
                 .concat(getMeta("TOC.sect2",true,true))
-                .concat(getMeta("SBOOKS.h2",true,true))
-                .concat(getMeta("SBOOKS.head2",true,true))
                 .concat(getMeta("sbook2head",true,true));
             if (h2.length) addTOCLevel(h2,"2");
             var h3=getMeta("TOC.head3",true,true)
                 .concat(getMeta("TOC.sect3",true,true))
-                .concat(getMeta("SBOOKS.h3",true,true))
-                .concat(getMeta("SBOOKS.head3",true,true))
                 .concat(getMeta("sbook3head",true));
             if (h3.length) addTOCLevel(h3,"3");
             var h4=getMeta("TOC.head4",true,true)
                 .concat(getMeta("TOC.sect4",true,true))
-                .concat(getMeta("SBOOKS.h4",true,true))
-                .concat(getMeta("SBOOKS.head4",true,true))
                 .concat(getMeta("sbook4head",true,true));
             if (h4.length) addTOCLevel(h4,"4");
             var h5=getMeta("TOC.head5",true,true)
                 .concat(getMeta("TOC.sect5",true,true))
-                .concat(getMeta("SBOOKS.h5",true,true))
-                .concat(getMeta("SBOOKS.head5",true,true))
                 .concat(getMeta("sbook5head",true,true));
             if (h5.length) addTOCLevel(h5,"5");
             var h6=getMeta("TOC.head6",true,true)
                 .concat(getMeta("TOC.sect6",true,true))
-                .concat(getMeta("SBOOKS.h6",true,true))
-                .concat(getMeta("SBOOKS.head6",true,true))
                 .concat(getMeta("sbook6head",true,true));
             if (h6.length) addTOCLevel(h6,"6");
             var h7=getMeta("TOC.head7",true,true)
                 .concat(getMeta("TOC.sect7",true,true))
-                .concat(getMeta("SBOOKS.h7",true,true))
-                .concat(getMeta("SBOOKS.head7",true,true))
                 .concat(getMeta("sbook7head",true,true));
             if (h7.length) addTOCLevel(h7,"7");}
 
@@ -27775,20 +27752,9 @@ metaBook.Startup=
                         saveLocal(msgid,"seen");
                         fdjtUI.alertFor(10,msg.slice(uuid_end+1));}}
                 else fdjtUI.alertFor(10,msg);}
-            if ((msg=getQuery("SBOOKSMESSAGE"))) {
-                if ((msg.slice(0,2)==="#{")&&
-                    ((uuid_end=msg.indexOf('}'))>0)) {
-                    msgid="MSG_"+msg.slice(2,uuid_end);
-                    if (getLocal(msgid)) {}
-                    else {
-                        saveLocal(msgid,"seen");
-                        fdjtUI.alertFor(10,msg.slice(uuid_end+1));}}
-                else fdjtUI.alertFor(10,msg);}
             if ((msg=getCookie("APPMESSAGE"))) {
                 fdjtUI.alertFor(10,msg);
-                fdjtState.clearCookie("APPMESSAGE","bookhub.io","/");
-                fdjtState.clearCookie("APPMESSAGE","sbooks.net","/");
-                fdjtState.clearCookie("APPMESSAGE","metabooks.net","/");}
+                fdjtState.clearCookie("APPMESSAGE","bookhub.io","/");}
             if ((!(mode))&&(location.hash)&&(metaBook.state)&&
                 (location.hash.slice(1)!==metaBook.state.target))
                 metaBook.hideCover();
@@ -27824,11 +27790,17 @@ metaBook.Startup=
             var refuris=getLocal("mB.refuris",true)||[];
             var docuris=getLocal("mB.docuris",true)||[];
             var docids=getLocal("mB.docids",true)||[];
+            var html=document.documentElement||
+                ((document.querySelector)&&(document.querySelector("HTML")));
 
             metaBook.sourceid=
-                getMeta("SBOOKS.sourceid")||getMeta("SBOOKS.fileid")||
+                html.getAttribute("data-sourceid")||
+                getMeta("PUBTOOL.sourceid")||getMeta("PUBTOOL.fileid")||
                 metaBook.docuri;
-            metaBook.sourcetime=fdjtTime.parse(getMeta("SBOOKS.sourcetime"));
+            var sourcetime=html.getAttribute("data-sourcetime")||
+                getMeta("PUBTOOL.sourcetime");
+            if (sourcetime)
+                metaBook.sourcetime=fdjtTime.parse(sourcetime);
             var oldid=getLocal("mB("+mB.docid+").sourceid");
             if ((oldid)&&(oldid!==metaBook.sourceid)) {
                 var layouts=getLocal("mB("+oldid+").layouts");
@@ -27838,9 +27810,10 @@ metaBook.Startup=
             else saveLocal("mB("+mB.docid+").sourceid",
                            metaBook.sourceid);
 
-            var bookbuild=getMeta("SBOOKS.buildstamp");
+            var bookbuild=html.getAttribute("data-buildstamp");
             if (bookbuild) {
                 var brk=bookbuild.indexOf(' ');
+                metaBook.buildstamp=bookbuild;
                 if (brk>0) {
                     metaBook.bookbuildhost=bookbuild.slice(0,brk);
                     metaBook.bookbuildtime=
@@ -27848,19 +27821,19 @@ metaBook.Startup=
 
             metaBook.bypage=(metaBook.page_style==='bypage'); 
             metaBook.max_excerpt=
-                getMeta("SBOOKS.maxexcerpt")||(metaBook.max_excerpt);
+                getMeta("METABOOK.maxexcerpt")||(metaBook.max_excerpt);
             metaBook.min_excerpt=
-                getMeta("SBOOKS.minexcerpt")||(metaBook.min_excerpt);
+                getMeta("METABOOK.minexcerpt")||(metaBook.min_excerpt);
             
-            var notespecs=getMeta("sbooknote",true).concat(
-                getMeta("SBOOKS.note",true));
-            var noterefspecs=getMeta("sbooknoteref",true).concat(
-                getMeta("SBOOKS.noteref",true));
-            metaBook.sbooknotes=(((notespecs)&&(notespecs.length))?
+            var notespecs=getMeta("booknote",true).concat(
+                getMeta("METABOOK.booknote",true));
+            var noterefspecs=getMeta("booknoteref",true).concat(
+                getMeta("METABOOK.booknoteref",true));
+            metaBook.booknotes=(((notespecs)&&(notespecs.length))?
                                  (fdjtDOM.sel(notespecs)):(false));
-            metaBook.sbooknoterefs=(((noterefspecs)&&(noterefspecs.length))?
-                                    (fdjtDOM.sel(noterefspecs)):(false));
-
+            metaBook.booknoterefs=(((noterefspecs)&&(noterefspecs.length))?
+                                   (fdjtDOM.sel(noterefspecs)):(false));
+            
             if (refuris.indexOf(refuri)<0) {
                 refuris.push(refuri);
                 saveLocal("mB.refuris",refuris,true);}
@@ -27868,7 +27841,7 @@ metaBook.Startup=
                 docuris.push(docuri);
                 saveLocal("mB.docuris",docuris,true);}
 
-            var docref=getMeta("SBOOKS.docref"), docid;
+            var docref=getMeta("BOOKHUB.docref"), docid;
             if (docref) metaBook.docid=metaBook.docref=docid=docref;
             else metaBook.docid=docid=docuri;
             saveLocal("mB("+docid+")",docuri);
@@ -27878,40 +27851,46 @@ metaBook.Startup=
                 saveLocal("mB.docuris",docuris,true);}
 
             var coverpage=
-                getRelLink("SBOOKS.coverpage")||getRelLink("coverpage");
+                getRelLink("PUBTOOL.coverpage")||getRelLink("coverpage")||
+                getRelLink("*.coverpage");
             if (coverpage) metaBook.coverpage=coverpage;
             var coverimage=
-                getRelLink("SBOOKS.coverimage")||getRelLink("coverimage");
+                getRelLink("PUBTOOL.coverimage")||getRelLink("coverimage")||
+                getRelLink("*.coverimage");
             if (coverimage) metaBook.coverimage=coverimage;
             var thumbnail=
-                getRelLink("SBOOKS.thumbnail")||getRelLink("thumbnail");
+                getRelLink("PUBTOOL.thumbnail")||getRelLink("thumbnail")||
+                getRelLink("*.thumbnail");
             if (thumbnail) metaBook.thumbnail=thumbnail;
-            var icon=getRelLink("SBOOKS.icon")||getRelLink("icon");
+            var icon=getRelLink("PUBTOOL.icon")||getRelLink("icon")||
+                getRelLink("*.icon");
             if (icon) metaBook.icon=icon;
             
-            var baseid=getMeta("SBOOKS.id")||
-                getMeta("SBOOKS.prefix")||getMeta("SBOOKS.baseid");
+            var baseid=getMeta("BOOKHUB.id")||
+                getMeta("*.prefix")||getMeta("*.baseid");
             if (baseid) metaBook.baseid=baseid;
-            var prefix=getMeta("SBOOKS.prefix")||baseid;
+            var prefix=getMeta("BOOKHUB.idprefix")||
+                getMeta("*.prefix")||getMeta("*.idprefix")||baseid;
             if (prefix) metaBook.prefix=prefix;
-            var targetprefix=getMeta("SBOOKS.targetprefix");
+            var targetprefix=getMeta("METABOOK.targetprefix");
             if ((targetprefix)&&(targetprefix==="*"))
                 metaBook.targetids=false;
             else if ((targetprefix)&&(targetprefix[0]==='/'))
-                metaBook.targetids=new RegExp(targetprefix.slice(1,targetprefix.length-1));
+                metaBook.targetids=
+                new RegExp(targetprefix.slice(1,targetprefix.length-1));
             else if (targetprefix)
                 metaBook.targetids=new RegExp("^"+targetprefix);
             else if (prefix)
                 metaBook.targetids=new RegExp("^"+prefix);
             else metaBook.targetids=false;
             
-            var autofonts=fdjtDOM.getMeta("SBOOKS.adjustfont",true);
+            var autofonts=fdjtDOM.getMeta("METABOOK.adjustfont",true);
             if (autofonts.length)
                 fdjt.DOM.autofont=fdjt.DOM.autofont+","+autofonts.join(",");
 
             if (getMeta("METABOOK.forcelayout")) mB.forcelayout=true;
 
-            var autotoc=getMeta("SBOOKS.autotoc");
+            var autotoc=getMeta("METABOOK.autotoc");
             if (autotoc) {
                 if ((autotoc[0]==="y")||(autotoc[0]==="Y")||
                     (autotoc==="ON")||(autotoc==="on")||
@@ -27920,7 +27899,7 @@ metaBook.Startup=
                 else metaBook.autotoc=false;}
 
             if (!(metaBook.nologin)) {
-                metaBook.mycopyid=getMeta("SBOOKS.mycopyid")||
+                metaBook.mycopyid=getMeta("BOOKHUB.mycopyid")||
                     (getLocal("mycopyid("+refuri+")"))||
                     false;}}
 
@@ -27979,44 +27958,47 @@ metaBook.Startup=
             if (Trace.startup>2) fdjtLog("Book setup");
             var bookinfo=metaBook.bookinfo={}; var started=fdjtTime();
             bookinfo.title=
-                getMeta("metaBook.title")||
-                getMeta("SBOOKS.title")||
+                getMeta("METABOOK.title")||
+                getMeta("PUBTOOL.title")||
                 getMeta("DC.title")||
                 getMeta("~TITLE")||
                 document.title||"untitled";
-            var authors=
-                getMeta("SBOOKS.author",true).concat(
-                    getMeta("DC.creator",true)).concat(
-                        getMeta("AUTHOR")).concat(
-                            getMeta("~AUTHOR"));
+            var authors=getMeta("METABOOK.author",true)
+                .concat(getMeta("PUBTOOL.author",true))
+                .concat(getMeta("DC.creator",true))
+                .concat(getMeta("AUTHOR"))
+                .concat(getMeta("~AUTHOR"));
             if ((authors)&&(authors.length)) bookinfo.authors=authors;
             bookinfo.byline=
-                getMeta("metaBook.byline")||
-                getMeta("SBOOKS.byline")||
+                getMeta("METABOOK.byline")||
+                getMeta("PUBTOOL.byline")||
                 getMeta("BYLINE")||
                 ((authors)&&(authors.length)&&(authors[0]));
             bookinfo.copyright=
-                getMeta("SBOOKS.copyright")||
-                getMeta("SBOOKS.rights")||
+                getMeta("PUBTOOL.copyright")||
+                getMeta("BOOKHUB.copyright")||
                 getMeta("DC.rights")||
                 getMeta("COPYRIGHT")||
                 getMeta("RIGHTS");
             bookinfo.publisher=
-                getMeta("SBOOKS.pubname")||
+                getMeta("PUBTOOL.pubname")||
+                getMeta("BOOKHUB.pubname")||
                 getMeta("DC.publisher")||
                 getMeta("PUBLISHER");
             bookinfo.pubyear=
-                getMeta("SBOOKS.pubyear")||
+                getMeta("PUBTOOL.pubyear")||
+                getMeta("BOOKHUB.pubyear")||
                 getMeta("DC.date");
             bookinfo.description=
-                getMeta("SBOOKS.description")||
+                getMeta("METABOOK.description")||
+                getMeta("BOOKHUB.description")||
+                getMeta("PUBTOOL.description")||
                 getMeta("DC.description")||
                 getMeta("DESCRIPTION");
             bookinfo.digitized=
-                getMeta("SBOOKS.digitized")||
+                getMeta("PUBTOOL.digitized")||
                 getMeta("DIGITIZED");
-            bookinfo.converted=$ID("SBOOKS.converted")||
-                getMeta("SBOOKS.converted");
+            bookinfo.converted=getMeta("PUBTOOL.converted");
             if (Trace.startup>1)
                 fdjtLog("setupBook done in %dms",fdjtTime()-started);}
         function getBookInfo(){
@@ -28050,9 +28032,10 @@ metaBook.Startup=
         /* Getting settings */
 
         function _getsbookrefuri(){
-            var refuri=getLink("SBOOKS.refuri",false,true)||
-                getLink("refuri",false,true)||
-                getMeta("SBOOKS.refuri",false,true)||
+            var refuri=getLink("refuri",false,true)||
+                getLink("METABOOK.refuri",false,true)||
+                getLink("BOOKHUB.refuri",false,true)||
+                getLink("PUBTOOL.refuri",false,true)||
                 getMeta("refuri",false,true)||
                 getLink("canonical",false,true);
             if (refuri) return decodeURI(refuri);
@@ -28064,8 +28047,10 @@ metaBook.Startup=
                 if (hstart>=0) locref=locref.slice(0,hstart);
                 return decodeURI(locref);}}
         function _getsbookdocuri(){
-            return getLink("SBOOKS.docuri",false)||
-                getLink("docuri",false)||
+            return getLink("docuri",false)||
+                getLink("METABOOK.docuri",false)||
+                getLink("BOOKHUB.docuri",false)||
+                getLink("PUBTOOL.docuri",false)||
                 getLink("canonical",false)||
                 _getsbookrefuri();}
 
@@ -28129,25 +28114,22 @@ metaBook.Startup=
             else return false;}
         metaBook.hasTOCLevel=hasTOCLevel;
 
-        var headlevels=["not","A","B","C","D","E","F","G","H","I","J","K","L"];
-
         function getScanSettings(){
-            if (!(metaBook.docroot))
-                if (getMeta("SBOOKS.root"))
-                    metaBook.docroot=mbID(getMeta("SBOOKS.root"));
-            else metaBook.docroot=$ID("SBOOKCONTENT")||document.body;
-            if (!(metaBook.start))
-                if (getMeta("SBOOKS.start"))
-                    metaBook.start=mbID(getMeta("SBOOKS.start"));
-            else if ($ID("SBOOKSTART"))
-                metaBook.start=$ID("SBOOKSTART");
-            else {}
+            if ((!(metaBook.docroot))&&(getMeta("METABOOK.rootid")))
+                metaBook.docroot=mbID(getMeta("METABOOK.rootid"));
+            metaBook.docroot=metaBook.docroot||
+                $ID("METABOOKROOT")||
+                $ID("CODEXCONTENT")||
+                document.body;
+            if ((!(metaBook.start))&&(getMeta("METABOOK.startid")))
+                metaBook.start=mbID(getMeta("METABOOK.startid"));
+            metaBook.start=metaBook.start||
+                $ID("METABOOKSTART")||$ID("BOOKSTART");
             var i=0; while (i<9) {
                 var body=document.body;
-                var rules=getMeta("sbookhead"+i,true).
-                    concat(getMeta("sbook"+i+"head",true)).
-                    concat(getMeta("sbook"+headlevels[i]+"head",true)).
-                    concat(getMeta("SBOOKS.head"+i,true));
+                var rules=getMeta("TOC.head"+i,true).
+                    getMeta("TOC.sect"+i,true).
+                    getMeta("tochead"+i,true);
                 if ((rules)&&(rules.length)) {
                     var j=0; var lim=rules.length; while (j<lim) {
                         var elements=fdjtDOM.getChildren(body,rules[j++]);
@@ -28158,34 +28140,27 @@ metaBook.Startup=
                 i++;}
             // These are all meta class definitions, which is why
             //  they don't have regular schema prefixes
-            var ignore=(getMeta("sbookignore",true)).concat(
-                (getMeta("SBOOKS.ignore",true)));
+            var ignore=getMeta("htmlbookignore",true)
+                .concat((getMeta("METABOOK.ignore",true)))
+                .concat((getMeta("PUBTOOL.ignore",true)));
             if (ignore.length)
                 metaBook.ignore=new fdjtDOM.Selector(ignore);
-            var notoc=
-                getMeta("sbooknotoc",true).concat(
-                    getMeta("SBOOKS.notoc",true)).concat(
-                        getMeta("SBOOKS.nothead",true)).concat(
-                            getMeta("sbooknothead",true));
+            var notoc=getMeta("tocheadnone",true)
+                .concat(getMeta("TOC.ignore",true));
             if (notoc.length)
                 metaBook.notoc=new fdjtDOM.Selector(notoc);
-            var terminal=getMeta("sbookterminal",true).concat(
-                getMeta("SBOOKS.terminal",true));
+            var terminal=getMeta("htmlbookterminal",true)
+                .concat(getMeta("METABOOK.terminal",true))
+                .concat(getMeta("PUBTOOL.terminal",true));
             if (terminal.length)
                 metaBook.terminals=new fdjtDOM.Selector(terminal.length);
-            var focus=
-                getMeta("sbookfocus",true).concat(
-                    getMeta("SBOOKS.focus",true)).concat(
-                        getMeta("sbooktarget",true)).concat(
-                            getMeta("SBOOKS.target",true)).concat(
-                                getMeta("SBOOKS.idify",true));
+            var focus=getMeta("htmlbooktarget",true)
+                .concat(getMeta("METABOOK.target",true))
+                .concat(getMeta("METABOOK.idify",true));
             if (focus.length)
                 metaBook.focus=new fdjtDOM.Selector(focus);
-            var nofocus=
-                getMeta("sbooknofocus",true).concat(
-                    getMeta("SBOOKS.nofocus",true)).concat(
-                        getMeta("sbooknotarget",true)).concat(
-                            getMeta("SBOOKS.notarget",true));
+            var nofocus=getMeta("htmlbooktarget",true).
+                concat(getMeta("METABOOK.notarget",true));
             if (nofocus.length)
                 metaBook.nofocus=new fdjtDOM.Selector(nofocus);}
 
@@ -35109,7 +35084,7 @@ metaBook.setMode=
                 if (typeof rel !== "string") rel="";
                 if ((rel.search(note_classes)>=0)||
                     (classname.search(noteref_classes)>=0)||
-                    ((mB.sbooknoterefs)&&(mB.sbooknoterefs.match(anchor)))) {
+                    ((mB.noterefspecs)&&(mB.noterefspecs.match(anchor)))) {
                     var note_node=getNoteNode(idref);
                     var noteid=note_node.id;
                     metaBook.DOM.noteshud.innerHTML="";
@@ -35205,11 +35180,11 @@ metaBook.setMode=
                     else i++;}}}
         if (!(elt)) return;
         var scan=elt, style=fdjtDOM.getStyle(elt), block=false;
-        var notespec=metaBook.sbooknotes;
+        var notespecs=metaBook.notespecs;
         while (scan) {
             if (scan===body) break;
             else if (scan===db) break;
-            else if ((notespec)&&(notespec.match(scan))) return scan;
+            else if ((notespecs)&&(notespecs.match(scan))) return scan;
             else if (block) {}
             else if (style.display==='block') {block=scan; style=false;}
             else {}
@@ -39935,19 +39910,19 @@ metaBook.HTML.pageright=
     "";
 // FDJT build information
 fdjt.revision='1.5-1453-gf704d6f';
-fdjt.buildhost='ip-172-30-4-114';
-fdjt.buildtime='Sun Aug 9 00:25:40 UTC 2015';
-fdjt.builduuid='dc30cfec-5114-4ac1-ae19-599659e4ba21';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sun Aug 9 20:26:21 EDT 2015';
+fdjt.builduuid='636D1765-46D4-4278-B369-69B5BB372BAF';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 
 Knodule.version='v0.8-153-gf5c2070';
 // sBooks metaBook build information
-metaBook.version='v0.8-65-ge7ff388';
-metaBook.buildid='efad0f50-814d-474d-9bbe-3a757fd0fa6c';
-metaBook.buildtime='Sun Aug  9 00:25:51 UTC 2015';
-metaBook.buildhost='ip-172-30-4-114';
+metaBook.version='v0.8-70-g65448ea';
+metaBook.buildid='D8AC09B0-22E3-4F8F-8661-D439075F4421';
+metaBook.buildtime='Thu Aug 13 12:13:06 EDT 2015';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
