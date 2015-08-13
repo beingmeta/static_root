@@ -22427,12 +22427,13 @@ fdjt.DOM.noautofontadjust=true;
         
         var knodeToOption=Knodule.knodeToOption;
 
+
         var cachelink=/^https:\/\/glossdata.(sbooks\.net|metabooks\.net|beingmeta\.com|bookhub\.io)\//;
         mB.cachelink=cachelink;
         
         var knodule_name=
             fdjtDOM.getMeta("METABOOK.knodule")||
-            fdjtDOM.getMeta("SBOOKS.knodule")||
+            fdjtDOM.getMeta("PUBTOOL.knodule")||
             fdjtDOM.getMeta("~KNODULE")||
             refuri;
         metaBook.knodule=new Knodule(knodule_name);
@@ -22477,7 +22478,8 @@ fdjt.DOM.noautofontadjust=true;
                         if (!(links.hasOwnProperty(link))) continue;
                         if (!(links[link])) continue;
                         if (cachelink.exec(link)) {
-                            var newlink=link.replace("//glossdata.sbooks.net/","//glossdata.bookhub.io/");
+                            var newlink=link.replace(
+                                "//glossdata.sbooks.net/","//glossdata.bookhub.io/");
                             if (link!==newlink) {
                                 links[newlink]=links[link];
                                 delete links[link];
@@ -22817,15 +22819,6 @@ fdjt.DOM.noautofontadjust=true;
         while ((scan)&&(scan!==document)) {
             if (scan.getAttribute("data-refuri"))
                 return scan.getAttribute("data-refuri");
-            else if ((scan.getAttributeNS)&&
-                     (scan.getAttributeNS("refuri","http://metabooks.net/")))
-                return scan.getAttributeNS("refuri","http://metabooks.net/");
-            else if ((scan.getAttributeNS)&&
-                     (scan.getAttributeNS("refuri","http://beingmeta.com/METABOOK/")))
-                return scan.getAttributeNS("refuri","http://beingmeta.com/METABOOK/");
-            else if ((scan.getAttributeNS)&&
-                     (scan.getAttributeNS("refuri","http://sbooks.net/")))
-                return scan.getAttributeNS("refuri","http://sbooks.net/");
             else if (scan.getAttribute("refuri"))
                 return scan.getAttribute("refuri");
             else scan=scan.parentNode;}
@@ -22837,15 +22830,6 @@ fdjt.DOM.noautofontadjust=true;
         while ((scan)&&(scan!==document)) {
             if (scan.getAttribute("data-docuri"))
                 return scan.getAttribute("data-docuri");
-            else if ((scan.getAttributeNS)&&
-                     (scan.getAttributeNS("docuri","http://beingmeta.com/METABOOK/")))
-                return scan.getAttributeNS("docuri","http://beingmeta.com/METABOOK/");
-            else if ((scan.getAttributeNS)&&
-                     (scan.getAttributeNS("docuri","http://metabooks.net/")))
-                return scan.getAttributeNS("docuri","http://metabooks.net/");
-            else if ((scan.getAttributeNS)&&
-                     (scan.getAttributeNS("docuri","http://sbooks.net/")))
-                return scan.getAttributeNS("docuri","http://sbooks.net/");
             else if (scan.getAttribute("docuri"))
                 return scan.getAttribute("docuri");
             else scan=scan.parentNode;}
@@ -22854,11 +22838,8 @@ fdjt.DOM.noautofontadjust=true;
 
     metaBook.getRefID=function(target){
         if (target.getAttributeNS)
-            return (target.getAttributeNS('sbookid','http://beingmeta.com/METABOOK/'))||
-            (target.getAttributeNS('sbookid','http://metabooks.net/'))||
-            (target.getAttributeNS('sbookid','http://sbooks.net/'))||
-            (target.getAttributeNS('sbookid'))||
-            (target.getAttributeNS('data-sbookid'))||
+            return (target.getAttributeNS('bookid'))||
+            (target.getAttributeNS('data-bookid'))||
             (target.codexbaseid)||(target.id);
         else return target.id;};
 
@@ -22965,7 +22946,7 @@ fdjt.DOM.noautofontadjust=true;
        to the home screen loses any authentication information
        (cookies, etc) that the original page might have had.  To
        avoid forcing the user to login again, we store the current
-       SBOOKS:AUTH- token (the encrypted authentication token that
+       BOOKHUB:AUTH- token (the encrypted authentication token that
        can travel in the clear) in the .search (query string) of the
        current location.  This IS passed to the homescreen
        standalone app, so we can use it to get a real authentication
@@ -22975,7 +22956,7 @@ fdjt.DOM.noautofontadjust=true;
         if ((!(metaBook.user))||(fdjt.device.standalone)||
             (!(fdjt.device.mobilesafari)))
             return;
-        var auth=fdjtState.getCookie("SBOOKS:AUTH-");
+        var auth=fdjtState.getCookie("BOOKHUB:AUTH-");
         if (!(auth)) return;
         var eauth=encodeURIComponent(auth);
         var url=location.href, qmark=url.indexOf('?'), hashmark=url.indexOf('#');
@@ -22984,10 +22965,10 @@ fdjt.DOM.noautofontadjust=true;
         var query=((qmark<0)?(""):(hashmark<0)?(url.slice(qmark)):
                    (url.slice(qmark+1,hashmark)));
         var hash=((hashmark<0)?(""):(url.slice(hashmark)));
-        var old_query=false, new_query="SBOOKS%3aAUTH-="+eauth;
+        var old_query=false, new_query="BOOKHUB%3aAUTH-="+eauth;
         if (query.length<=2) query="?"+new_query;
-        else if (query.search("SBOOKS%3aAUTH-=")>=0) {
-            var auth_start=query.search("SBOOKS%3aAUTH-=");
+        else if (query.search("BOOKHUB%3aAUTH-=")>=0) {
+            var auth_start=query.search("BOOKHUB%3aAUTH-=");
             var before=query.slice(0,auth_start);
             var auth_len=query.slice(auth_start).search('&');
             var after=((auth_len<0)?(""):(query.slice(auth_start+auth_len)));
@@ -23171,16 +23152,7 @@ fdjt.DOM.noautofontadjust=true;
                 elt.toclevel=false;
                 return false;}
             else return elt.toclevel;}
-        var attrval=
-            ((elt.getAttributeNS)&&
-             (elt.getAttributeNS('toclevel','http://beingmeta.com/TOC/')))||
-            ((elt.getAttributeNS)&&
-             (elt.getAttributeNS('toclevel','http://beingmeta.com/METABOOK/')))||
-            ((elt.getAttributeNS)&&
-             (elt.getAttributeNS('toclevel','http://metabooks.net')))||
-            ((elt.getAttributeNS)&&
-             (elt.getAttributeNS('toclevel','http://sbooks.net')))||
-            (elt.getAttribute('toclevel'))||
+        var attrval=(elt.getAttribute('toclevel'))||
             (elt.getAttribute('data-toclevel'));
         if (attrval) {
             if (attrval==='none') return false;
@@ -23688,8 +23660,8 @@ fdjt.DOM.noautofontadjust=true;
             if (Trace.target)
                 metaBook.trace("metaBook.setHead",head);
             window.title=headinfo.title+" ("+document.title+")";
-            if (metaBook.head) dropClass(metaBook.head,"sbookhead");
-            addClass(head,"sbookhead");
+            if (metaBook.head) dropClass(metaBook.head,"bookhead");
+            addClass(head,"bookhead");
             metaBook.setLocation(metaBook.location);
             metaBook.head=mbID(headid);
             metaBook.TOC.setHead(headinfo);}
@@ -23785,7 +23757,7 @@ fdjt.DOM.noautofontadjust=true;
             dropClass(targets,"mbnewtarget");},
                    3000);
         fdjtState.setCookie(
-            "mbtarget",targetid||target.getAttribute('data-sbookid'));
+            "mbtarget",targetid||target.getAttribute('data-bookid'));
         metaBook.target=primary;
         if (metaBook.UI.setTarget) metaBook.UI.setTarget(primary);
         if (metaBook.empty_cloud)
@@ -24107,7 +24079,7 @@ metaBook.DOMScan=(function(){
         docinfo._heads=allheads;
         docinfo._ids=allids;
 
-        if (!(root.id)) root.id="SBOOKROOT";
+        if (!(root.id)) root.id="METABOOKROOT";
         if ((Trace.startup>1)||(Trace.domscan)) {
             if (root.id) 
                 fdjtLog("Scanning %s#%s for structure and metadata",
@@ -24145,28 +24117,12 @@ metaBook.DOMScan=(function(){
         function getTitle(head) {
             var title=
                 (head.toctitle)||
-                ((head.getAttributeNS)&&
-                 (head.getAttributeNS('toctitle','http://beingmeta.com/TOC/')))||
-                ((head.getAttributeNS)&&
-                 (head.getAttributeNS('toctitle','http://beingmeta.com/METABOOK/')))||
-                ((head.getAttributeNS)&&
-                 (head.getAttributeNS('toctitle','http://metabooks.net')))||
-                ((head.getAttributeNS)&&
-                 (head.getAttributeNS('toctitle','http://sbooks.net')))||
                 (head.getAttribute('toctitle'))||
                 (head.getAttribute('data-toctitle'))||
                 (head.title);
             if (!(title)) {
                 var head1=fdjtDOM.getFirstChild(head,"H1,H2,H3,H4,H5,H6");
                 if (head1) title=head1.toctitle||
-                    ((head1.getAttributeNS)&&
-                     (head1.getAttributeNS('toctitle','http://beingmeta.com/TOC/')))||
-                    ((head1.getAttributeNS)&&
-                     (head1.getAttributeNS('toctitle','http://beingmeta.com/METABOOK/')))||
-                    ((head1.getAttributeNS)&&
-                     (head1.getAttributeNS('toctitle','http://metabooks.net')))||
-                    ((head1.getAttributeNS)&&
-                     (head1.getAttributeNS('toctitle','http://sbooks.net')))||
                     (head1.getAttribute('toctitle'))||
                     (head1.getAttribute('data-toctitle'))||
                     (head1.title);
@@ -24293,7 +24249,7 @@ metaBook.DOMScan=(function(){
             headinfo.heads=newheads;
             headinfo.indexRef('heads',newheads);
             if (Trace.domscan>2)
-                fdjtLog("@%d: Found head=%o, headinfo=%o, sbook_head=%o",
+                fdjtLog("@%d: Found head=%o, headinfo=%o, book_head=%o",
                         scanstate.location,head,headinfo,headinfo.head);
             /* Update the toc state */
             scanstate.curhead=head;
@@ -24330,7 +24286,7 @@ metaBook.DOMScan=(function(){
             
             if ((classname)&&
                 ((typeof classname !== "string")||
-                 (classname.search(/\b(sbookignore|metabookignore)\b/)>=0)))
+                 (classname.search(/\b(metabookignore)\b/)>=0)))
                 return;
             
             if ((child.metabookui)||
@@ -24419,7 +24375,7 @@ metaBook.DOMScan=(function(){
                 docinfo[child.id]=info;
             if (info) {
                 info.starts_at=scanstate.location;
-                info.sbookhead=
+                info.bookhead=
                     curhead.getAttribute('data-tocid')||curhead.id;
                 info.headstart=curinfo.starts_at;}
             // Set the first content node
@@ -24428,16 +24384,7 @@ metaBook.DOMScan=(function(){
             if ((info)&&(toclevel)&&(!(info.toclevel)))
                 info.toclevel=toclevel;
             if ((id)&&(info)) {
-                var tags=
-                    ((child.getAttributeNS)&&
-                     (child.getAttributeNS('tags','http://beingmeta.com/INDEX/')))||
-                    ((child.getAttributeNS)&&
-                     (child.getAttributeNS('tags','http://beingmeta.com/METABOOK/')))||
-                    ((child.getAttributeNS)&&
-                     (child.getAttributeNS('tags','http://metabooks.net/')))||
-                    ((child.getAttributeNS)&&
-                     (child.getAttributeNS('tags','http://sbooks.net/')))||
-                    (child.getAttribute('tags'))||
+                var tags=(child.getAttribute('tags'))||
                     (child.getAttribute('data-tags'));
                 if (tags) info.atags=tags.split(',');}
             if (((classname)&&(classname.search)&&
@@ -24526,7 +24473,7 @@ metaBook.DOMScan=(function(){
     MetaBookDOMScan.prototype.toJSON=function(){
         var rep={constructor: "metaBook.DOMScan",
                  frag: this.frag,
-                 head: this.sbookhead,
+                 head: this.bookhead,
                  start: this.starts_at,
                  end: this.ends_at};
         if (this.WSNID) rep.WSNID=this.WSNID;
@@ -24907,8 +24854,8 @@ metaBook.DOMScan=(function(){
             titlepage.removeAttribute("style");
             titlepage.id="METABOOKCOVERTITLE";}
         else {
-            titlepage=$ID("SBOOKSTITLEPAGE")||
-                $ID("SBOOKTITLEPAGE")||
+            titlepage=$ID("METABOOKTITLEPAGE")||
+                $ID("PUBTOOLTITLEPAGE")||
                 $ID("TITLEPAGE");
             if (titlepage) {
                 titlepage=titlepage.cloneNode(true);
@@ -24956,17 +24903,11 @@ metaBook.DOMScan=(function(){
             blurb.id="METABOOKBLURB";
             blurb.removeAttribute("style");}
         else {
-            var about_book=$ID("SBOOKABOUTPAGE")||
-                $ID("SBOOKABOUTBOOK")||
-                $ID("SBOOKSABOUTPAGE")||
-                $ID("SBOOKSABOUTBOOK");
-            var about_author=$ID("SBOOKABOUTAUTHOR")||
-                $ID("SBOOKABOUTORIGIN")||
-                $ID("SBOOKAUTHORPAGE")||
-                $ID("SBOOKSAUTHORPAGE")||
-                $ID("SBOOKABOUTAUTHORS")||
-                $ID("SBOOKSABOUTAUTHORS")||
-                $ID("SBOOKSABOUTAUTHOR");
+            var about_book=$ID("METABOOKABOUTPAGE")||
+                $ID("METABOOKABOUTBOOK")||
+                $ID("PUBTOOLABOUTBOOK");
+            var about_author=$ID("METABOOKABOUTAUTHOR")||
+                $ID("PUBTOOLABOUTAUTHOR");
             if ((about_book)||(about_author)) {
                 blurb=fdjtDOM(
                     "div#METABOOKBLURB.metabookblurb.scrolling",
@@ -25225,10 +25166,10 @@ metaBook.DOMScan=(function(){
         // Move all the notes together
         var notesblock=$ID("SBOOKNOTES")||
             fdjtDOM("div.sbookbackmatter#SBOOKNOTES");
-        applyMetaClass("sbooknote");
-        applyMetaClass("sbooknote","SBOOKS.note");
-        addClass(fdjtDOM.$("span[data-type='footnote']"),"sbooknote");
-        var allnotes=getChildren(content,".sbooknote");
+        applyMetaClass("htmlbooknote");
+        applyMetaClass("htmlbooknote","METABOOK.booknotes");
+        addClass(fdjtDOM.$("span[data-type='footnote']"),"htmlbooknote");
+        var allnotes=getChildren(content,".htmlbooknote");
         i=0; lim=allnotes.length; while (i<lim) {
             var notable=allnotes[i++]; var counter=note_counter++;
             var noteid="METABOOKNOTE"+counter;
@@ -25240,21 +25181,21 @@ metaBook.DOMScan=(function(){
                 getChild(notable,".html5label")||
                 getChild(notable,".html5summary");
             var anchor=fdjtDOM.Anchor(
-                "#"+noteid,"A.mbnoteref.sbooknoteref",
+                "#"+noteid,"A.mbnoteref.htmlnoteref",
                 ((label_node)?(label_node.cloneNode(true)):
                  (label_text)));
             var backlink=fdjtDOM.Anchor(
-                "#"+refid,"A.mbackref",
+                "#"+refid,"A.htmlackref",
                 ((label_node)?(label_node.cloneNode(true)):
                  (label_text)));
             anchor.id=refid;
             fdjtDOM.replace(notable,anchor);
-            dropClass(notable,"sbooknote");
+            dropClass(notable,"booknote");
             var noteblock=
                 ((notable.tagName==='SPAN')?
-                 fdjtDOM("div.metabooknotebody",
+                 fdjtDOM("div.booknotebody",
                          backlink,toArray(notable.childNodes)):
-                 fdjtDOM("div.metabooknotebody",backlink,notable));
+                 fdjtDOM("div.booknotebody",backlink,notable));
             noteblock.id=noteid;
             fdjtDOM.append(notesblock,noteblock,"\n");}
         
@@ -28127,9 +28068,9 @@ metaBook.Startup=
                 $ID("METABOOKSTART")||$ID("BOOKSTART");
             var i=0; while (i<9) {
                 var body=document.body;
-                var rules=getMeta("TOC.head"+i,true).
-                    getMeta("TOC.sect"+i,true).
-                    getMeta("tochead"+i,true);
+                var rules=getMeta("TOC.head"+i,true)
+                    .concat(getMeta("TOC.sect"+i,true))
+                    .concat(getMeta("tochead"+i,true));
                 if ((rules)&&(rules.length)) {
                     var j=0; var lim=rules.length; while (j<lim) {
                         var elements=fdjtDOM.getChildren(body,rules[j++]);
@@ -38944,7 +38885,7 @@ metaBook.HTML.attach=
     "      <th><input TYPE=\"CHECKBOX\" NAME=\"FILEOKAY\" VALUE=\"yes\"/></th>\n"+
     "      <td colspan=\"2\">\n"+
     "        I affirm that I have the right to use and share this\n"+
-    "        content according to the &sBooks;\n"+
+    "        content according to the bookhub.io\n"+
     "        <a href=\"https://www.bookhub.io/legalia/TOS/\" target=\"_blank\">\n"+
     "          Terms of Service</a>.</td>\n"+
     "    </tr>\n"+
@@ -39489,8 +39430,8 @@ metaBook.HTML.cover=
     "</div>\n"+
     "<div id=\"METABOOKAPPHELP\" class=\"metabookhelp scrolling\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
-    "  <h1><span class=\"adjustfont\">Welcome to &metaBook;,\n"+
-    "      the &sBooks; e-reader</span></h1>\n"+
+    "  <h1><span class=\"adjustfont\">Welcome to the &metaBook; web-based\n"+
+    "  e-reader</span></h1>\n"+
     "  \n"+
     "  <p>You're using &metaBook;, a web-based e-reader created to deepen\n"+
     "    reading and engagement while connecting to networks of knowledge,\n"+
@@ -39547,12 +39488,9 @@ metaBook.HTML.cover=
     "     data-maxfont=\"120%\" id=\"METABOOKUSERBOX\">\n"+
     "  <span class=\"bookplate\">\n"+
     "    <span class=\"text\">This</span>\n"+
-    "    <a class=\"sbooks\" href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
-    "       title=\"Learn more about sBooks\" tabindex=\"9\">\n"+
-    "      <em>meta</em>Book</a>\n"+
-    "    <a class=\"sbookslogo\" href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
-    "       title=\"Learn more about sBooks\" tabindex=\"9\">\n"+
-    "      <em>s</em>Books</a>\n"+
+    "    <a href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
+    "       title=\"Learn more about the metaBook reader and bookhub.io\" tabindex=\"9\">\n"+
+    "      book</a>\n"+
     "    <span class=\"text\">is personalized for</span>\n"+
     "    <a href=\"https://my.bookhub.io/profile/\" class=\"metabookusername\"\n"+
     "       title=\"Edit your profile, add social networks, etc\"\n"+
@@ -39561,8 +39499,8 @@ metaBook.HTML.cover=
     "</div>\n"+
     "<div class=\"loginbox controls\" data-maxfont=\"120%\" id=\"METABOOKLOGINBOX\">\n"+
     "  <div class=\"loginmessage\">\n"+
-    "    Login to &sBooks; to read smarter</div>\n"+
-    "  <form action=\"https://auth.sbooks.net/auth\" method=\"POST\">\n"+
+    "    Login to bookhub.io to read smarter</div>\n"+
+    "  <form action=\"https://auth.bookhub.io/\" method=\"POST\">\n"+
     "    <input TYPE=\"HIDDEN\" NAME=\"FRESHLOGIN\" VALUE=\"yes\"/>\n"+
     "    <input TYPE=\"HIDDEN\" NAME=\"LOGINFORM\" VALUE=\"yes\"/>\n"+
     "    <input TYPE=\"TEXT\" NAME=\"LOGIN\" VALUE=\"\"\n"+
@@ -39802,7 +39740,7 @@ metaBook.HTML.settings=
     "  </div>\n"+
     "  <div class=\"checkspan saveglosses cf\">\n"+
     "    <button id=\"METABOOKREFRESHOFFLINE\" class=\"refresh floatright\"\n"+
-    "            title=\"Reload glosses and layers for this book from the sBooks cloud.\">\n"+
+    "            title=\"Reload glosses and layers for this book from the cloud.\">\n"+
     "      <img src=\"{{bmg}}metabook/refresh.svgz\" alt=\"\"/>\n"+
     "      Reload</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"cacheglosses\" VALUE=\"yes\" CHECKED/>\n"+
@@ -39910,19 +39848,19 @@ metaBook.HTML.pageright=
     "";
 // FDJT build information
 fdjt.revision='1.5-1453-gf704d6f';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sun Aug 9 20:26:21 EDT 2015';
-fdjt.builduuid='636D1765-46D4-4278-B369-69B5BB372BAF';
+fdjt.buildhost='ip-172-30-4-114';
+fdjt.buildtime='Sun Aug 9 00:25:40 UTC 2015';
+fdjt.builduuid='dc30cfec-5114-4ac1-ae19-599659e4ba21';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 
 Knodule.version='v0.8-153-gf5c2070';
 // sBooks metaBook build information
-metaBook.version='v0.8-70-g65448ea';
-metaBook.buildid='D8AC09B0-22E3-4F8F-8661-D439075F4421';
-metaBook.buildtime='Thu Aug 13 12:13:06 EDT 2015';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-72-g2ada265';
+metaBook.buildid='97679544-8ebf-49b0-9aa8-8dbd41afc37a';
+metaBook.buildtime='Thu Aug 13 17:19:38 UTC 2015';
+metaBook.buildhost='ip-172-30-4-114';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
