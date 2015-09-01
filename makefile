@@ -32,9 +32,9 @@ SVN=svn --non-interactive --trust-server-cert
 
 FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js \
-	knodules/html.js # knodules/clouds.js 
+	knodules/html.js
 KNODULES_HINTS=knodules/knodules.hint knodules/tags.hint \
-	knodules/html.hint # knodules/clouds.js 
+	knodules/html.hint
 KNODULES_CSS=knodules/knodules.css
 PAGEDOWN_FILES=metabook/pagedown.js
 SSC_FILES=showsomeclass/ssc.js showsomeclass/dialog.js showsomeclass/edit.js

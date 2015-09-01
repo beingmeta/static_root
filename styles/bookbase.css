@@ -30,31 +30,31 @@
 
 @charset "UTF-8";
 
-body.sbook a[href] { text-decoration: none;}
-body.sbook a[href]:hover { text-decoration: underline;}
-body.sbook a.sbextref[href], body.sbook a.sbextlink[href],
-body.sbook a.sbookextref[href], body.sbook a.sbookextlink[href] {
+body a[href] { text-decoration: none;}
+body a[href]:hover { text-decoration: underline;}
+body a.extref[href], body a.extlink[href],
+body a.bookextref[href], body a.bookextlink[href] {
     text-decoration: underline;}
 
-body.sbook.loveabook #CODEXPAGE p,
-body.sbook.loveabook #CODEXPAGE li {
+body.loveabook #CODEXPAGE p,
+body.loveabook #CODEXPAGE li {
     max-width: 40em;}
-body.sbook.forty #CODEXPAGE p,
-body.sbook.forty #CODEXPAGE li {
+body.forty #CODEXPAGE p,
+body.forty #CODEXPAGE li {
     max-width: 38em;}
 
-body.sbook.forty div#CODEXPAGE { max-width: 40em;}
+body.forty div#CODEXPAGE { max-width: 40em;}
 
-body.sbook.fifty div#CODEXPAGE { max-width: 50em;}
-body.sbook.fifty #CODEXPAGE p, body.sbook.fifty #CODEXPAGE li {
+body.fifty div#CODEXPAGE { max-width: 50em;}
+body.fifty #CODEXPAGE p, body.fifty #CODEXPAGE li {
     max-width: 47em;}
-body.sbook.fifty #CODEXCONTENT p, body.sbook.fifty #CODEXCONTENT li {
+body.fifty #CODEXCONTENT p, body.fifty #CODEXCONTENT li {
     max-width: 47em;}
 
-body.sbook.thirty div#CODEXPAGE { max-width: 30em;}
-body.sbook.thirty #CODEXPAGE p, body.sbook.thirty #CODEXPAGE li {
+body.thirty div#CODEXPAGE { max-width: 30em;}
+body.thirty #CODEXPAGE p, body.thirty #CODEXPAGE li {
     max-width: 29em;}
-body.sbook.thirty #CODEXCONTENT p, body.sbook.thirty #CODEXCONTENT li {
+body.thirty #CODEXCONTENT p, body.thirty #CODEXCONTENT li {
     max-width: 29em;}
 
 /* Layout classes */
@@ -106,12 +106,12 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 .frontmatter > * {
     page-break-after: auto;}
 
-.sbookfullpage {
+.fullpage {
     margin-left: auto; margin-right: auto;
     page-break-before: always;
     page-break-after: always;
     page-break-inside: avoid;}
-.sbookfullpage > * {
+.fullpage > * {
     page-break-before: avoid;
     page-break-after: avoid;}
 
@@ -127,20 +127,20 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 
 /* Handy classes */
 
-body.sbook.novel h1, body.sbook.novel .chapter, body.sbook.novel .sbook1 {
+body.novel h1, body.novel .chapter {
     text-align: center; margin-left: 5%; margin-right: 5%;}
 hr.divider { 
     text-align: center; height: 7px; width: 50%;
     margin-left: 25%; margin-right: 25%;
     color: gray; background-color: gray;}
-body.sbook div.sbookfullpage h1 {
+body div.fullpage h1 {
     page-break-before: avoid;}
-body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
+body hgroup h1, body hgroup h2, body hgroup h3 {
     margin-top: 0.1em; margin-bottom: 0.1em;}
 
 /* Titlepage rules */
 
-.sbooktitlepage {
+.booktitlepage {
   padding: 1em; margin: 0px;
   font-family: helvetica,sans,sans-serif;
   text-align: center;
@@ -148,62 +148,62 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
   page-break-before: always;
   page-break-after: always;
   overflow: hidden;}
-.sbooktitlepage > * {
+.booktitlepage > * {
   page-break-inside: avoid;}
-.sbooktitlepage > div { line-height: 1.0;}
+.booktitlepage > div { line-height: 1.0;}
 
-.sbooktitlepage > h1, .sbooktitlepage > .fdjtadjustfont > h1 {
+.booktitlepage > h1, .booktitlepage > .fdjtadjustfont > h1 {
     font-size: 2em;}
-.sbooktitlepage > h2, .sbooktitlepage > .fdjtadjustfont > h2 {
+.booktitlepage > h2, .booktitlepage > .fdjtadjustfont > h2 {
     font-size: 1.2em;}
 
-.sbooktitlepage .title h1, .sbooktitlepage .credits h1,
-.sbooktitlepage .title h2, .sbooktitlepage .credits h2,
-.sbooktitlepage .title h3, .sbooktitlepage .credits h3 {
+.booktitlepage .title h1, .booktitlepage .credits h1,
+.booktitlepage .title h2, .booktitlepage .credits h2,
+.booktitlepage .title h3, .booktitlepage .credits h3 {
     margin-top: 0px; margin-bottom: 0.5ex;}
-.sbooktitlepage .credits .lifespan {
+.booktitlepage .credits .lifespan {
     white-space: nowrap; font-size: 0.9em;}
 
-.sbooktitlepage > p, .sbooktitlepage > blockquote > p {
+.booktitlepage > p, .booktitlepage > blockquote > p {
     width: 30em; max-width: 70%; font-size: 125%;
     margin-left: auto; margin-right: auto;
     clear: both;}
 
-.sbooktitlepage > img {
+.booktitlepage > img {
     display: block; clear: both;
     margin-left: auto; margin-right: auto;
     margin-top: 1em; margin-bottom: 1em;}
-.sbooktitlepage .title, .sbooktitlepage .credits,
-.sbooktitlepage .author, .sbooktitlepage .byline,
-.sbooktitlepage .editor {
+.booktitlepage .title, .booktitlepage .credits,
+.booktitlepage .author, .booktitlepage .byline,
+.booktitlepage .editor {
     margin-top: 0px; margin-bottom: 1em;
     display: block; clear: both;}
-.sbooktitlepage .credits .author, .sbooktitlepage .credits .byline,
-.sbooktitlepage .credits .editor, .sbooktitlepage .credits .contributor {
+.booktitlepage .credits .author, .booktitlepage .credits .byline,
+.booktitlepage .credits .editor, .booktitlepage .credits .contributor {
     margin-bottom: initial;}
-.sbooktitlepage .credits .contributor { font-size: 0.8em;}
-.sbooktitlepage .credits .name { white-space: nowrap;}
+.booktitlepage .credits .contributor { font-size: 0.8em;}
+.booktitlepage .credits .name { white-space: nowrap;}
 
-.sbooktitlepage .connector {
+.booktitlepage .connector {
     font-size: 50%; margin-top: 1ex; margin-bottom: 1ex;}
 
-.sbooktitlepage .title {
+.booktitlepage .title {
     font-size: 2em; font-weight: bold;
     margin-bottom: 1.5em;}
-.sbooktitlepage .title .subtitle,
-.sbooktitlepage .title .translation,
-.sbooktitlepage .title .originaltitle {
+.booktitlepage .title .subtitle,
+.booktitlepage .title .translation,
+.booktitlepage .title .originaltitle {
     font-size: 50%; font-weight: normal;
     margin-top: 1ex; margin-bottom: 0px;}
 
-.sbooktitlepage .credits, .sbooktitlepage .author, .sbooktitlepage .byline {
+.booktitlepage .credits, .booktitlepage .author, .booktitlepage .byline {
     font-size: 1.5em; font-style: italic;
     margin-top: 1em; margin-bottom: 1.5em; }
-.sbooktitlepage .credits em, .sbooktitlepage .author em, .sbooktitlepage .byline em {
+.booktitlepage .credits em, .booktitlepage .author em, .booktitlepage .byline em {
     font-size: 0.7em;}
 
-.sbooktitlepage .sbookbibinfo, .sbooktitlepage .bibinfo,
-.sbooktitlepage .pubinfo { 
+.booktitlepage .bookbibinfo, .booktitlepage .bibinfo,
+.booktitlepage .pubinfo { 
     text-align: left; display: inline-block; font-size: 0.8em;
     min-width: 70%; max-width: 60em;
     padding: 1ex; padding-bottom: 0px; margin-bottom: 0px;
@@ -211,22 +211,22 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     page-break-inside: avoid;
     clear: both;}
 
-.sbooktitlepage .publisher { 
+.booktitlepage .publisher { 
     font-size: 1em; text-align: center;
     margin-top: 0.5em; margin-bottom: 0px; }
 
-.sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
-.sbooktitlepage .pubinfo p {
+.booktitlepage .bookbibinfo p, .booktitlepage .bibinfo p,
+.booktitlepage .pubinfo p {
     margin-right: 2em; margin-left: 3em; text-indent: -2em;
     text-align: left; margin-bottom: 0px; margin-top: 0px;}
 
-.sbooktitlepage .sbookbibinfo span.bibdate,
-.sbooktitlepage .pubinfo span.bibdate,
-.sbooktitlepage .bibinfo span.bibdate {
+.booktitlepage .bookbibinfo span.bibdate,
+.booktitlepage .pubinfo span.bibdate,
+.booktitlepage .bibinfo span.bibdate {
     float: right; padding-left: 2em;
     color: crimson;}
 
-.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
+.booktitlepage .dedication, .booktitlepage .epigraph { 
     text-align: left;
     font-style: normal; font-weight: normal;
     margin-left: auto; margin-right: auto;
@@ -234,13 +234,13 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 1em; margin-bottom: 1ex;
     margin-left: auto; margin-right: auto;
     max-width: 70%;}
-.sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
+.booktitlepage .dedication p, .booktitlepage .epigraph p {
     margin: 0px; padding: 0px;}
-.sbooktitlepage .dedication.leftalign p,
-.sbooktitlepage .epigraph.leftalign p {
+.booktitlepage .dedication.leftalign p,
+.booktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
 
-.sbooktitlepage .dedication, .sbooktitlepage .epigraph { 
+.booktitlepage .dedication, .booktitlepage .epigraph { 
     text-align: left; font-size: 1em;
     font-style: normal; font-weight: normal;
     margin-left: auto; margin-right: auto;
@@ -248,33 +248,33 @@ body.sbook hgroup h1, body.sbook hgroup h2, body.sbook hgroup h3 {
     margin-top: 1em;
     max-width: 70%;}
 
-body.sbook .frontpiece div.poem {
+body .frontpiece div.poem {
   margin: 0px; border: none; font-weight: normal;}
-body.sbook .frontpiece div.poem div.stanza {
+body .frontpiece div.poem div.stanza {
   margin: 0px;}
 
-body.sbook div.epigraphs p {
+body div.epigraphs p {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
     padding-top: 1em;
     padding-bottom: 1em;
     text-align: left;}
-body.sbook div.epigraphs p span.attribution {
+body div.epigraphs p span.attribution {
     font-style: italic; font-size: 115%;
     float: right; clear: left;}
 
 /* Various */
 
-body.sbook .signature {
+body .signature {
     text-align: right; font-size: 125%;
     page-break-before: avoid; clear: left;
     font-style: italic;}
-body.sbook .signature .place {
+body .signature .place {
     font-style: normal; font-size: 100%;}
-body.sbook .signature .date {
+body .signature .date {
     font-style: normal; font-size: 90%; font-weight: normal;}
 
-body.sbook .dateline {
+body .dateline {
     text-align: right; 
     page-break-after: avoid; clear: left;
     font-weight: bold;
@@ -311,14 +311,14 @@ div.poem, section.poem {
 div.poem.codexdup, div.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 section.poem.codexdup, section.poem.codexdupend { border-top: 0px; padding-top: 1em;}
 
-body.sbook.verse div.poem, body.sbook.verse section.poem {
+body.verse div.poem, body.verse section.poem {
     font-size: 1.2em;}
 
 @media (max-width: 600px) {
   blockquote { margin-left: 1.5em; margin-right: 0.5em;}}
 
 @media (max-width: 700px) {
-    body.sbook.verse div.poem, body.sbook.verse section.poem {
+    body.verse div.poem, body.verse section.poem {
         font-size: 1em;}
   div.stanza { margin-left: 0.5em; margin-right: 0.25em; }
   div.stanza p { margin-left: 0.5em; text-indent: -0.5em;}
@@ -327,13 +327,13 @@ body.sbook.verse div.poem, body.sbook.verse section.poem {
    padding: 0.25ex; padding-bottom: 0px;}
 }
 
-body.sbookpagehorizontal div.poem, body.sbookpagehorizontal section.poem {
+body.horizontalpage div.poem, body.horizontalpage section.poem {
     margin-top: 0px;
     margin-bottom: 0px; padding-bottom: 0px;}
 
 /* For glossmarks, we push the margin right to get them out of
    the body */
-body.sbookpagehorizontal div.poem .codexglossmark, body.sbookpagehorizontal section.poem .codexglossmark {
+body.horizontalpage div.poem .codexglossmark, body.horizontalpage section.poem .codexglossmark {
     margin-right: -3em;}
 
 div.poem p.sig, section.poem p.sig {
@@ -449,62 +449,62 @@ img.blockimage { border: none; width: 100%;}
 
 /* Image pages */
 
-div.sbookimagepage {
+div.imagepage {
     text-align: center; vertical-align: top;}
 
-div.sbookimagepage img {
+div.imagepage img {
     display: block; max-width: 100%; vertical-align: top; width: auto;
     max-height: 90%;}
-div.sbookimagepage div.caption, div.sbookimagepage caption {
+div.imagepage div.caption, div.imagepage caption {
     display: block; width: 80%; margin-left: 10%; margin-right: 10%;
     text-align: left;
     height: 10%;}
-div.sbookimagepage0 img {max-height: 100%;}    
-div.sbookimagepage0 div.caption, div.sbookimagepage0 caption {
+div.imagepage0 img {max-height: 100%;}    
+div.imagepage0 div.caption, div.imagepage0 caption {
     height: 0px;}
-div.sbookimagepage20 img {max-height: 80%;}    
-div.sbookimagepage20 div.caption, div.sbookimagepage20 caption {
+div.imagepage20 img {max-height: 80%;}    
+div.imagepage20 div.caption, div.imagepage20 caption {
     height: 20%;}
-div.sbookimagepage30 img {max-height: 70%;}    
-div.sbookimagepage30 div.caption, div.sbookimagepage30 caption {
+div.imagepage30 img {max-height: 70%;}    
+div.imagepage30 div.caption, div.imagepage30 caption {
     height: 30%;}
-div.sbookimagepage50 img {max-height: 70%;}    
-div.sbookimagepage50 div.caption, div.sbookimagepage50 caption {
+div.imagepage50 img {max-height: 70%;}    
+div.imagepage50 div.caption, div.imagepage50 caption {
     height: 50%;}
 
-/* Styles for raw sbooks (converted from text) */
+/* Styles for raw books (converted from text) */
 
-body.rawsbook div#CODEXCONTENT {
+body.rawbook div#CODEXCONTENT {
     margin-left: 50px; margin-right: 50px;}
-body.rawsbook div#CODEXCONTENT p { 
+body.rawbook div#CODEXCONTENT p { 
     max-width: 40em; margin-left: auto; margin-right: auto;
     line-height: 125%;}
 
 /* Styles for aboutbook/aboutauthor sections */
 
-div.sbookaboutbook, div.sbookaboutauthor, div.sbookaboutauthor div.creator {
+div.aboutbook, div.aboutauthor, div.aboutauthor div.creator {
   clear: both; margin-bottom: 1em;}
 
-.sbookaboutbook img.cover, .sbookaboutauthor img.portrait {
+.aboutbook img.cover, .aboutauthor img.portrait {
   height: auto; float: right; padding-left: 1em;}
-.sbookaboutbook img.cover {max-width: 15%;}
-.sbookaboutauthor img.portrait {max-width: 25%;}
+.aboutbook img.cover {max-width: 15%;}
+.aboutauthor img.portrait {max-width: 25%;}
 
-body .sbookaboutauthor h1, body .sbookaboutauthor h2,
-body .sbookaboutbook h1, body .sbookaboutbook h2 {
+body .aboutauthor h1, body .aboutauthor h2,
+body .aboutbook h1, body .aboutbook h2 {
   text-align: left;}
 
 /* Some useful formatting classes */
 
-div.sbooktight {margin-after: 0.5em;}
-div.sbooktight div, div.sbooktight p {
+div.tightlayout {margin-after: 0.5em;}
+div.tightlayout div, div.tightlayout p {
     margin-top: 2px; margin-bottom: 2px;
     border: 0px; padding: 1px;}
 
 /* Classes to support hidden sbook values */
 
-.sbooktag { display: none;}
-.sbooktags { display: none;}
+.booktag { display: none;}
+.booktags { display: none;}
 .xdatapagescale { display: none;}
 
 /* Media rules */
@@ -530,25 +530,3 @@ div.sbooktight div, div.sbooktight p {
    padding-left: 0.25ex; padding-right: 0.25ex;
    padding-bottom: 0px;}
 }
-
-/*
-body.essay div.toplinks a {
-    padding-left: 1em; padding-right: 1em;
-    margin-left: 2em; margin-right: 2em;
-    border: solid blue 2px; border-top: none;
-    -khtml-bottom-left-border-radius: 4px; 
-    -webkit-bottom-left-border-radius: 4px; 
-    -moz-border-radius-bottomleft: 4px; 
-    border-bottom-left-radius: 4px;
-    -khtml-bottom-right-border-radius: 4px; 
-    -webkit-bottom-right-border-radius: 4px; 
-    -moz-border-radius-bottomright: 4px; 
-    border-bottom-right-radius: 4px;}
-*/
-
-/* Emacs local variables
-;;;  Local variables: ***
-;;;  compile-command: "cd ..; make sbooks/sbookstyles.css" ***
-;;;  indent-tabs-mode: nil ***
-;;;  End: ***
-*/
