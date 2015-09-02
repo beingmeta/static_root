@@ -1,0 +1,9 @@
+/* This is for style rules to be used by epubs converted to sBooks */
+section[data-filename], div.section[data-filename] {
+    page-break-before: always; }
+section.codexdup[data-filename], div.section.codexdup[data-filename] {
+    page-break-before: auto; }
+section.codexdupend[data-filename], div.section.codexdupend[data-filename] {
+    page-break-before: auto; }
+span { font-size: inherit; }
+body span { font-size: inherit; }
