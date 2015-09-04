@@ -39857,9 +39857,9 @@ fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-72-g2ada265';
-metaBook.buildid='f0b4a08d-d4a3-46e7-84a2-bf8912f02cde';
-metaBook.buildtime='Wed Sep  2 11:56:02 EDT 2015';
+metaBook.version='v0.8-73-gdfff7e4';
+metaBook.buildid='eeb8045f-4f10-469a-a058-2d52842f861c';
+metaBook.buildtime='Fri Sep  4 09:34:22 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

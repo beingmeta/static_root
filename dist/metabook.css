@@ -4761,10 +4761,10 @@ body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="allglosses"]{
 
 body.hudup #METABOOKHUD img.hudbutton  {}
 
-#METABOOKHUD .topleft {top: 0px; left: 0px;}
-#METABOOKHUD .topright {top: 0px; right: 0px;}
-#METABOOKHUD .botleft {bottom: 0px; left: 0px;}
-#METABOOKHUD .botright {bottom: 0px; right: 0px;}
+#METABOOKHUD .topleft {top: 0px; left: 0px; right: auto; bottom: auto;}
+#METABOOKHUD .topright {top: 0px; right: 0px; left: auto; bottom: auto;}
+#METABOOKHUD .botleft {bottom: 0px; left: 0px; right: auto; top: auto;}
+#METABOOKHUD .botright {bottom: 0px; right: 0px; left: auto; top: auto;}
 
 #METABOOKHUD img.topleft {
     border-top-width: 0px; border-left-width: 0px;
