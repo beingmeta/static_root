@@ -7,3 +7,5 @@ s3://opentexts/static/
 s3://ccbooks/static/
 s3://loveabook/static/
 s3://quakers/static/
+s3://sbooks-logs-us-east.s3.amazonaws.com/static/
+
