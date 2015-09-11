@@ -12806,9 +12806,12 @@ fdjt.UI.ProgressBar=(function(){
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtUI=fdjt.UI;
     var addListener=fdjtDOM.addListener;
-    var body=document.body;
     addListener(window,"focusin",function(evt){
         var scan=fdjtUI.T(evt);
+        if (!((scan.tagName==='TEXTAREA')||
+              ((scan.tagName==='INPUT')&&
+               (/text|email/i.exec(scan.type)))))
+            return;
         while (scan) {
             var classname=scan.className;
             if ((classname)&&(typeof classname === "string")&&
@@ -12818,6 +12821,10 @@ fdjt.UI.ProgressBar=(function(){
             scan=scan.parentNode;}});
     addListener(window,"focusout",function(evt){
         var scan=fdjtUI.T(evt);
+        if (!((scan.tagName==='TEXTAREA')||
+              ((scan.tagName==='INPUT')&&
+               (/text|email/i.exec(scan.type)))))
+            return;
         while (scan) {
             var classname=scan.className;
             if ((classname)&&(typeof classname === "string")&&
@@ -39870,10 +39877,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1461-gf0647a4';
+fdjt.revision='1.5-1463-gb44be0b';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Sep 11 13:20:08 EDT 2015';
-fdjt.builduuid='b08fd26f-8184-46b2-a143-d62d0a351ae8';
+fdjt.buildtime='Fri Sep 11 19:45:30 EDT 2015';
+fdjt.builduuid='e4ede503-1ca7-46c9-918e-225977b28c2e';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
@@ -39881,8 +39888,8 @@ fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-73-gdfff7e4';
-metaBook.buildid='7263ee39-686a-49da-91d5-21aff1c1b737';
-metaBook.buildtime='Fri Sep 11 13:20:10 EDT 2015';
+metaBook.buildid='72b7f16d-23d9-4f65-a334-db05781199a4';
+metaBook.buildtime='Fri Sep 11 19:46:40 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
