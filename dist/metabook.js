@@ -8773,49 +8773,51 @@ fdjt.DOM=
 
         /* Tweaking fonts */
 
-        function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge){
-            var sw=wrapper.scrollWidth, sh=wrapper.scrollHeight;
+        function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge,dolog){
+            var rect=wrapper.getBoundingClientRect();
+            var ow=rect.width, oh=rect.height, nw, nh, newsize;
             var wstyle=wrapper.style;
             if (typeof fudge!== "number") fudge=1;
 
             // These are cases where one dimension is on the edge but
             // the other dimension is inside the edge
-            if ((sw<=w)&&(sh<=h)&&(sh>=(h-fudge))) return size;
+            if ((ow<=w)&&(oh<=h)&&(oh>=(h-fudge))) return size;
             // We actually skip this case because increasing the font size
             //  might not increase the width if it forces a new line break
             // else if ((sh<=h)&&(sw<=w)&&(sw>=(w-fudge))) return size;
 
             // Figure out if we need to grow or shrink 
-            if ((sw>w)||(sh>h)) delta=-delta;
+            if ((ow>w)||(oh>h)) delta=-delta;
 
             if (delta>0) wstyle.maxWidth=Math.floor(w)+"px";
 
             if (!(size)) {size=100; wstyle.fontSize=size+"%";}
             if (!(min)) min=20;
             if (!(max)) max=150;
-            var newsize=size+delta;
+            newsize=size+delta;
             wstyle.fontSize=newsize+"%";
-            var nw=wrapper.scrollWidth, nh=wrapper.scrollHeight;
+            rect=wrapper.getBoundingClientRect(); nw=rect.width, nh=rect.height;
             while ((size>=min)&&(size<=max)&&
-                   ((delta>0)?((nw<=w)&&(nh<=h)):((nw>w)||(nh>h)))) {
+                   ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
                 size=newsize; newsize=newsize+delta;
                 wstyle.fontSize=newsize+"%";
-                /* fdjtLog(
-                   "Adjust %o to %dx%d %o: size=%d=%d+(%d), %dx%d => %dx%d",
-                   wrapper.parentNode,w,h,wrapper,newsize,size,delta,
-                   nw,nh,wrapper.scrollWidth,wrapper.scrollHeight); */
-                nw=wrapper.scrollWidth; nh=wrapper.scrollHeight;}
+                if (dolog)
+                    fdjtLog(
+                        "Adjust %o to %dx%d %o: size=%d=%d+(%d), %dx%d => %dx%d",
+                        wrapper.parentNode,w,h,wrapper,newsize,size,delta,
+                        ow,oh,nw,nh);
+                rect=wrapper.getBoundingClientRect();
+                nw=rect.width, nh=rect.height;}
             wstyle.maxWidth='';
             if (delta>0) {
                 wstyle.fontSize=size+"%";
                 return size;}
             else return newsize;}
                 
-        function adjustFontSize(node,min_font,max_font,fudge,dolog){
+        function adjustFontSize(node,min_font,max_font,fudge){
             var h=node.offsetHeight, w=node.offsetWidth;
+            var dolog=hasClass(node,"_fdjtlog");
             var node_display='';
-            if (typeof dolog === "undefined")
-                dolog=hasClass(node,"fdjtlog");
             if ((h===0)||(w===0)) {
                 // Do a little to make the element visible if it's not.
                 node_display=node.style.display;
@@ -8838,7 +8840,7 @@ fdjt.DOM=
             wstyle[fdjtDOM.transitionProperty]='none';
             wstyle[fdjtDOM.transitionDuration]='0s';
             wstyle.visibility='visible';
-            wstyle.overflow='auto';
+            wstyle.overflow='visible';
             if ((h===0)||(w===0)) {
                 node.removeChild(wrapper);
                 fdjtDOM.append(node,toArray(wrapper.childNodes));
@@ -8854,9 +8856,12 @@ fdjt.DOM=
             wstyle.width=wstyle.height="100%";
             w=wrapper.offsetWidth; h=wrapper.offsetHeight;
             wstyle.width=wstyle.height="";
-            size=adjustWrapperFont(wrapper,10,false,size,min,max,w,h,fudge);
-            size=adjustWrapperFont(wrapper,5,false,size,min,max,w,h,fudge);
-            size=adjustWrapperFont(wrapper,1,false,size,min,max,w,h,fudge);
+            size=adjustWrapperFont(
+                wrapper,10,false,size,min,max,w,h,fudge,dolog);
+            size=adjustWrapperFont(
+                wrapper,5,false,size,min,max,w,h,fudge,dolog);
+            size=adjustWrapperFont(
+                wrapper,1,false,size,min,max,w,h,fudge,dolog);
             node.style.display=node_display;
             if (size===100) {
                 if (dolog)
@@ -8933,7 +8938,7 @@ fdjt.DOM=
             adjustFonts();
             fdjtDOM.addListener(window,"resize",adjustFonts);}
 
-        fdjt.addInit(autoAdjustFonts);
+        fdjt.addInit(autoAdjustFonts,"adjustFonts");
         
         function addUXClasses(){
             var device=fdjt.device;
@@ -39877,10 +39882,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1463-gb44be0b';
+fdjt.revision='1.5-1464-g69d401b';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Sep 11 19:45:30 EDT 2015';
-fdjt.builduuid='e4ede503-1ca7-46c9-918e-225977b28c2e';
+fdjt.buildtime='Sat Sep 12 15:03:24 EDT 2015';
+fdjt.builduuid='281230a3-7d75-4017-8fe9-5d3ce2a97c70';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
@@ -39888,8 +39893,8 @@ fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-73-gdfff7e4';
-metaBook.buildid='72b7f16d-23d9-4f65-a334-db05781199a4';
-metaBook.buildtime='Fri Sep 11 19:46:40 EDT 2015';
+metaBook.buildid='7fbf4633-2eaf-443e-8610-f01445c30add';
+metaBook.buildtime='Sat Sep 12 15:04:50 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
