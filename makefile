@@ -22,6 +22,8 @@ BUILDTIME:=`date`
 BUILDHOST:=`hostname`
 BRANCH=master
 UGLIFY:=uglifyjs2
+UGLIFY_FLAGS:=-b
+UGLIFY_OFLAGS:=-c -b
 CLEANCSS:=`which cleancss`
 POSTCSS:=`which postcss`
 AUTOPREFIXER:=`which autoprefixer`
@@ -287,7 +289,7 @@ fdjt.css: fdjt/fdjt.css
 	cp fdjt/fdjt.css fdjt.css
 fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
-	$(UGLIFY) -c -b \
+	$(UGLIFY) $(UGLIFY_FLAGS) \
 	  --source-map fdjt.uglify.map \
 	    ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js \
 	  > $@
@@ -313,7 +315,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.min.js and ./metabook.uglify.map
-	@$(UGLIFY) -c -b \
+	@$(UGLIFY) $(UGLIFY_FLAGS) \
 	  --source-map metabook.uglify.map \
 	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
@@ -385,7 +387,7 @@ dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 	        knodules/buildstamp.js metabook/buildstamp.js \
 		metabook/tieoff.js metabook/autoload.js
 	@echo Building dist/metabook.min.js
-	@$(UGLIFY) -c -b \
+	@$(UGLIFY) $(UGLIFY_OFLAGS) \
 	  --source-map metabook.uglify.map \
 	  --source-map-root /static \
 	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
@@ -402,7 +404,7 @@ dist/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@cat $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js > $@
 dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Rebuilding dist/fdjt.min.js
-	@$(UGLIFY) -c -b               \
+	@$(UGLIFY) $(UGLIFY_OFLAGS)     \
 	  --source-map fdjt.uglify.map  \
 	  --source-map-root /static          \
 	    $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js -o $@
