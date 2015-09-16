@@ -12927,23 +12927,32 @@ fdjt.Dialog=(function(){
                 var title_text=template(spec.title,spec,spec.data);
                 box.title=title_text;
                 box.appendChild(fdjtDOM("div.title",title_text));}}
-        var elts=[]; var i=1, lim=arguments.length;
+        var elts=[]; var i=1, lim=arguments.length, wrap=true, content;
         while (i<lim) {
+            var e=arguments[i++];
+            if (e.nodeType) {wrap=false; break;}
+            else if ((typeof e === "string")&&(e.indexOf('<')>=0)) {
+                wrap=false; break;}}
+        if (wrap) {
+            content=fdjtDOM("P");
+            box.appendChild(content);}
+        else content=box;
+        i=1; while (i<lim) {
             var arg=arguments[i++];
             if (!(arg)) {}
-            else if (arg.nodeType) box.appendChild(arg);
+            else if (arg.nodeType) content.appendChild(arg);
             else if (typeof arg === "string") {
                 arg=Templates[arg]||arg;
                 var ishtml=(arg.indexOf('<')>=0);
                 var istemplate=(arg.search("{{")>=0);
                 if ((ishtml)&&(istemplate))
-                    box.appendChild(Template.toDOM(arg,spec));
+                    content.appendChild(Template.toDOM(arg,spec));
                 else if (ishtml)
-                    fdjtDOM.append(box,arg);
+                    fdjtDOM.append(content,arg);
                 else if (istemplate)
-                    box.appendChild(document.createTextNode(template(arg,spec)));
-                else box.appendChild(document.createTextNode(arg));}
-            else box.appendChild(document.createTextNode(arg.toString));}
+                    content.appendChild(document.createTextNode(template(arg,spec)));
+                else content.appendChild(document.createTextNode(arg));}
+            else content.appendChild(document.createTextNode(arg.toString));}
         if ((spec.id)&&(!(box.id))) box.id=spec.id;
         fdjtDOM.addListeners(box,spec);
         return box;}
@@ -15894,6 +15903,6 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 // FDJT build information
 fdjt.revision='1.5-1464-g69d401b';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sat Sep 12 15:03:24 EDT 2015';
-fdjt.builduuid='281230a3-7d75-4017-8fe9-5d3ce2a97c70';
+fdjt.buildtime='Wed Sep 16 14:13:38 EDT 2015';
+fdjt.builduuid='bf7ebda3-5558-4349-a968-910bb9d69aaf';
 
