@@ -14093,32 +14093,23 @@ fdjt.Dialog=(function(){
                 var title_text=template(spec.title,spec,spec.data);
                 box.title=title_text;
                 box.appendChild(fdjtDOM("div.title",title_text));}}
-        var elts=[]; var i=1, lim=arguments.length, wrap=true, content;
+        var elts=[]; var i=1, lim=arguments.length;
         while (i<lim) {
-            var e=arguments[i++];
-            if (e.nodeType) {wrap=false; break;}
-            else if ((typeof e === "string")&&(e.indexOf('<')>=0)) {
-                wrap=false; break;}}
-        if (wrap) {
-            content=fdjtDOM("P");
-            box.appendChild(content);}
-        else content=box;
-        i=1; while (i<lim) {
             var arg=arguments[i++];
             if (!(arg)) {}
-            else if (arg.nodeType) content.appendChild(arg);
+            else if (arg.nodeType) box.appendChild(arg);
             else if (typeof arg === "string") {
                 arg=Templates[arg]||arg;
                 var ishtml=(arg.indexOf('<')>=0);
                 var istemplate=(arg.search("{{")>=0);
                 if ((ishtml)&&(istemplate))
-                    content.appendChild(Template.toDOM(arg,spec));
+                    box.appendChild(Template.toDOM(arg,spec));
                 else if (ishtml)
-                    fdjtDOM.append(content,arg);
+                    fdjtDOM.append(box,arg);
                 else if (istemplate)
-                    content.appendChild(document.createTextNode(template(arg,spec)));
-                else content.appendChild(document.createTextNode(arg));}
-            else content.appendChild(document.createTextNode(arg.toString));}
+                    box.appendChild(document.createTextNode(template(arg,spec)));
+                else box.appendChild(document.createTextNode(arg));}
+            else box.appendChild(document.createTextNode(arg.toString));}
         if ((spec.id)&&(!(box.id))) box.id=spec.id;
         fdjtDOM.addListeners(box,spec);
         return box;}
@@ -24873,15 +24864,10 @@ metaBook.DOMScan=(function(){
             if (!(hasAnyContent(coverpage))) {
                 coverpage.removeAttribute("style");
                 coverpage=false;}}
-        else if ((coverpage=$ID("SBOOKCOVERPAGE"))) {
-            coverpage=coverpage.cloneNode(true);
-            coverpage.removeAttribute("style");
-            fdjtDOM.stripIDs(coverpage);
-            coverpage.id="METABOOKCOVERPAGE";}
         else if (metaBook.coverimage) {
             var coverimage=fdjtDOM.Image(metaBook.coverimage);
             coverimage.id="METABOOKCOVERIMAGE";
-            coverpage=fdjtDOM("div#METABOOKCOVERPAGE",coverimage);}
+            coverpage=fdjtDOM("div.flap#METABOOKCOVERPAGE",coverimage);}
         else coverpage=false;
         if (coverpage) {
             cover.setAttribute("data-defaultclass","coverpage");
@@ -24892,11 +24878,11 @@ metaBook.DOMScan=(function(){
             cover.setAttribute("data-defaultclass","titlepage");
             addClass(cover,"titlepage");
             addClass(controls,"nocoverpage");}
-        var titlepage=$ID("METABOOKCOVERTITLE");
+        var titlepage=$ID("METABOOKTITLE");
         if ((titlepage)&&(hasAnyContent(titlepage))) {
             titlepage=titlepage.cloneNode(true);
             titlepage.removeAttribute("style");
-            titlepage.id="METABOOKCOVERTITLE";}
+            titlepage.id="METABOOKTITLE";}
         else {
             titlepage=$ID("METABOOKTITLEPAGE")||
                 $ID("PUBTOOLTITLEPAGE")||
@@ -24908,11 +24894,11 @@ metaBook.DOMScan=(function(){
                 fdjtDOM.addClass(titlepage,"sbooktitlepage");
                 fdjtDOM.stripIDs(titlepage);
                 titlepage.setAttribute("style","");
-                titlepage.id="METABOOKCOVERTITLE";}
+                titlepage.id="METABOOKTITLE";}
             else {
                 var info=metaBook.getBookInfo();
                 titlepage=fdjtDOM(
-                    "div#METABOOKCOVERTITLE.sbooktitlepage",
+                    "div#METABOOKTITLE.flap",
                     fdjtDOM("DIV.title",info.title),
                     fdjtDOM("DIV.credits",
                             ((info.byline)?(fdjtDOM("DIV.byline",info.byline)):
@@ -24924,17 +24910,17 @@ metaBook.DOMScan=(function(){
                              (fdjtDOM("P",info.publisher)))));}}
         if (titlepage) addToCover(cover,titlepage);
 
-        var creditspage=$ID("METABOOKCOVERCREDITS");
+        var creditspage=$ID("METABOOKCREDITS");
         if (creditspage)
             creditspage=creditspage.cloneNode(true);
         else {
-            creditspage=$ID("METABOOKCOVERCREDITS")||$ID("SBOOKSCREDITSPAGE")||$ID("CREDITSPAGE");
+            creditspage=$ID("METABOOKCREDITS")||$ID("SBOOKSCREDITSPAGE")||$ID("CREDITSPAGE");
             if (creditspage) {
                 creditspage=creditspage.cloneNode(true);
                 fdjtDOM.stripIDs(creditspage);
                 creditspage.removeAttribute("style");}}
         if ((creditspage)&&(hasAnyContent(creditspage))) {
-            var curcredits=cover.getElementById("METABOOKCOVERCREDITS");
+            var curcredits=cover.getElementById("METABOOKCREDITS");
             if (curcredits)
                 curcredits.parentNode.replaceChild(creditspage,curcredits);
             else cover.appendChild(creditspage);}
@@ -24954,24 +24940,24 @@ metaBook.DOMScan=(function(){
                 $ID("PUBTOOLABOUTAUTHOR");
             if ((about_book)||(about_author)) {
                 blurb=fdjtDOM(
-                    "div#METABOOKBLURB.metabookblurb.scrolling",
+                    "div#METABOOKBLURB.flap.metabookblurb.scrolling",
                     "\n",about_book,"\n",about_author,"\n");}
             else blurb=false;}
         if (blurb) addToCover(cover,blurb);
         
         var settings=fdjtDOM(
-            "div#METABOOKSETTINGS.scrolling");
+            "div#METABOOKSETTINGS.flap.scrolling");
         settings.innerHTML=fixStaticRefs(metaBook.HTML.settings);
         metaBook.DOM.settings=settings;
         if (settings) addToCover(cover,settings);
         
         var cover_help=fdjtDOM(
-            "div#METABOOKAPPHELP.metabookhelp.scrolling");
+            "div#METABOOKAPPHELP.flap.metabookhelp.scrolling");
         cover_help.innerHTML=fixStaticRefs(metaBook.HTML.help);
         if (cover_help) addToCover(cover,cover_help);
         
         var console=metaBook.DOM.console=
-            fdjtDOM("div#METABOOKCONSOLE.metabookconsole.scrolling");
+            fdjtDOM("div#METABOOKCONSOLE.flap.metabookconsole.scrolling");
         if (Trace.startup>2) fdjtLog("Setting up console %o",console);
         console.innerHTML=fixStaticRefs(metaBook.HTML.console);
         metaBook.DOM.input_console=input_console=
@@ -24982,8 +24968,8 @@ metaBook.DOMScan=(function(){
         input_console.onkeypress=consoleinput_keypress;
         if (console) addToCover(cover,console);
         
-        var layers=fdjtDOM("div#METABOOKLAYERS");
-        var sbooksapp=fdjtDOM("iframe#SBOOKSAPP");
+        var layers=fdjtDOM("div#METABOOKLAYERS.flap");
+        var sbooksapp=fdjtDOM("iframe#BOOKHUBAPP");
         sbooksapp.setAttribute("frameborder",0);
         sbooksapp.setAttribute("scrolling","auto");
         layers.appendChild(sbooksapp);
@@ -25048,7 +25034,7 @@ metaBook.DOMScan=(function(){
         fdjtDOM.adjustFontSize(userbox);
         // fdjt.DOM.resetFontSize(controls);
         // fdjt.DOM.resetFontSize(userbox);            
-        var covertitle=$ID("METABOOKCOVERTITLE");
+        var covertitle=$ID("METABOOKTITLE");
         if ((covertitle)&&
             (!(hasClass(covertitle,/\b(adjustfont|fdjtadjustfont)\b/))))
             fdjtDOM.adjustFontSize(covertitle);
@@ -25059,8 +25045,8 @@ metaBook.DOMScan=(function(){
     metaBook.resizeCover=resizeCover;
 
     var coverids={"coverpage": "METABOOKCOVERPAGE",
-                  "titlepage": "METABOOKCOVERTITLE",
-                  "creditspage": "METABOOKCOVERCREDITS",
+                  "titlepage": "METABOOKTITLE",
+                  "creditspage": "METABOOKCREDITS",
                   "blurb": "METABOOKBLURB",
                   "help": "METABOOKAPPHELP",
                   "settings": "METABOOKSETTINGS",
@@ -25090,7 +25076,7 @@ metaBook.DOMScan=(function(){
             else scan=scan.parentNode;}
         var mode=scan.getAttribute("data-mode");
         if ((mode==="layers")&&
-            (!($ID("SBOOKSAPP").src))&&
+            (!($ID("BOOKHUBAPP").src))&&
             (!(metaBook.appinit)))
             metaBook.initIFrameApp();
 
@@ -30667,7 +30653,7 @@ metaBook.setMode=
                 metaBook.popmode=false;
                 fn();}
             if ((mode==="layers")&&
-                (!($ID("SBOOKSAPP").src))&&
+                (!($ID("BOOKHUBAPP").src))&&
                 (!(metaBook.appinit)))
                 metaBook.initIFrameApp();
             if ((metaBook.mode==="addgloss")&&(mode!=="addgloss")&&
@@ -30714,7 +30700,7 @@ metaBook.setMode=
                 // If we're switching to the inner app but the iframe
                 //  hasn't been initialized, we do it now.
                 if ((mode==="sbooksapp")&&
-                    (!($ID("SBOOKSAPP").src))&&
+                    (!($ID("BOOKHUBAPP").src))&&
                     (!(metaBook.appinit)))
                     initIFrameApp();
 
@@ -30882,7 +30868,7 @@ metaBook.setMode=
             if (document.location.hash) {
                 appuri=appuri+"&HASH="+document.location.hash.slice(1);}
 
-            var app=$ID("SBOOKSAPP");
+            var app=$ID("BOOKHUBAPP");
             app.src=appuri;
             iframe_app_init=true;}
         metaBook.initIFrameApp=initIFrameApp;
@@ -39435,47 +39421,48 @@ metaBook.HTML.cover=
     "<div id=\"METABOOKCOVERMESSAGE\" class=\"controls\">\n"+
     "  <div id=\"METABOOKOPENTAB\"\n"+
     "       style=\"width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;\">\n"+
-    "    Open</div>\n"+
-    "  <div id=\"METABOOKREADYMESSAGE\"\n"+
+    "    Open\n"+
+    "  </div>\n"+
+    "  <div id=\"METABOOKREADYMESSAGE\" class=\"message\"\n"+
     "       style=\"width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;\">\n"+
     "    Loading\n"+
     "  </div>\n"+
-    "  <div id=\"METABOOKBUSYMESSAGE\"\n"+
+    "  <div id=\"METABOOKBUSYMESSAGE\" class=\"message\"\n"+
     "       style=\"width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;\">\n"+
     "    Busy\n"+
     "  </div>\n"+
-    "  <div class=\"metabookstatus\" id=\"METABOOKLAYOUTMESSAGE\">\n"+
+    "  <div class=\"metabookstatus\" id=\"METABOOKLAYOUTMESSAGE\" class=\"message\">\n"+
     "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
     "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
     "  </div>\n"+
-    "  <div class=\"metabookstatus\" id=\"METABOOKINDEXMESSAGE\">\n"+
+    "  <div class=\"metabookstatus\" id=\"METABOOKINDEXMESSAGE\" class=\"message\">\n"+
     "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
     "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
     "  </div>\n"+
-    "  <div class=\"metabookstatus\" id=\"METABOOKGLOSSMESSAGE\">\n"+
+    "  <div class=\"metabookstatus\" id=\"METABOOKGLOSSMESSAGE\" class=\"message\">\n"+
     "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
     "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
     "  </div>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCOVERPAGE\"\n"+
+    "<div id=\"METABOOKCOVERPAGE\" class=\"flap\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;\">\n"+
     "  <img src=\"{{coverimage|}}\" alt=\"{{covertext|}}\"\n"+
     "       style=\"max-width: 95%; width: auto; height: 90%;\"\n"+
     "       id=\"METABOOKCOVERIMAGE\"/>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCOVERTITLE\" class=\"metabooktitlepage\"\n"+
+    "<div id=\"METABOOKTITLE\" class=\"flap\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCOVERCREDITS\"\n"+
+    "<div id=\"METABOOKCREDITS\" class=\"flap metabookcredits\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKBLURB\" class=\"scrolling\"\n"+
+    "<div id=\"METABOOKBLURB\" class=\"scrolling flap\"\n"+
     "     style=\"position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKAPPHELP\" class=\"metabookhelp scrolling\"\n"+
+    "<div id=\"METABOOKAPPHELP\" class=\"metabookhelp scrolling flap\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "  <h1><span class=\"adjustfont\">Welcome to the &metaBook; web-based\n"+
-    "  e-reader</span></h1>\n"+
+    "      e-reader</span></h1>\n"+
     "  \n"+
     "  <p>You're using &metaBook;, a web-based e-reader created to deepen\n"+
     "    reading and engagement while connecting to networks of knowledge,\n"+
@@ -39484,17 +39471,17 @@ metaBook.HTML.cover=
     "    natural to navigate, annotate, search, and personalize.</p>\n"+
     "  <div id=\"METABOOKCOVERHELP\"></div>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSETTINGS\" class=\"scrolling\"\n"+
+    "<div id=\"METABOOKSETTINGS\" class=\"scrolling flap\"\n"+
     "     style=\"position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCONSOLE\" class=\"scrolling\"\n"+
+    "<div id=\"METABOOKCONSOLE\" class=\"scrolling flap\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKLAYERS\" class=\"scrolling\"\n"+
+    "<div id=\"METABOOKLAYERS\" class=\"scrolling flap\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
-    "  <iframe name=\"SBOOKSAPP\" id=\"SBOOKSAPP\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
+    "  <iframe name=\"BOOKHUBAPP\" id=\"BOOKHUBAPP\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCOVERCONTROLS\"\n"+
+    "<div id=\"METABOOKCOVERCONTROLS\" \n"+
     "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;\">\n"+
     "  <span class=\"control\" data-mode=\"coverpage\" title=\"see the cover\"\n"+
     "        tabindex=\"1\">\n"+
@@ -39892,19 +39879,19 @@ metaBook.HTML.pageright=
     "";
 // FDJT build information
 fdjt.revision='1.5-1464-g69d401b';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Sep 16 14:13:38 EDT 2015';
-fdjt.builduuid='bf7ebda3-5558-4349-a968-910bb9d69aaf';
+fdjt.buildhost='Venus';
+fdjt.buildtime='Thu Sep 17 19:54:15 EDT 2015';
+fdjt.builduuid='2c45e0d7-67e0-4c36-b315-a119dade0ced';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 
-Knodule.version='v0.8-152-gc2cb02e';
+Knodule.version='v0.8-153-gf5c2070';
 // sBooks metaBook build information
 metaBook.version='v0.8-73-gdfff7e4';
-metaBook.buildid='b283be49-0863-45e3-860d-99810a4ddac4';
-metaBook.buildtime='Wed Sep 16 14:13:41 EDT 2015';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.buildid='3a3d5ea0-d536-4d58-8bec-59726e640955';
+metaBook.buildtime='Fri Sep 18 11:23:57 EDT 2015';
+metaBook.buildhost='Venus';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
