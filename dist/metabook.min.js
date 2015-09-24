@@ -7063,22 +7063,41 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
     fdjt.UI.InputHelp.onblur = hide_help_onblur;
 }(), function() {
     "use strict";
+    function fdjt_focusin(evt) {
+        var scan = fdjtUI.T(evt), add = [];
+        if ("TEXTAREA" === scan.tagName || "INPUT" === scan.tagName && /text|email/i.exec(scan.type)) {
+            for (;scan; ) {
+                var classname = scan.className;
+                classname && "string" == typeof classname && classname.search(/\bfdjtfoci\b/) >= 0 && 0 > classname.search(/\bfdjtfocus\b/) && add.push(scan), 
+                scan = scan.parentNode;
+            }
+            add.length && setTimeout(function() {
+                for (var i = 0; add.length > i; ) {
+                    var elt = add[i++], classname = elt.className;
+                    elt.className = classname + " fdjtfocus";
+                }
+            }, 300);
+        }
+    }
+    function fdjt_focusout(evt) {
+        var scan = fdjtUI.T(evt), drop = [];
+        if ("TEXTAREA" === scan.tagName || "INPUT" === scan.tagName && /text|email/i.exec(scan.type)) {
+            for (;scan; ) {
+                var classname = scan.className;
+                classname && "string" == typeof classname && classname.search(/\bfdjtfocus\b/) >= 0 && drop.push(scan), 
+                scan = scan.parentNode;
+            }
+            drop.length && setTimeout(function() {
+                for (var i = 0; drop.length > i; ) {
+                    var elt = drop[i++], classname = elt.className;
+                    elt.className = classname.replace(/ fdjtfocus\b/, "");
+                }
+            }, 300);
+        }
+    }
     var fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, addListener = fdjtDOM.addListener;
-    addListener(window, "focusin", function(evt) {
-        var scan = fdjtUI.T(evt);
-        if ("TEXTAREA" === scan.tagName || "INPUT" === scan.tagName && /text|email/i.exec(scan.type)) for (;scan; ) {
-            var classname = scan.className;
-            classname && "string" == typeof classname && classname.search(/\bfdjtfoci\b/) >= 0 && 0 > classname.search(/\bfdjtfocus\b/) && (scan.className = classname + " fdjtfocus"), 
-            scan = scan.parentNode;
-        }
-    }), addListener(window, "focusout", function(evt) {
-        var scan = fdjtUI.T(evt);
-        if ("TEXTAREA" === scan.tagName || "INPUT" === scan.tagName && /text|email/i.exec(scan.type)) for (;scan; ) {
-            var classname = scan.className;
-            classname && "string" == typeof classname && classname.search(/\bfdjtfocus\b/) >= 0 && (scan.className = classname.replace(/ fdjtfocus\b/, "")), 
-            scan = scan.parentNode;
-        }
-    });
+    fdjtUI.focusin = fdjt_focusin, addListener(window, "focusin", fdjt_focusin), fdjtUI.focusout = fdjt_focusout, 
+    addListener(window, "focusout", fdjt_focusout);
 }(), function() {
     "use strict";
     function multitext_keypress(evt, sepchars, sepexp, fn) {
@@ -7701,13 +7720,25 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             var title_text = template(spec.title, spec, spec.data);
             box.title = title_text, box.appendChild(fdjtDOM("div.title", title_text));
         }
-        for (var elts = [], i = 1, lim = arguments.length; lim > i; ) {
+        for (var content, elts = [], i = 1, lim = arguments.length, wrap = !0; lim > i; ) {
+            var e = arguments[i++];
+            if (e.nodeType) {
+                wrap = !1;
+                break;
+            }
+            if ("string" == typeof e && e.indexOf("<") >= 0) {
+                wrap = !1;
+                break;
+            }
+        }
+        for (wrap ? (content = fdjtDOM("P"), box.appendChild(content)) : content = box, 
+        i = 1; lim > i; ) {
             var arg = arguments[i++];
-            if (arg) if (arg.nodeType) box.appendChild(arg); else if ("string" == typeof arg) {
+            if (arg) if (arg.nodeType) content.appendChild(arg); else if ("string" == typeof arg) {
                 arg = Templates[arg] || arg;
                 var ishtml = arg.indexOf("<") >= 0, istemplate = arg.search("{{") >= 0;
-                ishtml && istemplate ? box.appendChild(Template.toDOM(arg, spec)) : ishtml ? fdjtDOM.append(box, arg) : istemplate ? box.appendChild(document.createTextNode(template(arg, spec))) : box.appendChild(document.createTextNode(arg));
-            } else box.appendChild(document.createTextNode(arg.toString)); else ;
+                ishtml && istemplate ? content.appendChild(Template.toDOM(arg, spec)) : ishtml ? fdjtDOM.append(content, arg) : istemplate ? content.appendChild(document.createTextNode(template(arg, spec))) : content.appendChild(document.createTextNode(arg));
+            } else content.appendChild(document.createTextNode(arg.toString)); else ;
         }
         return spec.id && !box.id && (box.id = spec.id), fdjtDOM.addListeners(box, spec), 
         box;
@@ -19155,10 +19186,10 @@ metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body size<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <!--\n  <div class="checkspans fontfamily"\n       title="Set the font sizes used for the body text.">\n    <span class="label smaller">Font family</span>\n    <span class="checkspan sanserif">\n      <input TYPE="RADIO" NAME="bodyfamily"\n             VALUE="sanserif"/>\n      <span class="sample sanserif">Sans</span></span>\n    <span class="checkspan serif">\n      <input TYPE="RADIO" NAME="bodyfamily" \n             VALUE="serif"/>\n      <span class="sample serif">Serif</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodyfamily"\n             VALUE="opendyslexic"/>\n      <span class="sample opendyslexic">Open Dyslexic</span></span>\n  </div>\n  -->\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="text">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">App font</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="text">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="text">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="text">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="text">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="text">Show the application console</span>\n  </div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.pageleft = '<img svg="{{bmg}}metabook/page_left.svgz"\n     src="{{bmg}}metabook/page_left100h.png"\n     id="METABOOKPREVPAGE" class="metabookpagebutton" alt="prev"\n     title="go to the previous page"/>\n<img svg="{{bmg}}metabook/skim_left.svgz"\n     src="{{bmg}}metabook/skim_left100x100.png"\n     id="METABOOKPREVSKIM" class="metabookskimbutton" alt="prev"\n     title="go to the previous result/gloss"/>\n<img svg="{{bmg}}metabook/skim_left_stop.svgz"\n     src="{{bmg}}metabook/skim_left_stop100x100.png"\n     id="METABOOKSTARTSKIM" class="metabookskimbutton"\n     alt="beginning"/>\n<img svg="{{bmg}}metabook/page_right.svgz"\n     src="{{bmg}}metabook/page_right100h.png"\n     id="METABOOKNEXTPAGE" class="metabookpagebutton" alt="next"\n     title="go to the next page"/>\n<img svg="{{bmg}}metabook/skim_right_stop.svgz"\n     src="{{bmg}}metabook/skim_right_stop100x100.png"\n     id="METABOOKENDSKIM" class="metabookskimbutton"\n     alt="end"/>\n<img svg="{{bmg}}metabook/skim_right.svgz"\n     src="{{bmg}}metabook/skim_right100x100.png"\n     id="METABOOKNEXTSKIM" class="metabookskimbutton" alt="next"\n     title="go to the next result/gloss"/>\n<div class="metabookskimindicator" id="METABOOKSKIMINDEX"></div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.pageright = '<img svg="{{bmg}}metabook/page_right.svgz"\n     src="{{bmg}}metabook/page_right100h.png"\n     id="METABOOKNEXTPAGE" class="metabookpagebutton" alt="next"\n     title="go to the next page"/>\n<img svg="{{bmg}}metabook/skim_right_stop.svgz"\n     src="{{bmg}}metabook/skim_right_stop100x100.png"\n     id="METABOOKENDSKIM" class="metabookskimbutton"\n     alt="end"/>\n<img svg="{{bmg}}metabook/skim_right.svgz"\n     src="{{bmg}}metabook/skim_right100x100.png"\n     id="METABOOKNEXTSKIM" class="metabookskimbutton" alt="next"\n     title="go to the next result/gloss"/>\n<div class="metabookskimindicator" id="METABOOKSKIMLIMIT"></div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1464-g69d401b", fdjt.buildhost = "Venus", fdjt.buildtime = "Thu Sep 17 19:54:15 EDT 2015", 
-fdjt.builduuid = "2c45e0d7-67e0-4c36-b315-a119dade0ced", fdjt.CodexLayout.sourcehash = "EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A", 
-Knodule.version = "v0.8-153-gf5c2070", metaBook.version = "v0.8-73-gdfff7e4", metaBook.buildid = "3a3d5ea0-d536-4d58-8bec-59726e640955", 
-metaBook.buildtime = "Fri Sep 18 11:23:57 EDT 2015", metaBook.buildhost = "Venus", 
+fdjt.revision = "1.5-1467-gfa7faa1", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Thu Sep 24 19:38:47 EDT 2015", 
+fdjt.builduuid = "2e6de9c5-d989-41aa-8c56-c433d5a372f9", fdjt.CodexLayout.sourcehash = "EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A", 
+Knodule.version = "v0.8-152-gc2cb02e", metaBook.version = "v0.8-74-g2367567", metaBook.buildid = "ba5f73b7-ff4b-457d-b0cd-97d83712c17a", 
+metaBook.buildtime = "Thu Sep 24 19:38:50 EDT 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });

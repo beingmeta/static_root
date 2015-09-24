@@ -12811,31 +12811,45 @@ fdjt.UI.ProgressBar=(function(){
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtUI=fdjt.UI;
     var addListener=fdjtDOM.addListener;
-    addListener(window,"focusin",function(evt){
-        var scan=fdjtUI.T(evt);
-        if (!((scan.tagName==='TEXTAREA')||
-              ((scan.tagName==='INPUT')&&
-               (/text|email/i.exec(scan.type)))))
-            return;
-        while (scan) {
-            var classname=scan.className;
-            if ((classname)&&(typeof classname === "string")&&
-                (classname.search(/\bfdjtfoci\b/)>=0)&&
-                (classname.search(/\bfdjtfocus\b/)<0))
-                scan.className=classname+" fdjtfocus";
-            scan=scan.parentNode;}});
-    addListener(window,"focusout",function(evt){
-        var scan=fdjtUI.T(evt);
-        if (!((scan.tagName==='TEXTAREA')||
-              ((scan.tagName==='INPUT')&&
-               (/text|email/i.exec(scan.type)))))
-            return;
-        while (scan) {
-            var classname=scan.className;
-            if ((classname)&&(typeof classname === "string")&&
-                (classname.search(/\bfdjtfocus\b/)>=0))
-                scan.className=classname.replace(/ fdjtfocus\b/,"");
-            scan=scan.parentNode;}});})();
+    function fdjt_focusin(evt){
+        var scan=fdjtUI.T(evt), add=[]; 
+        if ((scan.tagName==='TEXTAREA')||
+            ((scan.tagName==='INPUT')&&
+             (/text|email/i.exec(scan.type)))) {
+            while (scan) {
+                var classname=scan.className;
+                if ((classname)&&(typeof classname === "string")&&
+                    (classname.search(/\bfdjtfoci\b/)>=0)&&
+                    (classname.search(/\bfdjtfocus\b/)<0))
+                    add.push(scan);
+                scan=scan.parentNode;}
+            if (add.length) 
+                setTimeout(function(){
+                    var i=0; while (i<add.length) {
+                        var elt=add[i++], classname=elt.className;
+                        elt.className=classname+" fdjtfocus";}},
+                           300);}}
+    fdjtUI.focusin=fdjt_focusin;
+    addListener(window,"focusin",fdjt_focusin);
+    function fdjt_focusout(evt){
+        var scan=fdjtUI.T(evt), drop=[];
+        if ((scan.tagName==='TEXTAREA')||
+            ((scan.tagName==='INPUT')&&
+             (/text|email/i.exec(scan.type)))) {
+            while (scan) {
+                var classname=scan.className;
+                if ((classname)&&(typeof classname === "string")&&
+                    (classname.search(/\bfdjtfocus\b/)>=0))
+                    drop.push(scan);
+                scan=scan.parentNode;}
+            if (drop.length) 
+                setTimeout(function(){
+                    var i=0; while (i<drop.length) {
+                        var elt=drop[i++], classname=elt.className;
+                        elt.className=classname.replace(/ fdjtfocus\b/,"");}},
+                           300);}}
+    fdjtUI.focusout=fdjt_focusout;
+    addListener(window,"focusout",fdjt_focusout);})();
 
 /* Text input boxes which create checkspans on enter. */
 
@@ -14093,23 +14107,32 @@ fdjt.Dialog=(function(){
                 var title_text=template(spec.title,spec,spec.data);
                 box.title=title_text;
                 box.appendChild(fdjtDOM("div.title",title_text));}}
-        var elts=[]; var i=1, lim=arguments.length;
+        var elts=[]; var i=1, lim=arguments.length, wrap=true, content;
         while (i<lim) {
+            var e=arguments[i++];
+            if (e.nodeType) {wrap=false; break;}
+            else if ((typeof e === "string")&&(e.indexOf('<')>=0)) {
+                wrap=false; break;}}
+        if (wrap) {
+            content=fdjtDOM("P");
+            box.appendChild(content);}
+        else content=box;
+        i=1; while (i<lim) {
             var arg=arguments[i++];
             if (!(arg)) {}
-            else if (arg.nodeType) box.appendChild(arg);
+            else if (arg.nodeType) content.appendChild(arg);
             else if (typeof arg === "string") {
                 arg=Templates[arg]||arg;
                 var ishtml=(arg.indexOf('<')>=0);
                 var istemplate=(arg.search("{{")>=0);
                 if ((ishtml)&&(istemplate))
-                    box.appendChild(Template.toDOM(arg,spec));
+                    content.appendChild(Template.toDOM(arg,spec));
                 else if (ishtml)
-                    fdjtDOM.append(box,arg);
+                    fdjtDOM.append(content,arg);
                 else if (istemplate)
-                    box.appendChild(document.createTextNode(template(arg,spec)));
-                else box.appendChild(document.createTextNode(arg));}
-            else box.appendChild(document.createTextNode(arg.toString));}
+                    content.appendChild(document.createTextNode(template(arg,spec)));
+                else content.appendChild(document.createTextNode(arg));}
+            else content.appendChild(document.createTextNode(arg.toString));}
         if ((spec.id)&&(!(box.id))) box.id=spec.id;
         fdjtDOM.addListeners(box,spec);
         return box;}
@@ -39878,20 +39901,20 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1464-g69d401b';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Thu Sep 17 19:54:15 EDT 2015';
-fdjt.builduuid='2c45e0d7-67e0-4c36-b315-a119dade0ced';
+fdjt.revision='1.5-1467-gfa7faa1';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Thu Sep 24 19:38:47 EDT 2015';
+fdjt.builduuid='2e6de9c5-d989-41aa-8c56-c433d5a372f9';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 
-Knodule.version='v0.8-153-gf5c2070';
+Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-73-gdfff7e4';
-metaBook.buildid='3a3d5ea0-d536-4d58-8bec-59726e640955';
-metaBook.buildtime='Fri Sep 18 11:23:57 EDT 2015';
-metaBook.buildhost='Venus';
+metaBook.version='v0.8-74-g2367567';
+metaBook.buildid='ba5f73b7-ff4b-457d-b0cd-97d83712c17a';
+metaBook.buildtime='Thu Sep 24 19:38:50 EDT 2015';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
