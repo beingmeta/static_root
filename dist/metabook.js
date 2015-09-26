@@ -39901,10 +39901,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1467-gfa7faa1';
+fdjt.revision='1.5-1468-g7cce6b4';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Sep 24 19:38:47 EDT 2015';
-fdjt.builduuid='2e6de9c5-d989-41aa-8c56-c433d5a372f9';
+fdjt.buildtime='Sat Sep 26 15:09:59 EDT 2015';
+fdjt.builduuid='4e065897-cf95-4dd5-8004-06ee2f69d6cb';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
