@@ -14684,7 +14684,7 @@ if (!(fdjt.UI)) fdjt.UI={};
              (hasPrefix(this.maxstring,string))))
             return this.result;
         else {
-            var result;
+            var result, that=this;
             if (!(this.initialized)) initCompletions(this);
             if (isEmpty(string)) {
                 result=[]; result.prefix=""; result.matches=[];
@@ -14693,7 +14693,7 @@ if (!(fdjt.UI)) fdjt.UI={};
                 result=getNodes(string,this.prefixtree,this.bykey,
                                 ((this.options)&(FDJT_COMPLETE_MATCHCASE)));
                 if (this.dom) dropClass(this.dom,"noinput");
-                rAF(function(){updateDisplay(this,result.matches);});}
+                rAF(function(){updateDisplay(that,result.matches);});}
             if ((this.stringmap)&&(this.strings)) {
                 var stringmap=this.stringmap;
                 var strings=this.strings;
@@ -14725,6 +14725,7 @@ if (!(fdjt.UI)) fdjt.UI={};
         else return getKey(completion);};
 
     Completions.prototype.complete=function(string,callback){
+        var that=this;
         if (!(this.initialized)) initCompletions(this);
         // fdjtLog("Completing on %o",string);
         if ((!(string))&&(string!==""))
@@ -14733,24 +14734,24 @@ if (!(fdjt.UI)) fdjt.UI={};
                     (this.input.value));
         if (isEmpty(string)) {
             rAF(function(){
-                if (this.displayed) updateDisplay(this,false);
-                addClass(this.dom,"noinput");
-                dropClass(this.dom,"nomatches");
+                if (that.displayed) updateDisplay(that,false);
+                addClass(that.dom,"noinput");
+                dropClass(that.dom,"nomatches");
                 if (callback) async(function(){callback([]);});});
             return [];}
         var result=this.getCompletions(string);
         if ((!(result))||(result.length===0)) {
             rAF(function(){
-                updateDisplay(this,false);
-                dropClass(this.dom,"noinput");
-                addClass(this.dom,"nomatches");
+                updateDisplay(that,false);
+                dropClass(that.dom,"noinput");
+                addClass(that.dom,"nomatches");
                 if (callback) async(function(){callback(result);});});
             return [];}
         else {
             rAF(function(){
-                updateDisplay(this,result.matches);
-                dropClass(this.dom,"noinput");
-                dropClass(this.dom,"nomatches");
+                updateDisplay(that,result.matches);
+                dropClass(that.dom,"noinput");
+                dropClass(that.dom,"nomatches");
                 if (callback) async(function(){callback(result);});});
             return result;}};
 
@@ -39901,10 +39902,10 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1468-g7cce6b4';
+fdjt.revision='1.5-1469-g7f8a595';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sat Sep 26 15:09:59 EDT 2015';
-fdjt.builduuid='4e065897-cf95-4dd5-8004-06ee2f69d6cb';
+fdjt.buildtime='Sun Sep 27 16:01:29 EDT 2015';
+fdjt.builduuid='b2ceb588-bcdc-457d-a827-a0faf8773aeb';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
@@ -39912,8 +39913,8 @@ fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
 metaBook.version='v0.8-74-g2367567';
-metaBook.buildid='ba5f73b7-ff4b-457d-b0cd-97d83712c17a';
-metaBook.buildtime='Thu Sep 24 19:38:50 EDT 2015';
+metaBook.buildid='0265c662-35c4-48e9-b0b4-ce0ea78f658c';
+metaBook.buildtime='Sun Sep 27 16:01:32 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
