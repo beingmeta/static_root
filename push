@@ -1,0 +1,106 @@
+#!/usr/bin/env fdexec
+;;; -*- Mode: Scheme; -*-
+(use-module '{logger texttools sbooks aws/s3 gpath mttools varconfig})
+
+(define %loglevel %notice%)
+
+(define root (->s3loc "s3://static.beingmeta.com/"))
+(define pubheaders '("x-amz-acl: public-read"))
+(define gzheaders '("x-amz-acl: public-read"
+		    "Content-encoding\: gzip"))
+(define graphics
+  {"g/metabook/" "g/metabook/docs/" "g/fdjt/" "g/bookhub/" "g/beingmeta/"})
+(define fonts
+  {"fonts/Adobe/" "fonts/aleo/" "fonts/coelacanth/"
+   "fonts/gentium/" "fonts/noto/"
+   "fonts/Liberation/Sans" "fonts/Liberation/Serif" "fonts/Liberation/Mono"
+   "fonts/OmnibusType/Archivo_Black" "fonts/OmnibusType/Archivo_Narrow"
+   "fonts/OmnibusType/Rosario" "fonts/OmnibusType/Unna"
+   "fonts/open_dyslexic/" "fonts/open_sans/"})
+
+(defambda (push-target val cur)
+  (if (fail? cur) (list val)
+      (cons val cur)))
+
+(define dist-targets-file (get-component "dist-targets"))
+(define default-dist-targets
+  (remove-if empty-string?
+	     (segment (filestring dist-targets-file) "\n")))
+(define dist-targets {})
+(varconfig! target dist-targets #f push-target)
+;;(set! dist-targets '("s3://beingmeta/static/"))
+
+(config! 'aws:curlcache #t)
+
+(define forcewrite #f)
+(varconfig! force forcewrite config:boolean)
+
+(define (push-graphics dir (hdrs pubheaders))
+  (let ((updated
+	 (choice (s3/push! dir (s3/mkpath root dir)
+			   #{".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"}
+			   hdrs forcewrite)
+		 (s3/push! dir (s3/mkpath root dir) ".svgz"
+			   gzheaders forcewrite))))
+    updated))
+
+(define (push-web local)
+  (choice (s3/push! local (s3/mkpath root local)
+		    #{".css" ".js" ".png" ".svg"}
+		    pubheaders forcewrite retall)
+	  (s3/push! local (s3/mkpath root local)
+		    #{".css.gz" ".js.gz" ".svgz"}
+		    gzheaders forcewrite retall)))
+
+(define (push-fonts local)
+  (s3/push! local (s3/mkpath root local)
+	    #{".ttf" ".otf" ".eot" ".woff" ".txt" ".svg"}
+	    pubheaders forcewrite retall))
+
+(define media-suffixes
+  {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
+(define font-suffixes
+  {".ttf" ".otf" ".eot" ".woff" ".txt" ".svg"})
+
+(define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
+(define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
+(define apps.maps {"metabook.uglify.map" "metabook.clean.css.map"})
+
+(define (main (arg #f))
+  (push-web "fdjt/")
+  (push-web "knodules/")
+  (push-web "metabook/")
+  (push-web "styles/")
+  (push-web "fonts/")
+  (push-web "dist/")
+
+  (let ((js (filedata "dist/metabook.uglify.js.gz"))
+	(css (filedata "dist/metabook.clean.css.gz")))
+    (s3/put (s3/mkpath root apps.js) js "text/javascript"
+	    '("x-amz-acl: public-read"
+	      "Content-encoding\: gzip"
+	      "X-SourceMap\: metabook.uglify.map")
+	    #t)
+    (s3/put (s3/mkpath root "metabook.uglify.map")
+	    (filestring "dist/metabook.uglify.map") 
+	    "application/json" pubheaders #t)
+    (s3/put (s3/mkpath root apps.css) css "text/css"
+	    '("x-amz-acl: public-read"
+	      "Content-encoding\: gzip"
+	      "X-SourceMap\: metabook.clean.css.map")
+	    #t)
+    (s3/put (s3/mkpath root "metabook.clean.css.map")
+	    (filestring "dist/metabook.clean.css.map") 
+	    "application/json" pubheaders #t))
+  (do-choices (local graphics) (push-graphics local))
+  (do-choices (local fonts) (push-fonts local)))
+
+
+
+
+
+
+
+
+
+
