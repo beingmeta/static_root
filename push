@@ -1,8 +1,9 @@
 #!/usr/bin/env fdexec
 ;;; -*- Mode: Scheme; -*-
-(use-module '{logger texttools sbooks aws/s3 gpath mttools varconfig})
+(use-module '{logger logctl texttools sbooks aws/s3 gpath mttools varconfig})
 
 (define %loglevel %notice%)
+(logctl! 'aws/s3 %notice%)
 
 (define root (->s3loc "s3://static.beingmeta.com/"))
 (define pubheaders '("x-amz-acl: public-read"))
