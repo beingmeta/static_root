@@ -566,8 +566,9 @@ sync-graphics:
 publish:
 	make update
 	make
-	./distribute
-release: publish
+	make release
+release:
+	fdexec ./s3distribute
 
 publish-bundle:
 	bash ./publish-bundle.bash

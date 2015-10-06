@@ -1,6 +1,7 @@
 #!/usr/bin/env fdexec
 ;;; -*- Mode: Scheme; -*-
-(use-module '{logger logctl texttools sbooks aws/s3 gpath mttools varconfig})
+(use-module
+ '{logger logctl texttools sbooks aws/s3 gpath mttools varconfig})
 
 (define %loglevel %notice%)
 (logctl! 'aws/s3 %notice%)
@@ -29,6 +30,7 @@
 	     (segment (filestring dist-targets-file) "\n")))
 (define dist-targets {})
 (varconfig! target dist-targets #f push-target)
+;; Good for testing, just one target
 ;;(set! dist-targets '("s3://beingmeta/static/"))
 
 (config! 'aws:curlcache #t)
@@ -36,27 +38,32 @@
 (define forcewrite #f)
 (varconfig! force forcewrite config:boolean)
 
-(define (push-graphics dir (hdrs pubheaders))
+(define (push-graphics dir (opts #[]))
   (let ((updated
 	 (choice (s3/push! dir (s3/mkpath root dir)
 			   #{".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"}
-			   hdrs forcewrite)
+			   (if (testopt opts 'headers) opts
+			       (cons `#[headers ,pubheaders] opts)))
 		 (s3/push! dir (s3/mkpath root dir) ".svgz"
-			   gzheaders forcewrite))))
+			   (if (testopt opts 'headers) opts
+			       (cons `#[headers ,gzheaders] opts))))))
     updated))
 
-(define (push-web local)
+(define (push-web local (opts #[]))
   (choice (s3/push! local (s3/mkpath root local)
-		    #{".css" ".js" ".png" ".svg"}
-		    pubheaders forcewrite retall)
+		    #{".css" ".js" ".png" ".svg" (not ".hint")}
+		    (if (testopt opts 'headers) opts
+			(cons `#[headers ,pubheaders] opts)))
 	  (s3/push! local (s3/mkpath root local)
-		    #{".css.gz" ".js.gz" ".svgz"}
-		    gzheaders forcewrite retall)))
+		    #{".css.gz" ".js.gz" ".svgz" (not ".hint")}
+		    (if (testopt opts 'headers) opts
+			(cons `#[headers ,gzheaders] opts)))))
 
-(define (push-fonts local)
+(define (push-fonts local (opts #[]))
   (s3/push! local (s3/mkpath root local)
 	    #{".ttf" ".otf" ".eot" ".woff" ".txt" ".svg"}
-	    pubheaders forcewrite retall))
+	    (if (testopt opts 'headers) opts
+		(cons `#[headers ,pubheaders] opts))))
 
 (define media-suffixes
   {".svgz" ".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"})
@@ -96,12 +103,46 @@
   (do-choices (local graphics) (push-graphics local))
   (do-choices (local fonts) (push-fonts local)))
 
+(define (push)
+  (push-web "fdjt/")
+  (push-web "knodules/")
+  (push-web "metabook/")
+  (push-web "styles/")
+  (push-web "fonts/")
+  (push-web "dist/")
 
+  (let ((js (filedata "dist/metabook.uglify.js.gz"))
+	(css (filedata "dist/metabook.clean.css.gz")))
+    (s3/put (s3/mkpath root apps.js) js "text/javascript"
+	    '("x-amz-acl: public-read"
+	      "Content-encoding\: gzip"
+	      "X-SourceMap\: metabook.uglify.map")
+	    #t)
+    (s3/put (s3/mkpath root "metabook.uglify.map")
+	    (filestring "dist/metabook.uglify.map") 
+	    "application/json" pubheaders #t)
+    (s3/put (s3/mkpath root apps.css) css "text/css"
+	    '("x-amz-acl: public-read"
+	      "Content-encoding\: gzip"
+	      "X-SourceMap\: metabook.clean.css.map")
+	    #t)
+    (s3/put (s3/mkpath root "metabook.clean.css.map")
+	    (filestring "dist/metabook.clean.css.map") 
+	    "application/json" pubheaders #t))
+  (do-choices (local graphics) (push-graphics local))
+  (do-choices (local fonts) (push-fonts local)))
 
+(define (s3sync to)
+  (let ((frompath (if (string? root) root (s3loc->string root)))
+	(topath (if (string? to) to (s3loc->string to))))
+  (message "START sync " topath " from " frompath)
+  (spawn (begin (system "aws s3 sync --quiet "
+			frompath " " topath)
+	   (message "FINISHED sync " topath " from " frompath)))))
 
-
-
-
-
+(define (main)
+  (push)
+  (message "Distributing within S3")
+  (threadjoin (s3sync (elts (try dist-targets default-dist-targets)))))
 
 

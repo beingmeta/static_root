@@ -1,0 +1,4 @@
+#!/bin/bash
+dist=$1
+aws s3 sync --quiet s3://static.beingmeta.com/ $dist
+echo "Synced to" $dist

@@ -1,11 +1,11 @@
 s3://beingmeta/static/
 s3://bookhubio/static/
-s3://bookhub-io/static/
 s3://bookhub-static/
+s3://bookhubstore/static/
+s3://mybookhub/static/
 s3://pubtool/static/
 s3://opentexts/static/
 s3://ccbooks/static/
 s3://loveabook/static/
 s3://quakers/static/
-s3://sbooks-logs-us-east.s3.amazonaws.com/static/
-
+s3://beingmeta-us-east/static/
