@@ -39902,19 +39902,19 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1472-g43454b7';
+fdjt.revision='1.5-1473-gc8f03ba';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Mon Sep 28 20:49:42 EDT 2015';
-fdjt.builduuid='1c1b7bbc-07c5-40e8-a9c9-93bd7d5b4b38';
+fdjt.buildtime='Thu Oct 15 13:29:45 EDT 2015';
+fdjt.builduuid='31fd0f44-141b-43d9-a95b-a609b30ba6c2';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-74-g2367567';
-metaBook.buildid='e863ff8b-5a3c-46a4-98a0-c57377755d07';
-metaBook.buildtime='Mon Sep 28 20:49:52 EDT 2015';
+metaBook.version='v0.8-75-ge7277da';
+metaBook.buildid='3f18c4bd-11f5-4231-8a9f-a9c1336264d2';
+metaBook.buildtime='Thu Oct 15 13:29:48 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
