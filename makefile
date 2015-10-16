@@ -286,7 +286,10 @@ fdjt/codexlayouthash.js: fdjt/codexlayout.js
 fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
 	cp fdjt/fdjt.js fdjt.js
 fdjt.css: fdjt/fdjt.css
-	cp fdjt/fdjt.css fdjt.css
+	@echo Building ./fdjt.css and ./fdjt.css.map
+	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o fdjt.css
+	@$(POSTCSS) --use autoprefixer -o fdjt.css fdjt.css
+
 fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
 	$(UGLIFY) $(UGLIFY_FLAGS) \
@@ -323,9 +326,8 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	  metabook/autoload.js -o $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
-	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
-#	@$(AUTOPREFIXER) metabook.clean.css
 
 fresh:
 	make clean
@@ -377,9 +379,8 @@ dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.clean.css
-	@$(CLEANCSS) --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
 	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
-#	@$(AUTOPREFIXER) metabook.clean.css
 	@mv metabook.clean.css metabook.clean.css.map dist
 
 dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
@@ -409,6 +410,10 @@ dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	  --source-map-root /static          \
 	    $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js -o $@
 	@cp fdjt.uglify.map dist
+
+dist/fdjt.css: fdjt/fdjt.css makefile
+	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o dist/fdjt.css
+	@$(POSTCSS) --use autoprefixer -o dist/fdjt.css dist/fdjt.css
 
 # Compiled
 
