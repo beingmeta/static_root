@@ -12626,6 +12626,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var dropClass=fdjtDOM.dropClass;
   var addClass=fdjtDOM.addClass;
   var hasClass=fdjtDOM.hasClass;
+  var hasParent=fdjtDOM.hasParent;
+  var addListener=fdjtDOM.addListener;
   var toArray=fdjtDOM.toArray;
   
   var adjustFonts=fdjtDOM.adjustFonts;
@@ -12636,8 +12638,11 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       container=document.getElementById(arg);
     else if (arg.nodeType)
       container=arg;
+    else if (fdjt.UI.T(arg))
+      container=fdjt.UI.T(arg);
     else container=false;
     if (!(container)) fdjtLog.warn("Bad showPage container arg %s",arg);
+    else container=fdjtDOM.getParent(container,".fdjtpage")||container;
     return container;}
     
   function istootall(container){
@@ -12656,6 +12661,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var info=getChild(container,".fdjtpageinfo");
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
+    var tap_event_name=
+      ((hasParent(container,".tapholder"))?("tap"):("click"));
     if (children.length===0) return;
     if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
@@ -12705,8 +12712,14 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var minpos=((startpos<=endpos)?(startpos):(endpos));
     var maxpos=((startpos>endpos)?(startpos):(endpos));
     info.innerHTML=Math.floor((minpos/lim)*100)+"%"+
-      "<span class='count'>("+lim+")</span>";
+      "<span class='count'> ("+lim+")</span>";
     info.title=fdjtString("Items %d through %d of %d",minpos,maxpos,lim);
+    var forward_button=fdjtDOM("span.button.forward","》");
+    var backward_button=fdjtDOM("span.button.backward","《");
+    addListener(forward_button,tap_event_name,forwardPage);
+    addListener(backward_button,tap_event_name,backwardPage);
+    fdjtDOM.append(info,forward_button);
+    fdjtDOM.prepend(info,backward_button);
     addClass(container,"newpage"); setTimeout(
       function(){dropClass(container,"newpage");},1000);
     dropClass(container,"formatting");
@@ -15919,8 +15932,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1472-g43454b7';
+fdjt.revision='1.5-1475-g76417cb';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Mon Sep 28 20:49:42 EDT 2015';
-fdjt.builduuid='1c1b7bbc-07c5-40e8-a9c9-93bd7d5b4b38';
+fdjt.buildtime='Fri Oct 16 12:07:28 EDT 2015';
+fdjt.builduuid='75346ea5-af28-4445-82d1-6f8451a71264';
 

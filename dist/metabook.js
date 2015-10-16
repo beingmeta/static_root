@@ -13792,6 +13792,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var dropClass=fdjtDOM.dropClass;
   var addClass=fdjtDOM.addClass;
   var hasClass=fdjtDOM.hasClass;
+  var hasParent=fdjtDOM.hasParent;
+  var addListener=fdjtDOM.addListener;
   var toArray=fdjtDOM.toArray;
   
   var adjustFonts=fdjtDOM.adjustFonts;
@@ -13802,8 +13804,11 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       container=document.getElementById(arg);
     else if (arg.nodeType)
       container=arg;
+    else if (fdjt.UI.T(arg))
+      container=fdjt.UI.T(arg);
     else container=false;
     if (!(container)) fdjtLog.warn("Bad showPage container arg %s",arg);
+    else container=fdjtDOM.getParent(container,".fdjtpage")||container;
     return container;}
     
   function istootall(container){
@@ -13822,6 +13827,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var info=getChild(container,".fdjtpageinfo");
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
+    var tap_event_name=
+      ((hasParent(container,".tapholder"))?("tap"):("click"));
     if (children.length===0) return;
     if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
@@ -13871,8 +13878,14 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var minpos=((startpos<=endpos)?(startpos):(endpos));
     var maxpos=((startpos>endpos)?(startpos):(endpos));
     info.innerHTML=Math.floor((minpos/lim)*100)+"%"+
-      "<span class='count'>("+lim+")</span>";
+      "<span class='count'> ("+lim+")</span>";
     info.title=fdjtString("Items %d through %d of %d",minpos,maxpos,lim);
+    var forward_button=fdjtDOM("span.button.forward","》");
+    var backward_button=fdjtDOM("span.button.backward","《");
+    addListener(forward_button,tap_event_name,forwardPage);
+    addListener(backward_button,tap_event_name,backwardPage);
+    fdjtDOM.append(info,forward_button);
+    fdjtDOM.prepend(info,backward_button);
     addClass(container,"newpage"); setTimeout(
       function(){dropClass(container,"newpage");},1000);
     dropClass(container,"formatting");
@@ -29191,6 +29204,7 @@ metaBook.Slice=(function () {
                 fdjtUI.cancel(evt);
                 return;}}
         var card=getCard(target);
+        if (!(card)) return;
         var passage=mbID(card.getAttribute("data-passage"));
         var glossid=card.getAttribute("data-gloss");
         var gloss=((glossid)&&(metaBook.glossdb.ref(glossid)));
@@ -36607,9 +36621,9 @@ metaBook.setMode=
              blur: function(){
                  fdjt.DOM.dropClass('METABOOKCONSOLEINPUT','uptop');}},
          "#METABOOKCONSOLEBUTTON": {click: consolefn},
-         "#METABOOKREFRESHOFFLINE": {tap: refreshOffline},
-         "#METABOOKREFRESHLAYOUT": {tp: refreshLayout},
-         "#METABOOKRESETSYNC": {tap: resetState},
+         "#METABOOKREFRESHOFFLINE": {click: refreshOffline},
+         "#METABOOKREFRESHLAYOUT": {click: refreshLayout},
+         "#METABOOKRESETSYNC": {click: resetState},
          ".clearoffline": {click: clearOffline},
          ".metabookclearmode": {click: clearMode},
          "#METABOOKGOTOREFHELP": {click: clearMode},
@@ -39661,7 +39675,7 @@ metaBook.HTML.settings=
     "  <div class=\"fontsizes body\"\n"+
     "       title=\"Set the font sizes used for the body text.\">\n"+
     "    <span class=\"label\" id=\"METABOOKBODYSIZELABEL\">\n"+
-    "      Body size<br/>\n"+
+    "      Body text<br/>\n"+
     "      <button name=\"REFRESH\" value=\"Layout\"\n"+
     "              id=\"METABOOKREFRESHLAYOUT\">\n"+
     "        <img src=\"{{bmg}}metabook/refresh.svgz\" alt=\"Update\">\n"+
@@ -39689,24 +39703,7 @@ metaBook.HTML.settings=
     "        <span class=\"sample tiny\">Aa</span></span>\n"+
     "    </span>\n"+
     "  </div>\n"+
-    "  <!--\n"+
-    "  <div class=\"checkspans fontfamily\"\n"+
-    "       title=\"Set the font sizes used for the body text.\">\n"+
-    "    <span class=\"label smaller\">Font family</span>\n"+
-    "    <span class=\"checkspan sanserif\">\n"+
-    "      <input TYPE=\"RADIO\" NAME=\"bodyfamily\"\n"+
-    "             VALUE=\"sanserif\"/>\n"+
-    "      <span class=\"sample sanserif\">Sans</span></span>\n"+
-    "    <span class=\"checkspan serif\">\n"+
-    "      <input TYPE=\"RADIO\" NAME=\"bodyfamily\" \n"+
-    "             VALUE=\"serif\"/>\n"+
-    "      <span class=\"sample serif\">Serif</span></span>\n"+
-    "    <span class=\"checkspan lowcontrast\">\n"+
-    "      <input TYPE=\"RADIO\" NAME=\"bodyfamily\"\n"+
-    "             VALUE=\"opendyslexic\"/>\n"+
-    "      <span class=\"sample opendyslexic\">Open Dyslexic</span></span>\n"+
-    "  </div>\n"+
-    "  -->\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"contrast checkspans\"\n"+
     "       title=\"Select the contrast level for body text\">\n"+
     "    <span class=\"label smaller\">Text Contrast</span>\n"+
@@ -39723,6 +39720,7 @@ metaBook.HTML.settings=
     "             VALUE=\"low\"/>\n"+
     "      <span class=\"sample\">Low</span></span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"textlayout checkspans\">\n"+
     "    <span class=\"label smaller\">Layout</span>\n"+
     "    <span class=\"checkspans\">\n"+
@@ -39740,6 +39738,7 @@ metaBook.HTML.settings=
     "        hybrid (<em>scrollio</em>)</span>\n"+
     "    </span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"also checkspans\">\n"+
     "    <span class=\"label smaller\">Other Options</span>\n"+
     "    <span class=\"checkspan opendyslexical\"\n"+
@@ -39755,9 +39754,10 @@ metaBook.HTML.settings=
     "      <input TYPE=\"CHECKBOX\" NAME=\"textjustify\" VALUE=\"yes\"/>\n"+
     "      Justify paragraphs</span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"fontsizes device\"\n"+
     "       title=\"Set the font sizes used by the interface components of metaBook\">\n"+
-    "    <span class=\"label\">App font</span>\n"+
+    "    <span class=\"label\">Application</span>\n"+
     "    <span class=\"samples\">\n"+
     "      <span class=\"checkspan\">\n"+
     "        <input TYPE=\"RADIO\" NAME=\"uisize\" VALUE=\"large\"/>\n"+
@@ -39770,6 +39770,7 @@ metaBook.HTML.settings=
     "        <span class=\"sample small\">Aa</span></span>\n"+
     "    </span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"animation\">\n"+
     "    <span class=\"label smaller\">Animate</span>\n"+
     "    <span class=\"checkspan\">\n"+
@@ -39779,6 +39780,7 @@ metaBook.HTML.settings=
     "      <input TYPE=\"CHECKBOX\" NAME=\"animatehud\" VALUE=\"yes\"/>\n"+
     "      <span class=\"text\">interface (overlays, controls, etc)</span></span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"header dataheader cf\">\n"+
     "    <button NAME=\"CLEARDATA\" VALUE=\"ALL\">Erase all</button>\n"+
     "    <span class=\"label\">Storage</span>\n"+
@@ -39793,6 +39795,7 @@ metaBook.HTML.settings=
     "    <span class=\"text\">\n"+
     "      Sync your <strong>reading location</strong> with other devices</span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"checkspan saveglosses cf\">\n"+
     "    <button id=\"METABOOKREFRESHOFFLINE\" class=\"refresh floatright\"\n"+
     "            title=\"Reload glosses and layers for this book from the cloud.\">\n"+
@@ -39803,11 +39806,13 @@ metaBook.HTML.settings=
     "      Save copies of <strong>glosses</strong>\n"+
     "      and <strong>layers</strong> on this device</span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"checkspan showconsole cf\">\n"+
     "    <span class=\"label\">Developer</span>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"showconsole\" VALUE=\"yes\"/>\n"+
     "    <span class=\"text\">Show the application console</span>\n"+
     "  </div>\n"+
+    "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"info\" id=\"METABOOKINFOPANEL\">\n"+
     "    <span class=\"label\">Info</span>\n"+
     "    <p class=\"metabookrefinfo\"></p>\n"+
@@ -39902,19 +39907,19 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1472-g43454b7';
+fdjt.revision='1.5-1475-g76417cb';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Mon Sep 28 20:49:42 EDT 2015';
-fdjt.builduuid='1c1b7bbc-07c5-40e8-a9c9-93bd7d5b4b38';
+fdjt.buildtime='Fri Oct 16 12:07:28 EDT 2015';
+fdjt.builduuid='75346ea5-af28-4445-82d1-6f8451a71264';
 
 fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-74-g2367567';
-metaBook.buildid='e863ff8b-5a3c-46a4-98a0-c57377755d07';
-metaBook.buildtime='Mon Sep 28 20:49:52 EDT 2015';
+metaBook.version='v0.8-78-g2e458c7';
+metaBook.buildid='57d7ec02-174a-47ef-9b14-950991e4f05b';
+metaBook.buildtime='Fri Oct 16 12:07:32 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
