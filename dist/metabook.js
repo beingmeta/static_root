@@ -19163,8 +19163,9 @@ fdjt.CodexLayout=
                     if (node.nodeType===3)
                         return (node.nodeValue.search(/\S/)<0);
                     else if (node.nodeType===1) {
-                        if ((!(node.childNodes))||
-                            (node.childNodes.length===0)) {
+                        if (node.offsetHeight) return false;
+                        else if ((!(node.childNodes))||
+                                 (node.childNodes.length===0)) {
                             if (node.offsetHeight) return false;
                             else return true;}
                         else {
@@ -22845,7 +22846,7 @@ fdjt.DOM.noautofontadjust=true;
 
     var trace1="%s %o in %o: mode%s=%o, target=%o, head=%o skimming=%o";
     var trace2="%s %o: mode%s=%o, target=%o, head=%o skimming=%o";
-    function sbook_trace(handler,cxt){
+    function metabook_trace(handler,cxt){
         var target=((cxt.nodeType)?(cxt):(fdjtUI.T(cxt)));
         if (target)
             fdjtLog(trace1,handler,cxt,target,
@@ -22854,14 +22855,14 @@ fdjt.DOM.noautofontadjust=true;
         else fdjtLog(trace2,handler,cxt,
                      ((metaBook.skimpoint)?("(skimming)"):""),metaBook.mode,
                      metaBook.target,metaBook.head,metaBook.skimpoint);}
-    metaBook.trace=sbook_trace;
+    metaBook.trace=metabook_trace;
 
     var uroot_pat=/https?:\/\/[^\/]+\/([^\/]+\/)*/;
     var mbama=window._metabook_amalgam;
 
-    // This is the hostname for the sbookserver.
+    // This is the hostname for the gloss server
     metaBook.server=false;
-    // This is an array for looking up sbook servers.
+    // This is an array for looking up gloss servers.
     metaBook.servers=[];
     //metaBook.servers=[];
     // This is the default server
@@ -24460,7 +24461,7 @@ metaBook.DOMScan=(function(){
                     (child.getAttribute('data-tags'));
                 if (tags) info.atags=tags.split(',');}
             if (((classname)&&(classname.search)&&
-                 (classname.search(/\bsbookignore\b/)>=0))||
+                 (classname.search(/\b(sbook|pubtool)ignore\b/)>=0))||
                 ((metaBook.ignore)&&(metaBook.ignore.match(child))))
                 return;
             if ((toclevel)&&(!(info.tocdone)))
@@ -24471,7 +24472,7 @@ metaBook.DOMScan=(function(){
             else {}
 
             if (((classname)&&(classname.search)&&
-                 (classname.search(/\bsbookterminal\b/)>=0))||
+                 (classname.search(/\b(sbook|pubtool)terminal\b/)>=0))||
                 ((classname)&&(metaBook.terminals)&&
                  (metaBook.terminals.match(child)))) {
                 scanstate.location=scanstate.location+textWidth(child);}
@@ -28115,9 +28116,9 @@ metaBook.Startup=
                 (elt.getAttribute('toclevel'))||
                 (elt.getAttribute('data-toclevel'))||
                 ((elt.className)&&(elt.className.search)&&
-                 ((elt.className.search(/\bsbook\dhead\b/)>=0)||
-                  (elt.className.search(/\bsbooknotoc\b/)>=0)||
-                  (elt.className.search(/\bsbookignore\b/)>=0))))
+                 ((elt.className.search(/\b(sbook|pubtool)\dhead\b/)>=0)||
+                  (elt.className.search(/\b(sbook|pubtool)notoc\b/)>=0)||
+                  (elt.className.search(/\b(sbook|pubtool)ignore\b/)>=0))))
                 return true;
             else return false;}
         metaBook.hasTOCLevel=hasTOCLevel;
@@ -39912,16 +39913,16 @@ fdjt.buildhost='moby.dc.beingmeta.com';
 fdjt.buildtime='Fri Oct 16 12:07:28 EDT 2015';
 fdjt.builduuid='75346ea5-af28-4445-82d1-6f8451a71264';
 
-fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
+fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
 
 
 Knodule.version='v0.8-152-gc2cb02e';
 // sBooks metaBook build information
-metaBook.version='v0.8-78-g2e458c7';
-metaBook.buildid='57d7ec02-174a-47ef-9b14-950991e4f05b';
-metaBook.buildtime='Fri Oct 16 12:07:32 EDT 2015';
+metaBook.version='v0.8-80-ge1bd4c2';
+metaBook.buildid='dae00cdc-bc04-474e-b269-03f6bbb331b4';
+metaBook.buildtime='Sun Oct 18 19:50:02 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A';
+fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';

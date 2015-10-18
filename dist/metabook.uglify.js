@@ -9990,6 +9990,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             function emptyNode(node) {
                 if (3 === node.nodeType) return 0 > node.nodeValue.search(/\S/);
                 if (1 === node.nodeType) {
+                    if (node.offsetHeight) return !1;
                     if (node.childNodes && 0 !== node.childNodes.length) {
                         for (var children = node.childNodes, i = 0, lim = children.length; lim > i; ) if (!emptyNode(children[i++])) return !1;
                         return !0;
@@ -11538,7 +11539,7 @@ var metaBook = {
         }
         return result.description = arg.name, result;
     }
-    function sbook_trace(handler, cxt) {
+    function metabook_trace(handler, cxt) {
         var target = cxt.nodeType ? cxt : fdjtUI.T(cxt);
         target ? fdjtLog(trace1, handler, cxt, target, metaBook.skimpoint ? "(skimming)" : "", metaBook.mode, metaBook.target, metaBook.head, metaBook.skimpoint) : fdjtLog(trace2, handler, cxt, metaBook.skimpoint ? "(skimming)" : "", metaBook.mode, metaBook.target, metaBook.head, metaBook.skimpoint);
     }
@@ -11746,7 +11747,7 @@ var metaBook = {
         return this._refiners = r, r;
     }, metaBook.getMakerKnodule = getMakerKnodule;
     var trace1 = "%s %o in %o: mode%s=%o, target=%o, head=%o skimming=%o", trace2 = "%s %o: mode%s=%o, target=%o, head=%o skimming=%o";
-    metaBook.trace = sbook_trace;
+    metaBook.trace = metabook_trace;
     var uroot_pat = /https?:\/\/[^\/]+\/([^\/]+\/)*/, mbama = window._metabook_amalgam;
     metaBook.server = !1, metaBook.servers = [], metaBook.default_server = "glosses.bookhub.io", 
     metaBook.root = mbama && uroot_pat.exec(mbama) && uroot_pat.exec(mbama)[0] || fdjtDOM.getLink("METABOOK.staticroot") || "http://static.beingmeta.com/", 
@@ -12232,9 +12233,9 @@ var metaBook = {
                     var tags = child.getAttribute("tags") || child.getAttribute("data-tags");
                     tags && (info.atags = tags.split(","));
                 }
-                if (!(classname && classname.search && classname.search(/\bsbookignore\b/) >= 0 || metaBook.ignore && metaBook.ignore.match(child))) {
+                if (!(classname && classname.search && classname.search(/\b(sbook|pubtool)ignore\b/) >= 0 || metaBook.ignore && metaBook.ignore.match(child))) {
                     if (toclevel && !info.tocdone ? handleHead(child, id, docinfo, scanstate, toclevel, curhead, curinfo, curlevel) : info && (info.head = curinfo, 
-                    info.indexRef("head", curinfo)), classname && classname.search && classname.search(/\bsbookterminal\b/) >= 0 || classname && metaBook.terminals && metaBook.terminals.match(child)) scanstate.location = scanstate.location + textWidth(child); else {
+                    info.indexRef("head", curinfo)), classname && classname.search && classname.search(/\b(sbook|pubtool)terminal\b/) >= 0 || classname && metaBook.terminals && metaBook.terminals.match(child)) scanstate.location = scanstate.location + textWidth(child); else {
                         var grandchildren = child.childNodes;
                         for (i = 0, lim = grandchildren.length; lim > i; ) {
                             var grandchild = grandchildren[i++];
@@ -13857,7 +13858,7 @@ var metaBook = {
         navigator.onLine ? fetchServerInfo() : fdjtDOM.addListener(window, "online", fetchServerInfo);
     }
     function hasTOCLevel(elt) {
-        return elt.toclevel || elt.getAttributeNS && elt.getAttributeNS("toclevel", "http://beingmeta.com/TOC/") || elt.getAttribute("toclevel") || elt.getAttribute("data-toclevel") || elt.className && elt.className.search && (elt.className.search(/\bsbook\dhead\b/) >= 0 || elt.className.search(/\bsbooknotoc\b/) >= 0 || elt.className.search(/\bsbookignore\b/) >= 0) ? !0 : !1;
+        return elt.toclevel || elt.getAttributeNS && elt.getAttributeNS("toclevel", "http://beingmeta.com/TOC/") || elt.getAttribute("toclevel") || elt.getAttribute("data-toclevel") || elt.className && elt.className.search && (elt.className.search(/\b(sbook|pubtool)\dhead\b/) >= 0 || elt.className.search(/\b(sbook|pubtool)notoc\b/) >= 0 || elt.className.search(/\b(sbook|pubtool)ignore\b/) >= 0) ? !0 : !1;
     }
     function getScanSettings() {
         !metaBook.docroot && getMeta("METABOOK.rootid") && (metaBook.docroot = mbID(getMeta("METABOOK.rootid"))), 
@@ -19195,9 +19196,9 @@ metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" 
 metaBook.HTML.pageleft = '<img svg="{{bmg}}metabook/page_left.svgz"\n     src="{{bmg}}metabook/page_left100h.png"\n     id="METABOOKPREVPAGE" class="metabookpagebutton" alt="prev"\n     title="go to the previous page"/>\n<img svg="{{bmg}}metabook/skim_left.svgz"\n     src="{{bmg}}metabook/skim_left100x100.png"\n     id="METABOOKPREVSKIM" class="metabookskimbutton" alt="prev"\n     title="go to the previous result/gloss"/>\n<img svg="{{bmg}}metabook/skim_left_stop.svgz"\n     src="{{bmg}}metabook/skim_left_stop100x100.png"\n     id="METABOOKSTARTSKIM" class="metabookskimbutton"\n     alt="beginning"/>\n<img svg="{{bmg}}metabook/page_right.svgz"\n     src="{{bmg}}metabook/page_right100h.png"\n     id="METABOOKNEXTPAGE" class="metabookpagebutton" alt="next"\n     title="go to the next page"/>\n<img svg="{{bmg}}metabook/skim_right_stop.svgz"\n     src="{{bmg}}metabook/skim_right_stop100x100.png"\n     id="METABOOKENDSKIM" class="metabookskimbutton"\n     alt="end"/>\n<img svg="{{bmg}}metabook/skim_right.svgz"\n     src="{{bmg}}metabook/skim_right100x100.png"\n     id="METABOOKNEXTSKIM" class="metabookskimbutton" alt="next"\n     title="go to the next result/gloss"/>\n<div class="metabookskimindicator" id="METABOOKSKIMINDEX"></div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.pageright = '<img svg="{{bmg}}metabook/page_right.svgz"\n     src="{{bmg}}metabook/page_right100h.png"\n     id="METABOOKNEXTPAGE" class="metabookpagebutton" alt="next"\n     title="go to the next page"/>\n<img svg="{{bmg}}metabook/skim_right_stop.svgz"\n     src="{{bmg}}metabook/skim_right_stop100x100.png"\n     id="METABOOKENDSKIM" class="metabookskimbutton"\n     alt="end"/>\n<img svg="{{bmg}}metabook/skim_right.svgz"\n     src="{{bmg}}metabook/skim_right100x100.png"\n     id="METABOOKNEXTSKIM" class="metabookskimbutton" alt="next"\n     title="go to the next result/gloss"/>\n<div class="metabookskimindicator" id="METABOOKSKIMLIMIT"></div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 fdjt.revision = "1.5-1475-g76417cb", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Fri Oct 16 12:07:28 EDT 2015", 
-fdjt.builduuid = "75346ea5-af28-4445-82d1-6f8451a71264", fdjt.CodexLayout.sourcehash = "EB4183B4E761BC2D03C3E6FDC3627EDF69BC566A", 
-Knodule.version = "v0.8-152-gc2cb02e", metaBook.version = "v0.8-78-g2e458c7", metaBook.buildid = "57d7ec02-174a-47ef-9b14-950991e4f05b", 
-metaBook.buildtime = "Fri Oct 16 12:07:32 EDT 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
+fdjt.builduuid = "75346ea5-af28-4445-82d1-6f8451a71264", fdjt.CodexLayout.sourcehash = "FE1517087A137F32701BAC919E9CB7FB7F9C5796", 
+Knodule.version = "v0.8-152-gc2cb02e", metaBook.version = "v0.8-80-ge1bd4c2", metaBook.buildid = "dae00cdc-bc04-474e-b269-03f6bbb331b4", 
+metaBook.buildtime = "Sun Oct 18 19:50:02 EDT 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });

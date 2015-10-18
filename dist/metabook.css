@@ -5996,7 +5996,7 @@ p .floatleft img, p img.floatleft {
    display: block; margin-left: auto; margin-right: auto;}
 
 div.codexpage img {
-    max-height: 90% !important; max-width: 90% !important;
+    max-height: 90%; max-width: 90%;
     width: auto; height: auto;}
 
 /* Add some layout override rules */
