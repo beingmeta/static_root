@@ -243,6 +243,8 @@ clean: tidy
 	rm -f TAGS XTAGS SBOOKTAGS APPTAGS FDTAGS KNOTAGS
 	rm -f metabook*js metabook*css fdjt*js fdjt*css *.map
 	rm -f metabook*js.gz metabook*css.gz fdjt*js.gz fdjt*css.gz
+	rm -f metabook/buildstamp.js fdjt/buildstamp.js
+	rm -f knodules/buildstamp.js
 
 undist:
 	rm dist/*; git checkout dist
@@ -379,7 +381,9 @@ dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.clean.css
-	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
+	@$(CLEANCSS) --compatibility '*,-units.pt' \
+		     --source-map $(METABOOK_CSS_BUNDLE) \
+	    -o metabook.clean.css
 	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
 	@mv metabook.clean.css metabook.clean.css.map dist
 
