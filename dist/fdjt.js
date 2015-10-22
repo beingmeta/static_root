@@ -7630,7 +7630,7 @@ fdjt.DOM=
             if (!(max)) max=150;
             newsize=size+delta;
             wstyle.fontSize=newsize+"%";
-            rect=wrapper.getBoundingClientRect(); nw=rect.width, nh=rect.height;
+            rect=wrapper.getBoundingClientRect(); nw=rect.width; nh=rect.height;
             while ((size>=min)&&(size<=max)&&
                    ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
                 size=newsize; newsize=newsize+delta;
@@ -7641,7 +7641,7 @@ fdjt.DOM=
                         wrapper.parentNode,w,h,wrapper,newsize,size,delta,
                         ow,oh,nw,nh);
                 rect=wrapper.getBoundingClientRect();
-                nw=rect.width, nh=rect.height;}
+                nw=rect.width; nh=rect.height;}
             wstyle.maxWidth='';
             if (delta>0) {
                 wstyle.fontSize=size+"%";
@@ -11683,7 +11683,8 @@ fdjt.UI.ProgressBar=(function(){
                         elt.className=classname.replace(/ fdjtfocus\b/,"");}},
                            300);}}
     fdjtUI.focusout=fdjt_focusout;
-    addListener(window,"focusout",fdjt_focusout);})();
+    addListener(window,"focusout",fdjt_focusout);
+})();
 
 /* Text input boxes which create checkspans on enter. */
 
@@ -12626,7 +12627,6 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var dropClass=fdjtDOM.dropClass;
   var addClass=fdjtDOM.addClass;
   var hasClass=fdjtDOM.hasClass;
-  var hasParent=fdjtDOM.hasParent;
   var addListener=fdjtDOM.addListener;
   var toArray=fdjtDOM.toArray;
   
@@ -12662,7 +12662,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     var tap_event_name=
-      ((hasParent(container,".tapholder"))?("tap"):("click"));
+      ((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
     if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
@@ -12705,25 +12705,40 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         dropClass(end,"fdjtshow"); dropClass(end,caboose);
         endpos++; end=children[endpos];
         addClass(end,caboose);}}
-    if (startpos===0) addClass(container,"fdjtfirstpage");
+    var at_start=false, at_end=false;
+    if (startpos===0) {
+      addClass(container,"fdjtfirstpage");
+      at_start=true;}
     else dropClass(container,"fdjtfirstpage");
-    if (endpos>=(lim-1)) addClass(container,"fdjtlastpage");
+    if (endpos>=(lim-1)) {
+      addClass(container,"fdjtlastpage");
+      at_end=true;}
     else dropClass(container,"fdjtlastpage");
     var minpos=((startpos<=endpos)?(startpos):(endpos));
     var maxpos=((startpos>endpos)?(startpos):(endpos));
-    info.innerHTML=Math.floor((minpos/lim)*100)+"%"+
-      "<span class='count'> ("+lim+")</span>";
+    info.innerHTML="<span class='pct'>"+Math.floor((minpos/lim)*100)+"%"+
+      "</span>"+"<span class='count'> ("+lim+")</span>";
     info.title=fdjtString("Items %d through %d of %d",minpos,maxpos,lim);
-    var forward_button=fdjtDOM("span.button.forward","》");
-    var backward_button=fdjtDOM("span.button.backward","《");
-    addListener(forward_button,tap_event_name,forwardPage);
-    addListener(backward_button,tap_event_name,backwardPage);
-    fdjtDOM.append(info,forward_button);
+    var forward_button=fdjtDOM("span.button.forward"," 》");
+    var backward_button=fdjtDOM("span.button.backward","《 ");
     fdjtDOM.prepend(info,backward_button);
-    addClass(container,"newpage"); setTimeout(
-      function(){dropClass(container,"newpage");},1000);
+    if (at_start) backward_button.innerHTML="· ";
+    else addListener(backward_button,tap_event_name,backwardButton);
+    if (at_end) forward_button.innerHTML="· ";
+    else addListener(forward_button,tap_event_name,forwardButton);
+    fdjtDOM.prepend(info,backward_button);
+    fdjtDOM.append(info,forward_button);
+    addClass(container,"fdjtpagechange"); setTimeout(
+      function(){dropClass(container,"fdjtpagechange");},1000);
     dropClass(container,"formatting");
     return endpos;}
+
+  function forwardButton(evt){
+    fdjt.UI.cancel(evt);
+    forwardPage(evt);}
+  function backwardButton(evt){
+    fdjt.UI.cancel(evt);
+    backwardPage(evt);}
 
   function getProgressIndicator(container,startpos,lim){
     // This could include an input element for typing in a %
@@ -12793,6 +12808,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
 
   function forwardPage(container){
     if (!(container=getContainer(container))) return;
+    dropClass(container,"fdjtpagechange");
     var foot=getChild(container,".fdjtendofpage");
     if (!(foot)) return showPage(container);
     if (hasClass(container,"fdjtlastpage")) return false;
@@ -12816,6 +12832,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
 
   function backwardPage(container){
     if (!(container=getContainer(container))) return;
+    dropClass(container,"fdjtpagechange");
     var head=getChild(container,".fdjtstartofpage");
     if (!(head)) return showPage(container);
     if (hasClass(container,"fdjtfirstpage")) return false;
@@ -14146,6 +14163,11 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                   (""+serial));
         th.id=thid;
 
+        function start_holding(){addClass(elt,holdclass);}
+        function stop_holding(){dropClass(elt,holdclass);}
+        function check_holding(){
+            if (!(th_target)) dropClass(elt,holdclass);}
+
         var touchable=elt.getAttribute("data-touchable");
         if ((opts)&&(opts.hasOwnProperty("touchable"))) {
             // Opts override attributes
@@ -14215,8 +14237,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         function held(target,evt,x,y){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
-            if (holdclass)
-                setTimeout(function(){addClass(elt,holdclass);},20);
+            if (holdclass) setTimeout(start_holding,20);
             return synthEvent(target,"hold",th,evt,x,y,false);}
         function released(target,evt,x,y){
             var target_time=
@@ -14224,9 +14245,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
             if (holdclass)
-                setTimeout(function(){
-                    if (!(th_target)) dropClass(elt,holdclass);},
-                           50);
+                setTimeout(check_holding,50);
             if ((target_time)&&(target_time<200)) {
                 if (trace)
                     fdjtLog("TapHold(%s) %d=i<200ms, target=%o not %o",
@@ -14242,9 +14261,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 var rel=evt.relatedTarget||eTarget(evt);
                 if (rel!==target) also.relatedTarget=rel;}
             if (holdclass)
-                setTimeout(function(){
-                    if (!(th_target)) dropClass(elt,holdclass);},
-                           50);
+                setTimeout(check_holding,50);
             return synthEvent(target,"slip",th,evt,touch_x,touch_y,also);}
         function taptapped(target,evt){
             return synthEvent(target,"taptap",th,evt,
@@ -14335,7 +14352,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             cleartouch();
             setTarget(false);
             if (holdclass)
-                setTimeout(function(){dropClass(elt,holdclass);},20);
+                setTimeout(stop_holding,20);
             th_targets=[];}
         function abortpress(evt,why){
             if ((trace)||(traceall))
@@ -14348,8 +14365,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             else if (pressed) {slipped(pressed,evt);}
             if (reticle.live) reticle.highlight(false);
             pressed_at=touched=pressed=tap_target=false;
-            if (holdclass)
-                setTimeout(function(){dropClass(elt,holdclass);},20);
+            if (holdclass) setTimeout(stop_holding,20);
             th_targets=[];
             setTarget(false);}
 
@@ -14359,11 +14375,11 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (wander_timer) return;
             if (!(th_target)) return;
             if ((pressed)&&(!(hasParent(to,elt)))) {
-                wander_timer=setTimeout(function(){
-                    if (!(noslip))
-                        slipped(pressed,evt,{relatedTarget: to});
-                    abortpress(evt,"taphold_mouseout");},
-                                        wanderthresh);}}
+                wander_timer=setTimeout(wandered,wanderthresh,evt,to);}}
+        function wandered(evt,to){
+            if (!(noslip))
+                slipped(pressed,evt,{relatedTarget: to});
+            abortpress(evt,"taphold_mouseout");}
 
         function taphold_mouseover(evt){
             evt=evt||window.event;
@@ -14690,8 +14706,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             else if (pressed) {released(pressed,evt);}
             if (reticle.live) reticle.highlight(false);
             pressed_at=touched=pressed=tap_target=false;
-            if (holdclass)
-                setTimeout(function(){dropClass(elt,holdclass);},20);
+            if (holdclass) setTimeout(stop_holding,20);
             th_targets=[];
             setTarget(false);}
 
@@ -14896,7 +14911,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
 /* jshint browser: true */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
-if (!(fdjt.UI)) fdjt.UI={};
+    if (!(fdjt.UI)) fdjt.UI={};
 
 fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
     (function(){
@@ -14949,8 +14964,14 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 else if (trace_val) trace=1;
                 else trace=0;}
             this.traced=trace;
+            if (opts.onstart) sel.onstart=opts.onstart;
+            if (opts.onstop) sel.onstop=opts.onstop;
             var prefix=this.prefix="fdjtSel0"+this.serial;
-            this.loupe=fdjtDOM("span.fdjtselectloupe");
+            if ((typeof opts.loupe !== 'undefined')||
+                (typeof TextSelect.loupe !== 'undefined'))
+                this.loupe=opts.loupe||TextSelect.loupe;
+            else {
+                this.loupe=fdjtDOM("span.fdjtselectloupe");}
             this.adjust=false; /* This will be 'start' or 'end' */
             selectors[prefix]=sel;
             var stripid=prefix.length+1;
@@ -15017,6 +15038,8 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 
             return this;}
 
+        
+
         TextSelect.prototype.toString=function(){
             var wrappers=this.wrappers; 
             var output="TextSelect(["+
@@ -15039,14 +15062,14 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 /*
                 // Skip wrapping non-inline whitespace
                 if (((text.length===0)||(text.search(/\S/g)<0))) {
-                    var parent=node.parentNode, pstyle=getStyle(parent);
-                    var prev=node.prevSibling, next=node.nextSibling;
-                    if (((prev)||(next))&& // ((pstyle.whiteSpace||wsprop)==='normal')
-                        (pstyle.display!=='inline')&&(pstyle.display!=='table-cell')) {
-                        var pdisplay=((prev)&&(getStyle(prev).display));
-                        var ndisplay=((next)&&(getStyle(next).display));
-                        if ((pdisplay!=='inline')&&(ndisplay!=='inline'))
-                            return node;}}
+                var parent=node.parentNode, pstyle=getStyle(parent);
+                var prev=node.prevSibling, next=node.nextSibling;
+                if (((prev)||(next))&& // ((pstyle.whiteSpace||wsprop)==='normal')
+                (pstyle.display!=='inline')&&(pstyle.display!=='table-cell')) {
+                var pdisplay=((prev)&&(getStyle(prev).display));
+                var ndisplay=((next)&&(getStyle(next).display));
+                if ((pdisplay!=='inline')&&(ndisplay!=='inline'))
+                return node;}}
                 */
                 var sliced=mergeSoftHyphens(text.split(/\b/)), wordspans=[];
                 i=0; lim=sliced.length;
@@ -15129,6 +15152,15 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             var i=start; while (i<=end)
                 words[i++].className="fdjtword";}
 
+        function startSelection(sel){
+            if (sel.active) return;
+            else sel.active=true;
+            if (sel.onstart) sel.onstart();}
+        function stopSelection(sel){
+            if (!(sel.active)) return;
+            else sel.active=false;
+            if (sel.onstop) sel.onstop();}
+
         TextSelect.prototype.setRange=function(start,end){
             var trace=this.trace;
             if ((trace)||(traceall))
@@ -15181,6 +15213,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             while ((word)&&(word.nodeType!==1)) word=word.parentNode;
             if (hasParent(word,".fdjtselectloupe"))
                 return;
+            if (!(sel.active)) startSelection(sel);
             if ((!(sel))&&(word)&&((id=word.id))&&
                 (word.tagName==='SPAN')&&
                 (id.search("fdjtSel")===0)) {
@@ -15217,7 +15250,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     if (sel.timeout) clearTimeout(sel.timeout);
                     sel.word=word; sel.pending=false;
                     useWord(word,sel);},
-                                                         100);}
+                                       100);}
             return true;}
 
         function useWord(word,sel,tapped){
@@ -15307,22 +15340,25 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
         
         function updateLoupe(word,sel,tapped){
             var parent=word.parentNode, loupe=sel.loupe;
+            if (!(loupe)) return;
+            var inline_loupe=hasParent(loupe,".fdjtselecting");
             if (sel.loupe_timeout) {
-                    clearTimeout(sel.loupe_timeout);
-                    sel.loupe_timeout=false;}
-                if (!(word.offsetParent)) return;
-                var block=word.parentNode; while (block) {
-                    if (getStyle(block).display!=='inline') break;
-                    else block=block.parentNode;}
-                if ((traceall)||(sel.traced))
-                    fdjtLog("updateLoupe(%d) over %o for %o%s",
-                            sel.serial,word,sel,
-                            ((tapped)?(" (tapped)"):("")));
-                var context=gatherContext(word,5,5,block);
-                var geom=fdjtDOM.getGeometry(word,word.offsetParent);
-                var cwidth=word.offsetParent.offsetWidth;
-                loupe.innerHTML=""; loupe.style.display="none";
-                fdjtDOM.append(loupe,context.words);
+                clearTimeout(sel.loupe_timeout);
+                sel.loupe_timeout=false;}
+            if (!(word.offsetParent)) return;
+            var block=word.parentNode; while (block) {
+                if (getStyle(block).display!=='inline') break;
+                else block=block.parentNode;}
+            if ((traceall)||(sel.traced))
+                fdjtLog("updateLoupe(%d) over %o for %o%s",
+                        sel.serial,word,sel,
+                        ((tapped)?(" (tapped)"):("")));
+            var context=gatherContext(word,5,5,block);
+            var geom=fdjtDOM.getGeometry(word,word.offsetParent);
+            var cwidth=word.offsetParent.offsetWidth;
+            loupe.innerHTML=""; fdjtDOM.append(loupe,context.words);
+            if (inline_loupe) {
+                loupe.style.display="none";
                 parent.insertBefore(loupe,word);
                 if (geom.left<(cwidth/2)) {
                     loupe.style.float="left";
@@ -15332,306 +15368,310 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     loupe.style.float="right";
                     loupe.style.right=(cwidth-geom.right)-
                         (1.5*(context.width-context.wordend))+"px";
-                    loupe.style.left="";}
-                loupe.style.display="";
-                if (tapped) setTimeout(1000,function(){
-                    sel.loupe.display='none';});}
+                    loupe.style.left="";}}
+            loupe.style.display="";
+            if (tapped) setTimeout(function(){
+                if (sel.active) stopSelection(sel);
+                sel.loupe.display='none';},
+                                   1000);}
+        var getGeometry=fdjtDOM.getGeometry;
 
-            var getGeometry=fdjtDOM.getGeometry;
-
-            function gatherContext(node,back,forward,parent){
-                var id=node.id, parsed=(id)&&/(fdjtSel\d+_)(\d+)/.exec(id);
-                if ((!(parsed))||(parsed.length!==3)) return;
-                var prefix=parsed[1], count=parseInt(parsed[2],10);
-                var start=count-back, end=count+forward; if (start<0) start=0;
-                var context=[], width=0, wordstart, wordend;
-                var start_geom=getGeometry(node);
-                var i=start; while (i<end) {
-                    var elt=document.getElementById(prefix+i);
-                    if ((!(elt))||((parent)&&(!(hasParent(elt,parent))))) {
+        function gatherContext(node,back,forward,parent){
+            var id=node.id, parsed=(id)&&/(fdjtSel\d+_)(\d+)/.exec(id);
+            if ((!(parsed))||(parsed.length!==3)) return;
+            var prefix=parsed[1], count=parseInt(parsed[2],10);
+            var start=count-back, end=count+forward; if (start<0) start=0;
+            var context=[], width=0, wordstart, wordend;
+            var start_geom=getGeometry(node);
+            var i=start; while (i<end) {
+                var elt=document.getElementById(prefix+i);
+                if ((!(elt))||((parent)&&(!(hasParent(elt,parent))))) {
+                    i++; continue;}
+                else if (elt.nodeType===1) {
+                    var geom=getGeometry(elt);
+                    if ((geom.bottom<start_geom.top)||
+                        (geom.top>=start_geom.bottom)) {
                         i++; continue;}
-                    else if (elt.nodeType===1) {
-                        var geom=getGeometry(elt);
-                        if ((geom.bottom<start_geom.top)||
-                            (geom.top>=start_geom.bottom)) {
-                            i++; continue;}
-                        var clone=elt.cloneNode(true); stripIDs(clone);
-                        if (i<count) width=width+elt.offsetWidth;
-                        else if (i===count) {
-                            wordstart=width;
-                            width=wordend=width+elt.offsetWidth;}
-                        else width=width+elt.offsetWidth;
-                        if (elt===node) fdjtDOM.addClass(clone,"fdjtselected");
-                        context.push(clone);}
-                    else context.push(elt.cloneNode(true));
-                    i++;}
-                return {words: context, width: width,
-                        wordstart: wordstart, wordend: wordend};}
+                    var clone=elt.cloneNode(true); stripIDs(clone);
+                    if (i<count) width=width+elt.offsetWidth;
+                    else if (i===count) {
+                        wordstart=width;
+                        width=wordend=width+elt.offsetWidth;}
+                    else width=width+elt.offsetWidth;
+                    if (elt===node) fdjtDOM.addClass(clone,"fdjtselected");
+                    context.push(clone);}
+                else context.push(elt.cloneNode(true));
+                i++;}
+            return {words: context, width: width,
+                    wordstart: wordstart, wordend: wordend};}
 
-            function getSelector(word){
-                var id=false;
-                if ((word)&&((id=word.id))&&
-                    (word.tagName==='SPAN')&&
-                    (id.search("fdjtSel")===0)) {
-                    var split=id.indexOf("_");
-                    if (split)
-                        return selectors[id.slice(0,split)]||false;
-                    else return false;}
+        function getSelector(word){
+            var id=false;
+            if ((word)&&((id=word.id))&&
+                (word.tagName==='SPAN')&&
+                (id.search("fdjtSel")===0)) {
+                var split=id.indexOf("_");
+                if (split)
+                    return selectors[id.slice(0,split)]||false;
                 else return false;}
-            TextSelect.getSelector=getSelector;
+            else return false;}
+        TextSelect.getSelector=getSelector;
 
-            // Getting the selection text
-            // This tries to be consistent with textify functions in fdjtDOM
-            TextSelect.prototype.setString=function(string){
-                var wrappers=this.wrappers;
-                var whole=((wrappers.length===1)&&(wrappers[0]));
-                if (!(whole)) {
-                    whole=fdjtDOM("div"); 
-                    var i=0, lim=wrappers.length;
-                    while (i<lim) {
-                        var wrapper=wrappers[i++];
-                        whole.appendChild(wrapper.cloneNode(true));}}
-                var found=fdjtDOM.findMatches(whole,string,0,1);
-                if ((!(found))||(found.length===0)) return;
-                else found=found[0];
-                var start=found.startContainer, end=found.endContainer;
-                while ((start)&&(start.nodeType!==1)) start=start.parentNode;
-                while ((end)&&(end.nodeType!==1)) end=end.parentNode;
-                if ((start)&&(end)&&(start.id)&&(end.id)&&
-                    (start.id.search(this.prefix)===0)&&
-                    (end.id.search(this.prefix)===0)) {
-                    start=document.getElementById(start.id);
-                    end=document.getElementById(end.id);}
-                else return;
-                if ((start)&&(end)) this.setRange(start,end);};
+        // Getting the selection text
+        // This tries to be consistent with textify functions in fdjtDOM
+        TextSelect.prototype.setString=function(string){
+            var wrappers=this.wrappers;
+            var whole=((wrappers.length===1)&&(wrappers[0]));
+            if (!(whole)) {
+                whole=fdjtDOM("div"); 
+                var i=0, lim=wrappers.length;
+                while (i<lim) {
+                    var wrapper=wrappers[i++];
+                    whole.appendChild(wrapper.cloneNode(true));}}
+            var found=fdjtDOM.findMatches(whole,string,0,1);
+            if ((!(found))||(found.length===0)) return;
+            else found=found[0];
+            var start=found.startContainer, end=found.endContainer;
+            while ((start)&&(start.nodeType!==1)) start=start.parentNode;
+            while ((end)&&(end.nodeType!==1)) end=end.parentNode;
+            if ((start)&&(end)&&(start.id)&&(end.id)&&
+                (start.id.search(this.prefix)===0)&&
+                (end.id.search(this.prefix)===0)) {
+                start=document.getElementById(start.id);
+                end=document.getElementById(end.id);}
+            else return;
+            if ((start)&&(end)) this.setRange(start,end);};
 
-            TextSelect.prototype.getString=function(start,end,rawtext){
-                if (!(start)) start=this.start; if (!(end)) end=this.end;
-                var wrappers=this.wrappers; 
-                var combine=[]; var prefix=this.prefix; var wpos=-1;
-                var scan=start; while (scan) {
-                    if (rawtext) {}
-                    else if (scan.nodeType===1) {
-                        var style=getStyle(scan);
-                        if ((style.position==='static')&&
-                            (style.display!=='inline')&&
-                            (style.display!=='none'))
-                            combine.push("\n");}
-                    if ((scan.nodeType===1)&&(scan.tagName==='SPAN')&&
-                        (scan.id)&&(scan.id.search(prefix)===0)) {
-                        var txt=scan.innerText||textify(scan);
-                        combine.push(txt.replace("­",""));
-                        if (scan===end) break;}
-                    if ((scan.firstChild)&&
-                        (scan.className!=="fdjtselectloupe")&&
-                        (scan.firstChild.nodeType!==3))
-                        scan=scan.firstChild;
-                    else if (scan.nextSibling) scan=scan.nextSibling;
-                    else {
-                        while (scan) {
-                            if ((wpos=position(scan,wrappers))>=0) break;
-                            else if (scan.nextSibling) {
-                                scan=scan.nextSibling; break;}
-                            else scan=scan.parentNode;}
-                        if (wpos>=0) {
-                            if ((wpos+1)<wrappers.length)
-                                scan=wrappers[wpos+1];}}
-                    if (!(scan)) break;}
-                return combine.join("");};
-
-            TextSelect.prototype.getOffset=function(under){
-                if (!(this.start)) return false;
-                var first_word=this.words[0]; 
-                if (under) {
-                    var words=this.words; var i=0, lim=words.length;
-                    if (!((hasParent(this.start,under))&&
-                          (hasParent(this.end,under))))
-                        return false;
-                    while ((i<lim)&&(!(hasParent(first_word,under))))
-                        first_word=words[i++];}
-                var selected=this.getString(false,false,true);
-                var preselected=this.getString(first_word,this.end,true);
-                return preselected.length-selected.length;};
-            
-            TextSelect.prototype.getInfo=function(under){
-                var trace=this.traced;
-                if (!(this.start)) return false;
-                var selected=this.getString();
-                var first_word=this.words[0]; 
-                if (under) {
-                    var words=this.words; var i=0, lim=words.length;
-                    if (!((hasParent(this.start,under))&&
-                          (hasParent(this.end,under))))
-                        return false;
-                    while ((i<lim)&&(!(hasParent(first_word,under))))
-                        first_word=words[i++];}
-                var rawselect=this.getString(false,false,true);
-                var preselected=this.getString(first_word,this.end,true);
-                if ((trace)||(traceall)) 
-                    fdjtLog("GetInfo %o: start=%o, end=%o, off=%o, string=%o",
-                            this,this.start,this.end,
-                            preselected.length-rawselect.length,
-                            selected);
-                return { start: this.start, end: this.end,
-                         off: preselected.length-rawselect.length,
-                         string: selected};};
-            
-            TextSelect.prototype.setAdjust=function(val){
-                var trace=this.traced;
-                if ((traceall)||(trace))
-                    fdjtLog("TextSelect.setAdjust %o for %o",val,this);
-                if (val) {
-                    this.adjust=val;
-                    swapClass(this.nodes,/\b(fdjtadjuststart|fdjtadjustend)\b/,
-                              "fdjtadjust"+val);}
+        TextSelect.prototype.getString=function(start,end,rawtext){
+            if (!(start)) start=this.start; if (!(end)) end=this.end;
+            var wrappers=this.wrappers; 
+            var combine=[]; var prefix=this.prefix; var wpos=-1;
+            var scan=start; while (scan) {
+                if (rawtext) {}
+                else if (scan.nodeType===1) {
+                    var style=getStyle(scan);
+                    if ((style.position==='static')&&
+                        (style.display!=='inline')&&
+                        (style.display!=='none'))
+                        combine.push("\n");}
+                if ((scan.nodeType===1)&&(scan.tagName==='SPAN')&&
+                    (scan.id)&&(scan.id.search(prefix)===0)) {
+                    var txt=scan.innerText||textify(scan);
+                    combine.push(txt.replace("­",""));
+                    if (scan===end) break;}
+                if ((scan.firstChild)&&
+                    (scan.className!=="fdjtselectloupe")&&
+                    (scan.firstChild.nodeType!==3))
+                    scan=scan.firstChild;
+                else if (scan.nextSibling) scan=scan.nextSibling;
                 else {
-                    this.adjust=false;
-                    dropClass(this.nodes,/\b(fdjtadjuststart|fdjtadjustend)\b/);}};
+                    while (scan) {
+                        if ((wpos=position(scan,wrappers))>=0) break;
+                        else if (scan.nextSibling) {
+                            scan=scan.nextSibling; break;}
+                        else scan=scan.parentNode;}
+                    if (wpos>=0) {
+                        if ((wpos+1)<wrappers.length)
+                            scan=wrappers[wpos+1];}}
+                if (!(scan)) break;}
+            return combine.join("");};
+
+        TextSelect.prototype.getOffset=function(under){
+            if (!(this.start)) return false;
+            var first_word=this.words[0]; 
+            if (under) {
+                var words=this.words; var i=0, lim=words.length;
+                if (!((hasParent(this.start,under))&&
+                      (hasParent(this.end,under))))
+                    return false;
+                while ((i<lim)&&(!(hasParent(first_word,under))))
+                    first_word=words[i++];}
+            var selected=this.getString(false,false,true);
+            var preselected=this.getString(first_word,this.end,true);
+            return preselected.length-selected.length;};
+        
+        TextSelect.prototype.getInfo=function(under){
+            var trace=this.traced;
+            if (!(this.start)) return false;
+            var selected=this.getString();
+            var first_word=this.words[0]; 
+            if (under) {
+                var words=this.words; var i=0, lim=words.length;
+                if (!((hasParent(this.start,under))&&
+                      (hasParent(this.end,under))))
+                    return false;
+                while ((i<lim)&&(!(hasParent(first_word,under))))
+                    first_word=words[i++];}
+            var rawselect=this.getString(false,false,true);
+            var preselected=this.getString(first_word,this.end,true);
+            if ((trace)||(traceall)) 
+                fdjtLog("GetInfo %o: start=%o, end=%o, off=%o, string=%o",
+                        this,this.start,this.end,
+                        preselected.length-rawselect.length,
+                        selected);
+            return { start: this.start, end: this.end,
+                     off: preselected.length-rawselect.length,
+                     string: selected};};
+        
+        TextSelect.prototype.setAdjust=function(val){
+            var trace=this.traced;
+            if ((traceall)||(trace))
+                fdjtLog("TextSelect.setAdjust %o for %o",val,this);
+            if (val) {
+                this.adjust=val;
+                swapClass(this.nodes,/\b(fdjtadjuststart|fdjtadjustend)\b/,
+                          "fdjtadjust"+val);}
+            else {
+                this.adjust=false;
+                dropClass(this.nodes,/\b(fdjtadjuststart|fdjtadjustend)\b/);}};
 
 
-            // Life span functions
+        // Life span functions
 
-            TextSelect.prototype.clear=function(){
-                var wrappers=this.wrappers;
-                var orig=this.orig, wrapped=this.wrapped;
-                if (!(orig)) return; // already cleared
-                var i=orig.length-1;
-                while (i>=0) {
-                    var o=orig[i], w=wrapped[i]; i--;
-                    w.parentNode.replaceChild(o,w);}
-                var j=0, lim=wrappers.length;
-                while (j<lim) {
-                    var wrapper=wrappers[j++];
-                    delete alltapholds[wrapper.id];
-                    delete selectors[wrapper.id];}
-                if (this.onclear) {
-                    var onclear=this.onclear; this.onclear=false;
-                    if (!(Array.isArray(onclear))) onclear=[onclear];
-                    i=0; lim=onclear.length; while (i<lim) {
-                        onclear[i++]();}}
-                delete selectors[this.prefix];
-                delete this.wrapped; delete this.orig;
-                delete this.wrappers; delete this.nodes;
-                delete this.words; delete this.wrappers;
-                delete this.start; delete this.end;};
-            
-            // Handlers
+        TextSelect.prototype.clear=function(){
+            var wrappers=this.wrappers;
+            var orig=this.orig, wrapped=this.wrapped;
+            if (!(orig)) return; // already cleared
+            var i=orig.length-1;
+            while (i>=0) {
+                var o=orig[i], w=wrapped[i]; i--;
+                w.parentNode.replaceChild(o,w);}
+            var j=0, lim=wrappers.length;
+            while (j<lim) {
+                var wrapper=wrappers[j++];
+                delete alltapholds[wrapper.id];
+                delete selectors[wrapper.id];}
+            if (this.onclear) {
+                var onclear=this.onclear; this.onclear=false;
+                if (!(Array.isArray(onclear))) onclear=[onclear];
+                i=0; lim=onclear.length; while (i<lim) {
+                    onclear[i++]();}}
+            delete selectors[this.prefix];
+            delete this.wrapped; delete this.orig;
+            delete this.wrappers; delete this.nodes;
+            delete this.words; delete this.wrappers;
+            delete this.start; delete this.end;};
+        
+        // Handlers
 
-            function hold_handler(evt){
-                evt=evt||window.event;
-                var target=fdjtUI.T(evt);
-                while ((target)&&(target.nodeType!==1))
-                    target=target.parentNode;
-                while (target) {
-                    if ((target)&&(target.id)&&(target.tagName==='SPAN')&&
-                        (target.id.search("fdjtSel")===0)) {
-                        var sel=getSelector(target);
-                        if ((sel)&&(!(sel.anchor))&&(!(sel.start)))
-                            sel.anchor=target;
-                        if ((traceall)||((sel)&&(sel.traced)))
-                            fdjtLog("TextSelect/hold %o t=%o sel=%o",
-                                    evt,target,sel);
-                        overWord(target,false,sel);
+        function hold_handler(evt){
+            evt=evt||window.event;
+            var target=fdjtUI.T(evt);
+            while ((target)&&(target.nodeType!==1))
+                target=target.parentNode;
+            while (target) {
+                if ((target)&&(target.id)&&(target.tagName==='SPAN')&&
+                    (target.id.search("fdjtSel")===0)) {
+                    var sel=getSelector(target);
+                    if ((sel)&&(!(sel.anchor))&&(!(sel.start)))
+                        sel.anchor=target;
+                    if ((traceall)||((sel)&&(sel.traced)))
+                        fdjtLog("TextSelect/hold %o t=%o sel=%o",
+                                evt,target,sel);
+                    overWord(target,false,sel);
+                    fdjtUI.cancel(evt);
+                    break;}
+                else if (target.nodeType===1) target=target.parentNode;
+                else break;}}
+        TextSelect.hold_handler=hold_handler;
+        TextSelect.handler=hold_handler;
+        function tap_handler(evt){
+            evt=evt||window.event;
+            var target=fdjtUI.T(evt);
+            while ((target)&&(target.nodeType!==1))
+                target=target.parentNode;
+            while (target) {
+                if ((target)&&(target.id)&&(target.tagName==='SPAN')&&
+                    (target.id.search("fdjtSel")===0)) {
+                    var sel=getSelector(target);
+                    if ((traceall)||((sel)&&(sel.traced)))
+                        fdjtLog("TextSelect/tap %o t=%o sel=%o",evt,target,sel);
+                    // Tapping on a single word selection clears it
+                    if (sel.n_words===1) sel.setRange(false);
+                    else if ((target.className==="fdjtselectstart")||
+                             (target.className==="fdjtselectend")) {
+                        // Tapping on a start or end selects just that word
                         fdjtUI.cancel(evt);
-                        break;}
-                    else if (target.nodeType===1) target=target.parentNode;
-                    else break;}}
-            TextSelect.hold_handler=hold_handler;
-            TextSelect.handler=hold_handler;
-            function tap_handler(evt){
-                evt=evt||window.event;
-                var target=fdjtUI.T(evt);
-                while ((target)&&(target.nodeType!==1))
-                    target=target.parentNode;
-                while (target) {
-                    if ((target)&&(target.id)&&(target.tagName==='SPAN')&&
-                        (target.id.search("fdjtSel")===0)) {
-                        var sel=getSelector(target);
-                        if ((traceall)||((sel)&&(sel.traced)))
-                            fdjtLog("TextSelect/tap %o t=%o sel=%o",evt,target,sel);
-                        // Tapping on a single word selection clears it
-                        if (sel.n_words===1) sel.setRange(false);
-                        else if ((target.className==="fdjtselectstart")||
-                                 (target.className==="fdjtselectend")) {
-                            // Tapping on a start or end selects just that word
-                            fdjtUI.cancel(evt);
-                            sel.setRange(target,target);}
-                        // Otherwise, call overWord, which makes the word the
-                        //  beginning or end of the selection
-                        else if (overWord(target,true,sel)) {
-                            if (target.className==="fdjtselectstart")
-                                sel.adjust="start";
-                            else if (target.className==="fdjtselectend")
-                                sel.adjust="end";
-                            else sel.adjust=false;
-                            fdjtUI.cancel(evt);}
-                        else if (sel) sel.adjust=false;
-                        break;}
-                    else if (target.nodeType===1) target=target.parentNode;
-                    else break;}}
-            TextSelect.tap_handler=tap_handler;
-            function release_handler(evt,sel){
-                evt=evt||window.event;
-                var target=fdjtUI.T(evt);
-                if ((traceall)||((sel)&&(sel.traced)))
-                    fdjtLog("TextSelect/release %o t=%o sel=%o",evt,target,sel);
-                if (sel) {
-                    sel.anchor=false; sel.word=false; sel.pending=false;
-                    if (sel.timeout) {
-                        clearTimeout(sel.timeout); sel.timeout=false;}
-                    sel.setAdjust(false);
-                    if (sel.loupe) sel.loupe.style.display='none';}}
-            function slip_handler(evt,sel){
-                evt=evt||window.event;
-                var target=fdjtUI.T(evt);
-                if ((traceall)||((sel)&&(sel.traced)))
-                    fdjtLog("TextSelect/slip %o t=%o sel=%o",evt,target,sel);
-                if (sel) {
-                    if (sel.loupe) sel.loupe_timeout=
-                        setTimeout(function(){
-                            sel.loupe_timeout=false;
-                            sel.loupe.style.display='none';},2000);}}
-            TextSelect.release_handler=release_handler;
-            function get_release_handler(sel,also){
-                return function(evt){
-                    release_handler(evt,sel);
-                    if (also) also(evt,sel);};}
-            function get_slip_handler(sel,also){
-                return function(evt){
-                    slip_handler(evt,sel);
-                    if (also) also(evt,sel);};}
-            
-            function addHandlers(container,sel,opts){
-                // We always override the default action when selecting
-                if (!(opts)) opts={};
-                opts.override=true;
-                opts.touchable=
-                    ".fdjtword,.fdjtselected,.fdjtselectstart,.fdjtselectend";
-                var taphold=new fdjtUI.TapHold(container,opts);
-                fdjtDOM.addListener(container,"tap",
-                                    ((opts)&&(opts.ontap))||
-                                    tap_handler);
-                fdjtDOM.addListener(container,"hold",
-                                    ((opts)&&(opts.onhold))||
-                                    hold_handler);
-                fdjtDOM.addListener(
-                    container,"release",
-                    get_release_handler(sel,opts.onrelease||false));
-                fdjtDOM.addListener(
-                    container,"slip",
-                    get_slip_handler(sel,opts.onslip||false));
-                return taphold;}
+                        sel.setRange(target,target);}
+                    // Otherwise, call overWord, which makes the word the
+                    //  beginning or end of the selection
+                    else if (overWord(target,true,sel)) {
+                        if (target.className==="fdjtselectstart")
+                            sel.adjust="start";
+                        else if (target.className==="fdjtselectend")
+                            sel.adjust="end";
+                        else sel.adjust=false;
+                        fdjtUI.cancel(evt);}
+                    else if (sel) sel.adjust=false;
+                    break;}
+                else if (target.nodeType===1) target=target.parentNode;
+                else break;}}
+        TextSelect.tap_handler=tap_handler;
+        function release_handler(evt,sel){
+            evt=evt||window.event;
+            var target=fdjtUI.T(evt);
+            if ((traceall)||((sel)&&(sel.traced)))
+                fdjtLog("TextSelect/release %o t=%o sel=%o",evt,target,sel);
+            if (sel) {
+                sel.anchor=false; sel.word=false; sel.pending=false;
+                if (sel.timeout) {
+                    clearTimeout(sel.timeout); sel.timeout=false;}
+                sel.setAdjust(false);
+                if (sel.loupe) sel.loupe.style.display='none';
+                if (sel.active) stopSelection(sel);}}
+        function slip_handler(evt,sel){
+            evt=evt||window.event;
+            var target=fdjtUI.T(evt);
+            if ((traceall)||((sel)&&(sel.traced)))
+                fdjtLog("TextSelect/slip %o t=%o sel=%o",evt,target,sel);
+            if (sel) {
+                if (sel.loupe) sel.loupe_timeout=
+                    setTimeout(function(){
+                        sel.loupe_timeout=false;
+                        if (sel.active) stopSelection(sel);
+                        sel.loupe.style.display='none';},
+                               2000);}}
+        TextSelect.release_handler=release_handler;
+        function get_release_handler(sel,also){
+            return function(evt){
+                release_handler(evt,sel);
+                if (also) also(evt,sel);};}
+        function get_slip_handler(sel,also){
+            return function(evt){
+                slip_handler(evt,sel);
+                if (also) also(evt,sel);};}
+        
+        function addHandlers(container,sel,opts){
+            // We always override the default action when selecting
+            if (!(opts)) opts={};
+            opts.override=true;
+            opts.touchable=
+                ".fdjtword,.fdjtselected,.fdjtselectstart,.fdjtselectend";
+            var taphold=new fdjtUI.TapHold(container,opts);
+            fdjtDOM.addListener(container,"tap",
+                                ((opts)&&(opts.ontap))||
+                                tap_handler);
+            fdjtDOM.addListener(container,"hold",
+                                ((opts)&&(opts.onhold))||
+                                hold_handler);
+            fdjtDOM.addListener(
+                container,"release",
+                get_release_handler(sel,opts.onrelease||false));
+            fdjtDOM.addListener(
+                container,"slip",
+                get_slip_handler(sel,opts.onslip||false));
+            return taphold;}
 
-            TextSelect.trace=function(flag,thtoo){
-                if (typeof flag === "undefined") return traceall;
-                else if (typeof flag === "number")
-                    traceall=flag;
-                else if (flag) traceall=1;
-                else traceall=0;
-                if (thtoo) fdjt.TapHold.trace(thtoo);};
-            
-            // Return the constructor
-            return TextSelect;})();
+        TextSelect.trace=function(flag,thtoo){
+            if (typeof flag === "undefined") return traceall;
+            else if (typeof flag === "number")
+                traceall=flag;
+            else if (flag) traceall=1;
+            else traceall=0;
+            if (thtoo) fdjt.TapHold.trace(thtoo);};
+        
+        // Return the constructor
+        return TextSelect;})();
 
 
 /* Emacs local variables
@@ -15932,8 +15972,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1475-g76417cb';
+fdjt.revision='1.5-1486-ga7d244b';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Oct 16 12:07:28 EDT 2015';
-fdjt.builduuid='75346ea5-af28-4445-82d1-6f8451a71264';
+fdjt.buildtime='Thu Oct 22 11:15:33 EDT 2015';
+fdjt.builduuid='4623e670-b8c9-4082-9cd4-438bb6bfeb55';
 

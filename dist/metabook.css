@@ -1208,8 +1208,9 @@ div.fdjtpage .fdjtpageinfo {
     position: absolute; right: 0px; bottom: 0px;
     padding-right: 0.5ex; padding-left: 0.5ex;
     color: black; background-color: rgba(0,0,0,0.4);
-    font-size: 150%; opacity: 0.25;
-    pointer-events: none;}
+    font-size: 150%; opacity: 0.25;}
+
+div.fdjtpage .fdjtpageinfo span { pointer-events: none; }
 div.fdjtpage div.fdjtpageinfo span.count { display: none;}
 div.fdjtpage > div.fdjtpageinfo { display: block !important; }
 div.fdjtpage div.fdjtpageinfo {
@@ -1218,15 +1219,14 @@ div.fdjtpage.fdjtfirstpage.fdjtlastpage > div.fdjtpageinfo {
     display: none !important;}
 div.fdjtpage div.fdjtpageinfo .button {
     font-weight: bold; pointer-events: all;
-    cursor: pointer;}
-div.fdjtpage div.fdjtpageinfo .button.forward {
-    padding-left: 1ex;}
-div.fdjtpage div.fdjtpageinfo .button.backward {
-    padding-right: 1ex;}
+    z-index: 50; cursor: pointer;}
+div.fdjtpage div.fdjtpageinfo .button.forward {}
+div.fdjtpage div.fdjtpageinfo .button.backward {}
 html._MOUSE div.fdjtpage div.fdjtpageinfo:hover {
     opacity: 0.75;}
 html._MOUSE div.fdjtpage div.fdjtpageinfo .button:hover {
     color: blue;}
+html._TOUCH div.fdjtpage div.fdjtpageinfo { font-size: 200%;}
 
 div.fdjtpage.formatting div, div.fdjtpage.getvisible div, 
 div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
@@ -1234,13 +1234,13 @@ div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
 div.fdjtpage.formatting {
     overflow-y: scroll !important;}
 
-div.fdjtpage.newpage div.fdjtpageinfo,
-div.fdjtpage.formatting.newpage div.fdjtpageinfo {
+div.fdjtpage.fdjtpagechange div.fdjtpageinfo,
+div.fdjtpage.formatting.fdjtpagechange div.fdjtpageinfo {
     opacity: 0.9; visibility: visible;}
-div.fdjtpage.newpage div.fdjtpageinfo span.count,
-div.fdjtpage.formatting.newpage div.fdjtpageinfo span.count {
+div.fdjtpage.fdjtpagechange div.fdjtpageinfo span.count,
+div.fdjtpage.formatting.fdjtpagechange div.fdjtpageinfo span.count {
     display: inline;}
-div.fdjtpage.newpage div.fdjtpageinfo {
+div.fdjtpage.fdjtpagechange div.fdjtpageinfo {
     pointer-events: all;}
 
 /* The pager */
@@ -1947,30 +1947,9 @@ body.mbLAYOUT #CODEXCONTENT { display: none;}
 
 /* The page content gets a little transparent when the HUD comes up*/
 body._ANIMATE.hudup #CODEXPAGE {
-    transition-property: opacity;
-    -webkit-transition-property: opacity;
-    -moz-transition-property: opacity;
-    -o-transition-property: opacity;
-    transition-duration: 0.2s; 
-    -webkit-transition-duration: 0.2s;
-    -o-transition-duration: 0.2s;
-    -moz-duration: 0.2s;}
-body.hudup #CODEXPAGE {
-    opacity: 0.8;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-    filter: alpha(opacity=80);
-    -webkit-opacity: 0.80;
-    -khtml-opacity: 0.80;
-    -moz-opacity: 0.80;
-    -o-opacity: 0.80;}
-body.hudup.mbPREVIEW #CODEXPAGE {
-    opacity: 1;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-    filter: alpha(opacity=100);
-    -webkit-opacity: 1;
-    -khtml-opacity: 1;
-    -moz-opacity: 1;
-    -o-opacity: 1;}
+    transition-property: opacity; transition-duration: 0.2s;}
+body.hudup #CODEXPAGE {opacity: 0.8;}
+body.hudup.mbPREVIEW #CODEXPAGE {opacity: 1;}
 
 /* When the page is shrunk, the border is visible */
 body.mbPREVIEW #CODEXPAGE, body.mbSHRINK #CODEXPAGE  {
@@ -1979,32 +1958,16 @@ body.mbPREVIEW #CODEXPAGE, body.mbSHRINK #CODEXPAGE  {
 /* This is for page shrinking when appropriate */
 body._ANIMATE #CODEXPAGE {
     transition-property: opacity,transform;
-    -webkit-transition-property: -webkit-opacity,-webkit-transform;
-    -moz-transition-property: -moz-opacity,-moz-transform;
-    -o-transition-property: -o-opacity,-o-transform;
-    transition-duration: 0.25s; -webkit-transition-duration: 0.25s;
-    -moz-duration: 0.25s; -o-transition-duration: 0.25s;}
-body #CODEXPAGE {
-    transform: scale(1,1); -webkit-transform:scale(1,1);
-    -moz-transform: scale(1,1); -o-transform:scale(1,1);}
-body._NOSHRINK #CODEXPAGE {
-    transform: inherit; -webkit-transform: inherit;
-    -moz-transform: inherit; -o-transform: inherit;}
-body.mbSHRINK #CODEXPAGE, body.mbPREVIEW #CODEXPAGE,
-body.mbSKIMMING #CODEXPAGE {
-    transform-origin: center center;
-    -webkit-transform-origin: center center;
-    -moz-transform-origin: center center;
-    -o-transform: center center;}
+    transition-duration: 0.25s;}
+body #CODEXPAGE {transform: scale(1,1);}
 
-body._ANIMATE._NOSHRINK #CODEXPAGE .codexpage {
-    transform: inherit; -webkit-transform: inherit;
-    -moz-transform: inherit; -o-transform: inherit;}
-body.mbSHRINK #CODEXPAGE .codexpage,
-body.mbPREVIEW #CODEXPAGE .codexpage,
-body.mbSKIMMING #CODEXPAGE .codexpage {
-    transform: scale(0.98,0.98); -webkit-transform:scale(0.98,0.98);
-    -moz-transform: scale(0.98,0.98); -o-transform:scale(0.98,0.98);}
+body.mbSHRINK #CODEXPAGE, body.mbPREVIEW #CODEXPAGE,
+body.mbSKIMMING #CODEXPAGE {transform-origin: center center;}
+
+body.mbSKIMMING._NOSHRINK #CODEXPAGE .codexpage,
+body.mbPREVIEW._NOSHRINK #CODEXPAGE .codexpage,
+body.mbSHRINK._NOSHRINK #CODEXPAGE .codexpage {
+    transform: inherit;}
 
 #CODEXPAGE #METABOOKPAGES {
     position: absolute;
@@ -2092,7 +2055,7 @@ span.note.ellipsis span.elision, span.note.ellipsis span.delision {
 
 /* Fuzzy selections */
 
-html._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; }
+/* html._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; } */
 
 .fdjtselected {
     box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 255, 0, 0.33);}
@@ -2930,6 +2893,7 @@ body.mbSHOWHELP #METABOOKFRAME {
 #METABOOKHUD {
     position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px;
     width: 100%; height: 100%;
+    transform: translateZ(0);
     pointer-events: none;}
 #METABOOKFRAME > #METABOOKHUD > div {
     pointer-events: all;}
@@ -2943,6 +2907,46 @@ html._TOUCH body.mbSHOWHELP #METABOOKBODY {
 html._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKTOPBAR,
 html._TOUCH #METABOOKFRAME > #METABOOKHUD > #METABOOKFOOT {
     pointer-events: all;}
+
+/* Page controls */
+
+div.mbpagecontrol {
+    position: absolute; bottom: 50%;
+    background-size: contain;  background-repeat: no-repeat;
+    height: 50px; width: 50px;
+    font-size: 24px; font-weight: bold; padding-top: 20px;
+    cursor: pointer; 
+    opacity: 0;}
+div.mbpagecontrol > span { visibility: hidden; }
+body._ANIMATE div.mbpagecontrol {
+    transition-property: opacity,background-color;
+    transition-duration: 0.2s;}
+
+body.mbSKIMMING div.mbpagecontrol,
+html._MOUSE body.hudup div.mbpagecontrol:hover {
+    opacity: 0.8; }
+
+body.mbSKIMMING div.mbpagecontrol > span {
+    visibility: visible;
+    z-index: 500;}
+
+div#MBPAGERIGHT.mbpagecontrol {
+    background-image: url(/static/g/metabook/page_right.svgz);
+    background-position: center right; padding-right: 3px;
+    text-align: right; right: 0px;}
+div#MBPAGELEFT.mbpagecontrol {
+    background-image: url(/static/g/metabook/page_left.svgz);
+    background-position: center left; padding-left: 3px;
+    text-align: left; left: 0px;}
+
+body.mbSKIMMING div#MBPAGERIGHT.mbpagecontrol {
+    background-image: url(/static/g/metabook/skim_right.svgz);}
+body.mbSKIMMING.mbSKIMEND div#MBPAGERIGHT.mbpagecontrol {
+    background-image: url(/static/g/metabook/skim_right_stop.svgz);}
+body.mbSKIMMING div#MBPAGELEFT.mbpagecontrol {
+    background-image: url(/static/g/metabook/skim_left.svgz);}
+body.mbSKIMMING.mbSKIMSTART div#MBPAGELEFT.mbpagecontrol {
+    background-image: url(/static/g/metabook/skim_left_stop.svgz);}
 
 /* The COVER contains the usual wrapping elements for the book
    (coverpage, title, blurbs, etc) and also contains elements which
@@ -3471,10 +3475,7 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
 #METABOOKHUD.openglossmark, body.mbSHOWHELP #METABOOKHUD {
     z-index: 100; }
 
-#METABOOKCOVER .fdjtfontwrapper {
-    backface-visibility: hidden;
-    perspective: 1000;
-    transform: translateZ(0);}
+#METABOOKCOVER .fdjtfontwrapper {}
 
 #METABOOKCOVER div.flap {
     position: absolute;
@@ -4187,6 +4188,7 @@ html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
 #METABOOKSKIMMER {
     position: absolute; left: 60px; right: 60px; z-index: 100;
     border: solid steelblue 4px; padding: 0px; font-size: 70%;
+    background-color: white;
     max-height: 75px;}
 html._TOUCH #METABOOKSKIMMER,
 html._TOUCH #METABOOKSKIMMER div.mbtoc,
@@ -4321,8 +4323,6 @@ body.hudup #METABOOKHEAD {display: block;}
 body.hudup #METABOOKHUD.openhead.overtoc #METABOOKHEAD {
     border-color: transparent;}
 
-#METABOOKFRAME > #METABOOKHUD.openhead > #METABOOKTOPBAR {
-    z-index: -20; opacity: 0.7;}
 #METABOOKFRAME > #METABOOKHUD.openhead #METABOOKTOPCENTER,
 #METABOOKFRAME > #METABOOKHUD.openheart #METABOOKTOPCENTER,
 body.mbSKIMMING #METABOOKTOPCENTER {
@@ -4551,8 +4551,14 @@ body.hudup #METABOOKHUD div.hudpanel {
     -moz-opacity: 0.98;
     -o-opacity: 0.98;}
 
+body.mbSKIMMING #METABOOKHUD.openheart #METABOOKHEART,
+body.hudup.mbSKIMMING #METABOOKHUD.openheart #METABOOKHEART {
+    display: none;}
+
 body.mbSKIMMING #METABOOKHUD.allglosses #METABOOKSOURCES,
-body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCH {
+body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCH,
+body.mbSKIMMING #METABOOKHUD.allglosses #METABOOKALLGLOSSES.hudpanel ,
+body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCHRESULTS.hudpanel {
     display: none; }
 
 /* Heart rules */
@@ -4648,43 +4654,26 @@ img.hudbutton {
     -khtml-opacity: 0.02;
     -moz-opacity: 0.02;
     -o-opacity: 0.02;}
-html._MOUSE .hudbutton:hover,
-html._MOUSE #METABOOKTOPBAR:hover .hudbutton,
-html._MOUSE #METABOOKFOOT:hover .hudbutton,
-#METABOOKHUD .tapholding .hudbutton {
-    opacity: 0.50;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-    filter: alpha(opacity=50);
-    -webkit-opacity: 0.50;
-    -khtml-opacity: 0.50;
-    -moz-opacity: 0.50;
-    -o-opacity: 0.50;}
-html._MOUSE #METABOOKTOPBAR:hover .hudbutton:hover,
-html._MOUSE #METABOOKFOOT:hover .hudbutton:hover {
-    opacity: 0.75;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
-    filter: alpha(opacity=75);
-    -webkit-opacity: 0.75;
-    -khtml-opacity: 0.75;
-    -moz-opacity: 0.75;
-    -o-opacity: 0.75;}
-    
+html._MOUSE not(body.hudup) .hudbutton:hover,
+html._MOUSE not(body.hudup) #METABOOKTOPBAR:hover .hudbutton,
+html._MOUSE not(body.hudup) #METABOOKFOOT:hover .hudbutton,
+#METABOOKHUD not(body.hudup) .tapholding .hudbutton,
+html._MOUSE not(body.mbSKIMMING) .hudbutton:hover,
+html._MOUSE not(body.mbSKIMMING) #METABOOKTOPBAR:hover .hudbutton,
+html._MOUSE not(body.mbSKIMMING) #METABOOKFOOT:hover .hudbutton,
+#METABOOKHUD not(body.mbSKIMMING) .tapholding .hudbutton {
+    opacity: 0.50;}
+html._MOUSE not(body.hudup) #METABOOKTOPBAR:hover .hudbutton:hover,
+html._MOUSE not(body.hudup) #METABOOKFOOT:hover .hudbutton:hover,
+html._MOUSE not(body.mbSKIMMING) #METABOOKTOPBAR:hover .hudbutton:hover,
+html._MOUSE not(body.mbSKIMMING) #METABOOKFOOT:hover .hudbutton:hover {
+    opacity: 0.75;}
 
 body.mbSKIMMING img.hudbutton {
-    opacity: 0.80;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-    filter: alpha(opacity=80);
-    -webkit-opacity: 0.80;
-    -khtml-opacity: 0.80;
-    -moz-opacity: 0.80;
-    -o-opacity: 0.80;}
+    opacity: 0.80;}
 .hudbutton {
     transition-property: width, height, opacity;
-    transition-duration: 0.2s;
-    -moz-transition-property: width, height, opacity;
-    -moz-transition-duration: 0.2s;
-    -webkit-transition-property: width, height, opacity;
-    -webkit-transition-duration: 0.2s;}
+    transition-duration: 0.2s;}
 
 #METABOOKTOPBAR img.hudbutton[hudmode="allglosses"],
 #METABOOKTOPBAR img.hudbutton[hudmode="help"] {
@@ -4840,13 +4829,8 @@ html._NOUSER a.logout {
 
 body.hudup #METABOOKHUD { }
 body.hudup .hudbutton {
-    opacity: 0.50;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-    filter: alpha(opacity=50);
-    -webkit-opacity: 0.50;
-    -khtml-opacity: 0.50;
-    -moz-opacity: 0.50;
-    -o-opacity: 0.50;}
+    background-color: white;}
+body.hudup .hudbutton {opacity: 0.9;}
 body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 
 /* METABOOKPOINTGLOSSES rules */
@@ -7289,7 +7273,7 @@ div.metabookcard > hr {
     padding-right: 1ex; padding-left: 1ex; padding-bottom: 1ex; 
     display: none;}
 .metabookcard .tool img {
-    height: 40px; width: 40px; opacity: 0.3; clear: right;
+    height: 40px; width: 40px; z-index: 40; opacity: 0.3; clear: right;
     /* This makes it overlap the date, tightening things up generally */
     margin-right: 6px; margin-top: -1em;}
 html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
@@ -7554,6 +7538,16 @@ div.metabookglossform.focused form div.textbox input[type="TEXT"] {
 body.hudup div.metabookglossform form div.glossetc,
 body div.metabookglossform.focused form div.glossetc {
     min-height: 1.5ex;}
+
+body._SELECTING div.metabookglossform form div.textbox,
+body._SELECTING div.metabookglossform form div.addglossmenu {
+    display: none;}
+body._SELECTING div.metabookglossform form div.glossetc {
+    display: block;}
+body._SELECTING div.metabookglossform form div.glossetc > * {
+    visibility: hidden;}
+body._SELECTING div.metabookglossform form div.glossetc > *.excerpt {
+    visibility: visible;}
 
 body div.metabookglossform form div.glossetc {
     display: none;}

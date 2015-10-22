@@ -7560,7 +7560,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
     }
     function showPage(container, start, dir) {
         if (container = getContainer(container)) {
-            var startpos, shown = toArray(getChildren(container, ".fdjtshow")), curstart = getChild(container, ".fdjtstartofpage"), curend = getChild(container, ".fdjtendofpage"), info = getChild(container, ".fdjtpageinfo"), children = getNodes(container), lim = children.length, caboose = 0 > dir ? "fdjtstartofpage" : "fdjtendofpage", tap_event_name = hasParent(container, ".tapholder") ? "tap" : "click";
+            var startpos, shown = toArray(getChildren(container, ".fdjtshow")), curstart = getChild(container, ".fdjtstartofpage"), curend = getChild(container, ".fdjtendofpage"), info = getChild(container, ".fdjtpageinfo"), children = getNodes(container), lim = children.length, caboose = 0 > dir ? "fdjtstartofpage" : "fdjtendofpage", tap_event_name = fdjt.device.touch ? "touchstart" : "click";
             if (0 !== children.length && (dir = "number" != typeof dir ? 1 : 0 > dir ? -1 : 1, 
             start ? "number" == typeof start && start > 0 && 1 > start ? (startpos = Math.round(start * children.length), 
             start = children[startpos]) : "number" == typeof start ? (startpos = start - 1, 
@@ -7577,19 +7577,27 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
                 dropClass(end, caboose), endpos--, end = children[endpos], addClass(end, caboose);
                 if (dir > 0 && hasClass(end, "fdjtpagekeep")) for (;startpos > endpos && hasClass(end, "fdjtpagekeep"); ) dropClass(end, "fdjtshow"), 
                 dropClass(end, caboose), endpos++, end = children[endpos], addClass(end, caboose);
-                0 === startpos ? addClass(container, "fdjtfirstpage") : dropClass(container, "fdjtfirstpage"), 
-                endpos >= lim - 1 ? addClass(container, "fdjtlastpage") : dropClass(container, "fdjtlastpage");
+                var at_start = !1, at_end = !1;
+                0 === startpos ? (addClass(container, "fdjtfirstpage"), at_start = !0) : dropClass(container, "fdjtfirstpage"), 
+                endpos >= lim - 1 ? (addClass(container, "fdjtlastpage"), at_end = !0) : dropClass(container, "fdjtlastpage");
                 var minpos = endpos >= startpos ? startpos : endpos, maxpos = startpos > endpos ? startpos : endpos;
-                info.innerHTML = Math.floor(100 * (minpos / lim)) + "%" + "<span class='count'> (" + lim + ")</span>", 
+                info.innerHTML = "<span class='pct'>" + Math.floor(100 * (minpos / lim)) + "%" + "</span>" + "<span class='count'> (" + lim + ")</span>", 
                 info.title = fdjtString("Items %d through %d of %d", minpos, maxpos, lim);
-                var forward_button = fdjtDOM("span.button.forward", "》"), backward_button = fdjtDOM("span.button.backward", "《");
-                return addListener(forward_button, tap_event_name, forwardPage), addListener(backward_button, tap_event_name, backwardPage), 
-                fdjtDOM.append(info, forward_button), fdjtDOM.prepend(info, backward_button), addClass(container, "newpage"), 
+                var forward_button = fdjtDOM("span.button.forward", " 》"), backward_button = fdjtDOM("span.button.backward", "《 ");
+                return fdjtDOM.prepend(info, backward_button), at_start ? backward_button.innerHTML = "· " : addListener(backward_button, tap_event_name, backwardButton), 
+                at_end ? forward_button.innerHTML = "· " : addListener(forward_button, tap_event_name, forwardButton), 
+                fdjtDOM.prepend(info, backward_button), fdjtDOM.append(info, forward_button), addClass(container, "fdjtpagechange"), 
                 setTimeout(function() {
-                    dropClass(container, "newpage");
+                    dropClass(container, "fdjtpagechange");
                 }, 1e3), dropClass(container, "formatting"), endpos;
             }
         }
+    }
+    function forwardButton(evt) {
+        fdjt.UI.cancel(evt), forwardPage(evt);
+    }
+    function backwardButton(evt) {
+        fdjt.UI.cancel(evt), backwardPage(evt);
     }
     function getProgressIndicator(container, startpos, lim) {
         var info = fdjtDOM("div.fdjtpageinfo", startpos + 1, "/", lim);
@@ -7635,6 +7643,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
     }
     function forwardPage(container) {
         if (container = getContainer(container)) {
+            dropClass(container, "fdjtpagechange");
             var foot = getChild(container, ".fdjtendofpage");
             return foot ? hasClass(container, "fdjtlastpage") ? !1 : foot.nextSibling ? showPage(container, foot.nextSibling) : !1 : showPage(container);
         }
@@ -7653,6 +7662,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
     }
     function backwardPage(container) {
         if (container = getContainer(container)) {
+            dropClass(container, "fdjtpagechange");
             var head = getChild(container, ".fdjtstartofpage");
             return head ? hasClass(container, "fdjtfirstpage") ? !1 : head.previousSibling ? showPage(container, head.previousSibling, -1) : !1 : showPage(container);
         }
@@ -7698,7 +7708,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             return parent ? hasClass(node, "fdjtshown") ? !1 : showPage(container, node) : void 0;
         }
     }
-    var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, fdjtString = fdjt.String, getStyle = fdjtDOM.getStyle, getChild = fdjtDOM.getChild, getChildren = fdjtDOM.getChildren, dropClass = fdjtDOM.dropClass, addClass = fdjtDOM.addClass, hasClass = fdjtDOM.hasClass, hasParent = fdjtDOM.hasParent, addListener = fdjtDOM.addListener, toArray = fdjtDOM.toArray, adjustFonts = fdjtDOM.adjustFonts;
+    var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, fdjtString = fdjt.String, getStyle = fdjtDOM.getStyle, getChild = fdjtDOM.getChild, getChildren = fdjtDOM.getChildren, dropClass = fdjtDOM.dropClass, addClass = fdjtDOM.addClass, hasClass = fdjtDOM.hasClass, addListener = fdjtDOM.addListener, toArray = fdjtDOM.toArray, adjustFonts = fdjtDOM.adjustFonts;
     return showPage.isOversize = isOversize, showPage.forward = forwardPage, showPage.fastForward = fastForwardPage, 
     showPage.backward = backwardPage, showPage.fastBackward = fastBackwardPage, showPage.update = updatePage, 
     showPage.check = checkPage, showPage.showNode = showNode, showPage;
@@ -8267,6 +8277,15 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         return 0;
     }
     function TapHold(elt, opts) {
+        function start_holding() {
+            addClass(elt, holdclass);
+        }
+        function stop_holding() {
+            dropClass(elt, holdclass);
+        }
+        function check_holding() {
+            th_target || dropClass(elt, holdclass);
+        }
         function cleartouch(all) {
             th_timer && (clearTimeout(th_timer), th_timer = !1), all && tt_timer && (clearTimeout(tt_timer), 
             tt_timer = !1), th_target && touchclass && dropClass(th_target, touchclass), th_target = th_target_t = !1, 
@@ -8286,15 +8305,13 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), synthEvent(target, "tap", th, evt, x, y, !1);
         }
         function held(target, evt, x, y) {
-            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), holdclass && setTimeout(function() {
-                addClass(elt, holdclass);
-            }, 20), synthEvent(target, "hold", th, evt, x, y, !1);
+            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), holdclass && setTimeout(start_holding, 20), 
+            synthEvent(target, "hold", th, evt, x, y, !1);
         }
         function released(target, evt, x, y) {
             var target_time = th_target_t && th_last && fdjtET() - th_target_t;
-            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), holdclass && setTimeout(function() {
-                th_target || dropClass(elt, holdclass);
-            }, 50), target_time && 200 > target_time && (trace && fdjtLog("TapHold(%s) %d=i<200ms, target=%o not %o", thid, target_time, th_last, target), 
+            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), holdclass && setTimeout(check_holding, 50), 
+            target_time && 200 > target_time && (trace && fdjtLog("TapHold(%s) %d=i<200ms, target=%o not %o", thid, target_time, th_last, target), 
             target = th_last), synthEvent(target, "release", th, evt, x, y, {
                 startX: start_x,
                 startY: start_y
@@ -8308,9 +8325,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
                 var rel = evt.relatedTarget || eTarget(evt);
                 rel !== target && (also.relatedTarget = rel);
             }
-            return holdclass && setTimeout(function() {
-                th_target || dropClass(elt, holdclass);
-            }, 50), synthEvent(target, "slip", th, evt, touch_x, touch_y, also);
+            return holdclass && setTimeout(check_holding, 50), synthEvent(target, "slip", th, evt, touch_x, touch_y, also);
         }
         function taptapped(target, evt) {
             return synthEvent(target, "taptap", th, evt, touch_x, touch_y, !1, trace);
@@ -8364,26 +8379,24 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
                     touch_y: y
                 });
             }
-            reticle.live && reticle.highlight(!1), cleartouch(), setTarget(!1), holdclass && setTimeout(function() {
-                dropClass(elt, holdclass);
-            }, 20), th_targets = [];
+            reticle.live && reticle.highlight(!1), cleartouch(), setTarget(!1), holdclass && setTimeout(stop_holding, 20), 
+            th_targets = [];
         }
         function abortpress(evt, why) {
             (trace || traceall) && fdjtLog("TapHold/abort%s(%s) %o: th=%o t=%o p=%o", why ? "(" + why + ")" : "", thid, evt, th_target, touched, pressed), 
             th_timer ? (clearTimeout(th_timer), th_timer = !1) : noslip || pressed && slipped(pressed, evt), 
             reticle.live && reticle.highlight(!1), pressed_at = touched = pressed = tap_target = !1, 
-            holdclass && setTimeout(function() {
-                dropClass(elt, holdclass);
-            }, 20), th_targets = [], setTarget(!1);
+            holdclass && setTimeout(stop_holding, 20), th_targets = [], setTarget(!1);
         }
         function taphold_mouseout(evt) {
             evt = evt || window.event;
             var to = evt.toElement || evt.relatedTarget;
-            wander_timer || th_target && pressed && !hasParent(to, elt) && (wander_timer = setTimeout(function() {
-                noslip || slipped(pressed, evt, {
-                    relatedTarget: to
-                }), abortpress(evt, "taphold_mouseout");
-            }, wanderthresh));
+            wander_timer || th_target && pressed && !hasParent(to, elt) && (wander_timer = setTimeout(wandered, wanderthresh, evt, to));
+        }
+        function wandered(evt, to) {
+            noslip || slipped(pressed, evt, {
+                relatedTarget: to
+            }), abortpress(evt, "taphold_mouseout");
         }
         function taphold_mouseover(evt) {
             evt = evt || window.event, wander_timer && (clearTimeout(wander_timer), wander_timer = !1);
@@ -8495,9 +8508,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             (trace || traceall) && fdjtLog("TapHold/cancel(%s) %o: th=%o t=%o p=%o", thid, evt, th_target, touched, pressed), 
             th_timer ? (clearTimeout(th_timer), th_timer = !1) : pressed && released(pressed, evt), 
             reticle.live && reticle.highlight(!1), pressed_at = touched = pressed = tap_target = !1, 
-            holdclass && setTimeout(function() {
-                dropClass(elt, holdclass);
-            }, 20), th_targets = [], setTarget(!1);
+            holdclass && setTimeout(stop_holding, 20), th_targets = [], setTarget(!1);
         }
         if (!elt) return fdjtLog.warn("TapHold with no argument!"), void 0;
         if (!(this instanceof TapHold)) return new TapHold(elt, opts);
@@ -8644,9 +8655,10 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             var trace_val = opts.trace;
             trace = "number" == typeof trace_val ? trace_val : trace_val ? 1 : 0;
         }
-        this.traced = trace;
+        this.traced = trace, opts.onstart && (sel.onstart = opts.onstart), opts.onstop && (sel.onstop = opts.onstop);
         var prefix = this.prefix = "fdjtSel0" + this.serial;
-        this.loupe = fdjtDOM("span.fdjtselectloupe"), this.adjust = !1, selectors[prefix] = sel;
+        this.loupe = opts.loupe !== void 0 || TextSelect.loupe !== void 0 ? opts.loupe || TextSelect.loupe : fdjtDOM("span.fdjtselectloupe"), 
+        this.adjust = !1, selectors[prefix] = sel;
         for (var stripid = prefix.length + 1, k = 0, n = nodes.length; n > k; ) {
             var node = nodes[k++], style = getStyle(node), wrapper = "inline" === style.display ? fdjtDOM("span.fdjtselecting") : fdjtDOM("div.fdjtselecting");
             wrapper.id = prefix + "w" + k, wrapper.title = opts && opts.title || "Tap or hold/drag to move the ends of the text range", 
@@ -8725,10 +8737,16 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
     function deselectWords(words, start, end) {
         for (var i = start; end >= i; ) words[i++].className = "fdjtword";
     }
+    function startSelection(sel) {
+        sel.active || (sel.active = !0, sel.onstart && sel.onstart());
+    }
+    function stopSelection(sel) {
+        sel.active && (sel.active = !1, sel.onstop && sel.onstop());
+    }
     function overWord(word, tapped, sel) {
         for (var id = !1; word && 1 !== word.nodeType; ) word = word.parentNode;
         if (!hasParent(word, ".fdjtselectloupe")) {
-            if (!sel && word && (id = word.id) && "SPAN" === word.tagName && 0 === id.search("fdjtSel")) {
+            if (sel.active || startSelection(sel), !sel && word && (id = word.id) && "SPAN" === word.tagName && 0 === id.search("fdjtSel")) {
                 var split = id.indexOf("_");
                 split && (sel = selectors[id.slice(0, split)]);
             }
@@ -8822,18 +8840,21 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
     }
     function updateLoupe(word, sel, tapped) {
         var parent = word.parentNode, loupe = sel.loupe;
-        if (sel.loupe_timeout && (clearTimeout(sel.loupe_timeout), sel.loupe_timeout = !1), 
-        word.offsetParent) {
-            for (var block = word.parentNode; block && "inline" === getStyle(block).display; ) block = block.parentNode;
-            (traceall || sel.traced) && fdjtLog("updateLoupe(%d) over %o for %o%s", sel.serial, word, sel, tapped ? " (tapped)" : "");
-            var context = gatherContext(word, 5, 5, block), geom = fdjtDOM.getGeometry(word, word.offsetParent), cwidth = word.offsetParent.offsetWidth;
-            loupe.innerHTML = "", loupe.style.display = "none", fdjtDOM.append(loupe, context.words), 
-            parent.insertBefore(loupe, word), cwidth / 2 > geom.left ? (loupe.style.float = "left", 
-            loupe.style.left = geom.left - 1.5 * context.wordstart + "px", loupe.style.right = "") : (loupe.style.float = "right", 
-            loupe.style.right = cwidth - geom.right - 1.5 * (context.width - context.wordend) + "px", 
-            loupe.style.left = ""), loupe.style.display = "", tapped && setTimeout(1e3, function() {
-                sel.loupe.display = "none";
-            });
+        if (loupe) {
+            var inline_loupe = hasParent(loupe, ".fdjtselecting");
+            if (sel.loupe_timeout && (clearTimeout(sel.loupe_timeout), sel.loupe_timeout = !1), 
+            word.offsetParent) {
+                for (var block = word.parentNode; block && "inline" === getStyle(block).display; ) block = block.parentNode;
+                (traceall || sel.traced) && fdjtLog("updateLoupe(%d) over %o for %o%s", sel.serial, word, sel, tapped ? " (tapped)" : "");
+                var context = gatherContext(word, 5, 5, block), geom = fdjtDOM.getGeometry(word, word.offsetParent), cwidth = word.offsetParent.offsetWidth;
+                loupe.innerHTML = "", fdjtDOM.append(loupe, context.words), inline_loupe && (loupe.style.display = "none", 
+                parent.insertBefore(loupe, word), cwidth / 2 > geom.left ? (loupe.style.float = "left", 
+                loupe.style.left = geom.left - 1.5 * context.wordstart + "px", loupe.style.right = "") : (loupe.style.float = "right", 
+                loupe.style.right = cwidth - geom.right - 1.5 * (context.width - context.wordend) + "px", 
+                loupe.style.left = "")), loupe.style.display = "", tapped && setTimeout(function() {
+                    sel.active && stopSelection(sel), sel.loupe.display = "none";
+                }, 1e3);
+            }
         }
     }
     function gatherContext(node, back, forward, parent) {
@@ -8909,14 +8930,15 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         var target = fdjtUI.T(evt);
         (traceall || sel && sel.traced) && fdjtLog("TextSelect/release %o t=%o sel=%o", evt, target, sel), 
         sel && (sel.anchor = !1, sel.word = !1, sel.pending = !1, sel.timeout && (clearTimeout(sel.timeout), 
-        sel.timeout = !1), sel.setAdjust(!1), sel.loupe && (sel.loupe.style.display = "none"));
+        sel.timeout = !1), sel.setAdjust(!1), sel.loupe && (sel.loupe.style.display = "none"), 
+        sel.active && stopSelection(sel));
     }
     function slip_handler(evt, sel) {
         evt = evt || window.event;
         var target = fdjtUI.T(evt);
         (traceall || sel && sel.traced) && fdjtLog("TextSelect/slip %o t=%o sel=%o", evt, target, sel), 
         sel && sel.loupe && (sel.loupe_timeout = setTimeout(function() {
-            sel.loupe_timeout = !1, sel.loupe.style.display = "none";
+            sel.loupe_timeout = !1, sel.active && stopSelection(sel), sel.loupe.style.display = "none";
         }, 2e3));
     }
     function get_release_handler(sel, also) {
@@ -12235,7 +12257,17 @@ var metaBook = {
                 }
                 if (!(classname && classname.search && classname.search(/\b(sbook|pubtool)ignore\b/) >= 0 || metaBook.ignore && metaBook.ignore.match(child))) {
                     if (toclevel && !info.tocdone ? handleHead(child, id, docinfo, scanstate, toclevel, curhead, curinfo, curlevel) : info && (info.head = curinfo, 
-                    info.indexRef("head", curinfo)), classname && classname.search && classname.search(/\b(sbook|pubtool)terminal\b/) >= 0 || classname && metaBook.terminals && metaBook.terminals.match(child)) scanstate.location = scanstate.location + textWidth(child); else {
+                    info.indexRef("head", curinfo)), info) {
+                        var altids = child.getAttribute("data-altid");
+                        if (altids) {
+                            altids = altids.split(" ");
+                            for (var alti = 0, altlen = altids.length; altlen > alti; ) {
+                                var altid = altids[alti++];
+                                docinfo[altid] || (docinfo[altid] = info);
+                            }
+                        }
+                    }
+                    if (classname && classname.search && classname.search(/\b(sbook|pubtool)terminal\b/) >= 0 || classname && metaBook.terminals && metaBook.terminals.match(child)) scanstate.location = scanstate.location + textWidth(child); else {
                         var grandchildren = child.childNodes;
                         for (i = 0, lim = grandchildren.length; lim > i; ) {
                             var grandchild = grandchildren[i++];
@@ -12682,18 +12714,14 @@ var metaBook = {
     function initMargins() {
         var topleading = fdjtDOM("div#SBOOKTOPLEADING.leading.top", " "), bottomleading = fdjtDOM("div#SBOOKBOTTOMLEADING.leading.bottom", " ");
         topleading.metabookui = !0, bottomleading.metabookui = !0;
-        var controls = fdjtDOM("div#METABOOKPAGECONTROLS"), holder = fdjtDOM("div");
-        holder.innerHTML = fixStaticRefs(metaBook.HTML.pageleft);
-        for (var nodes = toArray(holder.childNodes), i = 0, lim = nodes.length; lim > i; ) controls.appendChild(nodes[i++]);
-        for (holder.innerHTML = fixStaticRefs(metaBook.HTML.pageright), nodes = toArray(holder.childNodes), 
-        i = 0, lim = nodes.length; lim > i; ) controls.appendChild(nodes[i++]);
+        var page_right = fdjtDOM("div.mbpagecontrol#MBPAGERIGHT"), page_left = fdjtDOM("div.mbpagecontrol#MBPAGELEFT"), controls = fdjtDOM("div#METABOOKPAGECONTROLS", page_left, page_right);
         fdjtDOM.prepend(document.body, controls), window.scrollTo(0, 0);
         var bgcolor = getBGColor(document.body) || "white";
         metaBook.backgroundColor = bgcolor, "transparent" === bgcolor && (bgcolor = fdjtDOM.getStyle(document.body).backgroundColor), 
         bgcolor && bgcolor.search("rgba") >= 0 ? bgcolor.search(/,\s*0\s*\)/) > 0 ? bgcolor = "white" : (bgcolor = bgcolor.replace("rgba", "rgb"), 
         bgcolor = bgcolor.replace(/,\s*((\d+)|(\d+.\d+))\s*\)/, ")")) : "transparent" === bgcolor && (bgcolor = "white");
     }
-    var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, $ID = fdjt.ID, fdjtTime = fdjt.Time, fdjtString = fdjt.String, dropClass = fdjtDOM.dropClass, addClass = fdjtDOM.addClass, getGeometry = fdjtDOM.getGeometry, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, toArray = fdjtDOM.toArray, isEmpty = fdjtString.isEmpty, mB = metaBook, Trace = metaBook.Trace, applyMetaClass = mB.applyMetaClass, fixStaticRefs = mB.fixStaticRefs, note_counter = 1;
+    var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, $ID = fdjt.ID, fdjtTime = fdjt.Time, fdjtString = fdjt.String, dropClass = fdjtDOM.dropClass, addClass = fdjtDOM.addClass, getGeometry = fdjtDOM.getGeometry, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, toArray = fdjtDOM.toArray, isEmpty = fdjtString.isEmpty, mB = metaBook, Trace = metaBook.Trace, applyMetaClass = mB.applyMetaClass, note_counter = 1;
     metaBook.initBody = initBody, metaBook.sizeContent = sizeContent;
 }(), function() {
     "use strict";
@@ -14407,12 +14435,12 @@ var metaBook = {
         if (adds && (adds instanceof Array || (adds = [ adds ]), 0 !== adds.length)) {
             metaBook.Trace.slices && fdjtLog("Adding %d cards to slice %o", adds.length, this.container);
             for (var byid = this.byid, cards = this.cards, i = 0, lim = adds.length; lim > i; ) {
-                var card, id, add = adds[i++], info = !1, about = !1, replace = !1;
+                var card, id, add = adds[i++], info = !1, about = !1, push = !0, replace = !1;
                 if (add.about && add.dom && (info = add, card = add.dom), add.nodeType && 1 === add.nodeType && hasClass(add, "metabookcard")) {
                     if (card = add, id = add.name || add.getAttribute("name"), !id) continue;
                     (info = byid[id]) ? (info.dom !== add && (replace = byid[id].dom), card = add, info.dom = add) : card = add;
                 } else add instanceof Ref && (id = add._qid || add.getQID(), about = add, byid[id] ? (info = byid[id], 
-                card = info.dom) : card = this.renderCard(add));
+                card = info.dom, push = !1) : card = this.renderCard(add));
                 if (card) {
                     if (about || (about = RefDB.resolve(id)), info || (byid[id] = info = {
                         added: fdjtTime(),
@@ -14428,7 +14456,7 @@ var metaBook = {
                         var fn = this.filterfn;
                         info.hidden = fn(info) ? !1 : !0;
                     }
-                    replace ? this.container.replaceChild(card, replace) : cards.push(info);
+                    replace ? this.container.replaceChild(card, replace) : push && cards.push(info);
                 }
             }
             this.needupdate = !0, this.live && this.refresh();
@@ -15088,7 +15116,8 @@ var metaBook = {
     function changeMode(mode) {
         if (Trace.mode && fdjtLog("changeMode %o, cur=%o dbc=%o", mode, metaBook.mode, document.body.className), 
         fdjtDOM.dropClass(metaBookHUD, metaBookModes), fdjtDOM.addClass(metaBookHUD, mode), 
-        "statictoc" === mode) {
+        "openglossmark" !== mode && "openglossmark" === metaBook.mode && ($ID("METABOOKOPENGLOSSMARK") && ($ID("METABOOKOPENGLOSSMARK").id = ""), 
+        dropClass(document.body, "openglossmark")), "statictoc" === mode) {
             var headinfo = metaBook.head && metaBook.head.id && metaBook.docinfo[metaBook.head.id], static_head = $ID("MBTOC4" + headinfo.frag), toc = fdjt.ID("METABOOKSTATICTOC");
             fdjt.showPage.check(toc), 0 === static_head.offsetHeight && fdjt.showPage.showNode(toc, static_head);
         } else if ("allglosses" === mode) {
@@ -15143,35 +15172,35 @@ var metaBook = {
         if (!cardinfo) return fdjtLog.warn("No info for skimming to %s in %s", card, slice), 
         void 0;
         card = cardinfo.dom || card, slice.mode && mB.mode !== slice.mode && mB.setMode(slice.mode);
-        var passage = mbID(cardinfo.passage || cardinfo.id), i = 0, lim = 0;
+        var passage = mbID(cardinfo.passage || cardinfo.id);
         if ("number" != typeof dir && (dir = 0), expanded === void 0 && (expanded = hasClass(skimmer, "expanded")), 
-        addClass(document.body, "mbSKIMMING"), metaBook.skimming = hasParent(card, metaBook.DOM.allglosses) ? metaBook.allglosses : hasParent(card, $ID("METABOOKSEARCHRESULTS")) ? metaBook.searchresults : hasParent(card, $ID("METABOOKSTATICTOC")) ? metaBook.statictoc : !0, 
-        setHUD(!1, !1), Trace.mode && fdjtLog("metaBookSkim() %o (card=%o) mode=%o scn=%o/%o dir=%o", passage, card, metaBook.mode, metaBook.skimpoint, metaBook.target, dir), 
+        metaBook.skimming = hasParent(card, metaBook.DOM.allglosses) ? metaBook.allglosses : hasParent(card, $ID("METABOOKSEARCHRESULTS")) ? metaBook.searchresults : hasParent(card, $ID("METABOOKSTATICTOC")) ? metaBook.statictoc : !0, 
+        Trace.mode && fdjtLog("metaBookSkim() %o (card=%o) mode=%o scn=%o/%o dir=%o", passage, card, metaBook.mode, metaBook.skimpoint, metaBook.target, dir), 
         skimpoint !== card) {
-            var clone = card.cloneNode(!0), pct = 0 > dir ? "-120%" : dir > 0 ? "120%" : !1;
-            dropClass(skimmer, "expanded"), dropClass(skimmer, "transimate"), clone.id = "METABOOKSKIM", 
-            fdjtDOM.replace("METABOOKSKIM", clone), clone.offsetHeight > skimmer.offsetHeight ? addClass(skimmer, "oversize") : dropClass(skimmer, "oversize");
-            var dropTransAnimate = function() {
-                dropClass(skimmer, "transanimate"), fdjtDOM.removeListener(skimmer, "transitionend", dropTransAnimate);
-            };
-            skimpoint && pct && (skimmer.style[fdjtDOM.transform] = "translate(" + pct + ",0)", 
-            setTimeout(function() {
-                addClass(skimmer, "transanimate"), fdjtDOM.addListener(skimmer, "transitionend", dropTransAnimate), 
-                setTimeout(function() {
-                    skimmer.style[fdjtDOM.transform] = "";
-                }, 0);
-            }, 0)), slice.setSkim(card), $ID("METABOOKSKIMINDEX").innerHTML = slice.atStart ? "" : "" + slice.skimpos, 
-            $ID("METABOOKSKIMLIMIT").innerHTML = slice.atEnd ? "" : "" + (slice.visible.length - slice.skimpos - 1), 
+            var clone = card.cloneNode(!0);
+            dropClass(skimmer, "expanded"), clone.id = "METABOOKSKIM", fdjtDOM.replace("METABOOKSKIM", clone), 
+            clone.offsetHeight > skimmer.offsetHeight ? addClass(skimmer, "oversize") : dropClass(skimmer, "oversize");
+            slice.setSkim(card), $ID("MBPAGELEFT").innerHTML = slice.atStart ? "" : "<span>-" + slice.skimpos + "</span>", 
+            $ID("MBPAGERIGHT").innerHTML = slice.atEnd ? "" : "<span>" + (slice.visible.length - slice.skimpos - 1) + "+</span>", 
             skimpoint && dropClass(skimpoint, "skimpoint"), card && addClass(card, "skimpoint"), 
             metaBook.skimpoint = card;
         }
-        expanded ? addClass("METABOOKSKIMMER", "expanded") : dropClass("METABOOKSKIMMER", "expanded"), 
-        slice.atEnd ? addClass(document.body, "mbSKIMEND") : dropClass(document.body, "mbSKIMEND"), 
-        slice.atStart ? addClass(document.body, "mbSKIMSTART") : dropClass(document.body, "mbSKIMSTART");
+        skimMode(slice, expanded), metaBook.GoTo(passage, "Skim"), setSkimTarget(passage), 
+        highlightSkimTarget(passage, card);
+    }
+    function skimMode(slice, expanded) {
+        var body = document.body, skimmer = $ID("METABOOKSKIMMER");
+        setHUD(!1, !1), addClass(body, "mbSKIMMING"), expanded ? addClass(skimmer, "expanded") : dropClass(skimmer, "expanded"), 
+        slice.atEnd ? addClass(body, "mbSKIMEND") : dropClass(body, "mbSKIMEND"), slice.atStart ? addClass(body, "mbSKIMSTART") : dropClass(body, "mbSKIMSTART"), 
+        dropClass(skimmer, "mbfoundhighlights");
+    }
+    function setSkimTarget(passage) {
+        metaBook.target && metaBook.clearHighlights(metaBook.getDups(metaBook.target)), 
+        metaBook.setTarget(passage);
+    }
+    function highlightSkimTarget(passage, card) {
         var highlights = [];
-        if (metaBook.target && metaBook.clearHighlights(metaBook.getDups(metaBook.target)), 
-        dropClass("METABOOKSKIMMER", "mbfoundhighlights"), metaBook.setTarget(passage), 
-        card && hasClass(card, "gloss")) {
+        if (card && hasClass(card, "gloss")) {
             var glossinfo = metaBook.glossdb.ref(card.name);
             if (glossinfo.excerpt) {
                 var searching = metaBook.getDups(passage.id), range = metaBook.findExcerpt(searching, glossinfo.excerpt, glossinfo.exoff);
@@ -15180,14 +15209,13 @@ var metaBook = {
         } else if (card && getParent(card, ".sbookresults")) {
             var about = card.about, target = mbID(about);
             if (target) {
-                var info = metaBook.docinfo[target.id], terms = metaBook.query.tags, spellings = info.knodeterms;
-                if (i = 0, lim = terms.length, 0 === lim) addClass(metaBook.getDups(target), "mbhighlightpassage"); else for (;lim > i; ) {
+                var info = metaBook.docinfo[target.id], terms = metaBook.query.tags, spellings = info.knodeterms, i = 0, lim = terms.length;
+                if (0 === lim) addClass(metaBook.getDups(target), "mbhighlightpassage"); else for (;lim > i; ) {
                     var term = terms[i++], h = metaBook.highlightTerm(term, target, info, spellings);
                     highlights = highlights.concat(h);
                 }
             }
         }
-        metaBook.GoTo(passage, "Skim");
     }
     function getSlice(card) {
         var cur_slice = mB[mB.mode];
@@ -15232,9 +15260,15 @@ var metaBook = {
         metaBook.hudup ? setHUD(!1, !1) : setHUD(!0));
     };
     var iframe_app_init = !1;
-    return metaBook.initIFrameApp = initIFrameApp, metaBook.selectApp = function() {
+    metaBook.initIFrameApp = initIFrameApp, metaBook.selectApp = function() {
         "sbooksapp" === metaBook.mode ? setMode(!1) : setMode("sbooksapp");
-    }, metaBook.stopSkimming = stopSkimming, metaBook.SkimTo = metaBookSkimTo, metaBook.addConfig("uisize", function(name, value) {
+    }, metaBook.stopSkimming = stopSkimming;
+    var rAF = fdjtDOM.requestAnimationFrame;
+    return metaBook.SkimTo = function(card, dir, expanded) {
+        rAF(function() {
+            metaBookSkimTo(card, dir, expanded);
+        });
+    }, metaBook.SkimTo = metaBookSkimTo, metaBook.addConfig("uisize", function(name, value) {
         fdjtDOM.swapClass(metaBook.Frame, /metabookuifont\w+/g, "metabookuifont" + value), 
         fdjt.Async(function() {
             metaBook.resizeUI();
@@ -15489,7 +15523,7 @@ var metaBook = {
     function showGlossmark(target, point) {
         var id = target.codexbaseid || target.id;
         if (id) {
-            var dups = metaBook.getDups(target.id), glossids = metaBook.glossdb.find("frag", id), glosses = [], slicediv = fdjtDOM("div.metabookglosses.metabookslice");
+            var dups = metaBook.getDups(id), glossids = metaBook.glossdb.find("frag", id), glosses = [], slicediv = fdjtDOM("div.metabookglosses.metabookslice");
             glossids && glossids.length || addClass(slicediv, "noglosses"), metaBook.target && metaBook.clearHighlights(metaBook.target);
             for (var i = 0, lim = glossids.length; lim > i; ) {
                 var glossref = metaBook.glossdb.ref(glossids[i++]);
@@ -15952,6 +15986,7 @@ var metaBook = {
             ontap: gloss_selecting_ontap,
             onrelease: opts && opts.onrelease,
             onslip: opts && opts.onslip,
+            loupe: !1,
             fortouch: metaBook.touch,
             holdmsecs: 150,
             movethresh: 250
@@ -17142,8 +17177,7 @@ var metaBook = {
         cancel(evt), void 0;
         if (hasParent(target, ".glossmark") || handle_content_click(target)) return cancel(evt), 
         !1;
-        if (mB.touch && mB.textinput) return metaBook.clearFocus(mB.textinput), cancel(evt), 
-        void 0;
+        if (mB.touch && mB.textinput) return mB.clearFocus(mB.textinput), cancel(evt), void 0;
         if (mB.passage_menu) return Trace.gestures && fdjtLog("body_tapped %o closing menu %o", evt, mB.passage_menu), 
         mB.TapHold.body && metaBook.TapHold.body.abort(), cancel(evt), closePassageMenu(evt);
         if (mB.skimming) return hasClass("METABOOKSKIMMER", "expanded") ? dropClass("METABOOKSKIMMER", "expanded") : touch && vw / 4 > cX ? pageBackward(evt, !0) : touch && vw / 4 > cX ? pageForward(evt, !0) : setHUD(!1), 
@@ -18097,24 +18131,14 @@ var metaBook = {
             mousedown: cancel,
             mouseup: cancel
         },
-        "#METABOOKNEXTPAGE": {
+        "#MBPAGERIGHT": {
             click: function(evt) {
-                pageForward(evt), cancel(evt);
+                hasClass(document.body, "mbSKIMMING") ? skimForward(evt) : pageForward(evt), cancel(evt);
             }
         },
-        "#METABOOKPREVPAGE": {
+        "#MBPAGELEFT": {
             click: function(evt) {
-                pageBackward(evt), cancel(evt);
-            }
-        },
-        "#METABOOKNEXTSKIM": {
-            click: function(evt) {
-                skimForward(evt), cancel(evt);
-            }
-        },
-        "#METABOOKPREVSKIM": {
-            click: function(evt) {
-                skimBackward(evt), cancel(evt);
+                hasClass(document.body, "mbSKIMMING") ? skimBackward(evt) : pageBackward(evt), cancel(evt);
             }
         },
         "#METABOOKSHOWTEXT": {
@@ -18302,24 +18326,14 @@ var metaBook = {
             tap: metaBook.UI.handlers.searchcloud_select,
             release: metaBook.UI.handlers.searchcloud_select
         },
-        "#METABOOKNEXTPAGE": {
+        "#MBPAGERIGHT": {
             touchstart: function(evt) {
-                pageForward(evt), cancel(evt);
+                hasClass(document.body, "mbSKIMMING") ? skimForward(evt) : pageForward(evt), cancel(evt);
             }
         },
-        "#METABOOKPREVPAGE": {
+        "#MBPAGELEFT": {
             touchstart: function(evt) {
-                pageBackward(evt), cancel(evt);
-            }
-        },
-        "#METABOOKNEXTSKIM": {
-            touchstart: function(evt) {
-                skimForward(evt), cancel(evt);
-            }
-        },
-        "#METABOOKPREVSKIM": {
-            touchstart: function(evt) {
-                skimBackward(evt), cancel(evt);
+                hasClass(document.body, "mbSKIMMING") ? skimBackward(evt) : pageBackward(evt), cancel(evt);
             }
         },
         "#METABOOKHELP": {
@@ -19195,10 +19209,10 @@ metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="text">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="text">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="text">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="text">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="text">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="text">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.pageleft = '<img svg="{{bmg}}metabook/page_left.svgz"\n     src="{{bmg}}metabook/page_left100h.png"\n     id="METABOOKPREVPAGE" class="metabookpagebutton" alt="prev"\n     title="go to the previous page"/>\n<img svg="{{bmg}}metabook/skim_left.svgz"\n     src="{{bmg}}metabook/skim_left100x100.png"\n     id="METABOOKPREVSKIM" class="metabookskimbutton" alt="prev"\n     title="go to the previous result/gloss"/>\n<img svg="{{bmg}}metabook/skim_left_stop.svgz"\n     src="{{bmg}}metabook/skim_left_stop100x100.png"\n     id="METABOOKSTARTSKIM" class="metabookskimbutton"\n     alt="beginning"/>\n<img svg="{{bmg}}metabook/page_right.svgz"\n     src="{{bmg}}metabook/page_right100h.png"\n     id="METABOOKNEXTPAGE" class="metabookpagebutton" alt="next"\n     title="go to the next page"/>\n<img svg="{{bmg}}metabook/skim_right_stop.svgz"\n     src="{{bmg}}metabook/skim_right_stop100x100.png"\n     id="METABOOKENDSKIM" class="metabookskimbutton"\n     alt="end"/>\n<img svg="{{bmg}}metabook/skim_right.svgz"\n     src="{{bmg}}metabook/skim_right100x100.png"\n     id="METABOOKNEXTSKIM" class="metabookskimbutton" alt="next"\n     title="go to the next result/gloss"/>\n<div class="metabookskimindicator" id="METABOOKSKIMINDEX"></div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.pageright = '<img svg="{{bmg}}metabook/page_right.svgz"\n     src="{{bmg}}metabook/page_right100h.png"\n     id="METABOOKNEXTPAGE" class="metabookpagebutton" alt="next"\n     title="go to the next page"/>\n<img svg="{{bmg}}metabook/skim_right_stop.svgz"\n     src="{{bmg}}metabook/skim_right_stop100x100.png"\n     id="METABOOKENDSKIM" class="metabookskimbutton"\n     alt="end"/>\n<img svg="{{bmg}}metabook/skim_right.svgz"\n     src="{{bmg}}metabook/skim_right100x100.png"\n     id="METABOOKNEXTSKIM" class="metabookskimbutton" alt="next"\n     title="go to the next result/gloss"/>\n<div class="metabookskimindicator" id="METABOOKSKIMLIMIT"></div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1475-g76417cb", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Fri Oct 16 12:07:28 EDT 2015", 
-fdjt.builduuid = "75346ea5-af28-4445-82d1-6f8451a71264", fdjt.CodexLayout.sourcehash = "FE1517087A137F32701BAC919E9CB7FB7F9C5796", 
-Knodule.version = "v0.8-152-gc2cb02e", metaBook.version = "v0.8-80-ge1bd4c2", metaBook.buildid = "dae00cdc-bc04-474e-b269-03f6bbb331b4", 
-metaBook.buildtime = "Sun Oct 18 19:50:02 EDT 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
+fdjt.revision = "1.5-1486-ga7d244b", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Thu Oct 22 11:15:33 EDT 2015", 
+fdjt.builduuid = "4623e670-b8c9-4082-9cd4-438bb6bfeb55", fdjt.CodexLayout.sourcehash = "FE1517087A137F32701BAC919E9CB7FB7F9C5796", 
+Knodule.version = "v0.8-154-g4218590", metaBook.version = "v0.8-93-g9c0ee9e", metaBook.buildid = "963e06c6-0a47-419c-84a7-2a6c72d5e2fc", 
+metaBook.buildtime = "Thu Oct 22 11:15:45 EDT 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });
