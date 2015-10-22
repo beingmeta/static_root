@@ -6249,7 +6249,8 @@ fdjt.DOM=
                 return;}
             else if ((!(attrib))&&(elt.classList)&&
                      (typeof classname ==="string")) {
-                elt.classList.add(classname);
+                if (!(elt.classList.contains(classname)))
+                    elt.classList.add(classname);
                 return;}
             var classinfo=
                 (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
@@ -6290,7 +6291,8 @@ fdjt.DOM=
                 return;}
             else if ((!(attrib))&&(elt.classList)&&
                      (typeof classname ==="string")) {
-                elt.classList.remove(classname);
+                if (elt.classList.contains(classname))
+                    elt.classList.remove(classname);
                 return;}
             var classinfo=
                 (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
@@ -13930,7 +13932,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         if (style.display==='none') continue;
         else if ((style.position)&&(style.position!=='static'))
           continue;
-        if (style.pageBreakBefore==="force")
+        if (style.pageBreakBefore==="always")
           addClass(node,"fdjtpagebreakauto");
         else dropClass(node,"fdjtpagebreakauto");
         // We don't currently make these stylable
@@ -14037,7 +14039,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if (!(container=getContainer(container))) return;
     if (!(hasClass(container,"fdjtpage"))) {
       if (container.offsetHeight) showPage(container);}
-    else if ((container.offsetHeight)&&(!(hasClass(container,"needsresize")))) {
+    else if ((container.offsetHeight)&&(hasClass(container,"needsresize"))) {
       dropClass(container,"needsresize");
       updatePage(container);}
     else return;}
@@ -39999,8 +40001,8 @@ metaBook.HTML.pageright=
 // FDJT build information
 fdjt.revision='1.5-1486-ga7d244b';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Oct 22 11:15:33 EDT 2015';
-fdjt.builduuid='4623e670-b8c9-4082-9cd4-438bb6bfeb55';
+fdjt.buildtime='Thu Oct 22 12:46:08 EDT 2015';
+fdjt.builduuid='fd6cecce-1bcc-4d13-916a-bb08eb83a198';
 
 fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
 
@@ -40008,8 +40010,8 @@ fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
 metaBook.version='v0.8-93-g9c0ee9e';
-metaBook.buildid='963e06c6-0a47-419c-84a7-2a6c72d5e2fc';
-metaBook.buildtime='Thu Oct 22 11:15:45 EDT 2015';
+metaBook.buildid='73b3a6a3-3347-4319-8c4e-0e7b83096b5b';
+metaBook.buildtime='Thu Oct 22 12:46:14 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

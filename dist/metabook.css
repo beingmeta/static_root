@@ -2298,15 +2298,10 @@ div.sbooksection.mbnewtarget > *:first-child {
 */
 body.mbtarget { color: inherit;}
 
+/*
 body._ANIMATE .glossmark > img {
-    transition-property: opacity;
-    transition-duration: 0.5s;
-    -o-transition-property: opacity;
-    -o-transition-duration: 0.5s;
-    -moz-transition-property: opacity;
-    -moz-transition-duration: 0.5s;
-    -webkit-transition-property: opacity;
-    -webkit-transition-duration: 0.5s;}
+    transition-property: opacity; transition-duration: 0.5s;}
+*/
 
 .mbtarget > .glossmark {
     border-right-color: blue;} /* double */

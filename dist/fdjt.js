@@ -5083,7 +5083,8 @@ fdjt.DOM=
                 return;}
             else if ((!(attrib))&&(elt.classList)&&
                      (typeof classname ==="string")) {
-                elt.classList.add(classname);
+                if (!(elt.classList.contains(classname)))
+                    elt.classList.add(classname);
                 return;}
             var classinfo=
                 (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
@@ -5124,7 +5125,8 @@ fdjt.DOM=
                 return;}
             else if ((!(attrib))&&(elt.classList)&&
                      (typeof classname ==="string")) {
-                elt.classList.remove(classname);
+                if (elt.classList.contains(classname))
+                    elt.classList.remove(classname);
                 return;}
             var classinfo=
                 (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
@@ -12764,7 +12766,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         if (style.display==='none') continue;
         else if ((style.position)&&(style.position!=='static'))
           continue;
-        if (style.pageBreakBefore==="force")
+        if (style.pageBreakBefore==="always")
           addClass(node,"fdjtpagebreakauto");
         else dropClass(node,"fdjtpagebreakauto");
         // We don't currently make these stylable
@@ -12871,7 +12873,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if (!(container=getContainer(container))) return;
     if (!(hasClass(container,"fdjtpage"))) {
       if (container.offsetHeight) showPage(container);}
-    else if ((container.offsetHeight)&&(!(hasClass(container,"needsresize")))) {
+    else if ((container.offsetHeight)&&(hasClass(container,"needsresize"))) {
       dropClass(container,"needsresize");
       updatePage(container);}
     else return;}
@@ -15974,6 +15976,6 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 // FDJT build information
 fdjt.revision='1.5-1486-ga7d244b';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Oct 22 11:15:33 EDT 2015';
-fdjt.builduuid='4623e670-b8c9-4082-9cd4-438bb6bfeb55';
+fdjt.buildtime='Thu Oct 22 12:46:08 EDT 2015';
+fdjt.builduuid='fd6cecce-1bcc-4d13-916a-bb08eb83a198';
 
