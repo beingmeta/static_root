@@ -7609,9 +7609,12 @@ fdjt.DOM=
 
         /* Tweaking fonts */
 
+        var floor=Math.floor;
+
         function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge,dolog){
             var rect=wrapper.getBoundingClientRect();
-            var ow=rect.width, oh=rect.height, nw, nh, newsize;
+            var ow=floor(rect.width), oh=floor(rect.height);
+            var nw, nh, newsize;
             var wstyle=wrapper.style;
             if (typeof fudge!== "number") fudge=1;
 
@@ -7625,14 +7628,15 @@ fdjt.DOM=
             // Figure out if we need to grow or shrink 
             if ((ow>w)||(oh>h)) delta=-delta;
 
-            if (delta>0) wstyle.maxWidth=Math.floor(w)+"px";
+            if (delta>0) wstyle.maxWidth=floor(w)+"px";
 
             if (!(size)) {size=100; wstyle.fontSize=size+"%";}
             if (!(min)) min=20;
             if (!(max)) max=150;
             newsize=size+delta;
             wstyle.fontSize=newsize+"%";
-            rect=wrapper.getBoundingClientRect(); nw=rect.width; nh=rect.height;
+            rect=wrapper.getBoundingClientRect();
+            nw=floor(rect.width); nh=floor(rect.height);
             while ((size>=min)&&(size<=max)&&
                    ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
                 size=newsize; newsize=newsize+delta;
@@ -7643,7 +7647,7 @@ fdjt.DOM=
                         wrapper.parentNode,w,h,wrapper,newsize,size,delta,
                         ow,oh,nw,nh);
                 rect=wrapper.getBoundingClientRect();
-                nw=rect.width; nh=rect.height;}
+                nw=floor(rect.width); nh=floor(rect.height);}
             wstyle.maxWidth='';
             if (delta>0) {
                 wstyle.fontSize=size+"%";
@@ -15974,8 +15978,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1486-ga7d244b';
+fdjt.revision='1.5-1488-gf2b3a15';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Oct 22 12:46:08 EDT 2015';
-fdjt.builduuid='fd6cecce-1bcc-4d13-916a-bb08eb83a198';
+fdjt.buildtime='Sun Oct 25 19:25:05 EDT 2015';
+fdjt.builduuid='fc2ff4ce-5c45-4f98-b651-73ffa7601e0f';
 

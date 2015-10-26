@@ -5355,7 +5355,6 @@ body.hudup img.metabookpagebutton {
     ._NOSVG #METABOOKSHOWCOVER {
         background-image: url(g/metabook/book50x50.png);}
 
-
     #METABOOKHEART {
         border-radius: 1ex;
         left: 5px; right: 5px;}
@@ -5392,8 +5391,6 @@ body.hudup img.metabookpagebutton {
     img.metabookclosehud#METABOOKSTOPSKIM {
         bottom: 50px; top: auto;}
 
-    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
-        left: 10px; right: 10px;}
     #METABOOKHUD.openhead #METABOOKHEAD,
     #METABOOKHUD.openheart #METABOOKHEART,
     #METABOOKHUD.openfoot #METABOOKFOOT,
