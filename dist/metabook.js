@@ -13801,6 +13801,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var hasClass=fdjtDOM.hasClass;
   var addListener=fdjtDOM.addListener;
   var toArray=fdjtDOM.toArray;
+  var getGeometry=fdjtDOM.getGeometry;
   
   var adjustFonts=fdjtDOM.adjustFonts;
 
@@ -13817,8 +13818,10 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     else container=fdjtDOM.getParent(container,".fdjtpage")||container;
     return container;}
     
-  function istootall(container){
-    return container.scrollHeight>container.offsetHeight;}
+  function istootall(container,fudge){
+    if (fudge)
+      return container.scrollHeight>(container.offsetHeight-fudge);
+    else return container.scrollHeight>container.offsetHeight;}
   function isOversize(elt,w,h){
     if (typeof w === "undefined") w=true;
     if (typeof h === "undefined") h=true;
@@ -13833,6 +13836,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var info=getChild(container,".fdjtpageinfo");
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
+    var fudge=getGeometry(container,false,true).bottom_padding;
     var tap_event_name=
       ((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
@@ -13865,7 +13869,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         (istootall(container))) {
       dropClass(container,"formatting");
       return startpos;}
-    var endpos=showchildren(container,children,startpos,dir);
+    var endpos=showchildren(container,children,startpos,dir,fudge);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -13948,7 +13952,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     dropClass(container,"getvisible");
     return children;}
 
-  function showchildren(container,children,i,dir){
+  function showchildren(container,children,i,dir,fudge){
     var lim=children.length, scan=children[i+dir], last=children[i]; 
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
@@ -24681,7 +24685,7 @@ metaBook.DOMScan=(function(){
     metaBook.setupGlossData=setupGlossData;
 
     function cacheGlossData(uri){
-        function caching(resolved){
+        function caching(resolved,rejected){
             if (uri.search(mB.cachelink)!==0) return;
             if (glossdata[uri]) return resolved(glossdata[uri]);
             if (glossdata_state[uri]==="cached") return;
@@ -24740,21 +24744,51 @@ metaBook.DOMScan=(function(){
                             reader.readAsDataURL(req.response);}}
                     catch (ex) {
                         fdjtLog.warn("Error fetching %s via %s: %s",uri,endpoint,ex);
-                        glossdata_state[uri]=false;}}};
+                        glossdata_state[uri]=false;
+                        if (rejected) rejected(ex);}}
+                else if (req.readyState === 4) {
+                    fdjtLog.warn("Error (%d) fetching %s via %s",
+                                 req.status,uri,endpoint);
+                    glossdata_state[uri]=false;
+                    if (rejected) rejected(req);}};
             req.open("GET",endpoint);
             req.responseType=rtype;
             // req.withCredentials=true;
             req.send(null);}
         return new Promise(caching);}
 
+    var glossdata_wait=600;
+    var glossdata_timer=false;
+    var need_glossdata=[];
+
     function needGlossData(uri){
         if ((glossdata[uri])||(glossdata_state[uri]==="cached")) return;
+        if (!(navigator.onLine)) {
+            if (need_glossdata.length===0) 
+                fdjt.DOM.addListener(window,"online",load_glossdata);
+            if (need_glossdata.indexOf(uri)<0) need_glossdata.push(uri);
+            return;}
         if ((mB.mycopyid)&&(mB.mycopyid_expires<(new Date())))
-            return cacheGlossData(uri);
+            return cacheGlossData(uri).catch(function(){delay_glossdata(uri);});
         else {
             var req=mB.getMyCopyId();
-            return req.then(function(mycopyid){if (mycopyid) cacheGlossData(uri);});}}
+            return req.then(function(mycopyid){if (mycopyid) cacheGlossData(uri);})
+                .catch(function(){delay_glossdata(uri);});}}
     metaBook.needGlossData=needGlossData;
+    
+    function delay_glossdata(uri){
+        need_glossdata.push(uri);
+        if (!(glossdata_timer))
+            glossdata_timer=setTimeout(load_glossdata,glossdata_wait);}
+
+    function load_glossdata(){
+        if ((navigator.onLine)&&(need_glossdata.length)) {
+            if (glossdata_timer) {
+                clearTimeout(glossdata_timer); glossdata_timer=false;}
+            var needed=need_glossdata; need_glossdata=[];
+            var i=0, lim=needed.length; while (i<lim) {
+                needGlossData(needed[i++]);}}}
+        
 
     function getGlossData(uri){
         function getting(resolved){
@@ -40006,19 +40040,19 @@ metaBook.HTML.pageright=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1489-ge4c2a36';
+fdjt.revision='1.5-1490-g87a336c';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Tue Oct 27 10:37:43 EDT 2015';
-fdjt.builduuid='08ee9b71-90e5-4075-ab08-874288990bf1';
+fdjt.buildtime='Wed Oct 28 10:02:11 EDT 2015';
+fdjt.builduuid='d81ab273-5458-4c69-af23-e95c61bec170';
 
 fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
 
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-104-ga73b053';
-metaBook.buildid='3ac85a9d-d7f5-471b-8d2e-d84a42eec0c2';
-metaBook.buildtime='Tue Oct 27 13:16:03 EDT 2015';
+metaBook.version='v0.8-105-gdd2f7c6';
+metaBook.buildid='73f07c4f-ef56-4b7a-af17-2b5da73124c9';
+metaBook.buildtime='Wed Oct 28 17:10:41 EDT 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

@@ -1228,6 +1228,8 @@ html._MOUSE div.fdjtpage div.fdjtpageinfo:hover {
 html._MOUSE div.fdjtpage div.fdjtpageinfo .button:hover {
     color: blue;}
 
+html._TOUCH div.fdjtpageinfo { font-size: 200%;}
+
 div.fdjtpage.formatting div, div.fdjtpage.getvisible div, 
 div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
     visibility: hidden;}
@@ -2890,11 +2892,13 @@ body.mbSHOWHELP #METABOOKFRAME {
     width: 100%; height: 100%;
     transform: translateZ(0);
     pointer-events: none;}
-#METABOOKFOOT, #METABOOKTOPBAR > *,
+#METABOOKFOOT, #METABOOKTOPBAR,
 body.mbSKIMMING #METABOOKSKIMMER,
 #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.openhead #METABOOKHEAD {
     pointer-events: all;}
+#METABOOKHUD.openhead #METABOOKTOPBAR {
+    pointer-events: none;}
 
 /* Page controls */
 
@@ -3841,7 +3845,6 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 /* Phone */
 @media only screen and /* (min-width: 320px) and */
             (max-width: 480px) {
-    #METABOOKCOVER > div { bottom: 120px; top: 50px; }
     html._NOUSER #METABOOKCOVER > div { bottom: 150px; }
     #METABOOKCOVERMESSAGE div.message { font-size: 0.7em;}
     #METABOOKCOVERMESSAGE div#METABOOKOPENTAB {
@@ -4222,10 +4225,6 @@ body._FULLHEIGHT #METABOOKTOPBAR {height: 20px;}
 body._FULLHEIGHT #METABOOKTOPBAR.tapholding,
 body._FULLHEIGHT.hudup #METABOOKTOPBAR {height: 50px;}
 
-html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div,
-html._TOUCH #METABOOKFRAME > #METABOOKHUD.addgloss > div,
-html._TOUCH body.mbSKIMMING #METABOOKFRAME > #METABOOKHUD > #METABOOKSKIMMER {
-    pointer-events: all;}
 html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.helphud {
     background-color: ivory;}
 

@@ -12635,6 +12635,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var hasClass=fdjtDOM.hasClass;
   var addListener=fdjtDOM.addListener;
   var toArray=fdjtDOM.toArray;
+  var getGeometry=fdjtDOM.getGeometry;
   
   var adjustFonts=fdjtDOM.adjustFonts;
 
@@ -12651,8 +12652,10 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     else container=fdjtDOM.getParent(container,".fdjtpage")||container;
     return container;}
     
-  function istootall(container){
-    return container.scrollHeight>container.offsetHeight;}
+  function istootall(container,fudge){
+    if (fudge)
+      return container.scrollHeight>(container.offsetHeight-fudge);
+    else return container.scrollHeight>container.offsetHeight;}
   function isOversize(elt,w,h){
     if (typeof w === "undefined") w=true;
     if (typeof h === "undefined") h=true;
@@ -12667,6 +12670,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var info=getChild(container,".fdjtpageinfo");
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
+    var fudge=getGeometry(container,false,true).bottom_padding;
     var tap_event_name=
       ((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
@@ -12699,7 +12703,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         (istootall(container))) {
       dropClass(container,"formatting");
       return startpos;}
-    var endpos=showchildren(container,children,startpos,dir);
+    var endpos=showchildren(container,children,startpos,dir,fudge);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -12782,7 +12786,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     dropClass(container,"getvisible");
     return children;}
 
-  function showchildren(container,children,i,dir){
+  function showchildren(container,children,i,dir,fudge){
     var lim=children.length, scan=children[i+dir], last=children[i]; 
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
@@ -15978,8 +15982,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1489-ge4c2a36';
+fdjt.revision='1.5-1490-g87a336c';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Tue Oct 27 10:37:43 EDT 2015';
-fdjt.builduuid='08ee9b71-90e5-4075-ab08-874288990bf1';
+fdjt.buildtime='Wed Oct 28 10:02:11 EDT 2015';
+fdjt.builduuid='d81ab273-5458-4c69-af23-e95c61bec170';
 
