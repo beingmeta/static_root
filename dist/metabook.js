@@ -22302,7 +22302,7 @@ var metaBook={
         uisize: 'normal',dyslexical: false,
         animatecontent: true,animatehud: true,
         hidesplash: false,keyboardhelp: true,
-        holdmsecs: 500,wandermsecs: 1500,taptapmsecs: 200,
+        holdmsecs: 300,wandermsecs: 1500,taptapmsecs: 200,
         locsync: true, syncinterval: 60, checksync: 15*60,
         glossupdate: 5*60,cacheglosses: true,
         soundeffects: false, buzzeffects: false,
@@ -25496,11 +25496,6 @@ metaBook.DOMScan=(function(){
     /* Margin creation */
 
     function initMargins(){
-        var topleading=fdjtDOM("div#SBOOKTOPLEADING.leading.top"," ");
-        var bottomleading=
-            fdjtDOM("div#SBOOKBOTTOMLEADING.leading.bottom"," ");
-        topleading.metabookui=true; bottomleading.metabookui=true;
-        
         var page_right=fdjtDOM("div.mbpagecontrol#MBPAGERIGHT");
         var page_left=fdjtDOM("div.mbpagecontrol#MBPAGELEFT");
         var controls=fdjtDOM("div#METABOOKPAGECONTROLS",page_left,page_right);
@@ -32281,9 +32276,9 @@ metaBook.setMode=
         addClass(results_panel,"hudpanel");
         results_panel.id="METABOOKSEARCHRESULTS";
         fdjtDOM.replace("METABOOKSEARCHRESULTS",results_panel);
-        results.update();
         mB.slices.searchresults=results;
         metaBook.setMode("searchresults");
+        results.update();
         $ID("METABOOKSEARCHINPUT").blur();
         $ID("METABOOKSEARCHRESULTS").focus();}
     metaBook.showSearchResults=showSearchResults;
@@ -32419,7 +32414,8 @@ metaBook.setMode=
             input.value="";
             metaBook.empty_cloud.clearSelection();
             metaBook.empty_cloud.complete("");}
-        input.focus();}
+        // input.focus();
+    }
     metaBook.UI.handlers.clearSearch=clearSearch;
     
     metaBook.toggleSearch=function(evt){
@@ -35459,14 +35455,25 @@ metaBook.setMode=
             var uselabel=anchor.title||(getAnchorContext(anchor));
             var handler=((linkref.search("#")===0)?(makeGoTo(linkref)):
                          (makeOpener(anchor.href)));
-            var anchor_opt={label: uselabel,handler: handler,
+            var anchor_opt={handler: handler,
                             classname: "anchor"};
+            if (typeof uselabel === "string") anchor_opt.label=uselabel;
+            else if (uselabel.nodeType) {
+                anchor_opt.dom=uselabel;
+                anchor_opt.label=fdjtDOM.textify(uselabel);}
+            else {}
             choices.push(anchor_opt);}}
     
     function getAnchorContext(anchor){
         var frag=document.createDocumentFragment();
         var context=fdjtDOM("span.anchorcontext");
-        frag.appendChild(fdjtDOM("span.anchortext",anchor.innerHTML));
+        if ((anchor.childNodes.length===1)&&
+            (anchor.childNodes[0].nodeType===3))
+            frag.appendChild(fdjtDOM(
+                "span.anchortext",anchor.childNodes[0].nodeValue));
+        else {
+            var text=fdjtDOM("span.anchortext");
+            text.innerHTML=anchor.innerHTML;}
         frag.appendChild(context);
         if (anchor.title) fdjtDOM(context,anchor.title);
         else {
@@ -36715,7 +36722,7 @@ metaBook.setMode=
          "#METABOOKPAGEHEAD": {click: head_tap},
          "#METABOOKTABS": {click: head_tap},
          "#METABOOKHEAD": {click: head_tap},
-         "#METABOOKPAGEFOOT": {tap: foot_tap},
+         "#METABOOKFOOT": {tap: foot_tap},
          ".searchcloud": {
              tap: metaBook.UI.handlers.searchcloud_select,
              release: metaBook.UI.handlers.searchcloud_select},
@@ -36810,7 +36817,6 @@ metaBook.setMode=
          "#METABOOKSHOWCOVER": {
              tap: showcover_tapped, release: showcover_released},
          "#METABOOKSEARCHINFO": { click: metaBook.searchTags_onclick },
-         "#METABOOKPAGEFOOT": {},
          "#METABOOKPAGEREFTEXT": {tap: enterPageRef},
          "#METABOOKPAGENOTEXT": {tap: enterPageNum},
          "#METABOOKLOCPCT": {tap: enterPercentage},
@@ -38544,8 +38550,8 @@ metaBook.HTML.searchbox=
     "         results=\"METABOOKSEARCHRESULTS\"\n"+
     "         info=\"METABOOKSEARCHINFO\"/>\n"+
     "  <img class=\"metabookclearsearch\" alt=\"X\" title=\"clear search\"\n"+
-    "       svg=\"{{bmg}}metabook/redx.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/redx64x64.png\"/>\n"+
+    "       src=\"{{bmg}}metabook/redx.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/redx64x64.png\"/'>\n"+
     "</div>\n"+
     "<!--\n"+
     "    /* Emacs local variables\n"+
@@ -38599,45 +38605,45 @@ metaBook.HTML.addgloss=
     "  </div>\n"+
     "  <div class=\"metabookglossformbody\">\n"+
     "    <div class=\"addglossmenu\" data-touchable=\"img\">\n"+
-    "      <img svg=\"{{bmg}}metabook/upmenu.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/upmenu64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/upmenu.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/upmenu64x64.png'\"\n"+
     "           class=\"button menutop\" alt=\"upmenu\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/downmenu.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/downmenu64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/downmenu.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/downmenu64x64.png'\"\n"+
     "           class=\"button menutop\" alt=\"downmenu\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/holdmenu.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/holdmenu64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/holdmenu.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/holdmenu64x64.png'\"\n"+
     "           class=\"button menutop\" alt=\"holdmenu\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_save_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_save_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_save_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_save_titled64x64.png'\"\n"+
     "           title=\"save this gloss\" class=\"button\" alt=\"glosspush\"\n"+
     "           tabindex=\"2\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_save_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_save_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_save_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_save_titled64x64.png'\"\n"+
     "           title=\"update this gloss\" class=\"button\" alt=\"glossupdate\"\n"+
     "           tabindex=\"2\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_tag_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_tag_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_tag_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_tag_titled64x64.png'\"\n"+
     "           title=\"add tags\" class=\"button\" alt=\"addtag\"\n"+
     "           tabindex=\"3\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_attach_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_attach_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_attach_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_attach_titled64x64.png'\"\n"+
     "           title=\"attach files\" class=\"button\" alt=\"attach\"\n"+
     "           tabindex=\"4\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_share_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_share_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_share_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_share_titled64x64.png'\"\n"+
     "           title=\"add outlets/share this gloss\" class=\"button\" alt=\"addoutlet\"\n"+
     "           tabindex=\"6\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_respond_toptitle.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_respond_toptitle64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_respond_toptitle.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_respond_toptitle64x64.png'\"\n"+
     "           title=\"respond to this gloss\" class=\"button\" alt=\"glossrespond\"\n"+
     "           tabindex=\"7\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_delete_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_delete_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_delete_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_delete_titled64x64.png'\"\n"+
     "           title=\"delete gloss\" class=\"button\" alt=\"glossdelete\"\n"+
     "           tabindex=\"9\"/>\n"+
-    "      <img svg=\"{{bmg}}metabook/gloss_cancel_titled.svgz\"\n"+
-    "           src=\"{{bmg}}metabook/gloss_cancel_titled64x64.png\"\n"+
+    "      <img src=\"{{bmg}}metabook/gloss_cancel_titled.svgz\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/gloss_cancel_titled64x64.png'\"\n"+
     "           title=\" cancel gloss\" class=\"button\" alt=\"glosscancel\"\n"+
     "           tabindex=\"8\"/>\n"+
     "    </div>\n"+
@@ -38687,15 +38693,15 @@ metaBook.HTML.addgloss=
 
 metaBook.HTML.hud=
     "<div id=\"METABOOKTOPBAR\">\n"+
-    "  <img svg=\"{{bmg}}metabook/tocicon.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/tocicon50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/tocicon.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/tocicon50x50.png'\"\n"+
     "       alt=\"toc\" title=\"navigate sections\"\n"+
     "       class=\"hudbutton hudmodebutton topleft\"\n"+
     "       id=\"METABOOKTOCBUTTON\"\n"+
     "       hudmode=\"statictoc\"/>\n"+
     "  <div id=\"METABOOKTOPCENTER\">\n"+
-    "    <img svg=\"{{bmg}}metabook/mbsettings.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/mbsettings50x50.png\"\n"+
+    "    <img src=\"{{bmg}}metabook/mbsettings.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/mbsettings50x50.png'\"\n"+
     "         alt=\"toc\" title=\"book settings\"\n"+
     "         class=\"hudbutton hudmodebutton left\"\n"+
     "         id=\"METABOOKSETTINGSBUTTON\"\n"+
@@ -38704,15 +38710,15 @@ metaBook.HTML.hud=
     "         title=\"Open the meta layer for navigation, search, etc.\">\n"+
     "      &nbsp;</div>\n"+
     "    <div class=\"hudbutton\" id=\"METABOOKSHOWCOVER\">Cover</div>\n"+
-    "    <img svg=\"{{bmg}}metabook/overlay.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/overlay50x50.png\"\n"+
+    "    <img src=\"{{bmg}}metabook/overlay.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/overlay50x50.png'\"\n"+
     "         alt=\"toc\" title=\"see book layers\"\n"+
     "         class=\"hudbutton hudmodebutton right\"\n"+
     "         id=\"METABOOKLAYERSBUTTON\"\n"+
     "         hudmode=\"layers\"/>\n"+
     "  </div>\n"+
-    "  <img svg=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/tagsearch50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/tagsearch50x50.png'\"\n"+
     "       alt=\"search\" title=\"search tags\"\n"+
     "       class=\"hudbutton hudmodebutton topright\"\n"+
     "       hudmode=\"search\"/>\n"+
@@ -38737,8 +38743,8 @@ metaBook.HTML.hud=
     "    </div>\n"+
     "  </div>\n"+
     "  <div id=\"METABOOKSOURCES\" class=\"hudpanel metabooksources\">\n"+
-    "    <img svg=\"{{bmg}}metabook/sbookspeople.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/sbookspeople50x50.png\"\n"+
+    "    <img src=\"{{bmg}}metabook/sbookspeople.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/sbookspeople50x50.png'\"\n"+
     "         class=\"button everyone selected\"\n"+
     "         alt=\"show all\" title=\"show all glosses\"/>\n"+
     "  </div>\n"+
@@ -38843,7 +38849,7 @@ metaBook.HTML.hud=
     "    next page\n"+
     "  </div>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKFOOT\" data-touchable=\"span.metabookpagespan,span.metabookpageno,span.metabookloc,img.hudbutton\">\n"+
+    "<div id=\"METABOOKFOOT\" data-xtouchable=\"span.metabookpagespan,span.metabookpageno,span.metabookloc,img.hudbutton\">\n"+
     "  <div id=\"METABOOKSHOWTEXT\">\n"+
     "    <span>\n"+
     "      <span class=\"justreading\">close tools</span>\n"+
@@ -38896,28 +38902,28 @@ metaBook.HTML.hud=
     "    <div class=\"metabookpagespans\" id=\"METABOOKPAGESPANS\">\n"+
     "    </div>\n"+
     "  </div>\n"+
-    "  <img svg=\"{{bmg}}metabook/allglosses.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/allglosses50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/allglosses.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/allglosses50x50.png'\"\n"+
     "       alt=\"allglosses\" title=\"show all glosses\"\n"+
     "       class=\"hudbutton hudmodebutton botright\"\n"+
     "       id=\"METABOOKALLGLOSSESBUTTON\"\n"+
     "       hudmode=\"allglosses\"/>\n"+
-    "  <img svg=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/tagsearch50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/tagsearch50x50.png'\"\n"+
     "       alt=\"searchresults\" title=\"show searchresults\"\n"+
     "       class=\"hudbutton hudmodebutton botright\"\n"+
     "       hudmode=\"searchresults\"/>\n"+
-    "  <img svg=\"{{bmg}}metabook/tocicon.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/tocicon50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/tocicon.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/tocicon50x50.png'\"\n"+
     "       alt=\"statictoc\" title=\"show TOC\"\n"+
     "       class=\"hudbutton hudmodebutton botright\"\n"+
     "       hudmode=\"statictoc\"/>\n"+
-    "  <img svg=\"{{bmg}}metabook/gloss_save_titled.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/gloss_save_titled50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/gloss_save_titled.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/gloss_save_titled50x50.png'\"\n"+
     "       alt=\"save gloss\" title=\"save gloss\"\n"+
     "       class=\"hudbutton botright\"/>\n"+
-    "  <img svg=\"{{bmg}}metabook/help.svgz\"\n"+
-    "       src=\"{{bmg}}metabook/help50x50.png\"\n"+
+    "  <img src=\"{{bmg}}metabook/help.svgz\"\n"+
+    "       onerror=\"this.src='{{bmg}}metabook/help50x50.png'\"\n"+
     "       alt=\"help\" title=\"show contextual help\"\n"+
     "       class=\"hudbutton hudmodebutton botleft\"\n"+
     "       id=\"METABOOKHELPBUTTON\"\n"+
@@ -39137,14 +39143,16 @@ metaBook.HTML.attach=
 metaBook.HTML.help=
     "<h1><span class=\"metabooktogglehelp\">Ok</span>Using &metaBook;</h1>\n"+
     "\n"+
-    "<p><img src=\"{{bmg}}metabook/browser_edges.svgz\" alt=\"top of browser\" class=\"svg floatright\"/>\n"+
-    "  <img src=\"{{bmg}}metabook/browser_edges32x32.png\" alt=\"top of browser\" class=\"nosvg floatright\"/>\n"+
+    "<p><img src=\"{{bmg}}metabook/browser_edges.svgz\"\n"+
+    "        onerror=\"this.src='{{bmg}}metabook/browser_edges32x32.png'\"\n"+
+    "        alt=\"top of browser\" class=\"floatright\"/>\n"+
     "  <strong>Move by pages</strong> <span class=\"fortouch\">by swiping left or right</span>\n"+
     "  <span class=\"notouch\">using the Space or Backspace keys</span> or\n"+
     "  <span class=\"fortouch\">tapping</span> <span class=\"notouch\">clicking</span>\n"+
     "  on the left or right of the page.</p>\n"+
-    "<p><img src=\"{{bmg}}metabook/browser_corners.svgz\" alt=\"top of browser\" class=\"svg floatright\"/>\n"+
-    "  <img src=\"{{bmg}}metabook/browser_corners32x32.png\" alt=\"top of browser\" class=\"nosvg floatright\"/>\n"+
+    "<p><img src=\"{{bmg}}metabook/browser_corners.svgz\" \n"+
+    "        onerror=\"this.src='{{bmg}}metabook/browser_corners32x32.png'\"\n"+
+    "        alt=\"top of browser\" class=\"floatright\"/>\n"+
     "  <strong>Open the <dfn>book tools</dfn></strong> by\n"+
     "  <span class=\"fortouch\">tapping</span>\n"+
     "  <span class=\"notouch\">clicking</span> at the top of the\n"+
@@ -39153,9 +39161,8 @@ metaBook.HTML.help=
     "<p><strong>Show this and other help</strong> by\n"+
     "  <span class=\"fortouch\">tapping</span><span class=\"notouch\">clicking</span>\n"+
     "  the <img src=\"{{bmg}}metabook/help.svgz\" alt=\"top of browser\"\n"+
-    "           class=\"svg inline\"/> <img src=\"{{bmg}}metabook/help50x50.png\"\n"+
-    "                                     alt=\"top of browser\" class=\"nosvg inline\"/> icon in the lower left\n"+
-    "  corner of the page.</p>\n"+
+    "  onerror=\"this.src='{{bmg}}metabook/help50x50.png'\" class=\"inline\"/>\n"+
+    "  icon in the lower left corner of the page.</p>\n"+
     "<p><strong>Mark up your book</strong> by pressing and holding or\n"+
     "  double <span class=\"fortouch\">tapping</span>\n"+
     "  <span class=\"notouch\">clicking</span> on the\n"+
@@ -39242,12 +39249,12 @@ metaBook.HTML.hudhelp=
     "  <p><strong class=\"fortouch\">Tap</strong>\n"+
     "    <strong class=\"notouch\">Click</strong> or <strong>drag and\n"+
     "    release</strong> the menu button\n"+
-    "    <img svg=\"{{bmg}}metabook/downmenu.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/downmenu64x64.png\" class=\"inline\"\n"+
+    "    <img src=\"{{bmg}}metabook/downmenu.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/downmenu64x64.png\" class=\"inline'\"\n"+
     "         style=\"border: solid black 1px; padding: 0px;\"/> for more\n"+
     "    options.</p>\n"+
-    "  <p><img svg=\"{{bmg}}metabook/remark.svgz\"\n"+
-    "          src=\"{{bmg}}metabook/remark64x64.png\" class=\"screengrab\"\n"+
+    "  <p><img src=\"{{bmg}}metabook/remark.svgz\"\n"+
+    "          onerror=\"this.src='{{bmg}}metabook/remark64x64.png\" class=\"screengrab'\"\n"+
     "          alt=\"the balloon icon\"/> Type your comments in the input\n"+
     "          box, ending with <kbd>Enter</kbd> and using\n"+
     "    <kbd>Shift-Enter</kbd> to insert a newline.  Specify **bold** or\n"+
@@ -39255,16 +39262,16 @@ metaBook.HTML.hudhelp=
     "    <a href=\"http://daringfireball.net/projects/markdown/syntax\"\n"+
     "       target=\"_blank\">\n"+
     "      Markdown syntax</a>.</p>\n"+
-    "  <p><img svg=\"{{bmg}}metabook/tagicon.svgz\"\n"+
-    "          src=\"{{bmg}}metabook/tagicon64x64.png\"\n"+
+    "  <p><img src=\"{{bmg}}metabook/tagicon.svgz\"\n"+
+    "          onerror=\"this.src='{{bmg}}metabook/tagicon64x64.png'\"\n"+
     "          class=\"screengrab\" alt=\"the tag icon\"/>\n"+
     "    <strong>Add simple tags</strong> as <tt>#tag</tt> or even\n"+
     "    &ldquo;<tt>#compound tag</tt>,&rdquo; pressing <kbd>Enter</kbd>\n"+
     "    when done.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKGLOSSATTACHHELP\" class=\"helpbox atfoot\">\n"+
-    "  <p><img svg=\"{{bmg}}metabook/diaglink.svgz\"\n"+
-    "          src=\"{{bmg}}metabook/diaglink64x64.png\"\n"+
+    "  <p><img src=\"{{bmg}}metabook/diaglink.svgz\"\n"+
+    "          onerror=\"this.src='{{bmg}}metabook/diaglink64x64.png'\"\n"+
     "          class=\"inline\" alt=\"the link icon\"/>\n"+
     "    <strong>Add links</strong>\n"+
     "    as <strong>[@</strong><em><tt>uri</tt></em>\n"+
@@ -39273,8 +39280,8 @@ metaBook.HTML.hudhelp=
     "    The White House<strong>]</strong>.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKGLOSSTAGHELP\" class=\"helpbox atfoot\">\n"+
-    "  <p><img svg=\"{{bmg}}metabook/tagicon.svgz\"\n"+
-    "          src=\"{{bmg}}metabook/tagicon64x64.png\"\n"+
+    "  <p><img src=\"{{bmg}}metabook/tagicon.svgz\"\n"+
+    "          onerror=\"this.src='{{bmg}}metabook/tagicon64x64.png'\"\n"+
     "          class=\"inline\" alt=\"the tag icon\"/>\n"+
     "    Specify <strong>synonyms</strong> for your tags (e.g.\n"+
     "    <span class=\"tagsample\"><strong>[</strong>airplane|plane|aircraft<strong>]</strong></span>)\n"+
@@ -39293,17 +39300,17 @@ metaBook.HTML.hudhelp=
     "  <p class=\"fortouch\">\n"+
     "    <span>Swipe left or right with two fingers</span> to move\n"+
     "    forward and backward by sections or use the\n"+
-    "    <img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/>\n"+
-    "    double arrows <img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       src=\"{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/>\n"+
+    "    <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
+    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/'>\n"+
     "    on the edges of the page.</p>\n"+
     "  <p class=\"notouch\">\n"+
     "    Use the <span>arrow keys</span> to move forward and backward by\n"+
-    "    sections or click the <img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "    src=\"{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/> double\n"+
-    "    arrows <img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "    src=\"{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/> on\n"+
+    "    sections or click the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/> doubl'e\n"+
+    "    arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/> o'n\n"+
     "    the edges of the page.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKSKIMSEARCHHELP\" class=\"helpbox atfoot fdjtadjustfont\">\n"+
@@ -39316,8 +39323,8 @@ metaBook.HTML.hudhelp=
     "  <p>Return to the search results by\n"+
     "    <span class=\"fortouch\">double\n"+
     "      tapping</span> <span class=\"notouch\">double clicking</span> the\n"+
-    "    overleaf or using the <img svg=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
-    "                               src=\"{{bmg}}metabook/tagsearch50x50.png\" class=\"inline\"/> icon\n"+
+    "    overleaf or using the <img src=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
+    "                               onerror=\"this.src='{{bmg}}metabook/tagsearch50x50.png\" class=\"inline\"/> ico'n\n"+
     "    in the lower\n"+
     "    right of the page.  <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click\n"+
     "      on</span> the overleaf to see (or hide) the rest of the\n"+
@@ -39326,19 +39333,19 @@ metaBook.HTML.hudhelp=
     "  <p class=\"fortouch\">\n"+
     "    <span>Swipe left or right with two fingers</span> to move\n"+
     "    forward and backward by single results or use the\n"+
-    "    <img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/>\n"+
-    "    double arrows <img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       src=\"{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/>\n"+
+    "    <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
+    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/'>\n"+
     "    on the edges of the page.</p>\n"+
     "  <p class=\"notouch\">\n"+
     "    Use the <span>arrow keys</span> on your keyboard to move forward and\n"+
     "    backward by single results or <span class=\"fortouch\">tap</span>\n"+
     "    <span class=\"notouch\">click</span>\n"+
-    "    the <img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "             src=\"{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/>\n"+
-    "    double arrows <img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       src=\"{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "             onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
+    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png'\"\n"+
     "                       class=\"inline\"/>\n"+
     "    on the edges of the page.</p>\n"+
     "</div>\n"+
@@ -39352,8 +39359,8 @@ metaBook.HTML.hudhelp=
     "  <p>Return to the list of glosses by\n"+
     "    <span class=\"fortouch\">double\n"+
     "      tapping</span> <span class=\"notouch\">double clicking</span> the\n"+
-    "    overleaf or using the <img svg=\"{{bmg}}metabook/allglosses.svgz\"\n"+
-    "                               src=\"{{bmg}}metabook/allglosses50x50.png\" class=\"inline\"/> icon\n"+
+    "    overleaf or using the <img src=\"{{bmg}}metabook/allglosses.svgz\"\n"+
+    "                               onerror=\"this.src='{{bmg}}metabook/allglosses50x50.png\" class=\"inline\"/> ico'n\n"+
     "    in the lower right of the\n"+
     "    page.  <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click\n"+
     "      on</span> the overleaf to see the entire text of the\n"+
@@ -39372,19 +39379,19 @@ metaBook.HTML.hudhelp=
     "  <p class=\"fortouch\">\n"+
     "    <span>Swipe left or right with two fingers</span> to move\n"+
     "    forward and backward by single glosses or use the\n"+
-    "    <img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "         src=\"{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/>\n"+
-    "    double arrows <img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       src=\"{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/>\n"+
+    "    <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "         onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
+    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/'>\n"+
     "    on the edges of the page.</p>\n"+
     "  <p class=\"notouch\">\n"+
     "    Use the <span>arrow keys</span> on your keyboard to move forward and\n"+
     "    backward by single glosses or <span class=\"fortouch\">tap</span>\n"+
     "    <span class=\"notouch\">click</span>\n"+
-    "    the <img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "             src=\"{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/>\n"+
-    "    double arrows <img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       src=\"{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "             onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
+    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png'\"\n"+
     "                       class=\"inline\"/>\n"+
     "    on the edges of the page.</p>\n"+
     "</div>\n"+
@@ -39811,7 +39818,9 @@ metaBook.HTML.settings=
     "      Body text<br/>\n"+
     "      <button name=\"REFRESH\" value=\"Layout\"\n"+
     "              id=\"METABOOKREFRESHLAYOUT\">\n"+
-    "        <img src=\"{{bmg}}metabook/refresh.svgz\" alt=\"Update\">\n"+
+    "        <img src=\"{{bmg}}metabook/refresh.svgz\" \n"+
+    "             onerror=\"this.src='{{bmg}}metabook/refresh50x50.png'\"\n"+
+    "             alt=\"Update\">\n"+
     "        Layout</button></span>\n"+
     "    <span class=\"samples\">\n"+
     "      <span class=\"checkspan\">\n"+
@@ -39922,7 +39931,8 @@ metaBook.HTML.settings=
     "    <button id=\"METABOOKRESETSYNC\" name=\"SYNC\" VALUE=\"RESET\"\n"+
     "            class=\"reset floatright\"\n"+
     "            title=\"Reset synchronized location information.\">\n"+
-    "      <img src=\"{{bmg}}metabook/reset.svgz\" alt=\"\"/>\n"+
+    "      <img src=\"{{bmg}}metabook/reset.svgz\" \n"+
+    "           onerror=\"this.src='{{bmg}}metabook/reset50x50.png\" alt=\"\"/>\n"+
     "      Reset</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"locsync\" VALUE=\"yes\"/>\n"+
     "    <span class=\"text\">\n"+
@@ -39932,7 +39942,8 @@ metaBook.HTML.settings=
     "  <div class=\"checkspan saveglosses cf\">\n"+
     "    <button id=\"METABOOKREFRESHOFFLINE\" class=\"refresh floatright\"\n"+
     "            title=\"Reload glosses and layers for this book from the cloud.\">\n"+
-    "      <img src=\"{{bmg}}metabook/refresh.svgz\" alt=\"\"/>\n"+
+    "      <img src=\"{{bmg}}metabook/refresh.svgz\" \n"+
+    "           onerror=\"this.error='{{bmg}}metabook/refresh50x50.png\" alt=\"\"/>\n"+
     "      Reload</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"cacheglosses\" VALUE=\"yes\" CHECKED/>\n"+
     "    <span class=\"text\">\n"+
@@ -39969,91 +39980,21 @@ metaBook.HTML.settings=
     "    */\n"+
     "  -->\n"+
     "";
-/* Mode: Javascript; Character-encoding: utf-8; */
-
-/* DO NOT EDIT THIS FILE!! It is automatically */
-/*   generated from the file "metabook/html/pageleft.html" */
-
-metaBook.HTML.pageleft=
-    "<img svg=\"{{bmg}}metabook/page_left.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/page_left100h.png\"\n"+
-    "     id=\"METABOOKPREVPAGE\" class=\"metabookpagebutton\" alt=\"prev\"\n"+
-    "     title=\"go to the previous page\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/skim_left100x100.png\"\n"+
-    "     id=\"METABOOKPREVSKIM\" class=\"metabookskimbutton\" alt=\"prev\"\n"+
-    "     title=\"go to the previous result/gloss\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/skim_left_stop.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/skim_left_stop100x100.png\"\n"+
-    "     id=\"METABOOKSTARTSKIM\" class=\"metabookskimbutton\"\n"+
-    "     alt=\"beginning\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/page_right.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/page_right100h.png\"\n"+
-    "     id=\"METABOOKNEXTPAGE\" class=\"metabookpagebutton\" alt=\"next\"\n"+
-    "     title=\"go to the next page\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/skim_right_stop.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/skim_right_stop100x100.png\"\n"+
-    "     id=\"METABOOKENDSKIM\" class=\"metabookskimbutton\"\n"+
-    "     alt=\"end\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/skim_right100x100.png\"\n"+
-    "     id=\"METABOOKNEXTSKIM\" class=\"metabookskimbutton\" alt=\"next\"\n"+
-    "     title=\"go to the next result/gloss\"/>\n"+
-    "<div class=\"metabookskimindicator\" id=\"METABOOKSKIMINDEX\"></div>\n"+
-    "\n"+
-    "<!--\n"+
-    "    /* Emacs local variables\n"+
-    "    ;;;  Local variables: ***\n"+
-    "    ;;;  compile-command: \"cd ../..; make\" ***\n"+
-    "    ;;;  indent-tabs-mode: nil ***\n"+
-    "    ;;;  End: ***\n"+
-    "    */\n"+
-    "  -->\n"+
-    "";
-/* Mode: Javascript; Character-encoding: utf-8; */
-
-/* DO NOT EDIT THIS FILE!! It is automatically */
-/*   generated from the file "metabook/html/pageright.html" */
-
-metaBook.HTML.pageright=
-    "<img svg=\"{{bmg}}metabook/page_right.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/page_right100h.png\"\n"+
-    "     id=\"METABOOKNEXTPAGE\" class=\"metabookpagebutton\" alt=\"next\"\n"+
-    "     title=\"go to the next page\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/skim_right_stop.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/skim_right_stop100x100.png\"\n"+
-    "     id=\"METABOOKENDSKIM\" class=\"metabookskimbutton\"\n"+
-    "     alt=\"end\"/>\n"+
-    "<img svg=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "     src=\"{{bmg}}metabook/skim_right100x100.png\"\n"+
-    "     id=\"METABOOKNEXTSKIM\" class=\"metabookskimbutton\" alt=\"next\"\n"+
-    "     title=\"go to the next result/gloss\"/>\n"+
-    "<div class=\"metabookskimindicator\" id=\"METABOOKSKIMLIMIT\"></div>\n"+
-    "\n"+
-    "<!--\n"+
-    "    /* Emacs local variables\n"+
-    "    ;;;  Local variables: ***\n"+
-    "    ;;;  compile-command: \"cd ../..; make\" ***\n"+
-    "    ;;;  indent-tabs-mode: nil ***\n"+
-    "    ;;;  End: ***\n"+
-    "    */\n"+
-    "  -->\n"+
-    "";
 // FDJT build information
-fdjt.revision='1.5-1490-g87a336c';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Oct 28 10:02:11 EDT 2015';
-fdjt.builduuid='d81ab273-5458-4c69-af23-e95c61bec170';
+fdjt.revision='1.5-1492-g640ff8b';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Thu Oct 29 20:37:06 EDT 2015';
+fdjt.builduuid='20B302C5-92A5-461E-9034-613F81CD1BCB';
 
 fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
 
 
-Knodule.version='v0.8-154-g4218590';
+Knodule.version='v0.8-153-gf5c2070';
 // sBooks metaBook build information
-metaBook.version='v0.8-105-gdd2f7c6';
-metaBook.buildid='73f07c4f-ef56-4b7a-af17-2b5da73124c9';
-metaBook.buildtime='Wed Oct 28 17:10:41 EDT 2015';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-122-gcd2399a';
+metaBook.buildid='4A1592AB-A472-4257-9B70-48811365979C';
+metaBook.buildtime='Thu Oct 29 22:37:31 EDT 2015';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
