@@ -6644,6 +6644,13 @@ fdjt.DOM=
             var sel=new Selector(spec);
             return ((sel.match(node))?(node):(getParent(node,sel)));};
 
+        fdjtDOM.getParents=function getParents(node,sel){
+            var results=[], scan=node, parent=false;
+            while ((parent=getParent(scan,sel))) {
+                results.push(parent);
+                scan=parent.parentNode;}
+            return results;};
+
         function getChildNodes(node){
             if (node.nodeType!==1) return [];
             else if (!(node.childNodes)) return [];
@@ -13818,10 +13825,11 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     else container=fdjtDOM.getParent(container,".fdjtpage")||container;
     return container;}
     
-  function istootall(container,fudge){
-    if (fudge)
-      return container.scrollHeight>(container.offsetHeight-fudge);
-    else return container.scrollHeight>container.offsetHeight;}
+  function istootall(container,height,padding){
+    if (!(height)) height=container.offsetHeight;
+    if (padding)
+      return container.scrollHeight>(height-padding);
+    else return container.scrollHeight>(height);}
   function isOversize(elt,w,h){
     if (typeof w === "undefined") w=true;
     if (typeof h === "undefined") h=true;
@@ -13836,9 +13844,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var info=getChild(container,".fdjtpageinfo");
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
-    var fudge=getGeometry(container,false,true).bottom_padding;
-    var tap_event_name=
-      ((fdjt.device.touch)?("touchstart"):("click"));
+    var padding=getGeometry(container,false,true).bottom_padding, h;
+    var tap_event_name=((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
     if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
@@ -13854,7 +13861,9 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if ((!(start))||(startpos<0)||(startpos>=lim)||
         ((startpos===0)&&(dir<0)))
       return;
-    addClass(container,"fdjtpage"); addClass(container,"formatting");
+    addClass(container,"fdjtpage"); 
+    h=container.offsetHeight;
+    addClass(container,"formatting");
     if (!(info)) info=getProgressIndicator(container,startpos,lim);
     // Clear old page
     if (shown.length) {
@@ -13864,12 +13873,14 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if (curend) dropClass(curend,"fdjtendofpage");
     addClass(start,"fdjtshow");
     addClass(start,((dir<0)?("fdjtendofpage"):("fdjtstartofpage")));
-    checkOversize(start);
+    if (start.offsetHeight>h) addClass(start,"fdjtoversize");
     if (((dir<0)&&(hasClass(start,/fdjtpagebreak(auto)?/)))||
-        (istootall(container))) {
+        (istootall(container,h,padding))) {
       dropClass(container,"formatting");
       return startpos;}
-    var endpos=showchildren(container,children,startpos,dir,fudge);
+    var endpos=showchildren(container,children,startpos,dir,h,padding);
+    if ((dir<0)&&(endpos===0))
+      return showPage(container,0,1);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -13952,7 +13963,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     dropClass(container,"getvisible");
     return children;}
 
-  function showchildren(container,children,i,dir,fudge){
+  function showchildren(container,children,i,dir,h,padding){
     var lim=children.length, scan=children[i+dir], last=children[i]; 
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
@@ -13961,8 +13972,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       dropClass(last,caboose);
       addClass(scan,"fdjtshow");
       addClass(scan,caboose);
-      checkOversize(scan);
-      if (istootall(container)) {
+      if (scan.offsetHeight>h) addClass(scan,"fdjtoversize");
+      if (istootall(container,h,padding)) {
         addClass(last,caboose);
         dropClass(scan,"fdjtshow");
         scan.style.display='';
@@ -15339,8 +15350,21 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                   (""+serial));
         th.id=thid;
 
-        function start_holding(){addClass(elt,holdclass);}
-        function stop_holding(){dropClass(elt,holdclass);}
+        var drop_holding=[];
+
+        var getParents=fdjtDOM.getParents;
+
+        function start_holding(){
+            var parents=getParents(elt,".tapholdcontext");
+            if ((parents)&&(parents.length)) {
+                addClass(parents,holdclass);
+                drop_holding=parents;}
+            addClass(elt,holdclass);}
+        function stop_holding(){
+            if ((drop_holding)&&(drop_holding.length)) {
+                dropClass(drop_holding,holdclass);
+                drop_holding=false;}
+            dropClass(elt,holdclass);}
         function check_holding(){
             if (!(th_target)) dropClass(elt,holdclass);}
 
@@ -16143,11 +16167,11 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             if (opts.onstart) sel.onstart=opts.onstart;
             if (opts.onstop) sel.onstop=opts.onstop;
             var prefix=this.prefix="fdjtSel0"+this.serial;
-            if ((typeof opts.loupe !== 'undefined')||
-                (typeof TextSelect.loupe !== 'undefined'))
-                this.loupe=opts.loupe||TextSelect.loupe;
-            else {
-                this.loupe=fdjtDOM("span.fdjtselectloupe");}
+            if ((opts.loupe)||(TextSelect.loupe)) {
+                var spec=(opts.loupe)||(TextSelect.loupe);
+                if (spec.nodeType) this.loupe=spec;
+                else this.loupe=fdjtDOM("span.fdjtselectloupe");}
+            else {}
             this.adjust=false; /* This will be 'start' or 'end' */
             selectors[prefix]=sel;
             var stripid=prefix.length+1;
@@ -16159,6 +16183,8 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     ((style.display==='inline')?
                      (fdjtDOM("span.fdjtselecting")):
                      (fdjtDOM("div.fdjtselecting")));
+                if ((this.loupe)&&(!(this.loupe.parentNode)))
+                    wrapper.appendChild(this.loupe);
                 // Initialize the wrapper
                 wrapper.id=prefix+"w"+k;
                 wrapper.title=((opts)&&(opts.title))||
@@ -16529,26 +16555,20 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 fdjtLog("updateLoupe(%d) over %o for %o%s",
                         sel.serial,word,sel,
                         ((tapped)?(" (tapped)"):("")));
-            var context=gatherContext(word,5,5,block);
-            var geom=fdjtDOM.getGeometry(word,word.offsetParent);
-            var cwidth=word.offsetParent.offsetWidth;
-            loupe.innerHTML=""; fdjtDOM.append(loupe,context.words);
+            var context=
+                ((hasClass(word,"fdjtselectend"))?
+                 (gatherContext(word,7,3,block)):
+                 (gatherContext(word,3,7,block)));
+            var words=fdjtDOM("span.fdjtloupetext");
+            loupe.innerHTML="";
+            fdjtDOM.append(words,context.words);
+            fdjtDOM.append(loupe,words);
             if (inline_loupe) {
-                loupe.style.display="none";
-                parent.insertBefore(loupe,word);
-                if (geom.left<(cwidth/2)) {
-                    loupe.style.float="left";
-                    loupe.style.left=(geom.left-(1.5*context.wordstart))+"px";
-                    loupe.style.right="";}
-                else {
-                    loupe.style.float="right";
-                    loupe.style.right=(cwidth-geom.right)-
-                        (1.5*(context.width-context.wordend))+"px";
-                    loupe.style.left="";}}
+                parent.insertBefore(loupe,word);}
             loupe.style.display="";
             if (tapped) setTimeout(function(){
                 if (sel.active) stopSelection(sel);
-                sel.loupe.display='none';},
+                sel.loupe.style.display='none';},
                                    1000);}
         var getGeometry=fdjtDOM.getGeometry;
 
@@ -19314,6 +19334,7 @@ fdjt.CodexLayout=
                                 if (fg.bottom>=page_height) newPage(floater);}}}
 
                     if ((!(node))||(forcepage)||(needNewPage(node))) {
+                        var trailing=(page)&&(getTrailingText(page));
                         // If we really need to create a new page, do so,
                         if (page) {
                             if (pagefn) pagefn.call(layout,page,layout);
@@ -19321,6 +19342,15 @@ fdjt.CodexLayout=
                             dropClass(page,"codexworkpage");}
                         layout.page=page=fdjtDOM("div.codexpage.codexworkpage");
                         newpages.push(page);
+                        if (trailing) {
+                            var text=trailing.nodeValue;
+                            var break_at=text.search(/[\(\[\"\“\‘]+$/);
+                            var keep=fdjtDOM("span.codexsplitstart",text.slice(0,break_at));
+                            var push=fdjtDOM("span.codextextsplit",text.slice(break_at));
+                            var frag=document.createDocumentFragment();
+                            frag.appendChild(keep); frag.appendChild(push);
+                            fdjtDOM.replace(trailing,frag);
+                            drag.push(push);}
                         if (!(pagerule)) {
                             page.style.height=page_height+'px';
                             page.style.width=page_width+'px';}
@@ -19358,6 +19388,18 @@ fdjt.CodexLayout=
                             layout.prev=prev=drag[drag.length-1];
                             layout.drag=drag=[];}}
                     if (node) return moveUp(node);
+                    else return false;}
+
+                function getTrailingText(node){
+                    if (node.nodeType===3) {
+                        if (node.nodeValue.search(/[\(\[\"\“\‘]+$/)>0)
+                            return node;
+                        else return false;}
+                    else if (node.nodeType===1) {
+                        var children=node.childNodes, len=children.length;
+                        if (children[len-1].nodeType===3)
+                            return getTrailingText(children[len-1]);
+                        else return false;}
                     else return false;}
 
                 // This gets a little complicated
@@ -19475,7 +19517,7 @@ fdjt.CodexLayout=
                                 // trailing punctuation because those
                                 // may be attached with preceding or
                                 // succeeding elements and text
-                                // splitting normally operations on
+                                // splitting normally operates on
                                 // text runs as a whole.
                                 var text=child.nodeValue;
                                 var head_match=/^[,.!?;%$#@“”‘’`”‼‡…’‛⁇„⹂"']+/.exec(text);
@@ -23295,11 +23337,9 @@ fdjt.DOM.noautofontadjust=true;
         if ((mB.ignore)&&(mB.ignore.match(elt))) return 0;
         if ((typeof metaBook.autotoc !== 'undefined')&&(!(metaBook.autotoc)))
             return false;
-        if ((elt.tagName==='HGROUP')||(elt.tagName==='HEADER'))
-            return getFirstTocLevel(elt,true);
         if (elt.tagName.search(/H\d/)===0)
             return parseInt(elt.tagName.slice(1,2),10);
-        else return false;}
+        return false;}
 
     function getFirstTocLevel(node,notself){
         if (node.nodeType!==1) return false;
@@ -24483,16 +24523,27 @@ metaBook.DOMScan=(function(){
                 scanstate.curlevel=curlevel; scanstate.notoc=notoc;
                 scanstate.curhead=curhead; scanstate.curinfo=curinfo;
                 return;}
-            var toclevel=((id)&&(getLevel(child,curlevel)));
+            var toclevel=getLevel(child,curlevel), info=false;
+            if ((toclevel)&&(!(id))) {
+                var parent=child.parentNode;
+                info=((parent.id)&&(docinfo[parent.id]))||
+                    ((parent.getAttribute("data-tocid"))&&
+                     (docinfo[parent.getAttribute("data-tocid")]));
+                if (info) {
+                    id=info.frag;
+                    info.toclevel=toclevel; 
+                    if ((child.title)&&(!(info.title)))
+                        info.title=child.title;}}
+            else if (!(id)) {}
+            else if ((info=docinfo[id])) {}
+            else {
+                allids.push(id); info=new ScanInfo(id,scanstate);
+                docinfo[id]=info; info.elt=child;}
             // The header functionality is handled by its surrounding
             // section (which should have a toclevel of its own)
             if ((scanstate.notoc)||(tag==='header')) {
                 scanstate.notoc=true; toclevel=0;}
             scanstate.eltcount++;
-            var info=(id&&(docinfo[id]));
-            if ((!(info))&&(id)) {
-                allids.push(id); info=new ScanInfo(id,scanstate);
-                docinfo[id]=info; info.elt=child;}
             if ((info)&&(id)&&(child.id)&&(child.id!==id))
                 // Store info under both ID and TOCID if different
                 docinfo[child.id]=info;
@@ -29210,13 +29261,16 @@ metaBook.Slice=(function () {
     MetaBookSlice.prototype.setSkim=function setSkim(card){
         var visible=this.visible, shown=this.shown;
         var off=((card.nodeType)?(shown.indexOf(card)):(visible.indexOf(card)));
+        var dom=((card.nodeType)?(card):(card.dom));
         if (off<0) return; else {
             card=shown[off];
             if (this.skimpoint) dropClass(this.skimpoint,"skimpoint");
             this.skimpoint=card; this.skimpos=off;
             this.atStart=(off===0);
             this.atEnd=(off>=(visible.length-1));
-            addClass(card,"skimpoint");
+            addClass(dom,"skimpoint");
+            if ((this.container.offsetHeight)&&(dom.offsetHeight===0))
+                showPage.showNode(this.container,dom);
             return card;}};
     MetaBookSlice.prototype.forward=
         function skimForward(card){
@@ -29246,14 +29300,18 @@ metaBook.Slice=(function () {
         else return false;};
 
     MetaBookSlice.prototype.setLocation=function setSliceLocation(location){
-        var visible=this.visible; var i=0, lim=visible.length;
+        var cards=this.cards; var i=0, lim=cards.length, last_card=false;
         while (i<lim) {
-            var card=visible[i];
+            var card=cards[i];
             if (typeof card.location !== "number") {i++; continue;}
-            else if (card.location>=location) {
+            else if (card.location===location) {
                 this.setSkim(card);
                 return;}
-            else {i++; continue;}}};
+            else if (card.location>location) {
+                if (last_card) this.setSkim(last_card);
+                else this.setSkim(card);
+                return;}
+            else {last_card=card; i++; continue;}}};
 
     function getCard(target){
         if ((hasClass(target,"metabookcard"))||(hasClass(target,"mbtoc")))
@@ -29304,6 +29362,8 @@ metaBook.Slice=(function () {
             card=getCard(document.getElementById(target.name))||(getCard(target));
         else card=getCard(target);
         if (!(card)) return;
+        var slice=getParent(card,".metabookslice");
+        addClass(slice,"mbsyncslice");
         var passage=mbID(card.getAttribute("data-passage"));
         var glossid=card.getAttribute("data-gloss");
         var gloss=((glossid)&&(metaBook.glossdb.ref(glossid)));
@@ -29376,7 +29436,7 @@ metaBook.Slice=(function () {
                     show_target=getTargetDup(starts,passage);
                 fdjtUI.Highlight(range,"mbhighlightexcerpt");}}
 
-        if (getParent(card,".sbookresults")) {
+        if (getParent(card,".searchslice")) {
             // It's a search result, so highlight any matching terms
             var terms=metaBook.query.tags;
             var info=metaBook.docinfo[passageid];
@@ -29433,11 +29493,15 @@ metaBook.Slice=(function () {
             if (dx<(-(metaBook.minswipe||10))) {
                 if (metaBook.skimming)
                     metaBook.skimForward();
-                else showPage.forward(slice);}
+                else {
+                    dropClass(slice,"myslicesync");
+                    showPage.forward(slice);}}
             else if (dx>(metaBook.minswipe||10)) {
                 if (metaBook.skimming)
                     metaBook.skimBackward();
-                else showPage.backward(slice);}}
+                else {
+                    dropClass(slice,"mbyslicesync");
+                    showPage.backward(slice);}}}
         else if (ady>(adx*2)) {
             // Vertical swipe
             if (!(metaBook.hudup)) {
@@ -29464,6 +29528,30 @@ metaBook.Slice=(function () {
         else {}}
 
     metaBook.UI.getCard=getCard;
+
+    metaBook.updateSkimmer=function updateSkimmer(){
+        if (mB.skimming) {
+            var skim=$ID("METABOOKSKIM"), skimpoint;
+            mB.skimming.setLocation(mB.location);
+            if (mB.skimming!==mB.slices.statictoc) { 
+                skimpoint=mB.skimming.skimpoint;
+                var pid=(skimpoint)&&(skimpoint.getAttribute("data-passage"));
+                var dups=(pid)&&(mB.getDups(pid)), found=false;
+                var i=0, lim=dups.length; while (i<lim) {
+                    if (found) i++;
+                    else if (hasParent(dups[i],".curpage")) 
+                        found=dups[i++];
+                    else i++;}
+                if (!(found)) {
+                    mB.setMode(false);
+                    return;}}
+            else skimpoint=mB.skimming.skimpoint;
+            if (!(skimpoint)) mB.setMode(false);
+            var curname=skim.getAttribute("name"), newname=skimpoint.getAttribute("name");
+            if (curname===newname) return;
+            var clone=skimpoint.cloneNode(true);
+            if (clone.id) clone.id="METABOOKSKIM";
+            fdjtDOM.replace(skim,clone);}};
 
     function goToGloss(card){
         var glossid=card.getAttribute("data-gloss");
@@ -30278,7 +30366,7 @@ metaBook.TOCSlice=
             var sectlen=end-start;
             if ((headinfo.sub)&&(headinfo.sub.length)) {
                 var sub=headinfo.sub; var s=0, smax=sub.length;
-                addClass(tocbar,"fdjtpagehead");
+                // addClass(tocbar,"fdjtpagehead");
                 while (s<smax) {
                     var subsect=sub[s++], brick=fdjtDOM("a.brick"); // ," "
                     var left=subsect.starts_at, size=subsect.ends_at-left;
@@ -30459,6 +30547,7 @@ metaBook.setMode=
                 frame=fdjtDOM("div#METABOOKFRAME");
                 fdjtDOM.prepend(document.body,frame);}
             addClass(frame,"metabookframe");
+            addClass(frame,"tapholdcontext");
             frame.appendChild(messages); frame.appendChild(hud);
             if (metaBook.getConfig("uisize"))
                 addClass(frame,"metabookuifont"+metaBook.getConfig("uisize"));
@@ -30924,25 +31013,17 @@ metaBook.setMode=
                               (metaBook.docinfo[metaBook.head.id]));
                 var static_head=$ID("MBTOC4"+headinfo.frag);
                 var toc=fdjt.ID("METABOOKSTATICTOC");
-                fdjt.showPage.check(toc);
-                if (static_head.offsetHeight===0)
-                    fdjt.showPage.showNode(toc,static_head);}
-            else if (mode==="allglosses") {
+                if (hasClass(toc,"mbsyncslice")) {
+                    fdjt.showPage.check(toc);
+                    if (static_head.offsetHeight===0)
+                        fdjt.showPage.showNode(toc,static_head);}}
+            else if (mB.slices[mode]) {
                 var curloc=metaBook.location;
-                var glossdiv=fdjt.ID("METABOOKALLGLOSSES");
-                var allcards=glossdiv.childNodes;
-                var i=0, lim=allcards.length, card=false;
-                if (metaBook.slices.allglosses)
-                    metaBook.slices.allglosses.setLive(true);
-                while (i<lim) {
-                    card=allcards[i++];
-                    if (card.nodeType===1) {
-                        var loc=card.getAttribute("data-location");
-                        if (loc) loc=parseInt(loc,10); else continue;
-                        if (loc>=curloc) break;}}
-                fdjt.showPage.check(glossdiv);
-                if ((card)&&(card.offsetHeight===0))
-                    fdjt.showPage.showNode(glossdiv,card);}
+                var slice=mB.slices[mode];
+                var slicediv=slice.container;
+                slice.setLive(true);
+                if (hasClass(slicediv,"mbsyncslice"))
+                    slice.setLocation(curloc);}
             else if (metaBook.pagers[mode])
                 fdjt.showPage.check(metaBook.pagers[mode]);
             else {}
@@ -31155,7 +31236,7 @@ metaBook.setMode=
                              "mbhighlightpassage");
                 else addClass(metaBook.getDups(card.about),
                               "mbhighlightpassage");}
-            else if ((card)&&(getParent(card,".sbookresults"))) {
+            else if ((card)&&(getParent(card,".searchslice"))) {
                 var about=card.about, target=mbID(about);
                 if (target) {
                     var info=metaBook.docinfo[target.id];
@@ -31178,7 +31259,7 @@ metaBook.setMode=
             else if (card.nodeType) {
                 if (hasParent(card,mB.DOM.allglosses))
                     return mB.slices.allglosses;
-                else if (hasParent(card,$ID("SBOOKSEARCHRESULTS")))
+                else if (hasParent(card,$ID("METABOOKSEARCHRESULTS")))
                     return mB.searchresults;
                 else return false;}
             else if (typeof card === "string") {
@@ -32437,7 +32518,7 @@ metaBook.setMode=
             return new SearchResults(query);
         this.query=query; this.results=query.results;
         return MetaBookSlice.call(
-            this,fdjtDOM("div.metabookslice.sbookresults"),this.results);}
+            this,fdjtDOM("div.metabookslice.mbsyncslice.searchslice"),this.results);}
     metaBook.SearchResults=SearchResults;
 
     SearchResults.prototype=new MetaBookSlice();
@@ -32938,7 +33019,7 @@ metaBook.setMode=
                   onslip: ((opts)&&(opts.onslip)),
                   // onstart: select_start,
                   // onstop: select_end,
-                  loupe: false,
+                  loupe: metaBook.touch||metaBook.useloupe,
                   fortouch: metaBook.touch,
                   holdmsecs: 150,
                   movethresh: 250});}
@@ -33979,6 +34060,10 @@ metaBook.setMode=
         var target=fdjtUI.T(evt);
         var alt=target.alt;
         
+        if (slip_timeout) {
+            clearTimeout(slip_timeout); 
+            slip_timeout=false;}
+
         if (!(alt)) return;
 
         if (slip_timeout) {
@@ -34027,6 +34112,8 @@ metaBook.setMode=
         dropClass(target,"held");
         if (!(slip_timeout)) {
             slip_timeout=setTimeout(function(){
+                slip_timeout=false;
+                dropClass(menu,"held");
                 dropClass(menu,"expanded");},
                                     500);}}
 
@@ -35590,9 +35677,8 @@ metaBook.setMode=
                 else if ((mB.mode)&&(!(mB.skimming))&&
                          (pagers[metaBook.mode])) {
                     if (evt.touches===2)
-                        showPage.fastFrward(pagers[metaBook.mode]);
+                        showPage.fastForward(pagers[metaBook.mode]);
                     else showPage.forward(pagers[metaBook.mode]);}
-                else if (mB.skimming) pageForward(evt);
                 else pageForward(evt,true);}
             else if (dx>(mB.minswipe||10)) {
                 if (evt.ntouches>2) window.history.back();
@@ -35605,8 +35691,6 @@ metaBook.setMode=
                     if (evt.touches===2)
                         showPage.fastBckward(pagers[metaBook.mode]);
                     else showPage.backward(pagers[metaBook.mode]);}
-                else if (mB.skimming)
-                    metaBook.pageBackward(evt);
                 else metaBook.pageBackward(evt,true);}}
         else if (ady>(adx*2)) {
             // Vertical swipe
@@ -35887,14 +35971,12 @@ metaBook.setMode=
                 if (evt.shiftKey)
                     showPage.fastForward(pagers[metaBook.mode]);
                 else showPage.forward(pagers[metaBook.mode]);}
-            else if (mB.skimming) pageForward(evt);
             else pageForward(evt,true);}
         else if ((kc===8)||(kc===45)) { // backspace or delete
             if ((mB.mode)&&(!(mB.skimming))&& (pagers[metaBook.mode])) {
                 if (evt.shiftKey)
                     showPage.fastBackward(pagers[metaBook.mode]);
                 else showPage.backward(pagers[metaBook.mode]);}
-            else if (mB.skimming) pageBackward(evt);
             else pageBackward(evt,true);}
         // Home goes to the current head.
         else if (kc===36) metaBook.JumpTo(mB.head);
@@ -36209,7 +36291,6 @@ metaBook.setMode=
         dropClass(document.body,/\bmb(PAGE)?PREVIEW/g);
         if ((clearmodes)&&((mB.hudup)||(mB.mode)))
             fdjt.Async(function(){mB.setHUD(false);});
-        else if (mB.skimming) dropClass("METABOOKSKIMMER","expanded");
         else {}
         if (mB.readsound)
             fdjtDOM.playAudio("METABOOKPAGEORWARDAUDIO");
@@ -36237,7 +36318,6 @@ metaBook.setMode=
         else last_motion=now;
         evt=evt||window.event;
         if (clearmodes) fdjt.Async(function(){mB.setHUD(false);});
-        else if (mB.skimming) dropClass("METABOOKSKIMMER","expanded");
         else {}
         if (mB.readsound)
             fdjtDOM.playAudio("METABOOKPAGEBACKWARDAUDIO");
@@ -38989,7 +39069,7 @@ metaBook.HTML.hud=
 /*   generated from the file "metabook/html/heart.html" */
 
 metaBook.HTML.heart=
-    "<div id=\"METABOOKALLGLOSSES\" class=\"metabookslice hudpanel\">\n"+
+    "<div id=\"METABOOKALLGLOSSES\" class=\"metabookslice mbsyncslice hudpanel\">\n"+
     "  <!-- This is filled in on startup -->\n"+
     "</div>\n"+
     "<div id=\"METABOOKGLOSSDETAIL\" class=\"hudpanel\">\n"+
@@ -39008,7 +39088,7 @@ metaBook.HTML.heart=
     "<div id=\"METABOOKSEARCHCLOUD\" class=\"completions cloud searchcloud\"></div>\n"+
     "<div id=\"METABOOKALLTAGS\" class=\"completions searchcloud cloud noinput\">\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSEARCHRESULTS\" class=\"metabookslice hudpanel\"></div>\n"+
+    "<div id=\"METABOOKSEARCHRESULTS\" class=\"metabookslice mbsyncslice hudpanel\"></div>\n"+
     "<div id=\"METABOOKSHARECLOUD\" class=\"hudpanel completions cloud showall\"></div>\n"+
     "<div id=\"METABOOKGLOSSCLOUD\" class=\"hudpanel completions cloud showall\">\n"+
     "  <div class=\"nomatchmsg\">(no matches)</div>\n"+
@@ -39981,21 +40061,21 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1492-g640ff8b';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Thu Oct 29 20:37:06 EDT 2015';
-fdjt.builduuid='20B302C5-92A5-461E-9034-613F81CD1BCB';
+fdjt.revision='1.5-1498-g8dd19d8';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sun Nov 1 18:46:51 EST 2015';
+fdjt.builduuid='3ead3024-7323-4c2d-ba0b-5526867bc608';
 
-fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
+fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';
 
 
-Knodule.version='v0.8-153-gf5c2070';
+Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-122-gcd2399a';
-metaBook.buildid='4A1592AB-A472-4257-9B70-48811365979C';
-metaBook.buildtime='Thu Oct 29 22:37:31 EDT 2015';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-138-g27b4ce7';
+metaBook.buildid='3c9db6cc-0f0e-4e0d-a286-0b549e57ecab';
+metaBook.buildtime='Sun Nov  1 18:49:09 EST 2015';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='FE1517087A137F32701BAC919E9CB7FB7F9C5796';
+fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';

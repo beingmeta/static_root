@@ -1104,17 +1104,23 @@ html._TOUCH .fdjtselecting .fdjtselectend:hover {
     background-color: gold;}
 
 .fdjtselectloupe {
-    display: inline-block; position: relative;
-    float: left; /* This seems to keep it from affecting the line layout */
-    font-size: 150%; outline: dotted silver 2px;
-    height: 0px; overflow: visible; z-index: 200; /* width: 0px; */
-    white-space: nowrap; pointer-events: none;
-    padding-right: 1ex; padding-left: 1ex;
-    background-color: white;
-    bottom: 100px;
-    display: none;}
+    width: 0px; height: 0px;
+    overflow: visible;}
+.fdjtselectloupe .fdjtloupetext {
+    margin: 0px !important; text-indent: 0px !important;
+    z-index: 200; white-space: nowrap; pointer-events: none;
+    background-color: gray; padding: 6px; font-size: 120%; 
+    width: fit-content; height: fit-content;
+    transform: translate(-50%,-2em);
+    position: absolute;}
 .fdjtselectloupe > span {
-    background-color: white; opacity: 0.8;}
+    background-color: white;}
+.fdjtselecting .fdjtselectloupe .fdjtselected {
+    background-color: rgb(255,255,0);
+    box-shadow: none; }
+.fdjtselecting .fdjtselectloupe .fdjtselected.fdjtselectstart,
+.fdjtselecting .fdjtselectloupe .fdjtselected.fdjtselectend {
+    background: gold;}
 
 /* Use this rule for the select loupe, e.g. on touch platforms. */
 /* .fdjtselecting .fdjtselectloupe { display: inline-block; } */
@@ -1197,8 +1203,9 @@ table.fdjtform .usebaseline td {
 /* The new pager */
 
 div.fdjtpage.formatting {
-    overflow-y: hidden !important;
-    max-height: 100% !important;}
+    overflow-y: auto !important;
+    max-height: 100% !important;
+    min-height: 0px !important;}
 div.fdjtpage:not(.getvisible) > div, div.fdjtpage:not(.getvisible) > p {
     display: none !important;}
 div.fdjtpage > div.fdjtshow, div.fdjtpage > p.fdjtshow {
@@ -2064,12 +2071,6 @@ span.note.ellipsis span.elision, span.note.ellipsis span.delision {
 .fdjtselectstart, .fdjtselectend {
     box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 215, 0, 0.33);}
 
-.fdjtselecting .fdjtselected {
-    background-color: rgba(255,255,0,0.5); }
-.fdjtselecting .fdjtselectstart, .fdjtselecting .fdjtselectend {
-    background-color: rgba(255,215,0,0.5); }
-
-
 #METABOOKBODY .fdjtselectwrap {
     background-color: transparent; }
 
@@ -2859,7 +2860,8 @@ body.mbMEDIA #METABOOKBODY {
 
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.openhud #METABOOKFRAME, body.mbSKIMMING #METABOOKFRAME,
-body.mbPREVIEW #METABOOKFRAME, body.mbSHOWHELP #METABOOKFRAME {
+body.mbPREVIEW #METABOOKFRAME, body.mbSHOWHELP #METABOOKFRAME,
+body._FULLHEIGHT #METABOOKFRAME {
     z-index: 50;}
 
 /* Override simple stylesheet definitions in the metaBook frame */
@@ -3360,14 +3362,15 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
 @charset "UTF-8";
 
-#METABOOKFRAME {
+#METABOOKPAGECONTROLS, #METABOOKFRAME {
     /* font-family: 'Open Sans', Arial, Helvetica, sans-serif, sans; */
     font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif, sans;}
-html._HAVEOPENSANS #METABOOKFRAME {
+html._HAVEOPENSANS #METABOOKFRAME, html._HAVEOPENSANS #METABOOKPAGECONTROLS {
     font-family: 'Open Sans', Verdana, Tahoma, Arial, Helvetica, sans-serif;}
-html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog {
+html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog,
+html._DYSLEXICAL #METABOOKPAGECONTROLS {
     font-family: 'Open Dyslexic', serif;}
-.wf-inactive #METABOOKFRAME {
+.wf-inactive #METABOOKFRAME, .wf-inactive #METABOOKPAGECONTROLS {
     font-family: Arial, Helvetica, sans-serif, sans;}
 
 #METABOOKBODY, #METABOOKFRAME #METABOOKABOUT, span.excerpt {
@@ -3391,7 +3394,6 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
 ;;;  indent-tabs-mode: nil ***
 ;;;  End: ***
 */
-
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -4156,10 +4158,10 @@ html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
 
 #METABOOKHEAD {
     position: absolute; left: 60px; right: 60px; z-index: 80;
-    min-height: 50px; max-height: 60px; padding: 0px;
+    min-height: 60px; max-height: 60px; padding: 0px;
     background-color: transparent; 
     border: solid transparent 0px;}
-#METABOOKTOPBAR, #METABOOKFOOT {
+#METABOOKFOOT, #METABOOKTOPBAR {
     position: absolute; left: 0px; right: 0px; height: 60px; z-index: 100;
     text-align: center; padding: 0px; max-height: 60px;}
 #METABOOKTOPBAR { top: 0px; }
@@ -4205,7 +4207,7 @@ body._ANIMATE #METABOOKSKIMMER {
 body.hudup #METABOOKHUD.openheart #METABOOKHEAD {
     max-height: 100px; height: auto;}
 body.hudup #METABOOKHUD.openheart.openhead #METABOOKHEAD {
-    max-height: 100px; min-height: 50px; height: auto;}
+    max-height: 100px; min-height: 60px; height: auto;}
 body._FULLHEIGHT.hudup #METABOOKHEAD {
     background-color: transparent;}
 body.hudup #METABOOKHEAD .hudpanel {
@@ -4425,22 +4427,10 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
     border-radius: 0px;
     top: 3ex;}
 
-/*
-#METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY,
-#METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY,
-#METABOOKHUD.addgloss.glosstagoutlet #METABOOKHEARTBODY,
-#METABOOKHUD.addgloss.glosseditdetail #METABOOKHEARTBODY,
-#METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEARTBODY,
-#METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY {
-    margin-bottom: 1.5ex; margin-top: 1.5ex; 
-    padding-bottom: 1em; padding-top: 1ex;
-    margin-right: 1px;}
-*/
-
 body.hudup #METABOOKHUD.openheart.allglosses #METABOOKHEARTBODY div.hudpanel,
 body.hudup #METABOOKHUD.openheart.searchresults
      #METABOOKHEARTBODY div.hudpanel {
-    padding-bottom: 0px; border-bottom: 0px; margin-bottom: 0px;}
+    padding-bottom: 1em; border-bottom: 0px; margin-bottom: 0px;}
 body.hudup #METABOOKHUD.openheart #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY div.hudpanel,
@@ -4646,7 +4636,12 @@ html._MOUSE not(body.mbSKIMMING) #METABOOKFOOT:hover .hudbutton:hover {
     opacity: 0.75;}
 
 /* #METABOOKHUD .tapholding .hudbutton {opacity: 0.50;} */
-#METABOOKHUD .hudbutton.tapholdtarget {opacity: 0.50;}
+#METABOOKHUD #METABOOKTOPBAR.tapholdtarget,
+#METABOOKHUD #METABOOKTOPBAR.tapholding {
+    opacity: 1;}
+#METABOOKHUD .tapholdtarget .hudbutton,
+#METABOOKHUD .tapholding .hudbutton {
+    opacity: 0.50;}
 
 body.mbSKIMMING img.hudbutton {
     opacity: 0.80;}
@@ -5315,9 +5310,9 @@ body.hudup img.metabookpagebutton {
 
 @media screen and (max-width: 640px) {
     .hudup img.hudbutton {
-        width: 60px; height: 60px;}
+        width: 50px; height: 50px;}
     .hudup #METABOOKSHOWCOVER img {
-        width: 60px; height: 60px;}
+        width: 50px; height: 50px;}
     body #METABOOKFRAME > #METABOOKHUD > #METABOOKTOPBAR {
         height: 60px; max-height: 60px;}
 
@@ -5326,7 +5321,7 @@ body.hudup img.metabookpagebutton {
     img.hudbutton.tapholdtarget,
     ._TOUCH #METABOOKTOPBAR.tapholding
     img.hudbutton.tapholdtarget {
-        width: 60px; height: 60px;}
+        width: 50px; height: 50px;}
 
     #METABOOKSHOWCOVER {
         width: 50px; color: transparent;
@@ -5384,8 +5379,6 @@ body.hudup img.metabookpagebutton {
 /* Phone */
 @media only screen and /* (min-width: 320px) and */
             (max-width: 480px) {
-    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
-        left: 5px; right: 5px;}
     body.mbSKIMMING .hudbutton,
     body.hudup.mbSKIMMING .hudbutton, 
     body.mbSKIMMING #METABOOKSHOWTEXT,
@@ -6649,7 +6642,7 @@ div.metabookslice div.metabookcard.skimpoint .fdjtclearfloats {
 div.metabooksources {}
 div.metabooksources img.button {
     height: 50px; width: auto; max-width: 50px; border-radius: 10%;
-    box-sizing: content-box;}
+    box-sizing: border-box;}
 div.metabooksources img.button.everyone {}
 div.metabooksources img.button.everyone.selected { background-color: silver; }
 div.metabooksources .button {
@@ -8232,6 +8225,8 @@ div.metabookglossform.submitclose form > div.messageoverlay {
         width: 40px; height: 40px; margin-left: 0px;}}
 
 @media screen and (max-width: 500px) {
+    #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
+        left: 5px; right: 5px;}
     #METABOOKHUD.addgloss img.hudbutton[alt="toc"],
     #METABOOKHUD.addgloss img.hudbutton[alt="search"] {
         display: none;}}

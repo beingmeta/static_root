@@ -5478,6 +5478,13 @@ fdjt.DOM=
             var sel=new Selector(spec);
             return ((sel.match(node))?(node):(getParent(node,sel)));};
 
+        fdjtDOM.getParents=function getParents(node,sel){
+            var results=[], scan=node, parent=false;
+            while ((parent=getParent(scan,sel))) {
+                results.push(parent);
+                scan=parent.parentNode;}
+            return results;};
+
         function getChildNodes(node){
             if (node.nodeType!==1) return [];
             else if (!(node.childNodes)) return [];
@@ -12652,10 +12659,11 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     else container=fdjtDOM.getParent(container,".fdjtpage")||container;
     return container;}
     
-  function istootall(container,fudge){
-    if (fudge)
-      return container.scrollHeight>(container.offsetHeight-fudge);
-    else return container.scrollHeight>container.offsetHeight;}
+  function istootall(container,height,padding){
+    if (!(height)) height=container.offsetHeight;
+    if (padding)
+      return container.scrollHeight>(height-padding);
+    else return container.scrollHeight>(height);}
   function isOversize(elt,w,h){
     if (typeof w === "undefined") w=true;
     if (typeof h === "undefined") h=true;
@@ -12670,9 +12678,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var info=getChild(container,".fdjtpageinfo");
     var children=getNodes(container), lim=children.length, startpos;
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
-    var fudge=getGeometry(container,false,true).bottom_padding;
-    var tap_event_name=
-      ((fdjt.device.touch)?("touchstart"):("click"));
+    var padding=getGeometry(container,false,true).bottom_padding, h;
+    var tap_event_name=((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
     if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
@@ -12688,7 +12695,9 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if ((!(start))||(startpos<0)||(startpos>=lim)||
         ((startpos===0)&&(dir<0)))
       return;
-    addClass(container,"fdjtpage"); addClass(container,"formatting");
+    addClass(container,"fdjtpage"); 
+    h=container.offsetHeight;
+    addClass(container,"formatting");
     if (!(info)) info=getProgressIndicator(container,startpos,lim);
     // Clear old page
     if (shown.length) {
@@ -12698,12 +12707,14 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     if (curend) dropClass(curend,"fdjtendofpage");
     addClass(start,"fdjtshow");
     addClass(start,((dir<0)?("fdjtendofpage"):("fdjtstartofpage")));
-    checkOversize(start);
+    if (start.offsetHeight>h) addClass(start,"fdjtoversize");
     if (((dir<0)&&(hasClass(start,/fdjtpagebreak(auto)?/)))||
-        (istootall(container))) {
+        (istootall(container,h,padding))) {
       dropClass(container,"formatting");
       return startpos;}
-    var endpos=showchildren(container,children,startpos,dir,fudge);
+    var endpos=showchildren(container,children,startpos,dir,h,padding);
+    if ((dir<0)&&(endpos===0))
+      return showPage(container,0,1);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -12786,7 +12797,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     dropClass(container,"getvisible");
     return children;}
 
-  function showchildren(container,children,i,dir,fudge){
+  function showchildren(container,children,i,dir,h,padding){
     var lim=children.length, scan=children[i+dir], last=children[i]; 
     var caboose=(dir<0)?("fdjtstartofpage"):("fdjtendofpage");
     i=i+dir; addClass(last,caboose); while ((i>=0)&&(i<lim)) {
@@ -12795,8 +12806,8 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       dropClass(last,caboose);
       addClass(scan,"fdjtshow");
       addClass(scan,caboose);
-      checkOversize(scan);
-      if (istootall(container)) {
+      if (scan.offsetHeight>h) addClass(scan,"fdjtoversize");
+      if (istootall(container,h,padding)) {
         addClass(last,caboose);
         dropClass(scan,"fdjtshow");
         scan.style.display='';
@@ -14173,8 +14184,21 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                   (""+serial));
         th.id=thid;
 
-        function start_holding(){addClass(elt,holdclass);}
-        function stop_holding(){dropClass(elt,holdclass);}
+        var drop_holding=[];
+
+        var getParents=fdjtDOM.getParents;
+
+        function start_holding(){
+            var parents=getParents(elt,".tapholdcontext");
+            if ((parents)&&(parents.length)) {
+                addClass(parents,holdclass);
+                drop_holding=parents;}
+            addClass(elt,holdclass);}
+        function stop_holding(){
+            if ((drop_holding)&&(drop_holding.length)) {
+                dropClass(drop_holding,holdclass);
+                drop_holding=false;}
+            dropClass(elt,holdclass);}
         function check_holding(){
             if (!(th_target)) dropClass(elt,holdclass);}
 
@@ -14977,11 +15001,11 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             if (opts.onstart) sel.onstart=opts.onstart;
             if (opts.onstop) sel.onstop=opts.onstop;
             var prefix=this.prefix="fdjtSel0"+this.serial;
-            if ((typeof opts.loupe !== 'undefined')||
-                (typeof TextSelect.loupe !== 'undefined'))
-                this.loupe=opts.loupe||TextSelect.loupe;
-            else {
-                this.loupe=fdjtDOM("span.fdjtselectloupe");}
+            if ((opts.loupe)||(TextSelect.loupe)) {
+                var spec=(opts.loupe)||(TextSelect.loupe);
+                if (spec.nodeType) this.loupe=spec;
+                else this.loupe=fdjtDOM("span.fdjtselectloupe");}
+            else {}
             this.adjust=false; /* This will be 'start' or 'end' */
             selectors[prefix]=sel;
             var stripid=prefix.length+1;
@@ -14993,6 +15017,8 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                     ((style.display==='inline')?
                      (fdjtDOM("span.fdjtselecting")):
                      (fdjtDOM("div.fdjtselecting")));
+                if ((this.loupe)&&(!(this.loupe.parentNode)))
+                    wrapper.appendChild(this.loupe);
                 // Initialize the wrapper
                 wrapper.id=prefix+"w"+k;
                 wrapper.title=((opts)&&(opts.title))||
@@ -15363,26 +15389,20 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 fdjtLog("updateLoupe(%d) over %o for %o%s",
                         sel.serial,word,sel,
                         ((tapped)?(" (tapped)"):("")));
-            var context=gatherContext(word,5,5,block);
-            var geom=fdjtDOM.getGeometry(word,word.offsetParent);
-            var cwidth=word.offsetParent.offsetWidth;
-            loupe.innerHTML=""; fdjtDOM.append(loupe,context.words);
+            var context=
+                ((hasClass(word,"fdjtselectend"))?
+                 (gatherContext(word,7,3,block)):
+                 (gatherContext(word,3,7,block)));
+            var words=fdjtDOM("span.fdjtloupetext");
+            loupe.innerHTML="";
+            fdjtDOM.append(words,context.words);
+            fdjtDOM.append(loupe,words);
             if (inline_loupe) {
-                loupe.style.display="none";
-                parent.insertBefore(loupe,word);
-                if (geom.left<(cwidth/2)) {
-                    loupe.style.float="left";
-                    loupe.style.left=(geom.left-(1.5*context.wordstart))+"px";
-                    loupe.style.right="";}
-                else {
-                    loupe.style.float="right";
-                    loupe.style.right=(cwidth-geom.right)-
-                        (1.5*(context.width-context.wordend))+"px";
-                    loupe.style.left="";}}
+                parent.insertBefore(loupe,word);}
             loupe.style.display="";
             if (tapped) setTimeout(function(){
                 if (sel.active) stopSelection(sel);
-                sel.loupe.display='none';},
+                sel.loupe.style.display='none';},
                                    1000);}
         var getGeometry=fdjtDOM.getGeometry;
 
@@ -15982,8 +16002,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1492-g640ff8b';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Thu Oct 29 20:37:06 EDT 2015';
-fdjt.builduuid='20B302C5-92A5-461E-9034-613F81CD1BCB';
+fdjt.revision='1.5-1498-g8dd19d8';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sun Nov 1 18:46:51 EST 2015';
+fdjt.builduuid='3ead3024-7323-4c2d-ba0b-5526867bc608';
 
