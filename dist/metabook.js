@@ -23116,12 +23116,12 @@ fdjt.DOM.noautofontadjust=true;
        current location.  This IS passed to the homescreen
        standalone app, so we can use it to get a real authentication
        token.*/
-    /*
     function iosHomeKludge(){
         if ((!(metaBook.user))||(fdjt.device.standalone)||
-            (!(fdjt.device.mobilesafari)))
+            (!(fdjt.device.mobilesafari))||
+            (!(mB.mycopyid)))
             return;
-        var auth=fdjtState.getCookie("BOOKHUB:AUTH-");
+        var auth=mB.mycopyid;
         if (!(auth)) return;
         var eauth=encodeURIComponent(auth);
         var url=location.href, qmark=url.indexOf('?'), hashmark=url.indexOf('#');
@@ -23130,10 +23130,10 @@ fdjt.DOM.noautofontadjust=true;
         var query=((qmark<0)?(""):(hashmark<0)?(url.slice(qmark)):
                    (url.slice(qmark+1,hashmark)));
         var hash=((hashmark<0)?(""):(url.slice(hashmark)));
-        var old_query=false, new_query="BOOKHUB%3aAUTH-="+eauth;
+        var old_query=false, new_query="MYCOPYID="+eauth;
         if (query.length<=2) query="?"+new_query;
-        else if (query.search("BOOKHUB%3aAUTH-=")>=0) {
-            var auth_start=query.search("BOOKHUB%3aAUTH-=");
+        else if (query.search("MYCOPYID=")>=0) {
+            var auth_start=query.search("MYCOPYID=");
             var before=query.slice(0,auth_start);
             var auth_len=query.slice(auth_start).search('&');
             var after=((auth_len<0)?(""):(query.slice(auth_start+auth_len)));
@@ -23167,7 +23167,6 @@ fdjt.DOM.noautofontadjust=true;
         updateKludgeTimer();}
     if ((!(fdjt.device.standalone))&&(fdjt.device.mobilesafari))
         fdjt.addInit(setupKludgeTimer,"setupKludgeTimer");
-    */
     
     /* Utility functions */
 
@@ -23831,7 +23830,7 @@ fdjt.DOM.noautofontadjust=true;
         else {
             if (Trace.target)
                 metaBook.trace("metaBook.setFalseHead",head);
-            metaBook.TOC.setHead(headinfo);
+            metaBook.TOC.setHead(false);
             metaBook.head=false;}}
     metaBook.setHead=setHead;
 
@@ -24063,7 +24062,7 @@ fdjt.DOM.noautofontadjust=true;
         else {}
         var info=(target)&&
             metaBook.docinfo[target.getAttribute("data-baseid")||target.id];
-        if ((location)&&(info.ends_at)&&(info.starts_at)&&
+        if ((location)&&(info)&&(info.ends_at)&&(info.starts_at)&&
             ((location>(info.ends_at))||(location<(info.starts_at))))
             // Why does this happen???
             location=false;
@@ -26886,6 +26885,8 @@ metaBook.DOMScan=(function(){
             metaBook.setConnected(true);
         if (info.sticky) metaBook.setPersist(true);
         if (info.mycopyid) gotMyCopyId(info.mycopyid);
+        else if (info.mycopy) gotMyCopyId(info.mycopy);
+        else {}
         if (!(metaBook.user)) {
             if (info.userinfo)
                 metaBook.setUser(
@@ -26909,7 +26910,7 @@ metaBook.DOMScan=(function(){
             metaBook.setupUI4User();}
         if (info.mycopyid) {
             if ((metaBook.mycopyid)&&
-                (info.mycopid!==metaBook.mycopyid))
+                (info.mycopyid!==metaBook.mycopyid))
                 fdjtLog.warn("Mismatched mycopyids");
             else metaBook.mycopyid=info.mycopyid;}
         if (!(metaBook.docinfo)) { /* Scan not done */
@@ -27055,8 +27056,6 @@ metaBook.DOMScan=(function(){
                 uri=uri+"&GLOSS="+glosses[i++];}
         if (metaBook.mycopyid)
             uri=uri+"&MCOPYID="+encodeURIComponent(metaBook.mycopyid);
-        if (metaBook.authkey)
-            uri=uri+"&SBOOKS%3aAUTH-="+encodeURIComponent(metaBook.authkey);
         if (metaBook.sync) uri=uri+"&SYNC="+(metaBook.sync+1);
         if (user) uri=uri+"&SYNCUSER="+user._id;
         if ((!(user))&&(Trace.startup))
@@ -27425,7 +27424,9 @@ metaBook.Startup=
             // Initialize the book state (location, targets, etc)
             metaBook.initState(); metaBook.syncState();
 
-            mB.gotMyCopyId(mB.readLocal("mB("+mB.docid+").mycopyid"));
+            var mycopyid=mB.readLocal("mB("+mB.docid+").mycopyid")||
+                fdjtState.getQuery("MYCOPYID");
+            mB.gotMyCopyId(mycopyid);
 
             // If we have no clue who the user is, ask right away (updateInfo())
             if (!((metaBook.user)||(window._sbook_loadinfo)||
@@ -30421,6 +30422,7 @@ metaBook.TOCSlice=
         MetaBookTOC.setHead=function setHead(headinfo){
             dropClass($(".mblivetoc"),"mblivetoc");
             dropClass($(".mbcurtoc"),"mbcurtoc");
+            if (!(headinfo)) return;
             var head=headinfo;
             while (head) {
                 var refs=document.getElementsByName("MBTOC4"+head.frag);
@@ -40071,9 +40073,9 @@ fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-138-g27b4ce7';
-metaBook.buildid='3c9db6cc-0f0e-4e0d-a286-0b549e57ecab';
-metaBook.buildtime='Sun Nov  1 18:49:09 EST 2015';
+metaBook.version='v0.8-140-g13690c4';
+metaBook.buildid='8bbbaf90-c441-4f03-a92b-4cafc5ca7b90';
+metaBook.buildtime='Mon Nov  2 13:43:37 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

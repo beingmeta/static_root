@@ -11647,6 +11647,30 @@ var metaBook = {
         }
         return target ? target.level ? mbID(target.frag) : target.head ? mbID(target.head.frag) : !1 : !1;
     }
+    function iosHomeKludge() {
+        if (metaBook.user && !fdjt.device.standalone && fdjt.device.mobilesafari && mB.mycopyid) {
+            var auth = mB.mycopyid;
+            if (auth) {
+                var eauth = encodeURIComponent(auth), url = location.href, qmark = url.indexOf("?"), hashmark = url.indexOf("#"), base = 0 > qmark ? 0 > hashmark ? url : url.slice(0, hashmark) : url.slice(0, qmark), query = 0 > qmark ? "" : 0 > hashmark ? url.slice(qmark) : url.slice(qmark + 1, hashmark), hash = 0 > hashmark ? "" : url.slice(hashmark), old_query = !1, new_query = "MYCOPYID=" + eauth;
+                if (2 >= query.length) query = "?" + new_query; else if (query.search("MYCOPYID=") >= 0) {
+                    var auth_start = query.search("MYCOPYID="), before = query.slice(0, auth_start), auth_len = query.slice(auth_start).search("&"), after = 0 > auth_len ? "" : query.slice(auth_start + auth_len);
+                    old_query = 0 > auth_len ? query.slice(auth_start) : query.slice(auth_start, auth_start + auth_len), 
+                    query = before + new_query + after;
+                } else query = query + "&" + new_query;
+                old_query && old_query === new_query || history.replaceState(history.state, window.title, base + query + hash);
+            }
+        }
+    }
+    function updateKludgeTimer() {
+        document[fdjtDOM.isHidden] ? ios_kludge_timer && (clearInterval(ios_kludge_timer), 
+        ios_kludge_timer = !1) : ios_kludge_timer || (ios_kludge_timer = setInterval(function() {
+            metaBook.user && !fdjt.device.standalone && !document[fdjtDOM.isHidden] && fdjt.device.mobilesafari && iosHomeKludge();
+        }, 3e5));
+    }
+    function setupKludgeTimer() {
+        updateKludgeTimer(), fdjtDOM.isHidden && fdjtDOM.addListener(document, fdjtDOM.vischange, updateKludgeTimer), 
+        updateKludgeTimer();
+    }
     function notEmpty(arg) {
         return "string" == typeof arg ? isEmpty(arg) ? !1 : arg : !1;
     }
@@ -11812,6 +11836,8 @@ var metaBook = {
         metaBook.target && "openglossmark" === metaBook.mode && (fdjtDOM.isVisible(metaBook.target) || (metaBook.setMode(!1), 
         metaBook.setMode(!0)));
     };
+    var ios_kludge_timer = !1;
+    !fdjt.device.standalone && fdjt.device.mobilesafari && fdjt.addInit(setupKludgeTimer, "setupKludgeTimer");
     var isEmpty = fdjtString.isEmpty, metabook_docinfo = !1;
     metaBook.ID = mbID, metaBook.getTitle = function(target, tryhard) {
         var targetid;
@@ -11956,7 +11982,7 @@ var metaBook = {
             window.title = headinfo.title + " (" + document.title + ")", metaBook.head && dropClass(metaBook.head, "bookhead"), 
             addClass(head, "bookhead"), metaBook.setLocation(metaBook.location), metaBook.head = mbID(headid), 
             metaBook.TOC.setHead(headinfo)) : (Trace.target && metaBook.trace("metaBook.setFalseHead", head), 
-            metaBook.TOC.setHead(headinfo), metaBook.head = !1), void 0);
+            metaBook.TOC.setHead(!1), metaBook.head = !1), void 0);
         }
     }
     function setLocation(location, force) {
@@ -12074,7 +12100,7 @@ var metaBook = {
         }
         istarget && istarget.nodeType ? target = istarget : "string" == typeof istarget && mbID(istarget) && (target = mbID(istarget));
         var info = target && metaBook.docinfo[target.getAttribute("data-baseid") || target.id];
-        location && info.ends_at && info.starts_at && (location > info.ends_at || info.starts_at > location) && (location = !1);
+        location && info && info.ends_at && info.starts_at && (location > info.ends_at || info.starts_at > location) && (location = !1);
         var page = metaBook.bypage && metaBook.layout && metaBook.getPage(target, location), pageno = page && parseInt(page.getAttribute("data-pagenum"), 10);
         if (mB.Trace.nav && fdjtLog("mB.GoTo(%s%s%s%s%s) %o location=%o page=%o pageno=%d arg=%o", caller || "", caller ? ":" : "", istarget ? "t" : "", savestate ? "s" : "", skiphist ? "" : "h", target, location ? location : "none", page, pageno, arg), 
         !target) {
@@ -13319,7 +13345,8 @@ var metaBook = {
     function loadInfo(info) {
         if (metaBook.nouser) return metaBook.setConnected(!1), void 0;
         if (window._sbook_loadinfo !== info && metaBook.setConnected(!0), info.sticky && metaBook.setPersist(!0), 
-        info.mycopyid && gotMyCopyId(info.mycopyid), metaBook.user) {
+        info.mycopyid ? gotMyCopyId(info.mycopyid) : info.mycopy && gotMyCopyId(info.mycopy), 
+        metaBook.user) {
             if (info.wronguser) return metaBook.clearOffline(), window.location = window.location.href, 
             void 0;
             info.userinfo && metaBook.user && (metaBook.user.importValue(info.userinfo), metaBook.user.save(), 
@@ -13327,7 +13354,7 @@ var metaBook = {
         } else info.userinfo ? metaBook.setUser(info.userinfo, info.outlets, info.layers, info.sync) : (getLocal("mB(" + mB.docid + ").queued") && metaBook.glossdb.load(getLocal("mB(" + mB.docid + ").queued", !0)), 
         $ID("METABOOKCOVER").className = "bookcover", addClass(document.documentElement || document.body, "_NOUSER")), 
         info.nodeid && metaBook.setNodeID(info.nodeid);
-        if (info.mycopyid && (metaBook.mycopyid && info.mycopid !== metaBook.mycopyid ? fdjtLog.warn("Mismatched mycopyids") : metaBook.mycopyid = info.mycopyid), 
+        if (info.mycopyid && (metaBook.mycopyid && info.mycopyid !== metaBook.mycopyid ? fdjtLog.warn("Mismatched mycopyids") : metaBook.mycopyid = info.mycopyid), 
         !metaBook.docinfo) return metaBook.scandone = function() {
             loadInfo(info);
         }, void 0;
@@ -13389,7 +13416,6 @@ var metaBook = {
             for (i = 0, lim = glosses.length; lim > i; ) uri = uri + "&GLOSS=" + glosses[i++];
             for (glosses = getHash("GLOSS"), i = 0, lim = glosses.length; lim > i; ) uri = uri + "&GLOSS=" + glosses[i++];
             if (metaBook.mycopyid && (uri = uri + "&MCOPYID=" + encodeURIComponent(metaBook.mycopyid)), 
-            metaBook.authkey && (uri = uri + "&SBOOKS%3aAUTH-=" + encodeURIComponent(metaBook.authkey)), 
             metaBook.sync && (uri = uri + "&SYNC=" + (metaBook.sync + 1)), user && (uri = uri + "&SYNCUSER=" + user._id), 
             !user && Trace.startup && fdjtLog("Requesting initial user info with %s using %s", noajax ? "JSONP" : "Ajax", uri), 
             noajax) return updateInfoJSONP(uri + (user ? "" : "&JUSTUSER=yes"), jsonp), void 0;
@@ -13568,8 +13594,9 @@ var metaBook = {
         getSession("mbtrace") && useTraceSettings([ getSession("mbtrace") ]), getLocal("mbtrace") && useTraceSettings([ getLocal("mbtrace") ]), 
         readBookSettings(), fdjtLog("Book %s (%s) %s (%s%s)", mB.docref || "@??", mB.bookbuild || "", mB.refuri, mB.sourceid, mB.sourcetime ? ": " + ("" + mB.sourcetime) : ""), 
         metaBook.initDB(), metaBook.initConfig(), readEnvSettings(), readMycopyid(), getLocal("mB.user") && (metaBook.setPersist(!0), 
-        metaBook.userSetup()), metaBook.initState(), metaBook.syncState(), mB.gotMyCopyId(mB.readLocal("mB(" + mB.docid + ").mycopyid")), 
-        metaBook.user || window._sbook_loadinfo || metaBook.userinfo || window._userinfo || getLocal("mB.user") || (Trace.startup && fdjtLog("No local user info, requesting from bookhub server %s", mB.server), 
+        metaBook.userSetup()), metaBook.initState(), metaBook.syncState();
+        var mycopyid = mB.readLocal("mB(" + mB.docid + ").mycopyid") || fdjtState.getQuery("MYCOPYID");
+        mB.gotMyCopyId(mycopyid), metaBook.user || window._sbook_loadinfo || metaBook.userinfo || window._userinfo || getLocal("mB.user") || (Trace.startup && fdjtLog("No local user info, requesting from bookhub server %s", mB.server), 
         metaBook.updateInfo()), fdjt.Init(), metaBook.updateSizeClasses(), setupBook(), 
         setupDevice(), setupApp(), metaBook._ui_setup = fdjtTime(), showMessage(), metaBook._user_setup && metaBook.setupUI4User(), 
         setupContent(), metaBook.setupGestures(), metaBook.setConfig(metaBook.getConfig()), 
@@ -14964,18 +14991,20 @@ var metaBook = {
     var fdjtDOM = fdjt.DOM, addClass = fdjtDOM.addClass, dropClass = fdjtDOM.dropClass, $ = fdjtDOM.$, MetaBookSlice = metaBook.Slice, mbicon = metaBook.icon;
     return metaBook.navicon = navicon, MetaBookTOC.prototype = new MetaBookSlice(), 
     MetaBookTOC.setHead = function(headinfo) {
-        dropClass($(".mblivetoc"), "mblivetoc"), dropClass($(".mbcurtoc"), "mbcurtoc");
-        for (var head = headinfo; head; ) {
-            for (var refs = document.getElementsByName("MBTOC4" + head.frag), j = 0, jlim = refs.length; jlim > j; ) {
-                var ref = refs[j++];
-                addClass(ref, "mblivetoc"), head === headinfo && addClass(ref, "mbcurtoc");
+        if (dropClass($(".mblivetoc"), "mblivetoc"), dropClass($(".mbcurtoc"), "mbcurtoc"), 
+        headinfo) {
+            for (var head = headinfo; head; ) {
+                for (var refs = document.getElementsByName("MBTOC4" + head.frag), j = 0, jlim = refs.length; jlim > j; ) {
+                    var ref = refs[j++];
+                    addClass(ref, "mblivetoc"), head === headinfo && addClass(ref, "mbcurtoc");
+                }
+                head = head.head;
             }
-            head = head.head;
-        }
-        var toc = metaBook.slices.statictoc;
-        if (toc) {
-            var info = toc.byfrag[headinfo.frag];
-            info && toc.setSkim(info.dom);
+            var toc = metaBook.slices.statictoc;
+            if (toc) {
+                var info = toc.byfrag[headinfo.frag];
+                info && toc.setSkim(info.dom);
+            }
         }
     }, MetaBookTOC.prototype.mode = "statictoc", metaBook.TOC = MetaBookTOC, MetaBookTOC;
 }(), metaBook.setMode = function() {
@@ -19248,8 +19277,8 @@ metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="text">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="text">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="text">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="text">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="text">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="text">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 fdjt.revision = "1.5-1498-g8dd19d8", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Sun Nov 1 18:46:51 EST 2015", 
 fdjt.builduuid = "3ead3024-7323-4c2d-ba0b-5526867bc608", fdjt.CodexLayout.sourcehash = "9ED439F87B9B2799549B6BEBAAF986B6E642CC8A", 
-Knodule.version = "v0.8-154-g4218590", metaBook.version = "v0.8-138-g27b4ce7", metaBook.buildid = "3c9db6cc-0f0e-4e0d-a286-0b549e57ecab", 
-metaBook.buildtime = "Sun Nov  1 18:49:09 EST 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
+Knodule.version = "v0.8-154-g4218590", metaBook.version = "v0.8-140-g13690c4", metaBook.buildid = "8bbbaf90-c441-4f03-a92b-4cafc5ca7b90", 
+metaBook.buildtime = "Mon Nov  2 13:43:37 EST 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });
