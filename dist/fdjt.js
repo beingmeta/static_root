@@ -12826,6 +12826,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
         adjustFonts(scan);}}
     scan.style.overflow=saved;}
   showPage.isOversize=isOversize;
+  showPage.checkOversize=checkOversize;
 
   function forwardPage(container){
     if (!(container=getContainer(container))) return;
@@ -16002,8 +16003,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1498-g8dd19d8';
+fdjt.revision='1.5-1500-g169d8fa';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun Nov 1 18:46:51 EST 2015';
-fdjt.builduuid='3ead3024-7323-4c2d-ba0b-5526867bc608';
+fdjt.buildtime='Thu Nov 5 09:58:46 EST 2015';
+fdjt.builduuid='d3701377-5217-42d1-926c-43a4d73c9383';
 
