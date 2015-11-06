@@ -76,20 +76,20 @@ METABOOK_HINTS=\
 METABOOK_DERIVED_FILES=\
 	metabook/html/searchbox.js metabook/html/addgloss.js \
 	metabook/html/hud.js metabook/html/heart.js metabook/html/attach.js  \
-	metabook/html/help.js metabook/html/hudhelp.js     \
+	metabook/html/help.js metabook/html/hudhelp.js metabook/html/menu.js \
 	metabook/html/console.js metabook/html/messages.js     \
 	metabook/html/cover.js metabook/html/settings.js
 
 METABOOK_HTML_FILES=\
 	metabook/html/searchbox.html metabook/html/addgloss.html \
 	metabook/html/hud.html metabook/html/heart.html \
-	metabook/html/attach.html \
+	metabook/html/attach.html metabook/html/menu.html \
 	metabook/html/help.html metabook/html/hudhelp.html \
 	metabook/html/console.html metabook/html/messages.html \
 	metabook/html/cover.html metabook/html/settings.html
 
 METABOOK_CSS=\
-	metabook/css/app.css metabook/css/framing.css \
+	metabook/css/app.css metabook/css/framing.css metabook/css/menu.css \
 	fonts/open_sans.css fonts/open_dyslexic.css metabook/css/fonts.css \
 	metabook/css/cover.css metabook/css/settings.css metabook/css/hud.css \
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css \
