@@ -23227,7 +23227,11 @@ fdjt.DOM.noautofontadjust=true;
         else query=query+"&"+new_query;
         if ((!(old_query))||(old_query!==new_query))
             history.replaceState(history.state,window.title,
-                                 base+query+hash);}
+                                 base+qstring(query)+hashstring(hash));}
+    function qstring(s){
+        if (s[0]==='?') return s; else return "?"+s;}
+    function hashstring(s){
+        if (s[0]==='#') return s; else return "#"+s;}
 
     var ios_kludge_timer=false;
     function updateKludgeTimer(){
@@ -23423,20 +23427,6 @@ fdjt.DOM.noautofontadjust=true;
         if (elt.tagName.search(/H\d/)===0)
             return parseInt(elt.tagName.slice(1,2),10);
         return false;}
-
-    function getFirstTocLevel(node,notself){
-        if (node.nodeType!==1) return false;
-        var level=((!(notself))&&(getLevel(node)));
-        if (level) return level;
-        var children=node.childNodes;
-        var i=0; var lim=children.length;
-        while (i<lim) {
-            var child=children[i++];
-            if (child.nodeType!==1) continue;
-            level=getFirstTocLevel(child);
-            if (level) return level;}
-        return false;}
-
     metaBook.getTOCLevel=getLevel;
     
     function getCoverPage(){
@@ -40200,9 +40190,9 @@ fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-155-ge67527d';
-metaBook.buildid='0896ae0f-292e-4d16-b97c-957c5620afe7';
-metaBook.buildtime='Sat Nov  7 17:09:08 EST 2015';
+metaBook.version='v0.8-157-g9e10111';
+metaBook.buildid='8859043c-61f1-4c4b-9c57-7e24c589cc9c';
+metaBook.buildtime='Sat Nov  7 17:23:35 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
