@@ -1012,6 +1012,8 @@ div.fdjtdialog.fdjtconfirm div.choices button {
     background-color: silver;
     border-radius: 1ex;
     margin-left: 0.5ex; margin-right: 0.5ex; margin-bottom: 1ex;}
+html._TOUCH div.fdjtdialog.fdjtconfirm div.choices button:hover {
+    border-color: blue;}
 
 div.fdjtdialog.fdjtconfirm div.choices button.selected,
 div.fdjtdialog.fdjtconfirm div.choices button:focus {
@@ -1216,11 +1218,21 @@ div.fdjtpage .fdjtpageinfo {
     position: absolute; right: 0px; bottom: 0px;
     padding-right: 0.5ex; padding-left: 0.5ex; 
     color: black; background-color: rgba(0,0,0,0.4);
-    font-size: 150%; line-height: 100%;
-    opacity: 0.25;}
+    font-size: 150%; /* line-height: 100%; */
+    opacity: 0.35;}
 
 div.fdjtpage .fdjtpageinfo span { pointer-events: none; }
+div.fdjtpage .fdjtpageinfo span.pct {
+    padding-left: 1ex; padding-right: 1ex;
+    pointer-events: all;
+    cursor: text;}
+div.fdjtpage .fdjtpageinfo span.pct span.value {
+    -webkit-user-select: text;
+    -moz-select: text;
+    user-select: text;}
 div.fdjtpage div.fdjtpageinfo span.count { display: none;}
+div.fdjtpage div.fdjtpageinfo span.count strong {
+    padding-left: 0.5ex; padding-right: 0.5ex;}
 div.fdjtpage > div.fdjtpageinfo { display: block !important; }
 div.fdjtpage div.fdjtpageinfo {
     transition-property: opacity; transition-duration: 5s;}
@@ -1236,7 +1248,20 @@ html._MOUSE div.fdjtpage div.fdjtpageinfo:hover {
 html._MOUSE div.fdjtpage div.fdjtpageinfo .button:hover {
     color: blue;}
 
-html._TOUCH div.fdjtpageinfo { font-size: 200%;}
+div.fdjtpage div.fdjtpageinfo.fdjteditpageinfo {
+    background-color: gray;
+    transition-duration: 1s;
+    opacity: 0.9;
+    z-index: 100;}
+div.fdjtpage div.fdjtpageinfo.fdjteditpageinfo span.count {
+    display: inline-block;}
+div.fdjtpage .fdjtpageinfo.fdjteditpageinfo span.pct span.value {
+    pointer-events: all;}
+
+html._TOUCH div.fdjtpageinfo {
+    font-size: 200%;}
+html._TOUCH div.fdjtpageinfo.fdjteditpageinfo {
+    bottom: auto; top: 0px;}
 
 div.fdjtpage.formatting div, div.fdjtpage.getvisible div, 
 div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
@@ -2751,6 +2776,36 @@ div.fdjtdialog.metabooktaptap .choices button.anchor .anchorcontext {
     font-weight: normal; font-style: normal;
     display: none;}
 
+/* Custom dialog rules */
+
+div.fdjtdialog.savegloss {
+    top: 0px; left: 50px; right: 50px; height: 2em;
+    border-top: 0px; border-radius: 1ex;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    width: inherit; max-width: inherit;
+    padding: 0px 1em 1ex 1ex;
+    font-size: 1.5rem;
+    text-align: left;}
+div.fdjtdialog.savegloss div.choices {
+    position: absolute; right: 1ex; top: 0px;
+    margin-top: 0px; padding-top: 3px;
+    text-align: right;}
+div.fdjtdialog.savegloss div.choices button {
+    font-weight: bold; }
+div.fdjtdialog.savegloss.closing .countdown {
+    display: inline-block;}
+div.fdjtdialog.savegloss .message {
+    display: inline-block;}
+div.fdjtdialog.savegloss .countdown {
+    position: static; background-color: ivory;
+    padding: 0px 1ex; border-radius: 0.5ex;
+    margin-top: 3px; margin-right: 1ex;}
+div.fdjtdialog.savegloss.closing button[value="SAVE"] {
+    display: none; }
+div.fdjtdialog.savegloss.closing button[value="DISCARD"] {
+    background-color: red; }
+
 /* Media rules */
 
 @media (max-width: 500px) {
@@ -2881,14 +2936,13 @@ body._FULLHEIGHT #METABOOKFRAME {
     width: 100%; height: 100%;
     transform: translateZ(0);
     pointer-events: none;}
-#METABOOKHUD.openhead #METABOOKTOPBAR {
-    pointer-events: none;}
+/* #METABOOKHUD.openhead #METABOOKMENU {pointer-events: none;} */
 
-#METABOOKFOOT, #METABOOKTOPBAR,
+/* #METABOOKHUD.openhead #METABOOKMENU .hudbutton */
+#METABOOKFOOT, #METABOOKMENU,
 body.mbSKIMMING #METABOOKSKIMMER,
 #METABOOKHUD.openheart #METABOOKHEART,
-#METABOOKHUD.openhead #METABOOKHEAD,
-#METABOOKHUD.openhead #METABOOKTOPBAR .hudbutton {
+#METABOOKHUD.openhead #METABOOKHEAD {
     pointer-events: all;}
 
 /* Page controls */
@@ -3146,6 +3200,166 @@ body.hudup #CODEXPAGE {z-index: 0;}
    away, if we move the z-index down, though it might/can cause display
    issues. */
 body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
+
+/* Emacs local variables
+;;;  Local variables: ***
+;;;  compile-command: "cd ../..; make" ***
+;;;  indent-tabs-mode: nil ***
+;;;  End: ***
+*/
+
+/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+
+/* Copyright (C) 2009-2015 beingmeta, inc. */
+
+@charset "UTF-8";
+
+#METABOOKMENU {
+    position: absolute; 
+    top: 0px; left: 0px; right: 0px; height: 60px; z-index: 20;
+    text-align: center; padding: 0px; max-height: 60px;}
+
+#METABOOKMENU { opacity: 0.1;}
+
+.hudup #METABOOKMENU, 
+#METABOOKMENU.tapholding,
+html._MOUSE #METABOOKMENU:hover { 
+    z-index: 200;}
+
+html._MOUSE #METABOOKMENU:hover {opacity: 0.5;}
+
+.hudup #METABOOKMENU, 
+#METABOOKMENU.tapholding,
+html._MOUSE .hudup #METABOOKMENU:hover,
+html._MOUSE #METABOOKMENU.tapholding:hover {
+    opacity: 1;}
+
+#METABOOKMENU .hudbutton {
+    border-top: 0px; opacity: 0.5;}
+.hudup #METABOOKMENU .hudbutton,
+#METABOOKMENU.tapholding .hudbutton {
+    opacity: 1;}
+
+#METABOOKMENU.tapholding img.hudbutton {
+    background-color: rgba(255,255,240,0.5);}
+
+body._FULLHEIGHT #METABOOKMENU {height: 20px;}
+body._FULLHEIGHT #METABOOKMENU.tapholding,
+body._FULLHEIGHT.hudup #METABOOKMENU {
+    height: 55px; max-height: 60px;}
+
+body._FULLHEIGHT #METABOOKMENU {
+    background-color: rgb(255,255,240);}
+
+html._MOUSE not(body.hudup) #METABOOKMENU:hover .hudbutton,
+html._MOUSE not(body.mbSKIMMING) #METABOOKMENU:hover .hudbutton {
+    opacity: 0.50;}
+html._MOUSE not(body.hudup) #METABOOKMENU:hover .hudbutton:hover,
+html._MOUSE not(body.mbSKIMMING) #METABOOKMENU:hover .hudbutton:hover {
+    border-color: blue; border-style: dotted;
+    opacity: 0.75;}
+
+.hudbutton.topleft { left: 0px; top: 0px; display: inline-block;}
+.hudbutton.topright { right: 0px; top: 0px; display: inline-block;}
+
+#METABOOKMENU img.hudbutton[hudmode="allglosses"],
+#METABOOKMENU img.hudbutton[hudmode="help"] {
+    top: 0px; display: none;}
+
+body._FULLHEIGHT.hudup.mbNOMODE #METABOOKMENU,
+body._FULLHEIGHT #METABOOKMENU.tapholding,
+html._MOUSE body._FULLHEIGHT .mbNOMODE #METABOOKMENU:hover { 
+    background-color: rgb(255,255,240);}
+
+
+#METABOOKCOVERTAB {
+    text-align: center; max-height: 100%;
+    display: none;}
+
+.hudup.mbNOMODE #METABOOKCOVERTAB,
+#METABOOKMENU.tapholding #METABOOKCOVERTAB,
+html._MOUSE .mbNOMODE #METABOOKMENU:hover #METABOOKCOVERTAB { 
+    display: inline-block;}
+
+.hudup #METABOOKBREVET,
+#METABOOKMENU.tapholding #METABOOKBREVET,
+html._MOUSE .mbNOMODE #METABOOKMENU:hover #METABOOKBREVET { 
+    display: none;}
+
+body.mbSKIMMING #METABOOKCOVERTAB { display: none; }
+#METABOOKCOVERTAB .hudbutton {
+    position: static;}
+#METABOOKCOVERTAB .hudbutton.left {
+    float: left; margin-right: 1ex; display: inline-block;}
+#METABOOKCOVERTAB .hudbutton.right {
+    float: right; margin-left: 1ex; display: inline-block;}
+
+#METABOOKBREVET {
+    box-sizing: border-box; -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    display: inline-block; height: 24px; width: 64px; 
+    margin: 0px; padding: 2px; padding-top: 0px;
+    border: solid transparent 1px; border-top: 0px;
+    pointer-events: none;
+    background-size: contain; background-repeat: no-repeat;
+    background-position: top center;
+    vertical-align: top;}
+body._ANIMATE #METABOOKBREVET {
+    transition-property: background-color;
+    transition-duration: 0.2s;}
+#METABOOKBREVET {
+    background-image: url(g/metabook/downbar.svgz);}
+html._NOSVG #METABOOKBREVET {
+    background-image: url(g/metabook/downbar128w.png);}
+.hudup #METABOOKBREVET, .mbcover #METABOOKBREVET { display: none;}
+
+#METABOOKSHOWCOVER {
+    display: inline-block;
+    box-sizing: border-box; -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 5em; height: 50px; font-size: 45px; line-height: 1.0;
+    margin: 0px; margin-left: auto; margin-right: auto;
+    padding:  0px 1em 0px 1em;
+    background-color: gray; color: white;
+    font-variant: small-caps; font-weight: bold;
+    border-bottom-left-radius: 1ex; border-bottom-right-radius: 1ex;
+    cursor: pointer;}
+#METABOOKSHOWCOVER img {
+    height: 1.2em; width: auto;
+    float: left;}
+
+@media screen and (max-width: 640px) {
+    .hudup #METABOOKSHOWCOVER img {
+        width: 50px; height: 50px;}
+
+    #METABOOKMENU.tapholding img.hudbutton,
+    img.hudbutton.tapholdtarget,
+    ._TOUCH #METABOOKMENU.tapholding
+    img.hudbutton.tapholdtarget {
+        width: 50px; height: 50px;}
+
+    #METABOOKSHOWCOVER {
+        width: 50px; color: transparent;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+        background-size: contain; background-repeat: no-repeat;
+        background-position: top center;
+        background-image: url(g/metabook/book.svgz);}
+    ._NOSVG #METABOOKSHOWCOVER {
+        background-image: url(g/metabook/book50x50.png);}
+
+    body.mbSKIMMING #METABOOKMENU {
+        display: none;}
+}
+
+media only screen and /* (min-width: 320px) and */
+            (max-width: 480px) {
+    #METABOOKMENU .hudbutton[hudmode="allglosses"] {right: 70px;}
+    #METABOOKMENU .hudbutton[hudmode="help"] {left: 70px;}
+    #METABOOKMENU .hudbutton[hudmode="allglosses"],
+    #METABOOKMENU .hudbutton[hudmode="help"] {
+        display: inline-block;}
+}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -4154,6 +4368,10 @@ html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
 #METABOOKHUD .metabookhelp, #METABOOKHUD .helpbox,
 #METABOOKHUD .metabookslice {
     font-size: 16px; font-size: 1rem;}
+html._TOUCH #METABOOKHUD .metabookhelp,
+html._TOUCH #METABOOKHUD .helpbox,
+html._TOUCH #METABOOKHUD .metabookslice {
+    font-size: 24px; font-size: 1.5rem;}
 
 /* Major HUD components, head and heart */
 
@@ -4162,10 +4380,9 @@ html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
     min-height: 60px; max-height: 60px; padding: 0px;
     background-color: transparent; 
     border: solid transparent 0px;}
-#METABOOKFOOT, #METABOOKTOPBAR {
+#METABOOKFOOT {
     position: absolute; left: 0px; right: 0px; height: 60px; z-index: 100;
     text-align: center; padding: 0px; max-height: 60px;}
-#METABOOKTOPBAR { top: 0px; }
 #METABOOKFOOT { bottom: 0px; }
 #METABOOKSKIMMER {
     position: absolute; left: 60px; right: 60px; z-index: 100;
@@ -4177,16 +4394,7 @@ html._TOUCH #METABOOKSKIMMER div.mbtoc,
 html._TOUCH #METABOOKSKIMMER div.metabookcard {
     min-height: 50px;}
 body._ANIMATE #METABOOKSKIMMER {
-    transition-property: height; transition-duration: 0.3s;
-    -webkit-transition-property: height; -webkit-transition-duration: 0.3s;
-    -moz-transition-property: height; -moz-transition-duration: 0.3s;
-    -o-transition-property: height; -o-transition-duration: 0.3s;}
-
-.hudup #METABOOKTOPBAR {
-    background-color: rgba(255,255,255,0.8);}
-.hudup #METABOOKHUD.openheart #METABOOKTOPBAR,
-.hudup #METABOOKHUD.openhead #METABOOKTOPBAR {
-    background-color: transparent;}
+    transition-property: height; transition-duration: 0.3s;}
 
 #METABOOKSKIMMER.flash { background-color: silver;}
 .hudup #METABOOKSKIMMER {
@@ -4213,11 +4421,6 @@ body._FULLHEIGHT.hudup #METABOOKHEAD {
     background-color: transparent;}
 body.hudup #METABOOKHEAD .hudpanel {
     background-color: rgba(255,255,240,0.6);}
-
-body._FULLHEIGHT #METABOOKTOPBAR {height: 20px;}
-body._FULLHEIGHT #METABOOKTOPBAR.tapholding,
-body._FULLHEIGHT.hudup #METABOOKTOPBAR {
-    height: 50px;}
 
 html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.helphud {
     background-color: ivory;}
@@ -4303,11 +4506,6 @@ body.hudup #METABOOKHEAD {display: block;}
     border-color: blue; height: auto;}
 body.hudup #METABOOKHUD.openhead.overtoc #METABOOKHEAD {
     border-color: transparent;}
-
-#METABOOKFRAME > #METABOOKHUD.openhead #METABOOKTOPCENTER,
-#METABOOKFRAME > #METABOOKHUD.openheart #METABOOKTOPCENTER,
-body.mbSKIMMING #METABOOKTOPCENTER {
-    display: none;}
 
 #METABOOKHUD #METABOOKHEAD .hudpanel {
     position: static; width: 100%; 
@@ -4611,50 +4809,33 @@ div.completions.hudpanel .normal { line-height: 250%;}
 
 /* HUD buttons */
 
-img.hudbutton {
+.hudbutton {
     position: absolute; width: 50px; height: 50px;
     border: solid transparent 2px;
+    background-color: transparent;
     box-sizing: content-box;}
 .hudbutton {
-    opacity: 0.02;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=02)";
-    filter: alpha(opacity=02);
-    -webkit-opacity: 0.02;
-    -khtml-opacity: 0.02;
-    -moz-opacity: 0.02;
-    -o-opacity: 0.02;}
+    transition-property: opacity;
+    transition-duration: 0.2s;}
+.hudbutton {opacity: 0.02;}
+
 html._MOUSE not(body.hudup) .hudbutton:hover,
-html._MOUSE not(body.hudup) #METABOOKTOPBAR:hover .hudbutton,
 html._MOUSE not(body.hudup) #METABOOKFOOT:hover .hudbutton,
 html._MOUSE not(body.mbSKIMMING) .hudbutton:hover,
-html._MOUSE not(body.mbSKIMMING) #METABOOKTOPBAR:hover .hudbutton,
 html._MOUSE not(body.mbSKIMMING) #METABOOKFOOT:hover .hudbutton {
     opacity: 0.50;}
-html._MOUSE not(body.hudup) #METABOOKTOPBAR:hover .hudbutton:hover,
-html._MOUSE not(body.hudup) #METABOOKFOOT:hover .hudbutton:hover,
-html._MOUSE not(body.mbSKIMMING) #METABOOKTOPBAR:hover .hudbutton:hover,
-html._MOUSE not(body.mbSKIMMING) #METABOOKFOOT:hover .hudbutton:hover {
-    opacity: 0.75;}
 
-/* #METABOOKHUD .tapholding .hudbutton {opacity: 0.50;} */
-#METABOOKHUD #METABOOKTOPBAR.tapholdtarget,
-#METABOOKHUD #METABOOKTOPBAR.tapholding {
-    opacity: 1;}
-#METABOOKHUD .tapholdtarget .hudbutton,
-#METABOOKHUD .tapholding .hudbutton {
-    opacity: 0.50;}
+body.hudup .hudbutton, .tapholding .hudbutton {
+    opacity: 0.8;}
 
-body.mbSKIMMING img.hudbutton {
-    opacity: 0.80;}
-.hudbutton {
-    transition-property: width, height, opacity;
-    transition-duration: 0.2s;}
+html._MOUSE body.hudup .hudbutton:hover,
+body.hudup .hudbutton.tapholdtarget {
+    opacity: 1.0;}
 
-#METABOOKTOPBAR img.hudbutton[hudmode="allglosses"],
-#METABOOKTOPBAR img.hudbutton[hudmode="help"] {
-    top: 0px; display: none;}
-#METABOOKTOPBAR img.hudbutton[hudmode="allglosses"] {right: 70px;}
-#METABOOKTOPBAR img.hudbutton[hudmode="help"] {left: 70px;}
+html._MOUSE .hudbutton:hover, .hudbutton.tapholdtarget {
+    border-style: dotted; border-color: blue;}
+html._MOUSE img.hudbutton:hover, img.hudbutton.tapholdtarget {
+    background-color: rgba(255,255,240,0.9);}
 
 #METABOOKFOOT img.hudbutton[hudmode="searchresults"],
 #METABOOKFOOT img.hudbutton[hudmode="statictoc"],
@@ -4673,41 +4854,25 @@ body.mbSKIMMING #METABOOKHUD.searchresults img.hudbutton[hudmode="allglosses"],
 body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="allglosses"]{
     display: none; }
 
-body.hudup #METABOOKHUD img.hudbutton  {}
+body.hudup img.hudbutton  {}
 
-#METABOOKHUD .topleft {top: 0px; left: 0px; right: auto; bottom: auto;}
-#METABOOKHUD .topright {top: 0px; right: 0px; left: auto; bottom: auto;}
-#METABOOKHUD .botleft {bottom: 0px; left: 0px; right: auto; top: auto;}
-#METABOOKHUD .botright {bottom: 0px; right: 0px; left: auto; top: auto;}
+.hudbutton.topleft {top: 0px; left: 0px; right: auto; bottom: auto;}
+.hudbutton.topright {top: 0px; right: 0px; left: auto; bottom: auto;}
+.hudbutton.botleft {bottom: 0px; left: 0px; right: auto; top: auto;}
+.hudbutton.botright {bottom: 0px; right: 0px; left: auto; top: auto;}
 
-#METABOOKHUD img.topleft {
+img.hudbutton.topleft {
     border-top-width: 0px; border-left-width: 0px;
-    border-bottom-right-radius: 6px;
-    -o-border-bottom-right-radius: 6px; 
-    -webkit-border-bottom-right-radius: 6px; 
-    -moz-border-radius-bottomright: 6px;
-    -o-border-radius-bottomright: 6px;}
-#METABOOKHUD img.topright {
+    border-bottom-right-radius: 6px;}
+img.hudbutton.topright {
     border-top-width: 0px; border-right-width: 0px;
-    border-bottom-left-radius: 6px;
-    -o-border-bottom-left-radius: 6px; 
-    -webkit-border-bottom-left-radius: 6px; 
-    -moz-border-radius-bottomleft: 6px;
-    -o-border-radius-bottomleft: 6px;}
-#METABOOKHUD img.botleft {
+    border-bottom-left-radius: 6px;}
+img.hudbutton.botleft {
     border-bottom-width: 0px; border-left-width: 0px;
-    border-top-right-radius: 6px;
-    -o-border-top-right-radius: 6px; 
-    -webkit-border-top-right-radius: 6px; 
-    -moz-border-radius-topright: 6px;
-    -o-border-radius-topright: 6px;}
-#METABOOKHUD img.botright {
+    border-top-right-radius: 6px;}
+img.hudbutton.botright {
     border-bottom-width: 0px; border-right-width: 0px;
-    border-top-left-radius: 6px;
-    -o-border-top-left-radius: 6px; 
-    -webkit-border-top-left-radius: 6px; 
-    -moz-border-radius-topleft: 6px;
-    -o-border-radius-topleft: 6px;}
+    border-top-left-radius: 6px;}
 
 img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
     cursor: pointer; z-index: 500;}
@@ -4719,68 +4884,6 @@ img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
 
 #METABOOKHUD.about #METABOOKHEARTBODY .tabcontent {
     margin-top: 0px;}
-
-#METABOOKTOPCENTER {
-    text-align: center; max-height: 100%;
-    display: none;}
-#METABOOKTOPBAR.tapholding #METABOOKTOPCENTER,
-.hudup #METABOOKTOPCENTER {
-    display: inline-block;}
-
-#METABOOKHUD #METABOOKTOPCENTER .hudbutton {
-    position: static;}
-#METABOOKHUD #METABOOKTOPCENTER .hudbutton.left {
-    float: left; margin-right: 1ex;}
-#METABOOKHUD #METABOOKTOPCENTER .hudbutton.right {
-    float: right; margin-left: 1ex;}
-
-#METABOOKTOOLTAB {
-    box-sizing: border-box; -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    display: inline-block; height: 24px; width: 64px; 
-    margin: 0px; padding: 2px; padding-top: 0px;
-    border: solid transparent 1px; border-top: 0px;
-    pointer-events: none;
-    background-size: contain; background-repeat: no-repeat;
-    background-position: top center;
-    vertical-align: top;
-    opacity: 0.15;}
-body._ANIMATE #METABOOKTOOLTAB {
-    transition-property: background-color;
-    transition-duration: 0.2s;}
-#METABOOKTOOLTAB {
-    background-image: url(g/metabook/downbar.svgz);}
-html._NOSVG #METABOOKTOOLTAB {
-    background-image: url(g/metabook/downbar128w.png);}
-.hudup #METABOOKTOOLTAB, .mbcover #METABOOKTOOLTAB { display: none;}
-
-#METABOOKSHOWCOVER {
-    white-space: nowrap;
-    box-sizing: border-box; -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    width: 5em; height: 50px; font-size: 45px; line-height: 1.0;
-    margin: 0px; margin-left: auto; margin-right: auto;
-    padding:  0px 1em 0px 1em;
-    border: solid transparent 2px; border-top: 0px;
-    background-color: gray; color: white;
-    font-variant: small-caps; font-weight: bold;
-    border-bottom-left-radius: 1ex; border-bottom-right-radius: 1ex;
-    cursor: pointer;}
-#METABOOKSHOWCOVER {
-    pointer-events: none;
-    display: none;}
-#METABOOKSHOWCOVER img {
-    height: 1.2em; width: auto;
-    float: left;}
-
-.hudup #METABOOKSHOWCOVER,
-#METABOOKTOPBAR.tapholding #METABOOKSHOWCOVER {
-    pointer-events: all;
-    display: inline-block;}
-
-body.mbPREVIEW.hudup #METABOOKSHOWCOVER {
-    pointer-events: none;
-    display: none;}
 
 html._NOUSER a.logout {
     display: none !important;}
@@ -4802,9 +4905,6 @@ html._NOUSER a.logout {
 /* HUDUP rules */
 
 body.hudup #METABOOKHUD { }
-body.hudup .hudbutton {
-    background-color: white;}
-body.hudup .hudbutton {opacity: 0.9;}
 body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 
 /* METABOOKPOINTGLOSSES rules */
@@ -5279,33 +5379,15 @@ body._FULLHEIGHT.hudup #METABOOKFOOT {
 
 /* Hover rules */
 
-.hudbutton.tapholdtarget,
-.tapholding .hudbutton.tapholdtarget,
-.tapholding .hudbutton.tapholding {
-    border-color: blue; border-style: dotted;
-    opacity: 0.80;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-    filter: alpha(opacity=80);
-    -webkit-opacity: 0.80;
-    -khtml-opacity: 0.80;
-    -moz-opacity: 0.80;
-    -o-opacity: 0.80;}
-
 html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKSHOWCOVER {
     display: inline-block;
     pointer-events: all;}
-html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKTOOLTAB {
+html._MOUSE body:not(.hudup) #METABOOKHUD:hover #METABOOKBREVET {
     display: none;}
 
 html._MOUSE img.metabookpagebutton:hover,
 body.hudup img.metabookpagebutton {
-    opacity: 0.7;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
-    filter: alpha(opacity=70);
-    -webkit-opacity: 0.70;
-    -khtml-opacity: 0.70;
-    -moz-opacity: 0.70;
-    -o-opacity: 0.70; }
+    opacity: 0.7;}
 
 /* Media rules */
 
@@ -5314,25 +5396,11 @@ body.hudup img.metabookpagebutton {
         width: 50px; height: 50px;}
     .hudup #METABOOKSHOWCOVER img {
         width: 50px; height: 50px;}
-    body #METABOOKFRAME > #METABOOKHUD > #METABOOKTOPBAR {
-        height: 60px; max-height: 60px;}
 
-    #METABOOKTOPBAR.tapholding img.hudbutton,
     ._TOUCH #METABOOKFOOT.tapholding
     img.hudbutton.tapholdtarget,
-    ._TOUCH #METABOOKTOPBAR.tapholding
     img.hudbutton.tapholdtarget {
         width: 50px; height: 50px;}
-
-    #METABOOKSHOWCOVER {
-        width: 50px; color: transparent;
-        border-bottom-left-radius: 5px;
-        border-bottom-right-radius: 5px;
-        background-size: contain; background-repeat: no-repeat;
-        background-position: top center;
-        background-image: url(g/metabook/book.svgz);}
-    ._NOSVG #METABOOKSHOWCOVER {
-        background-image: url(g/metabook/book50x50.png);}
 
     #METABOOKHEART {
         border-radius: 1ex;
@@ -5364,9 +5432,7 @@ body.hudup img.metabookpagebutton {
         border-bottom-right-radius: 0px;
         padding-bottom: 0px;
         left: 10px; right: 10px; }
-    body.mbSKIMMING #METABOOKTOPBAR {
-        display: none;}
-    
+
     img.metabookclosehud#METABOOKSTOPSKIM {
         bottom: 50px; top: auto;}
 
@@ -5385,11 +5451,12 @@ body.hudup img.metabookpagebutton {
     body.mbSKIMMING #METABOOKSHOWTEXT,
     body.hudup.mbSKIMMING #METABOOKSHOWTEXT {
         display: none; }
-    #METABOOKHUD.openhead img.hudbutton[alt="toc"],
-    #METABOOKHUD.openhead img.hudbutton[alt="search"],
-    #METABOOKHUD.openhead img.hudbutton[alt="searchresults"] {
-        display: none;}
-    
+
+    html._TOUCH #METABOOKHUD .metabookslice {
+        font-size: 16px; font-size: 1rem;}
+    html._TOUCH div.fdjtpageinfo {
+        font-size: 150%;}
+
     #METABOOKHEARTBODY { font-size: 60%;}
     #METABOOKPOINTGLOSSES.hudpanel {
         max-width: 90%; min-width: inherit;
@@ -6732,7 +6799,7 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
 #METABOOKSKIMMER div.metabookcard div.idhead {
     border-bottom: 0px;}
 
-@media (pointer: coarse) and (max-width: 650px) {
+@media (pointer: coarse) and (min-width: 400px) {
     div.metabookslice div.metabookcard { font-size: 120%; }
 }
 
@@ -6767,9 +6834,10 @@ div.metabookslice .mbtoc.skimpoint {
 
 .mbtoc .context .tocpath { padding-left: 1ex; }
 .mbtoc .context {
-    color: silver;
+    color: black;
     font-size: 60%; line-height: 1.0;
     max-width: 35%; white-space: normal;
+    padding-right: 0.5ex;
     text-align: right;
     float: right;}
 .mbtoc1 .context { display: none;}
@@ -6822,8 +6890,11 @@ div.metabookslice .mbtoc.skimpoint {
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
 .mbtoc.mbtoc4.fdjtoversize { font-size: 70%;}
 
+.mbtoc a.brick { display: none; }
+
 #METABOOKSKIMMER .mbtoc {
-    font-weight: bold; padding-top: 2px; height: 2em;}
+    font-weight: bold; padding-top: 2px; height: 2em;
+    border-bottom: 0px;}
 body.hudup #METABOOKHUD.statictoc #METABOOKSKIMMER {
     background-color: rgba(70, 130, 180, 0.5);}
 body.hudup #METABOOKHUD.statictoc #METABOOKSKIMMER .mbtoc .context {
@@ -6844,16 +6915,21 @@ body.hudup #METABOOKHUD.statictoc #METABOOKSKIMMER .mbtoc .context {
 body.hudup #METABOOKSKIMMER .mbtoc {
     font-size: 100%;}
 
-html._TOUCH #METABOOKHUD #METABOOKSTATICTOC.metabookslice {
-    font-size: 100%; }
-html._TOUCH .mbtoc.mbtoc2 { margin-left: 1em;}
-html._TOUCH .mbtoc.mbtoc3 { margin-left: 2em;}
-html._TOUCH .mbtoc.mbtoc4 { margin-left: 3em;}
-
-#METABOOKSTATICTOC {padding-left: 1em; padding-right: 1em;}
+#METABOOKSTATICTOC {
+    box-sizing: border-box;
+    padding-left: 1em; padding-right: 1em;
+    padding-top: 1ex;}
 
 html._MOUSE .mbtocslice .mbtoc:hover {
     border-bottom-color: silver;}
+
+@media (max-width: 600px) {
+    .mbtoc.mbtoc2 { margin-left: 1em;}
+    .mbtoc.mbtoc3 { margin-left: 2em;}
+    .mbtoc.mbtoc4 { margin-left: 3em;}
+    #METABOOKSTATICTOC {
+        padding-left: 1ex; padding-right: 1ex;}
+}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -8306,7 +8382,7 @@ body.mbPREVIEW { cursor: crosshair; }
 body.mbPREVIEW #METABOOKHEAD { display: none; }
 body.mbPREVIEW #METABOOKHUD.openhead #METABOOKHEAD { display: none; }
 
-body.mbPREVIEW #METABOOKTOPBAR { display: none; }
+body.mbPREVIEW #METABOOKMENU { display: none; }
 
 body.mbPREVIEW #METABOOKHUD.openhead.overtoc #METABOOKHEAD {
     display: block; }

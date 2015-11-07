@@ -4851,9 +4851,11 @@ fdjt.DOM=
                 if (typeof i === 'undefined') i=0;
                 while (i<len) {
                     var elt=elts[i++];
-                    if (!(elt)) {}
-                    else if (typeof elt === 'string')
+                    if (typeof elt === 'string')
                         frag.appendChild(document.createTextNode(elt));
+                    else if (typeof elt === 'number') 
+                        frag.appendChild(document.createTextNode(elt.toString()));
+                    else if (!(elt)) {}
                     else if (elt.nodeType) frag.appendChild(elt);
                     else if (elt.length)
                         domappend(frag,elt,0);
@@ -5233,9 +5235,11 @@ fdjt.DOM=
         fdjtDOM.toggleParent=toggleParent;
         fdjtDOM.tP=toggleParent;
 
+        var text_input_types=
+            fdjtDOM.text_input_types=/text|url|email|search|password/i;
         function isTextInput(target){
             return (((target.tagName==='INPUT')&&
-                     (target.type.search(/text|url|email|search|password/i)===0))||
+                     (target.type.search(text_input_types)===0))||
                     (target.tagName==='TEXTAREA'));}
         fdjtDOM.isTextInput=isTextInput;
         
@@ -12245,21 +12249,23 @@ fdjt.UI.ProgressBar=(function(){
     fdjtUI.T=function(evt) {
         evt=evt||window.event; return (evt.target)||(evt.srcElement);};
 
-    fdjtUI.noDefault=function(evt){
+    fdjtUI.noDefault=function noDefault(evt){
         evt=evt||window.event;
         if (evt.preventDefault) evt.preventDefault();
         else evt.returnValue=false;
         return false;};
 
-    fdjtUI.noBubble=function(evt){
+    fdjtUI.cancelBubble=fdjtUI.noBubble=function cancelBubble(evt){
         evt=evt||window.event;
-        evt.cancelBubble=true;};
+        if (evt.stopPropagation) evt.stopPropagation();
+        else evt.canceBubble=true;};
 
-    fdjtUI.cancel=function(evt){
+    fdjtUI.cancel=function cancelEvent(evt){
         evt=evt||window.event;
         if (evt.preventDefault) evt.preventDefault();
         else evt.returnValue=false;
-        evt.cancelBubble=true;
+        if (evt.stopPropagation) evt.stopPropagation();
+        else evt.cancelBubble=true;
         return false;};
 
     fdjtUI.isClickable=function(target){
@@ -12631,6 +12637,7 @@ fdjt.disenableInputs=fdjt.UI.disenableInputs=
 
 fdjt.showPage=fdjt.UI.showPage=(function(){
   "use strict";
+  var fdjtUI=fdjt.UI;
   var fdjtDOM=fdjt.DOM;
   var fdjtLog=fdjt.Log;
   var fdjtString=fdjt.String;
@@ -12643,7 +12650,11 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   var addListener=fdjtDOM.addListener;
   var toArray=fdjtDOM.toArray;
   var getGeometry=fdjtDOM.getGeometry;
+  var getParent=fdjtDOM.getParent;
   
+  var cancelBubble=fdjtUI.cancelBubble;
+  var cancel=fdjtUI.cancel;
+
   var adjustFonts=fdjtDOM.adjustFonts;
 
   function getContainer(arg){
@@ -12713,8 +12724,6 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       dropClass(container,"formatting");
       return startpos;}
     var endpos=showchildren(container,children,startpos,dir,h,padding);
-    if ((dir<0)&&(endpos===0))
-      return showPage(container,0,1);
     var end=children[endpos];
     if ((dir>0)&&(hasClass(end,"fdjtpagehead"))) {
       while ((endpos>startpos)&&(hasClass(end,"fdjtpagehead"))) {
@@ -12735,24 +12744,87 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
       addClass(container,"fdjtlastpage");
       at_end=true;}
     else dropClass(container,"fdjtlastpage");
+    if ((dir<0)&&(endpos===0)) {
+      dropClass(container,"formatting");
+      return showPage(container,0,1);}
     var minpos=((startpos<=endpos)?(startpos):(endpos));
     var maxpos=((startpos>endpos)?(startpos):(endpos));
-    info.innerHTML="<span class='pct'>"+Math.floor((minpos/lim)*100)+"%"+
-      "</span>"+"<span class='count'> ("+lim+")</span>";
-    info.title=fdjtString("Items %d through %d of %d",minpos,maxpos,lim);
+    var countdom=fdjtDOM("span.count",fdjtDOM("strong","/"),lim);
+    var txtdom=fdjtDOM("span.value",Math.floor((minpos/lim)*100));
+    var pctdom=fdjtDOM("span.pct",txtdom,"%",countdom);
     var forward_button=fdjtDOM("span.button.forward"," 》");
     var backward_button=fdjtDOM("span.button.backward","《 ");
-    fdjtDOM.prepend(info,backward_button);
+    info.innerHTML="";
+    fdjtDOM.append(info,backward_button,pctdom,forward_button);
+    info.title=fdjtString("Items %d through %d of %d",minpos,maxpos,lim);
+    txtdom.setAttribute("contentEditable","true");
+    addListener(txtdom,"blur",pageInputBlur);
+    addListener(txtdom,"keyup",cancelBubble);
+    addListener(txtdom,"keypress",cancelBubble);
+    addListener(txtdom,"keydown",pageInputKeydown);
+    addListener(pctdom,tap_event_name,pageInputTapped);
     if (at_start) backward_button.innerHTML="· ";
     else addListener(backward_button,tap_event_name,backwardButton);
     if (at_end) forward_button.innerHTML="· ";
     else addListener(forward_button,tap_event_name,forwardButton);
-    fdjtDOM.prepend(info,backward_button);
-    fdjtDOM.append(info,forward_button);
     addClass(container,"fdjtpagechange"); setTimeout(
       function(){dropClass(container,"fdjtpagechange");},1000);
     dropClass(container,"formatting");
     return endpos;}
+
+  function pageInputKeydown(evt){
+    var target=fdjtUI.T(evt);
+    var container=getParent(target,".fdjtpage");
+    if (!(container)) return;
+    var kc=evt.keyCode;
+    if (!(target._savedHTML))
+      target._savedHTML=target.innerHTML;
+    // cancelBubble(evt);
+    if (kc===13) {
+      try {
+        var s=fdjtDOM.textify(target);
+        var pct=parseFloat(s)/100;
+        if ((typeof pct === "number")&&(!(Number.isNaN(pct))))
+          showPage(container,pct,1);
+        else {
+          target.innerHTML=target._savedHTML;
+          target._savedHTML=false;}
+        target.blur();}
+      catch (ex) {
+        if (target._savedHTML) {
+          target.innerHTML=target._savedHTML;
+          target._savedHTML=false;}
+        target.blur();}
+      cancel(evt);}
+    else if (kc===27) {
+      if (target._savedHTML) {
+        target.innerHTML=target._savedHTML;
+        target._savedHTML=false;}
+      target.blur();
+      cancel(evt);}
+    else {}}
+
+  function pageInputBlur(evt){
+    var target=fdjtUI.T(evt);
+    var info=getParent(target,".fdjtpageinfo");
+    if (info) dropClass(info,"fdjteditpageinfo");
+    if (target._savedHTML) {
+      target.innerHTML=target._savedHTML;
+      target._savedHTML=false;}}
+
+  function pageInputTapped(evt){
+    var target=fdjtUI.T(evt);
+    var input=fdjtDOM.getChild(target,"span.value");
+    var info=getParent(target,".fdjtpageinfo");
+    if (info) addClass(info,"fdjteditpageinfo");
+    if (input) input.focus();
+    var selection=((window.getSelection)&&(window.getSelection()));
+    if ((selection)&&(selection.anchorNode)&&
+        (getParent(selection.anchorNode,input))) {
+      var anchor=selection.anchorNode;
+      if (anchor.nodeType===3) {
+        selection.extend(anchor,anchor.nodeValue.length);}}
+    cancel(evt);}
 
   function forwardButton(evt){
     fdjt.UI.cancel(evt);
@@ -13061,8 +13133,7 @@ fdjt.Dialog=(function(){
         if (countdown) {
             var ticker=countdown_tickers[countdown.id];
             delete countdown_tickers[countdown.id];
-            if (ticker) clearInterval(ticker);
-            fdjtDOM.remove(countdown);}}
+            if (ticker) clearInterval(ticker);}}
 
     function close_dialog_handler(evt){
         evt=evt||window.event;
@@ -13156,6 +13227,8 @@ fdjt.Dialog=(function(){
         var dom=spec.dom||
             ((spec.label)&&(fdjtDOM("button",spec.label)))||
             fdjtDOM("button","Choice "+i);
+        if (spec.name) dom.name=spec.name;
+        if (spec.value) dom.value=spec.value;
         dom.onmousedown=fdjtUI.cancel;
         dom.onmouseup=fdjtUI.cancel;
         dom.tabIndex=i;
@@ -14053,8 +14126,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                          etype,thid,target,tx,ty,orig||"scratch");}
         if ((!target)||(!(hasParent(target,document.body))))
             target=document.elementFromPoint(tx,ty);
-        if (orig_target!==target)
-            evt.relatedTarget=orig_target;
         if ((handlers)&&(handlers.hasOwnProperty(etype))) {
             evt.target=target;
             handlers[etype](evt,target);}
@@ -14158,6 +14229,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         var wanderthresh=false;
         // Minimum distance before recognizing a swipe
         var min_swipe=30;
+        // Set to suppress swipe identification
+        var no_swipe=false;
         
         var scrolling=false, scroll_x=0, scroll_y=0;
         // These indicate where/when the current gesture started, is
@@ -14248,6 +14321,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             swipe_t=start_x=start_y=start_t=
                 touch_x=touch_y=touch_t=touch_n=
                 target_x=target_y=target_t=false;
+            no_swipe=false;
             touched=pressed=pressed_at=false;}
 
         function synthEvent(target,etype,th,orig,tx,ty,also){
@@ -14272,6 +14346,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         function held(target,evt,x,y){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
+            no_swipe=true;
             if (holdclass) setTimeout(start_holding,20);
             return synthEvent(target,"hold",th,evt,x,y,false);}
         function released(target,evt,x,y){
@@ -14292,8 +14367,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (also) {
                 also.startX=start_x; also.startY=start_y;}
             else also={startX: start_x,startY: start_y};
-            if (evt) {
-                var rel=evt.relatedTarget||eTarget(evt);
+            if ((evt)&&(!(also.hasOwnProperty('relatedTarget')))) {
+                var rel=evt.relatedTarget;
                 if (rel!==target) also.relatedTarget=rel;}
             if (holdclass)
                 setTimeout(check_holding,50);
@@ -14397,7 +14472,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (th_timer) {
                 clearTimeout(th_timer); th_timer=false;}
             else if (noslip) {}
-            else if (pressed) {slipped(pressed,evt);}
+            else if (pressed) {
+                slipped(pressed,evt,{relatedTarget: false});}
             if (reticle.live) reticle.highlight(false);
             pressed_at=touched=pressed=tap_target=false;
             if (holdclass) setTimeout(stop_holding,20);
@@ -14479,8 +14555,9 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                         abortpress(evt,"taphold_wander_timeout");},
                                             wanderthresh);
                     if (pressed) {
-                        if (!(noslip))
-                            slipped(pressed,evt,{relatedTarget: target});
+                        if (!(noslip)) {
+                            slipped(pressed,evt,
+                                    {relatedTarget: false});}
                         setTarget(false);}}
                 return;}
             else if (wander_timer) {
@@ -14496,7 +14573,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             // If touched is false, the tap/hold was aborted somehow
             if ((!((touched)||(pressed)))) {
                 // Just tracking, to detect swipes
-                if ((!(swipe_t))&&(min_swipe>0)&&(xyd(start_x,start_y,x,y)>min_swipe))
+                if ((!(swipe_t))&&(!(no_swipe))&&(min_swipe>0)&&
+                    (xyd(start_x,start_y,x,y)>min_swipe))
                     swiped(target,evt,start_x,start_y,x,y);
                 touch_x=x; touch_y=y; touch_t=fdjtET();
                 if (!(touch_n)) touch_n=n_touches; else
@@ -14513,7 +14591,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 abortpress(evt,"movefar");
                 if (th_timer) clearTimeout(th_timer);
                 pressed_at=touched=th_timer=pressed=false; th_targets=[];
-                if ((!(swipe_t))&&(min_swipe>0)&&(xyd(start_x,start_y,x,y)>min_swipe))
+                if ((!(swipe_t))&&(!(no_swipe))&&(min_swipe>0)&&
+                    (xyd(start_x,start_y,x,y)>min_swipe))
                     swiped(target,evt,start_x,start_y,x,y);
                 setTarget(false);
                 touch_x=x; touch_y=y; touch_t=fdjtET();
@@ -14555,7 +14634,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 th_targets.push(th_target);
             if (!(mouse_down)) {
                 if (!(noslip))
-                    slipped(pressed,evt,{relatedTarget: target});
+                    slipped(pressed,evt,
+                            {relatedTarget: target});
                 pressed_at=pressed=false;}
             else if ((pressed)&&(th_target!==pressed)&&
                      (!((hasParent(th_target,pressed))||
@@ -14567,7 +14647,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 endpress(evt);}
             else if ((pressed)&&(th_target!==pressed)) {
                 if (!(noslip))
-                    slipped(pressed,evt,{relatedTarget: target});
+                    slipped(pressed,evt,
+                            {relatedTarget: target});
                 pressed=th_target;
                 if (pressed) pressed_at=fdjtET(); else pressed_at=false;
                 held(pressed);}
@@ -14723,7 +14804,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if ((touched)||(pressed)) {
                 if ((untouchable)&&(untouchable(evt))) return;
                 endpress(evt);}
-            else if ((min_swipe>0)&&(swipe_len>min_swipe)&&
+            else if ((min_swipe>0)&&(swipe_len>min_swipe)&&(!(no_swipe))&&
                      (((!touched)||(touched!==elt))&&
                       ((!pressed)||(pressed!==elt))))
                 swiped(target,evt,start_x,start_y,touch_x,touch_y);
@@ -16003,8 +16084,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1500-g169d8fa';
+fdjt.revision='1.5-1511-g15e87d6';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Nov 5 09:58:46 EST 2015';
-fdjt.builduuid='d3701377-5217-42d1-926c-43a4d73c9383';
+fdjt.buildtime='Sat Nov 7 14:58:31 EST 2015';
+fdjt.builduuid='0c4c421c-996c-49e2-a44a-78899a6780d6';
 
