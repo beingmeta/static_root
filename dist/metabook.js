@@ -24896,7 +24896,12 @@ metaBook.DOMScan=(function(){
             return cacheGlossData(uri).catch(function(){delay_glossdata(uri);});
         else {
             var req=mB.getMyCopyId();
-            return req.then(function(mycopyid){if (mycopyid) cacheGlossData(uri);})
+            return req.then(function(mycopyid){
+                if (mycopyid)
+                    return cacheGlossData(uri).catch(function(trouble){
+                        fdjtLog("Couldn't cache %s: %o",uri,trouble);
+                        delay_glossdata(uri);});
+                else delay_glossdata(uri);})
                 .catch(function(){delay_glossdata(uri);});}}
     metaBook.needGlossData=needGlossData;
     
@@ -24912,34 +24917,42 @@ metaBook.DOMScan=(function(){
             var needed=need_glossdata; need_glossdata=[];
             var i=0, lim=needed.length; while (i<lim) {
                 needGlossData(needed[i++]);}}}
-        
 
     function getGlossData(uri){
-        function getting(resolved){
+        function getting(resolved,failed){
             if (glossdata[uri]) resolved(glossdata[uri]);
             else if (glossdata_state[uri]==="cached")  {
-                metaBook.getDB().then(function(db){
+                return metaBook.getDB().then(function(db){
                     var txn=db.transaction(["glossdata"],"readwrite");
                     var storage=txn.objectStore("glossdata");
                     var req=storage.get(uri);
                     req.onsuccess=function(event){
                         var object=event.target.result;
-                        gotLocalURL(uri,object.datauri,resolved);};
+                        if (object)
+                            gotLocalURL(uri,object.datauri,resolved);
+                        else {
+                            fdjtLog("Corrupted local glossdata cache for %s",uri);
+                            glossdata_state[uri]=false;
+                            return fillCache(resolved,failed);}};
                     req.onerror=function(ex){
                         fdjtLog("Error getting %s from glossdata cache: %s",
                                 uri,ex);
                         glossdata_state[uri]=false;
-                        if ((mB.mycopyid)&&(mB.mycopyid_expires<(new Date())))
-                            setTimeout(function(){cacheGlossData(uri);},
-                                       2000);
-                        else mB.getMyCopyId().then(function(mycopyid){
-                            if (mycopyid)
-                                setTimeout(function(){cacheGlossData(uri);},
-                                           2000);});};});}
-            else if ((mB.mycopyid)&&(mB.mycopyid_expires<(new Date())))
-                return cacheGlossData(uri).then(resolved);
-            else return mB.getMyCopyId().then(function(mycopyid){
-                if (mycopyid) return cacheGlossData(uri).then(resolved);});}
+                        return fillCache(resolved,failed);};})
+                    .catch(failed);}
+            else return fillCache(resolved,failed);}
+        function fillCache(resolved,failed){
+            if ((mB.mycopyid)&&(mB.mycopyid_expires<(new Date())))
+                setTimeout(function(){
+                    cacheGlossData(uri).then(resolved).catch(failed);},
+                           2000);
+            else mB.getMyCopyId().then(function(mycopyid){
+                if (mycopyid)
+                    setTimeout(function(){
+                        cacheGlossData(uri).then(resolved).catch(failed);},
+                               2000);
+                else failed(new Error("Couldn't get MYCOPYID"));})
+                .catch(failed);}
         return new Promise(getting);}
     metaBook.getGlossData=getGlossData;
 
@@ -29441,7 +29454,8 @@ metaBook.Slice=(function () {
                 return;}}
         var card;
         if ((target.name)&&(document.getElementById(target.name)))
-            card=getCard(document.getElementById(target.name))||(getCard(target));
+            card=getCard(document.getElementById(target.name))||
+            (getCard(target));
         else card=getCard(target);
         if (!(card)) return;
         var slice=getParent(card,".metabookslice");
@@ -37481,7 +37495,12 @@ metaBook.setMode=
                 dropClass($ID("METABOOKMEDIA"),"loadingcontent");
                 dropClass(src_elt,"loadingcontent");
                 src_elt.src=val;
-                placeMedia();});}
+                placeMedia();})
+            .catch(function(ex){
+                fdjt.Log("Couldn't fetch glossdata from %s: %o",url,ex);
+                metaBook.showing=url;
+                dropClass($ID("METABOOKMEDIA"),"loadingcontent");
+                dropClass(src_elt,"loadingcontent");});}
         else placeMedia();}
     metaBook.showMedia=showMedia;
     function hideMedia(){
@@ -39149,8 +39168,7 @@ metaBook.HTML.hud=
 /*   generated from the file "metabook/html/heart.html" */
 
 metaBook.HTML.heart=
-    "<div id=\"METABOOKALLGLOSSES\" class=\"metabookslice mbsyncslice hudpanel\"\n"+
-    "     data-touchable=\".metabookcard\">\n"+
+    "<div id=\"METABOOKALLGLOSSES\" class=\"metabookslice mbsyncslice hudpanel\">\n"+
     "  <!-- This is filled in on startup -->\n"+
     "</div>\n"+
     "<div id=\"METABOOKGLOSSDETAIL\" class=\"hudpanel\">\n"+
@@ -40180,19 +40198,19 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1511-g15e87d6';
+fdjt.revision='1.5-1512-g9fde7cc';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sat Nov 7 14:58:31 EST 2015';
-fdjt.builduuid='0c4c421c-996c-49e2-a44a-78899a6780d6';
+fdjt.buildtime='Wed Nov 11 10:01:00 EST 2015';
+fdjt.builduuid='d2fb6713-8b86-4656-abb6-11fa4c8ddc1a';
 
 fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';
 
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-157-g9e10111';
-metaBook.buildid='8859043c-61f1-4c4b-9c57-7e24c589cc9c';
-metaBook.buildtime='Sat Nov  7 17:23:35 EST 2015';
+metaBook.version='v0.8-159-gf4e4f52';
+metaBook.buildid='af9212dc-2320-4f18-a7bb-6b545386d7bd';
+metaBook.buildtime='Wed Nov 11 10:02:40 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

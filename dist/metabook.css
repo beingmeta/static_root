@@ -1247,6 +1247,8 @@ html._MOUSE div.fdjtpage div.fdjtpageinfo:hover {
     opacity: 0.75;}
 html._MOUSE div.fdjtpage div.fdjtpageinfo .button:hover {
     color: blue;}
+html._MOUSE div.fdjtpage div.fdjtpageinfo:hover span.count {
+    display: inline-block;}
 
 div.fdjtpage div.fdjtpageinfo.fdjteditpageinfo {
     background-color: gray;
@@ -1326,6 +1328,9 @@ html._NOSVG .pager.pagerlayout {
     display: block;}
 .pager.pagerdone {overflow: hidden;}
 .pager.pagerdone .pagerblock {overflow: hidden;}
+
+@media (min-width: 1000) {
+    div.fdjtpage div.fdjtpageinfo span.count { display: none;}}
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -6670,9 +6675,9 @@ div.metabookslice input[TYPE="TEXT"] {
     cursor: text; }
 
 div.metabookslice div.metabookcard {
-    margin-left: 20px; margin-right: 0px;}
+    margin-left: 20px;}
 div.metabookslice div.metabookcard.skimpoint {
-    margin-left: 0px; padding-left: 20px;}
+    margin-left: 10px; padding-left: 10px;}
 div.metabookslice.sourced div.metabookcard { display: none;}
 div.metabookslice.sourced div.metabookcard.sourced { display: block;}
 
@@ -6798,10 +6803,6 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     border-top: 0px; padding-left: 1em; padding-top: 0.25ex;}
 #METABOOKSKIMMER div.metabookcard div.idhead {
     border-bottom: 0px;}
-
-@media (pointer: coarse) and (min-width: 400px) {
-    div.metabookslice div.metabookcard { font-size: 120%; }
-}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -7326,7 +7327,7 @@ div.metabookcard > hr {
     padding-right: 1ex; padding-left: 1ex; padding-bottom: 1ex; 
     display: none;}
 .metabookcard .tool img {
-    height: 40px; width: 40px; z-index: 40; opacity: 0.3; clear: right;
+    height: 40px; width: 40px; z-index: 40; opacity: 0.4; clear: right;
     /* This makes it overlap the date, tightening things up generally */
     margin-right: 6px; margin-top: -1em;}
 html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
