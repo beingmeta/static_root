@@ -88,7 +88,7 @@
 	    '("x-amz-acl: public-read"
 	      "Content-encoding\: gzip"
 	      "X-SourceMap\: metabook.uglify.map")
-	    #t)
+	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.uglify.map")
 	    (filestring "dist/metabook.uglify.map") 
 	    "application/json" pubheaders #t)
@@ -96,10 +96,11 @@
 	    '("x-amz-acl: public-read"
 	      "Content-encoding\: gzip"
 	      "X-SourceMap\: metabook.clean.css.map")
-	    #t)
+	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.clean.css.map")
 	    (filestring "dist/metabook.clean.css.map") 
-	    "application/json" pubheaders #t))
+	    "application/json" pubheaders
+	    #[errs #t]))
   (do-choices (local graphics) (push-graphics local))
   (do-choices (local fonts) (push-fonts local)))
 
@@ -117,18 +118,20 @@
 	    '("x-amz-acl: public-read"
 	      "Content-encoding\: gzip"
 	      "X-SourceMap\: metabook.uglify.map")
-	    #t)
+	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.uglify.map")
 	    (filestring "dist/metabook.uglify.map") 
-	    "application/json" pubheaders #t)
+	    "application/json" pubheaders
+	    #[errs #t])
     (s3/put (s3/mkpath root apps.css) css "text/css"
 	    '("x-amz-acl: public-read"
 	      "Content-encoding\: gzip"
 	      "X-SourceMap\: metabook.clean.css.map")
-	    #t)
+	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.clean.css.map")
 	    (filestring "dist/metabook.clean.css.map") 
-	    "application/json" pubheaders #t))
+	    "application/json" pubheaders
+	    #[errs #t]))
   (do-choices (local graphics) (push-graphics local))
   (do-choices (local fonts) (push-fonts local)))
 
