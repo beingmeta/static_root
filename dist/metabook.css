@@ -1001,6 +1001,17 @@ div.fdjtdialog .closebutton {
 div.fdjtdialog div.choices button {
     font-size: 60%;}
 
+div.fdjtdialog div.choices button {
+    border: solid silver 3px;
+    border-radius: 1ex;
+    background-color: silver;
+    margin-left: 0.5ex;
+    margin-right: 0.5ex;
+    margin-bottom: 1ex;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding: 1ex;}
+
 div.fdjtdialog.fdjtconfirm div.message {
     font-weight: bold;}
 div.fdjtdialog.fdjtconfirm div.message .smaller { font-size: 50%;}
@@ -1013,7 +1024,7 @@ div.fdjtdialog.fdjtconfirm div.choices button {
     border-radius: 1ex;
     margin-left: 0.5ex; margin-right: 0.5ex; margin-bottom: 1ex;}
 html._TOUCH div.fdjtdialog.fdjtconfirm div.choices button:hover {
-    border-color: blue;}
+    border-style: dotted;}
 
 div.fdjtdialog.fdjtconfirm div.choices button.selected,
 div.fdjtdialog.fdjtconfirm div.choices button:focus {
@@ -2765,13 +2776,16 @@ span.bma {
 
 div.fdjtdialog.metabooktaptap .choices button {
      width: 12em; max-height: 3em;}
+div.fdjtdialog.metabooktaptap .choices button.cancel {
+    color: red; font-weight: bold;
+    padding-top: 3px; padding-bottom: 3px;}
 div.fdjtdialog.metabooktaptap .choices button.anchor {
     overflow: hidden; text-overflow: ellipsis; padding: 0px;
-    line-height: 0.8;}
-div.fdjtdialog.metabooktaptap .choices button.anchor .anchortext {
-    color: blue; font-size: 80%;}
-div.fdjtdialog.metabooktaptap .choices button.anchor .anchorcontext {
-    font-size: 50%;}
+    line-height: 1; color: blue;}
+div.metabooktaptap .choices button.anchor .anchortext {
+    font-size: 80%;}
+div.fdjtdialog.fdjtconfirm.metabooktaptap div.choices {
+    padding-top: 2px; padding-bottom: 2px;}
 
 /* Rules for page references */
 
@@ -2941,9 +2955,7 @@ body._FULLHEIGHT #METABOOKFRAME {
     width: 100%; height: 100%;
     transform: translateZ(0);
     pointer-events: none;}
-/* #METABOOKHUD.openhead #METABOOKMENU {pointer-events: none;} */
 
-/* #METABOOKHUD.openhead #METABOOKMENU .hudbutton */
 #METABOOKFOOT, #METABOOKMENU,
 body.mbSKIMMING #METABOOKSKIMMER,
 #METABOOKHUD.openheart #METABOOKHEART,
@@ -3248,13 +3260,15 @@ html._MOUSE #METABOOKMENU.tapholding:hover {
 #METABOOKMENU.tapholding img.hudbutton {
     background-color: rgba(255,255,240,0.5);}
 
-body._FULLHEIGHT #METABOOKMENU {height: 20px;}
+body._FULLHEIGHT #METABOOKMENU {
+    height: 20px;}
 body._FULLHEIGHT #METABOOKMENU.tapholding,
 body._FULLHEIGHT.hudup #METABOOKMENU {
+    border-bottom: solid black 1px;
     height: 55px; max-height: 60px;}
 
 body._FULLHEIGHT #METABOOKMENU {
-    background-color: rgb(255,255,240);}
+    background-color: rgba(255,255,240,0.9);}
 
 html._MOUSE not(body.hudup) #METABOOKMENU:hover .hudbutton,
 html._MOUSE not(body.mbSKIMMING) #METABOOKMENU:hover .hudbutton {
@@ -3274,21 +3288,18 @@ html._MOUSE not(body.mbSKIMMING) #METABOOKMENU:hover .hudbutton:hover {
 body._FULLHEIGHT.hudup.mbNOMODE #METABOOKMENU,
 body._FULLHEIGHT #METABOOKMENU.tapholding,
 html._MOUSE body._FULLHEIGHT .mbNOMODE #METABOOKMENU:hover { 
-    background-color: rgb(255,255,240);}
-
+    background-color: rgba(255,255,240,0.9);}
 
 #METABOOKCOVERTAB {
     text-align: center; max-height: 100%;
     display: none;}
 
 .hudup.mbNOMODE #METABOOKCOVERTAB,
-#METABOOKMENU.tapholding #METABOOKCOVERTAB,
-html._MOUSE .mbNOMODE #METABOOKMENU:hover #METABOOKCOVERTAB { 
+#METABOOKMENU.tapholding #METABOOKCOVERTAB { 
     display: inline-block;}
 
 .hudup #METABOOKBREVET,
-#METABOOKMENU.tapholding #METABOOKBREVET,
-html._MOUSE .mbNOMODE #METABOOKMENU:hover #METABOOKBREVET { 
+#METABOOKMENU.tapholding #METABOOKBREVET { 
     display: none;}
 
 body.mbSKIMMING #METABOOKCOVERTAB { display: none; }

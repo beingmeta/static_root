@@ -13222,11 +13222,14 @@ fdjt.Dialog=(function(){
         return box;}
     Dialog.message=message;
     fdjt.message=message;
-
-    function makeChoice(spec,close_choice,i){
-        var dom=spec.dom||
-            ((spec.label)&&(fdjtDOM("button",spec.label)))||
-            fdjtDOM("button","Choice "+i);
+function makeChoice(spec,close_choice,i){
+        var dom=spec.dom;
+        if (!(dom)) {
+            dom=fdjtDOM("button");
+            if (spec.label.nodeType)
+                dom.appendChild(spec.label.cloneNode(true));
+            else if (spec.label) dom.innerHTML=spec.label;
+            else dom.innerHTML="Choice "+i;}
         if (spec.name) dom.name=spec.name;
         if (spec.value) dom.value=spec.value;
         dom.onmousedown=fdjtUI.cancel;
@@ -16084,8 +16087,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1512-g9fde7cc';
+fdjt.revision='1.5-1513-g668a69f';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Nov 11 10:01:00 EST 2015';
-fdjt.builduuid='d2fb6713-8b86-4656-abb6-11fa4c8ddc1a';
+fdjt.buildtime='Thu Nov 12 18:49:24 EST 2015';
+fdjt.builduuid='08e5caf7-eb24-4171-9676-2b083a18c2b0';
 

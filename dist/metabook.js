@@ -14388,11 +14388,14 @@ fdjt.Dialog=(function(){
         return box;}
     Dialog.message=message;
     fdjt.message=message;
-
-    function makeChoice(spec,close_choice,i){
-        var dom=spec.dom||
-            ((spec.label)&&(fdjtDOM("button",spec.label)))||
-            fdjtDOM("button","Choice "+i);
+function makeChoice(spec,close_choice,i){
+        var dom=spec.dom;
+        if (!(dom)) {
+            dom=fdjtDOM("button");
+            if (spec.label.nodeType)
+                dom.appendChild(spec.label.cloneNode(true));
+            else if (spec.label) dom.innerHTML=spec.label;
+            else dom.innerHTML="Choice "+i;}
         if (spec.name) dom.name=spec.name;
         if (spec.value) dom.value=spec.value;
         dom.onmousedown=fdjtUI.cancel;
@@ -20338,7 +20341,7 @@ fdjt.CodexLayout=
                     var item=fdjtDOM("LI","empty");
                     item.setAttribute(
                         "style",
-                        "visibility: hidden !important; width: 0px !important; height: 0px !important; pointer-events: none;");
+                        "visibility: hidden !important; width: 0px !important; height: 0px !important; pointer-events: none; margin: 0px !important;");
                     frag.appendChild(item);
                     count--;}
                 if (root.firstChild) root.insertBefore(frag,root.firstChild);
@@ -24881,7 +24884,7 @@ metaBook.DOMScan=(function(){
             req.send(null);}
         return new Promise(caching);}
 
-    var glossdata_wait=600;
+    var glossdata_wait=60000;
     var glossdata_timer=false;
     var need_glossdata=[];
 
@@ -35599,6 +35602,7 @@ metaBook.setMode=
             return;}
         var choices=[
             {label: "Add Gloss",
+             classname: "addgloss",
              handler: function(){
                  mB.startGloss(passage);},
              isdefault: true}];
@@ -35611,6 +35615,7 @@ metaBook.setMode=
         */
         if (true) choices.push(
             {label: "Zoom content",
+             classname: "zoomcontent",
              handler: function(){
                  mB.startZoom(passage);
                  cancel(evt);
@@ -35623,13 +35628,9 @@ metaBook.setMode=
         cancel(evt);
         choices.push(
             {label: "Cancel",
+             classname: "cancel",
              handler: function(){
                  metaBook.cancelGloss();}});
-        var max=0, i=0, lim=choices.length;
-        while (i<lim) {
-            var ch=choices[i++];
-            var len=ch.label.length;
-            if (len>max) max=len;}
         var spec={choices: choices,
                   spec: "div.fdjtdialog.metabooktaptap"};
         metaBook.passage_menu=fdjtUI.choose(spec);}
@@ -35651,36 +35652,14 @@ metaBook.setMode=
         var i=0, lim=anchors.length; while (i<lim) {
             var anchor=anchors[i++];
             var linkref=decodeEntities(anchor.getAttribute("href"));
-            var uselabel=anchor.title||(getAnchorContext(anchor));
             var handler=((linkref.search("#")===0)?(makeGoTo(linkref)):
                          (makeOpener(anchor.href)));
-            var anchor_opt={handler: handler,
+            var anchor_text=fdjtDOM("span.anchortext");
+            anchor_text.innerHTML=anchor.title||(anchor.innerHTML);
+            var anchor_opt={handler: handler,label: anchor_text,
                             classname: "anchor"};
-            if (typeof uselabel === "string") anchor_opt.label=uselabel;
-            else if (uselabel.nodeType) {
-                anchor_opt.dom=uselabel;
-                anchor_opt.label=fdjtDOM.textify(uselabel);}
-            else {}
             choices.push(anchor_opt);}}
     
-    function getAnchorContext(anchor){
-        var frag=document.createDocumentFragment();
-        var context=fdjtDOM("span.anchorcontext");
-        if ((anchor.childNodes.length===1)&&
-            (anchor.childNodes[0].nodeType===3))
-            frag.appendChild(fdjtDOM(
-                "span.anchortext",anchor.childNodes[0].nodeValue));
-        else {
-            var text=fdjtDOM("span.anchortext");
-            text.innerHTML=anchor.innerHTML;}
-        frag.appendChild(context);
-        if (anchor.title) fdjtDOM(context,anchor.title);
-        else {
-            var next=anchor.nextSibling; while (next) {
-                context.appendChild(next.cloneNode(true));
-                next=next.nextSibling;}}
-        return frag;}
-
     function closePassageMenu(evt){
         evt=evt||window.event;
         if (!(mB.passage_menu)) return false;
@@ -40198,21 +40177,21 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1512-g9fde7cc';
+fdjt.revision='1.5-1513-g668a69f';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Nov 11 10:01:00 EST 2015';
-fdjt.builduuid='d2fb6713-8b86-4656-abb6-11fa4c8ddc1a';
+fdjt.buildtime='Thu Nov 12 18:49:24 EST 2015';
+fdjt.builduuid='08e5caf7-eb24-4171-9676-2b083a18c2b0';
 
-fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';
+fdjt.CodexLayout.sourcehash='BF5E7822CF5B9486011FAA4011A162EAA1398C1B';
 
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-159-gf4e4f52';
-metaBook.buildid='af9212dc-2320-4f18-a7bb-6b545386d7bd';
-metaBook.buildtime='Wed Nov 11 10:02:40 EST 2015';
+metaBook.version='v0.8-162-ga9a1650';
+metaBook.buildid='470e385e-8150-4f15-8d19-df646d954316';
+metaBook.buildtime='Thu Nov 12 20:07:11 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='9ED439F87B9B2799549B6BEBAAF986B6E642CC8A';
+fdjt.CodexLayout.sourcehash='BF5E7822CF5B9486011FAA4011A162EAA1398C1B';
