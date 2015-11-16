@@ -1,5 +1,7 @@
-all: markdown xmarkdown sizzle aloha
+all: markdown xmarkdown sizzle aloha ydn-db
 
+ydn-db:
+	git clone https://github.com/yathit/ydn-db.git ydn-db
 pace:
 	git clone git@github.com:beingmeta/pace pace
 markdown:

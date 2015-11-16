@@ -3034,17 +3034,17 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         var output = !1;
         fdjtLog.doformat && fdjtString !== void 0 && (output = fdjtString.apply(null, arguments)), 
         fdjtLog.console_fn ? output ? fdjtLog.console_fn(fdjtLog.console, output) : fdjtLog.console_fn.apply(fdjtLog.console, arguments) : window.console && window.console.log && window.console.count && (output ? window.console.log.call(window.console, output) : window.console.log.apply(window.console, arguments));
-    }, fdjtLog.useconsole = !0, fdjt.Trace = fdjt.Log, fdjtLog;
+    }, fdjtLog.useconsole = !0, fdjt.Trace = fdjt.Log, fdjtLog.getBacklog = function() {
+        return backlog;
+    }, fdjtLog;
 }(window, document), function() {
     "use strict";
     function addInit(fcn, name, runagain) {
         if (checkInit(fcn, name)) {
-            for (var replace = name && init_names[name], i = 0, lim = inits.length; lim > i; ) if (replace && inits[i] === replace) {
-                if (!inits_run) return inits[i] = fcn, init_names[name] = fcn, void 0;
-                if (fdjtLog.warn("Replacing init %s which has already run", name), runagain) return fdjtLog.warn("Running the new version"), 
-                inits[i] = fcn, init_names[name] = fcn, fcn(), void 0;
-            } else {
-                if (inits[i] === fcn) return;
+            for (var replace = name && init_names[name], i = 0, lim = inits.length; lim > i; ) {
+                if (replace && inits[i] === replace || inits[i] === fcn) return inits_run ? (fdjtLog.warn("Replacing init %s which has already run", name), 
+                runagain ? (fdjtLog.warn("Running the new version"), inits[i] = fcn, name && (init_names[name] = fcn), 
+                fcn(), void 0) : void 0) : (inits[i] = fcn, name && (init_names[name] = fcn), void 0);
                 i++;
             }
             name && (init_names[name] = fcn), inits.push(fcn), inits_run ? (fcn(), run.push(!0)) : run.push(!1);
@@ -3054,9 +3054,9 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         return fcn && fcn.call ? !0 : (fdjtLog.warn("Bad argument to addInit(): %s", name || "anonymous", fcn), 
         !1);
     }
-    function getMatch(string, rx, i, literal) {
+    function getMatch(string, rx, i) {
         var match = rx.exec(string);
-        return i === void 0 && (i = 0), match && match.length > i ? literal ? match[i] : numpat.test(match[i]) ? parseFloat(match[i]) : match[i] : !1;
+        return i === void 0 && (i = 0), match && match.length > i ? match[i] : !1;
     }
     function stdspace(string) {
         string = string.replace(/\s+/g, " ");
@@ -3067,21 +3067,38 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         for (var end = len - 1; end > start && spacechars.indexOf(string.charAt(end)) > -1; ) end--;
         return start > 0 || len > end ? string.slice(start, end + 1) : string;
     }
+    function getVersionNum(s) {
+        if ("number" == typeof s) return s;
+        if ("string" != typeof s) return s;
+        if (s.indexOf("_") && (s = s.replace(/_/g, ".")), /^\d+\.?$/.exec(s)) ; else {
+            if (!vnum_pat.exec(s)) return s;
+            s = vnum_pat.exec(s)[1];
+        }
+        try {
+            return parseFloat(s) || s;
+        } catch (ex) {
+            return s;
+        }
+    }
     function identifyDevice() {
         if (!fdjt.device || !fdjt.device.started) {
-            var navigator = window.navigator, appversion = navigator.userAgent, isAndroid = getMatch(appversion, /\bAndroid +(\d+\.\d+)\b/g, 1), isWebKit = getMatch(appversion, /\bAppleWebKit\/(\d+\.\d+)\b/g, 1), isGecko = getMatch(appversion, /\bGecko\/(\d+)\b/gi, 1, !0), isChrome = getMatch(appversion, /\bChrome\/(\d+\.\d+)\b/g, 1), isFirefox = getMatch(appversion, /\bFirefox\/(\d+\.\d+)\b/gi, 1), isSafari = getMatch(appversion, /\bSafari\/(\d+\.\d+)\b/gi, 1), isOSX = getMatch(appversion, /\bMac OS X \/(\d+\_\d+)\b/gi, 1, !0), isMobileSafari = isSafari && getMatch(appversion, /\bMobile\/(\w+)\b/gi, 1, !0), isMobileWebKit = isWebKit && getMatch(appversion, /\bMobile\/(\w+)\b/gi, 1, !0), isMobile = getMatch(appversion, /\bMobile\/(\w+)\b/gi, 1, !0), hasVersion = getMatch(appversion, /\bVersion\/(\d+\.\d+)\b/gi, 1), isUbuntu = /ubuntu/gi.test(appversion), isRedHat = /redhat/gi.test(appversion), isLinux = /linux/gi.test(appversion), isMacintosh = /Macintosh/gi.test(appversion), isTouchPad = /Touchpad/gi.test(appversion), iPhone = /iphone/gi.test(appversion), iPad = /ipad/gi.test(appversion), isTouch = iPhone || iPad || isAndroid || isTouchPad, isIOS = (iPhone || iPad) && (getMatch(appversion, /\bVersion\/(\d+\.\d+)\b/gi, 1) || !0), opt_string = stdspace((isAndroid ? " Android/" + isAndroid : "") + (isWebKit ? " WebKit/" + isWebKit : "") + (isGecko ? " Gecko/" + isGecko : "") + (isChrome ? " Chrome/" + isChrome : "") + (isFirefox ? " Firefox/" + isFirefox : "") + (isSafari ? " Safari/" + isSafari : "") + (isMobileSafari ? " MobileSafari/" + isMobileSafari : "") + (isMobileWebKit ? " MobileWebKit/" + isMobileWebKit : "") + (isIOS ? " IOS/" + isIOS : "") + (isOSX ? " OSX/" + isOSX : "") + (navigator.platform ? " " + navigator.platform : "") + (iPhone ? " iPhone" : "") + (iPad ? " iPad" : "") + (isTouchPad ? " TouchPad" : "") + (isTouch ? " touch" : " mouse"));
+            var navigator = window.navigator, ua = navigator.userAgent, isAndroid = getMatch(ua, /\bAndroid +(\d+\.\d+)\b/g, 1), isWebKit = getMatch(ua, /\bAppleWebKit\/(\d+\.\d+)\b/g, 1), isGecko = getMatch(ua, /\bGecko\/(\d+)\b/gi, 1, !0), isChrome = getMatch(ua, /\bChrome\/(\d+\.\d+(.\d+)*)\b/g, 1), isFirefox = getMatch(ua, /\bFirefox\/(\d+\.\d+(.\d+)*)\b/gi, 1), isSafari = getMatch(ua, /\bSafari\/(\d+\.\d+(.\d+)*)\b/gi, 1), isOSX = getMatch(ua, /\bMac OS X \/(\d+\_\d+)\b/gi, 1, !0), isMobileSafari = isSafari && getMatch(ua, /\bMobile\/(\w+)\b/gi, 1, !0), isMobileWebKit = isWebKit && getMatch(ua, /\bMobile\/(\w+)\b/gi, 1, !0), isMobile = getMatch(ua, /\bMobile\/(\w+)\b/gi, 1, !0), hasVersion = getMatch(ua, /\bVersion\/(\d+\.\d+)\b/gi, 1), os_version = getMatch(ua, /\bOS (\d+_\d+(_\d)*)\b/gi, 1), isUbuntu = /ubuntu/gi.test(ua), isRedHat = /redhat/gi.test(ua), isLinux = /linux/gi.test(ua), isMacintosh = /Macintosh/gi.test(ua), isTouchPad = /Touchpad/gi.test(ua), iPhone = /iphone/gi.test(ua), iPad = /ipad/gi.test(ua), isTouch = iPhone || iPad || isAndroid || isTouchPad, isIOS = (iPhone || iPad) && (getMatch(ua, /\bVersion\/(\d+\.\d+)\b/gi, 1) || !0), opt_string = stdspace((isAndroid ? " Android/" + isAndroid : "") + (isWebKit ? " WebKit/" + isWebKit : "") + (isGecko ? " Gecko/" + isGecko : "") + (isChrome ? " Chrome/" + isChrome : "") + (isFirefox ? " Firefox/" + isFirefox : "") + (isSafari ? " Safari/" + isSafari : "") + (isMobileSafari ? " MobileSafari/" + isMobileSafari : "") + (isMobileWebKit ? " MobileWebKit/" + isMobileWebKit : "") + (isIOS ? " IOS/" + isIOS : "") + (isOSX ? " OSX/" + isOSX : "") + (navigator.platform ? " " + navigator.platform : "") + (iPhone ? " iPhone" : "") + (iPad ? " iPad" : "") + (isTouchPad ? " TouchPad" : "") + (isTouch ? " touch" : " mouse"));
             navigator.vendor && (device.vendor = navigator.vendor), navigator.platform && (device.platform = navigator.platform), 
-            navigator.oscpu && (device.oscpu = navigator.oscpu), navigator.cookieEnabled && (device.cookies = navigator.cookies), 
+            navigator.oscpu && (device.oscpu = navigator.oscpu), navigator.cookieEnabled && (device.cookies = navigator.cookieEnabled), 
             navigator.doNotTrack && (device.notrack = navigator.doNotTrack), navigator.standalone && (device.standalone = navigator.standalone), 
-            device.string = opt_string, isAndroid && (device.android = isAndroid), isIOS && (device.ios = isIOS, 
-            iPhone && (device.iphone = isIOS), iPad && (device.ipad = isIOS)), isChrome && (device.chrome = isChrome), 
-            iPad && (device.iPad = !0), iPhone && (device.iPhone = !0), isIOS && (device.ios = !0), 
-            isOSX && (device.osx = !0), isWebKit && (device.webkit = isWebKit), isSafari && (device.safari = isSafari), 
-            isMobileSafari && (device.mobilesafari = isMobileSafari), isMobileWebKit && (device.mobilewebkit = isMobileWebKit), 
-            isMobile && (device.mobile = isMobile), hasVersion && (device.version = hasVersion), 
-            isMacintosh && (device.isMacintosh = !0), isUbuntu && (device.ubuntu = !0), isRedHat && (device.redhat = !0), 
-            isLinux && (device.linux = !0), isTouch ? device.touch = !0 : device.mouse = !0, 
-            fdjtLog("Device: %j", device);
+            device.string = opt_string, isAndroid && (device.android = getVersionNum(isAndroid), 
+            device.android_version = isAndroid), isIOS && (device.ios = getVersionNum(os_version) || isIOS, 
+            device.ios_version = isIOS, iPhone && (device.iphone = isIOS), iPad && (device.ipad = isIOS)), 
+            isChrome && (device.chrome_version = isChrome, device.chrome = getVersionNum(isChrome)), 
+            iPad && (device.iPad = !0), iPhone && (device.iPhone = !0), isOSX && (device.osx = getVersionNum(isOSX), 
+            device.osx_version = isOSX), isWebKit && (device.webkit = getVersionNum(isWebKit), 
+            device.webkit_version = isWebKit), isSafari && (device.safari = getVersionNum(isSafari), 
+            device.safari_version = isSafari), isMobileSafari && (device.mobilesafari_version = isMobileSafari, 
+            device.mobilesafari = getVersionNum(isMobileSafari)), isMobileWebKit && (device.mobilewebkit_version = isMobileWebKit, 
+            device.mobilewebkit = getVersionNum(isMobileWebKit)), isMobile && (device.mobile = isMobile), 
+            hasVersion && (device.version = hasVersion), isMacintosh && (device.isMacintosh = !0), 
+            isUbuntu && (device.ubuntu = !0), isRedHat && (device.redhat = !0), isLinux && (device.linux = !0), 
+            isTouch ? device.touch = !0 : device.mouse = !0, fdjtLog("Device: %j", device);
         }
     }
     var fdjtLog = fdjt.Log, inits_run = !1, inits = [], run = [], init_names = {};
@@ -3094,7 +3111,7 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         i++);
         inits_run = !0;
     };
-    var numpat = /^\d+(\.\d+)$/, spacechars = "\n\r	\f  ᠎           ​\u2028\u2029  　", device = fdjt.device || (fdjt.device = {});
+    var spacechars = "\n\r	\f  ᠎           ​\u2028\u2029  　", vnum_pat = /^(\d+(\.\d+)).*/, device = fdjt.device || (fdjt.device = {});
     (function() {
         "undefined" != typeof window && window.navigator && window.navigator.appVersion && identifyDevice();
     })();
@@ -3452,6 +3469,15 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         }
     }, fdjtState.getUUID = getUUID, fdjtState.versionInfo = versionInfo, fdjtState.getStyleTag = getStyleTag, 
     fdjtState.getURL = getURL, fdjtState;
+}(), fdjt.iDB = function() {
+    "use strict";
+    var iDB = {}, device = fdjt.device;
+    return !window.indexedDB || device.ios && device.standalone ? (iDB.indexedDB = idbModules.shimIndexedDB, 
+    iDB.IDBDatabase = idbModules.IDBDatabase, iDB.IDBTransaction = idbModules.IDBTransaction, 
+    iDB.IDBCursor = idbModules.IDBCursor, iDB.IDBKeyRange = idbModules.IDBKeyRange) : (iDB.indexedDB = window.indexedDB, 
+    iDB.IDBDatabase = window.IDBDatabase, iDB.IDBTransaction = window.IDBTransaction, 
+    iDB.IDBCursor = window.IDBCursor, iDB.IDBKeyRange = window.IDBKeyRange, iDB.IDBTransaction = window.IDBTransaction, 
+    iDB.IDBTransaction = window.IDBTransaction), iDB;
 }();
 
 var _fdjt_init;
@@ -5609,35 +5635,39 @@ fdjt.DOM = function() {
                 if (fdjtLog.warn("No indexedDB implementation for opening %:", vname), !reject) throw Error("No indexedDB implementation");
                 reject(Error("No indexedDB implementation"));
             }
-            var req = indexedDB.open(dbname, version), fail = !1, init_timeout = setTimeout(function() {
-                fail = !0, fdjtLog.warn("Init timeout for indexedDB %s", vname), reject(Error("Init timeout"));
-            }, opts.timeout || 15e3);
-            return req.onerror = function(event) {
-                return fail = !0, warn("Error initializing indexedDB layout cache: %o", event.errorCode), 
-                init_timeout && clearTimeout(init_timeout), reject ? reject(event) : event;
-            }, req.onsuccess = function(evt) {
-                if (fail) return fdjtLog("Discarding indexedDB %s after failure!", vname), void 0;
-                var db = evt.target.result;
-                return init_timeout && clearTimeout(init_timeout), trace && fdjtLog("Got existing IndexedDB %s %o", vname, db), 
-                resolve ? resolve(db) : db;
-            }, req.onupgradeneeded = function(evt) {
-                var db = evt.target.result;
-                if (!init) return resolve(db);
-                if (req.onsuccess = function() {
-                    return resolve ? resolve(db) : db;
-                }, req.onerror = function(evt) {
-                    if (fdjtLog("Error upgrading %s %o", vname, evt), !reject) throw Error("Error upgrading %s", vname);
-                    reject(evt);
-                }, init.call) try {
-                    return init(db), resolve ? resolve(db) : db;
-                } catch (ex) {
-                    fdjtLog("Error upgrading %s:%d: %o", dbname, version, ex), reject && reject(ex);
-                } else {
-                    if (!reject) throw Error("Bad indexDB init: %o", init);
-                    reject(Error("Bad indexDB init: %o", init));
-                }
-                return db;
-            }, req;
+            try {
+                var req = indexedDB.open(dbname, version), fail = !1, init_timeout = setTimeout(function() {
+                    fail = !0, fdjtLog.warn("Init timeout for indexedDB %s", vname), reject(Error("Init timeout"));
+                }, opts.timeout || 15e3);
+                req.onerror = function(event) {
+                    return fail = !0, warn("Error initializing indexedDB: %o", event.errorCode), init_timeout && clearTimeout(init_timeout), 
+                    reject ? reject(event) : event;
+                }, req.onsuccess = function(evt) {
+                    if (fail) return fdjtLog("Discarding indexedDB %s after failure!", vname), void 0;
+                    var db = evt.target.result;
+                    return init_timeout && clearTimeout(init_timeout), trace && fdjtLog("Got existing IndexedDB %s %o", vname, db), 
+                    resolve ? resolve(db) : db;
+                }, req.onupgradeneeded = function(evt) {
+                    var db = evt.target.result;
+                    if (!init) return resolve(db);
+                    if (req.onsuccess = function() {
+                        return resolve ? resolve(db) : db;
+                    }, req.onerror = function(evt) {
+                        if (fdjtLog("Error upgrading %s %o", vname, evt), !reject) throw Error("Error upgrading %s", vname);
+                        reject(evt);
+                    }, init.call) try {
+                        return init(db), resolve ? resolve(db) : db;
+                    } catch (ex) {
+                        fdjtLog("Error upgrading %s:%d: %o", dbname, version, ex), reject && reject(ex);
+                    } else {
+                        if (!reject) throw Error("Bad indexDB init: %o", init);
+                        reject(Error("Bad indexDB init: %o", init));
+                    }
+                    return db;
+                };
+            } catch (ex) {
+                fdjtLog("usingIndexedDB failed: %o", ex), reject && reject(ex);
+            }
         }
         version && !opts && "number" != typeof version && version.version ? (opts = version, 
         version = opts.version) : opts || (opts = {}), init || (init = opts.init || !1), 
@@ -5645,7 +5675,7 @@ fdjt.DOM = function() {
         var trace = opts.trace, vname = dbname + ":" + version;
         return new Promise(usingIndexedDB);
     }
-    var fdjtState = fdjt.State, fdjtTime = fdjt.Time, fdjtAsync = fdjt.Async, fdjtDOM = fdjt.DOM, JSON = fdjt.JSON, fdjtLog = fdjt.Log, warn = fdjtLog.warn, indexedDB = window.indexedDB || idbModules.indexedDB, refdbs = {}, all_refdbs = [], changed_dbs = [], aliases = {}, REFINDEX = RefDB.REFINDEX = 2, REFLOAD = RefDB.REFLOAD = 4, REFSTRINGS = RefDB.REFSTRINGS = 8, default_flags = REFINDEX | REFSTRINGS;
+    var fdjtState = fdjt.State, fdjtTime = fdjt.Time, fdjtAsync = fdjt.Async, fdjtDOM = fdjt.DOM, JSON = fdjt.JSON, fdjtLog = fdjt.Log, warn = fdjtLog.warn, refdbs = {}, all_refdbs = [], changed_dbs = [], aliases = {}, iDB = fdjt.iDB, indexedDB = iDB.indexedDB, REFINDEX = RefDB.REFINDEX = 2, REFLOAD = RefDB.REFLOAD = 4, REFSTRINGS = RefDB.REFSTRINGS = 8, default_flags = REFINDEX | REFSTRINGS;
     RefDB.open = function(name, DBClass) {
         return DBClass || (DBClass = RefDB), refdbs.hasOwnProperty(name) && refdbs[name] || aliases.hasOwnProperty(name) && aliases[name] || new DBClass(name);
     }, RefDB.probe = refDBProbe, RefDB.prototype.addAlias = function(alias) {
@@ -5847,7 +5877,7 @@ fdjt.DOM = function() {
                     resolve(refs);
                 });
             }
-            this.storage instanceof indexedDB;
+            this.storage instanceof window.indexedDB;
         }
     }, RefDB.prototype.load = function(refs) {
         return this.storage instanceof Storage ? this.loadFromStorage(refs) : !1;
@@ -5950,7 +5980,7 @@ fdjt.DOM = function() {
                 db.changed = !1, db.changes = [];
                 var pos = changed_dbs.indexOf(db);
                 pos >= 0 && changed_dbs.splice(pos, 1), resolve && resolve();
-            }); else if (!(db.storage instanceof indexedDB)) return resolve();
+            }); else if (!(db.storage instanceof window.indexedDB)) return resolve();
         }
         var db = this, storage = this.storage;
         return refs === !0 ? refs = this.allrefs : refs || (refs = this.changes), storage ? new Promise(saving) : !1;
@@ -10461,14 +10491,11 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                     text && split.setAttribute("data-textsplit", text.nodeValue);
                 }
                 var html = copy.innerHTML;
-                try {
-                    cacheLayout(layout_id, html, !1, !1, function() {
-                        cachedLayout(layout_id);
-                    }), callback(layout);
-                } catch (ex) {
+                return cacheLayout(layout_id, html, !1, !1).then(function() {
+                    cachedLayout(layout_id), callback(layout);
+                }).catch(function(ex) {
                     return fdjtLog.warn("Couldn't save layout %s: %s", layout_id, ex), !1;
-                }
-                return layout_id;
+                }), layout_id;
             }
         }
         function restoreLayout(arg, donefn, failfn) {
@@ -10745,42 +10772,47 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
         }, this;
     }
     function useIndexedDB(dbname) {
-        if (!dbname) {
-            var doinit = ondbinit;
-            return ondbinit = !1, fdjtLog("Not using indexedDB for layouts"), CodexLayout.layoutDB = layoutDB = window.localStorage, 
-            doinit && doinit(), void 0;
+        function getting(resolve, reject) {
+            if (layoutDB) return resolve(layoutDB);
+            if (indexedDB && dbname) try {
+                RefDB.useIndexedDB(dbname, 1, function(db) {
+                    db.createObjectStore("layouts", {
+                        keyPath: "layout_id"
+                    });
+                }).then(function(db) {
+                    CodexLayout.layoutDB = layoutDB = db, CodexLayout.cache = 7, resolve(db);
+                }).catch(function(trouble) {
+                    fdjtLog("indexedDB failed: %o", trouble), CodexLayout.layoutDB = layoutDB = window.localStorage, 
+                    resolve(layoutDB);
+                });
+            } catch (ex) {
+                reject(ex);
+            } else CodexLayout.layoutDB = layoutDB = window.localStorage, resolve(layoutDB);
         }
-        CodexLayout.dbname = dbname, RefDB.useIndexedDB(dbname, 1, function(db) {
-            db.createObjectStore("layouts", {
-                keyPath: "layout_id"
-            });
-        }).then(function(db) {
-            var doinit = ondbinit;
-            ondbinit = !1, CodexLayout.layoutDB = layoutDB = db, CodexLayout.cache = 7, doinit && doinit();
-        }).catch(function(trouble) {
-            var doinit = ondbinit;
-            ondbinit = !1, fdjtLog("indexedDB failed: %o", trouble), CodexLayout.layoutDB = layoutDB = window.localStorage, 
-            doinit && doinit();
-        });
+        return dbname === void 0 ? dbname = CodexLayout.dbname : CodexLayout.dbname = dbname, 
+        new Promise(getting);
     }
-    function cacheLayout(layout_id, content, pages, ondone) {
-        if (layoutDB === void 0) ondbinit = function() {
-            cacheLayout(layout_id, content);
-        }; else {
-            if (!layoutDB) return;
-            if (window.Storage && layoutDB instanceof window.Storage) setLocal(layout_id, content), 
-            ondone && ondone(); else if (window.indexedDB) {
-                var req, txn = layoutDB.transaction([ "layouts" ], "readwrite"), storage = txn.objectStore("layouts");
-                req = storage.put({
-                    layout_id: layout_id,
-                    layout: content
-                }), req.onerror = function(event) {
-                    fdjtLog("Error saving layout %s: %o", layout_id, event.target.errorCode);
-                }, req.onsuccess = function(event) {
-                    event = !1, ondone && ondone(), fdjtLog("Layout %s cached", layout_id);
-                };
-            } else CodexLayout.layoutDB = layoutDB = window.localStorage || !1;
+    function cacheLayoutIDB(db, layout_id, content, ondone, onfail) {
+        var req, txn = db.transaction([ "layouts" ], "readwrite"), storage = txn.objectStore("layouts");
+        req = storage.put({
+            layout_id: layout_id,
+            layout: content
+        }), req.onerror = function(event) {
+            fdjtLog("Error saving layout %s: %o", layout_id, event.target.errorCode), onfail && onfail(event);
+        }, req.onsuccess = function(event) {
+            event = !1, fdjtLog("Layout %s cached", layout_id), ondone && ondone();
+        };
+    }
+    function cacheLayout(layout_id, content) {
+        function caching(resolve, reject) {
+            return layoutDB ? cacheLayoutIDB(layoutDB, layout_id, content, resolve, reject) : useIndexedDB().then(function(db) {
+                layoutDB = CodexLayout.layoutDB = window.LocalStorage, cacheLayoutIDB(db, layout_id, content, resolve, reject);
+            }).catch(function() {
+                layoutDB = CodexLayout.layoutDB = window.LocalStorage, setLocal(layout_id, content), 
+                resolve && resolve(layoutDB);
+            });
         }
+        return new Promise(caching);
     }
     function dropLayout(layout_id) {
         var layout = !1;
@@ -10800,31 +10832,32 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             };
         } else ;
     }
-    function fetchLayout(layout_id, callback, onerr) {
+    function fetchLayout(db, layout_id, callback, onerr) {
         var getLocal = fdjtState.getLocal, content = !1, layout_key = layout_id;
-        if (layoutDB === void 0) ondbinit = function() {
-            fetchLayout(layout_id, callback, onerr);
-        }; else {
-            if (!layoutDB) return onerr ? onerr("No layout DB") : callback ? callback(!1) : !1;
-            if (window.Storage && layoutDB instanceof window.Storage) content = getLocal(layout_id) || !1, 
-            content && cachedLayout(layout_id), setTimeout(function() {
+        if (window.Storage && db instanceof window.Storage) content = getLocal(layout_id) || !1, 
+        content && cachedLayout(layout_id), setTimeout(function() {
+            callback(content);
+        }, 1); else if (db) {
+            var txn = layoutDB.transaction([ "layouts" ]), storage = txn.objectStore("layouts"), req = storage && storage.get(layout_key);
+            req || onerr("DB error"), req.onsuccess = function(evt) {
+                var target = evt.target, result = target && target.result;
+                target || onerr(!1), result && cachedLayout(layout_id), result ? callback(result.layout) : callback(!1);
+            }, req.onerror = function(event) {
+                onerr(event);
+            };
+        } else {
+            if (!window.localStorage) return onerr ? onerr(!1) : callback ? callback(!1) : !1;
+            content = fdjtState.getLocal(layout_key) || !1, content && cachedLayout(layout_id), 
+            setTimeout(function() {
                 callback(content);
-            }, 1); else if (layoutDB) {
-                var txn = layoutDB.transaction([ "layouts" ]), storage = txn.objectStore("layouts"), req = storage && storage.get(layout_key);
-                req || onerr("DB error"), req.onsuccess = function(evt) {
-                    var target = evt.target, result = target && target.result;
-                    target || onerr(!1), result && cachedLayout(layout_id), result ? callback(result.layout) : callback(!1);
-                }, req.onerror = function(event) {
-                    onerr(event);
-                };
-            } else {
-                if (!window.localStorage) return onerr ? onerr(!1) : callback ? callback(!1) : !1;
-                content = fdjtState.getLocal(layout_key) || !1, content && cachedLayout(layout_id), 
-                setTimeout(function() {
-                    callback(content);
-                }, 0);
-            }
+            }, 0);
         }
+    }
+    function fetchLayoutFrom(db, layout_id) {
+        function fetching_layout(resolve, reject) {
+            return fetchLayout(db, layout_id, resolve, reject);
+        }
+        return new Promise(fetching_layout);
     }
     function fetchAll(callback) {
         if (!layoutDB) return !1;
@@ -10841,12 +10874,12 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
         dropLocal("fdjtCodex.layout(" + layout_id + ")", layout_id), removeLocal("fdjtCodex.layouts", layout_id), 
         CodexLayout.trace && fdjtLog("Layout %s removed", layout_id);
     }
-    var root_namespace, fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, fdjtAsync = fdjt.Async, fdjtTime = fdjt.Time, fdjtState = fdjt.State, RefDB = fdjt.RefDB, fdjtID = fdjt.ID, hasContent = fdjtDOM.hasContent, hasParent = fdjtDOM.hasParent, getParent = fdjtDOM.getParent, getStyle = fdjtDOM.getStyle, parsePX = fdjtDOM.parsePX, getLineHeight = fdjtDOM.getLineHeight, hasClass = fdjtDOM.hasClass, addClass = fdjtDOM.addClass, dropClass = fdjtDOM.dropClass, toArray = fdjtDOM.toArray, getElementValue = fdjtDOM.getElementValue, setLocal = fdjtState.setLocal, pushLocal = fdjtState.pushLocal, dropLocal = fdjtState.dropLocal, removeLocal = fdjtState.removeLocal, floor = Math.floor;
+    var root_namespace, fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, fdjtAsync = fdjt.Async, fdjtTime = fdjt.Time, fdjtState = fdjt.State, RefDB = fdjt.RefDB, fdjtID = fdjt.ID, hasContent = fdjtDOM.hasContent, hasParent = fdjtDOM.hasParent, getParent = fdjtDOM.getParent, getStyle = fdjtDOM.getStyle, parsePX = fdjtDOM.parsePX, getLineHeight = fdjtDOM.getLineHeight, hasClass = fdjtDOM.hasClass, addClass = fdjtDOM.addClass, dropClass = fdjtDOM.dropClass, toArray = fdjtDOM.toArray, getElementValue = fdjtDOM.getElementValue, setLocal = fdjtState.setLocal, pushLocal = fdjtState.pushLocal, dropLocal = fdjtState.dropLocal, removeLocal = fdjtState.removeLocal, floor = Math.floor, iDB = fdjt.iDB, indexedDB = iDB.indexedDB;
     document.body ? root_namespace = document.body.namespaceURI : fdjtDOM.addListener(window, "load", function() {
         root_namespace = document.body.namespaceURI;
     });
-    var layoutDB, indexedDB = window.indexedDB || idbModules.indexedDB, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, notspace = /[^ \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff]/g, adjustFontSize = fdjt.DOM.adjustFontSize, adjustFonts = fdjt.DOM.adjustFonts, tweakImage = fdjt.DOM.tweakImage, tmpid_count = 1, dupstate = /\bcodexdup(start|end)?\b/g, codexstate = /\bcodex(dupstart|dup|dupend|relocated)\b/g;
-    CodexLayout.timeslice = 80, CodexLayout.timeskip = 10, CodexLayout.tracelevel = 0, 
+    var layoutDB, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, notspace = /[^ \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff]/g, adjustFontSize = fdjt.DOM.adjustFontSize, adjustFonts = fdjt.DOM.adjustFonts, tweakImage = fdjt.DOM.tweakImage, tmpid_count = 1, dupstate = /\bcodexdup(start|end)?\b/g, codexstate = /\bcodex(dupstart|dup|dupend|relocated)\b/g;
+    return CodexLayout.timeslice = 80, CodexLayout.timeskip = 10, CodexLayout.tracelevel = 0, 
     CodexLayout.prototype.getDups = function(id) {
         if (!id) return [];
         id.nodeType && (id = id.id);
@@ -10885,21 +10918,13 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             width: this.width,
             break_blocks: this.break_blocks
         };
-    }, CodexLayout.cache = 2;
-    var ondbinit = !1;
-    if (CodexLayout.useIndexedDB = useIndexedDB, indexedDB) fdjt.addInit(function() {
-        CodexLayout.dbname || (CodexLayout.dbname = "codexlayout", useIndexedDB("codexlayout"));
-    }, "CodexLayoutCache"); else {
-        var doinit = ondbinit;
-        ondbinit = !1, window.localStorage ? (CodexLayout.layoutDB = layoutDB = window.localStorage, 
-        doinit && doinit()) : (CodexLayout.layoutDB = layoutDB = !1, doinit && doinit());
-    }
-    return CodexLayout.cacheLayout = cacheLayout, CodexLayout.dropLayout = dropLayout, 
-    CodexLayout.fetchLayout = function(layout_id) {
-        function fetching_layout(resolve, reject) {
-            return fetchLayout(layout_id, resolve, reject);
-        }
-        return new Promise(fetching_layout);
+    }, CodexLayout.cache = 2, CodexLayout.useIndexedDB = useIndexedDB, CodexLayout.cacheLayout = cacheLayout, 
+    CodexLayout.dropLayout = dropLayout, CodexLayout.fetchLayout = function(layout_id) {
+        return useIndexedDB().then(function(db) {
+            return fetchLayoutFrom(db, layout_id);
+        }).catch(function(ex) {
+            return fdjtLog("Layout DB init failed: %o", ex), fetchLayoutFrom(!1, layout_id);
+        });
     }, CodexLayout.clearLayouts = function() {
         var layouts = fdjtState.getLocal("fdjtCodex.layouts", !0), i = 0, lim = layouts && layouts.length;
         if (layouts) {
@@ -10920,7 +10945,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             dropLayout(todrop[i++]);
         });
     }, CodexLayout.dbname = "codexlayout", CodexLayout;
-}();
+}(), "undefined" != typeof window && window.fdjt && (window.CodexLayout = fdjt.CodexLayout);
 
 var Markdown;
 
@@ -11232,6 +11257,7 @@ var metaBook = {
     _user_setup: !1,
     _gloss_setup: !1,
     _social_setup: !1,
+    delay_startup: !1,
     connected: !1,
     curpage: !1,
     curoff: !1,
@@ -11816,13 +11842,13 @@ var metaBook = {
     function mediaTypeClass(type) {
         return type ? "audio/mpeg" === type ? "musiclink" : "image/" === type.slice(0, 6) ? "imagelink" : "audio/" === type.slice(0, 6) ? "audiolink" : !1 : !1;
     }
-    var fdjtString = fdjt.String, fdjtState = fdjt.State, fdjtAsync = fdjt.Async, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, $ID = fdjt.ID, RefDB = fdjt.RefDB, Ref = fdjt.Ref, ObjectMap = fdjt.Map || RefDB.Map, hasClass = fdjtDOM.hasClass, addClass = fdjtDOM.addClass, hasParent = fdjtDOM.hasParent, getLocal = fdjtState.getLocal, setLocal = fdjtState.setLocal, existsLocal = fdjtState.existsLocal, mB = metaBook, Trace = metaBook.Trace, indexedDB = window.indexedDB || idbModules.indexedDB;
+    var fdjtString = fdjt.String, fdjtState = fdjt.State, fdjtAsync = fdjt.Async, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, $ID = fdjt.ID, RefDB = fdjt.RefDB, Ref = fdjt.Ref, ObjectMap = fdjt.Map || RefDB.Map, hasClass = fdjtDOM.hasClass, addClass = fdjtDOM.addClass, hasParent = fdjtDOM.hasParent, getLocal = fdjtState.getLocal, setLocal = fdjtState.setLocal, existsLocal = fdjtState.existsLocal, mB = metaBook, Trace = metaBook.Trace, iDB = fdjt.iDB, indexedDB = iDB.indexedDB;
     metaBook.tagweights = new ObjectMap(), metaBook.tagscores = new ObjectMap(), metaBook.hasLocal = hasLocal, 
     metaBook.saveLocal = saveLocal, metaBook.readLocal = readLocal, metaBook.clearLocal = clearLocal, 
     metaBook.focusBody = function() {};
     var metaBookDB = !1, dbwait = [], dbfail = [];
     if (metaBook.getDB = getDB, indexedDB && !mB.noidb) {
-        var req = window.indexedDB.open("metaBook", 1);
+        var req = indexedDB.open("metaBook", 1);
         req.onerror = function(event) {
             notDB("opening", "metaBook", event.errorCode);
         }, req.onsuccess = function(event) {
@@ -11900,7 +11926,7 @@ var metaBook = {
     fdjtString.entities.metaBooks = "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Books</span>", 
     fdjtString.entities.metaBook = "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Book</span>", 
     metaBook.urlType = urlType, metaBook.typeIcon = typeIcon, metaBook.mediaTypeClass = mediaTypeClass;
-}(), fdjt.DOM.noautofontadjust = !0, function() {
+}(), fdjt.DOM.noautofontadjust = !0, fdjt.CodexLayout.dbname = "metaBook", function() {
     "use strict";
     function addConfig(name, handler) {
         Trace.config > 1 && fdjtLog("Adding config handler for %s: %s", name, handler), 
@@ -12845,7 +12871,7 @@ var metaBook = {
         void 0);
     }
     function indexingDone() {
-        (Trace.indexing || Trace.startup) && fdjtLog("Content indexing is completed"), metaBook._setup ? setupClouds() : metaBook.onsetup = setupClouds;
+        (Trace.indexing || Trace.startup) && fdjtLog("Content indexing is completed"), metaBook._started ? setupClouds() : metaBook.onsetup = setupClouds;
     }
     function setupClouds() {
         var tracelevel = Math.max(Trace.startup, Trace.clouds), addTag2Cloud = metaBook.addTag2Cloud, empty_cloud = metaBook.empty_cloud, gloss_cloud = metaBook.gloss_cloud, taglist = metaBook.taglist || $ID("METABOOKTAGLIST");
@@ -13637,8 +13663,8 @@ var metaBook = {
             for (i = 0; lim > i; ) frag.appendChild(nodes[i++]);
             return frag;
         }
-        fdjtLog.console = "METABOOKCONSOLELOG", fdjtLog.consoletoo = !0, run_inits(), metaBook._setup_start || (metaBook._setup_start = new Date()), 
-        metaBook.appsource = getSourceRef(), fdjtLog("This is metaBook %s, built %s on %s, launched %s, from %s", mB.version, mB.buildtime, mB.buildhost, "" + mB._setup_start, mB.root || metaBook.appsource || "somewhere"), 
+        fdjtLog.console = "METABOOKCONSOLELOG", fdjtLog.consoletoo = !0, run_inits(), metaBook._setup_started || (metaBook._setup_started = new Date()), 
+        metaBook.appsource = getSourceRef(), fdjtLog("This is metaBook %s, built %s on %s, launched %s, from %s", mB.version, mB.buildtime, mB.buildhost, "" + mB._setup_started, mB.root || metaBook.appsource || "somewhere"), 
         $ID("METABOOKBODY") && (metaBook.body = $ID("METABOOKBODY")), getQuery("mbtrace") && useTraceSettings(getQuery("mbtrace", !0)), 
         getSession("mbtrace") && useTraceSettings([ getSession("mbtrace") ]), getLocal("mbtrace") && useTraceSettings([ getLocal("mbtrace") ]), 
         readBookSettings(), fdjtLog("Book %s (%s) %s (%s%s)", mB.docref || "@??", mB.bookbuild || "", mB.refuri, mB.sourceid, mB.sourcetime ? ": " + ("" + mB.sourcetime) : ""), 
@@ -13752,7 +13778,7 @@ var metaBook = {
     }
     function metaBookStartup(force) {
         var metadata = !1;
-        if (!metaBook._setup && (force || !getQuery("nometabook"))) {
+        if (!metaBook._started && (force || !getQuery("nometabook"))) {
             if (("null" === location.hash || "#null" === location.hash) && (location.hash = ""), 
             location.hash && "#" !== location.hash) {
                 var hash = location.hash;
@@ -13851,7 +13877,7 @@ var metaBook = {
         var rmsg = $ID("METABOOKREADYMESSAGE");
         if ($ID("METABOOKOPENTAB") ? rmsg.style.display = "none" : (rmsg.innerHTML = "Open", 
         rmsg.id = "METABOOKOPENTAB"), mode || getQuery("startmode") && (mode = getQuery("startmode")), 
-        mode ? metaBook.setMode(mode) : mode = metaBook.mode, metaBook._setup = new Date(), 
+        mode ? metaBook.setMode(mode) : mode = metaBook.mode, metaBook._started = new Date(), 
         metaBook._starting = !1, metaBook.onsetup) {
             var onsetup = metaBook.onsetup;
             metaBook.onsetup = !1, setTimeout(onsetup, 10);
@@ -14061,6 +14087,9 @@ var metaBook = {
         var frame = $ID("METABOOKFRAME");
         frame && (frame.style.fontFamily = open_sans_stack, metaBook.resizeUI());
     }
+    function startupHandler() {
+        mB._starting || mB._started || (mB.delay_startup ? "number" == typeof mB.delay_startup ? setTimeout(mB.Startup, mB.delay_startup) : setTimeout(startupHandler, 1e3) : metaBook.Startup());
+    }
     var fdjtString = fdjt.String, fdjtDevice = fdjt.device, fdjtState = fdjt.State, fdjtAsync = fdjt.Async, fdjtAjax = fdjt.Ajax, fdjtTime = fdjt.Time, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, $ID = fdjt.ID, RefDB = fdjt.RefDB, mbID = metaBook.ID, CodexLayout = fdjt.CodexLayout, https_root = "https://s3.amazonaws.com/beingmeta/static/", getLocal = fdjtState.getLocal, getSession = fdjtState.getSession, getQuery = fdjtState.getQuery, getCookie = fdjtState.getCookie, getMeta = fdjtDOM.getMeta, getLink = fdjtDOM.getLink, addClass = fdjtDOM.addClass, swapClass = fdjtDOM.swapClass, dropClass = fdjtDOM.dropClass, mB = metaBook, Trace = metaBook.Trace, readLocal = metaBook.readLocal, saveLocal = metaBook.saveLocal;
     metaBook.startupMessage = startupMessage, metaBook.dropSplashPage = dropSplashPage, 
     metaBook.setSync = function(val) {
@@ -14087,10 +14116,9 @@ var metaBook = {
         });
     });
     var open_sans_stack = "'Open Sans',Verdana, Tahoma, Arial, Helvetica, sans-serif, sans";
-    return metaBook.enableOpenSans = enableOpenSans, metaBook.StartupHandler = function() {
-        metaBook.Startup();
-    }, metaBookStartup;
-}(), metaBook.Setup = metaBook.StartupHandler, metaBook.Slice = function() {
+    return metaBook.enableOpenSans = enableOpenSans, metaBook.Setup = metaBook.StartupHandler = startupHandler, 
+    metaBookStartup;
+}(), metaBook.Slice = function() {
     "use strict";
     function getTargetDup(scan, target) {
         for (var targetid = target.id; scan; ) {
@@ -15188,12 +15216,12 @@ var metaBook = {
         }
     }
     function showCover() {
-        metaBook._setup && fdjtState.dropLocal("mB(" + mB.docid + ").opened"), setHUD(!1), 
+        metaBook._started && fdjtState.dropLocal("mB(" + mB.docid + ").opened"), setHUD(!1), 
         metaBook.closed = !0, metaBook.covermode && (addClass(metaBook.cover, metaBook.covermode), 
         metaBook.mode = metaBook.covermode), addClass(document.body, "mbCOVER");
     }
     function hideCover() {
-        metaBook._setup && fdjtState.setLocal("mB(" + mB.docid + ").opened", fdjtTime()), 
+        metaBook._started && fdjtState.setLocal("mB(" + mB.docid + ").opened", fdjtTime()), 
         metaBook.closed = !1, dropClass(document.body, "mbCOVER"), metaBook.mode && (metaBook.covermode = metaBook.mode, 
         metaBook.mode = !1, metaBook.cover.className = "");
     }
@@ -19342,12 +19370,12 @@ metaBook.HTML.hudhelp = '<div id="METABOOKTOCHELP" class="helpbox atfoot">\n  <h
 metaBook.HTML.menu = '<img src="{{bmg}}metabook/tocicon.svgz"\n     onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n     alt="toc" title="navigate sections"\n     class="hudbutton hudmodebutton topleft"\n     id="METABOOKTOCBUTTON"\n     hudmode="statictoc"/>\n<div id="METABOOKBREVET"\n     title="Open the meta layer for navigation, search, etc.">\n  &nbsp;</div>\n<div id="METABOOKCOVERTAB">\n  <img src="{{bmg}}metabook/mbsettings.svgz"\n       onerror="this.src=\'{{bmg}}metabook/mbsettings50x50.png\'"\n       alt="toc" title="book settings"\n       class="hudbutton hudmodebutton left"\n       id="METABOOKSETTINGSBUTTON"\n       hudmode="settings"/>\n  <div class="hudbutton" id="METABOOKSHOWCOVER">Cover</div>\n  <img src="{{bmg}}metabook/overlay.svgz"\n       onerror="this.src=\'{{bmg}}metabook/overlay50x50.png\'"\n       alt="toc" title="see book layers"\n       class="hudbutton hudmodebutton right"\n       id="METABOOKLAYERSBUTTON"\n       hudmode="layers"/>\n</div>\n<img src="{{bmg}}metabook/tagsearch.svgz"\n     onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n     alt="search" title="search tags"\n     class="hudbutton hudmodebutton topright"\n     hudmode="search"/>\n\n', 
 metaBook.HTML.console = '<h1>metaBook Console</h1>\n<div class=\'message\' id=\'METABOOKCONSOLEMESSAGE\'></div>\n<div id="METABOOKCONSOLELOG" class=\'sbookmessagelog\'></div>\n<div id="METABOOKCONSOLEINPUT">\n  <span class="button" id="METABOOKCONSOLEBUTTON">run</span>\n  <textarea id="METABOOKCONSOLETEXTINPUT">\n  </textarea>\n</div>\n\n<!--\n/* Emacs local variables\n;;;  Local variables: ***\n;;;  compile-command: "cd ../..; make" ***\n;;;  indent-tabs-mode: nil ***\n;;;  End: ***\n*/\n-->\n\n', 
 metaBook.HTML.messages = '<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPSCAN">\n  <div class="indicator"></div>\n  <div class="message">\n    Scanning the book content for structure and metadata.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTOC">\n  <div class="indicator"></div>\n  <div class="message">\n    Setting up tables of content for book navigation.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPKNO">\n  <div class="indicator"></div>\n  <div class="message">\n    Processing embedded or referenced knowledge bases.\n    <div id="METABOOKSTARTUPKNODETAILS"></div>\n  </div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTAGGING">\n  <div class="indicator"></div>\n  <div class="message">Indexing with published tags.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPCLOUDS">\n  <div class="indicator"></div>\n  <div class="message">Setting up tag clouds for search and glossing.</div>\n</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKNEWGLOSSES">\n  <div class="indicator"></div>\n  <div class="message">Applying your glosses to your book.</div>\n</div>\n<!--\n     /* Emacs local variables\n     ;;;  Local variables: ***\n     ;;;  compile-command: "cd ../..; make" ***\n     ;;;  End: ***\n     */\n  -->\n\n', 
-metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <span class="text">This</span>\n    <a href="https://www.bookhub.io/" target="_blank"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      book</a>\n    <span class="text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/" class="metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
+metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <a href="https://www.bookhub.io/" target="_blank" class="metabookref"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      This book</a>\n    <span class="text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/" class="metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="text">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="text">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="text">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="text">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="text">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="text">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1513-g668a69f", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Thu Nov 12 18:49:24 EST 2015", 
-fdjt.builduuid = "08e5caf7-eb24-4171-9676-2b083a18c2b0", fdjt.CodexLayout.sourcehash = "BF5E7822CF5B9486011FAA4011A162EAA1398C1B", 
-Knodule.version = "v0.8-154-g4218590", metaBook.version = "v0.8-162-ga9a1650", metaBook.buildid = "470e385e-8150-4f15-8d19-df646d954316", 
-metaBook.buildtime = "Thu Nov 12 20:07:11 EST 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
+fdjt.revision = "1.5-1522-ge763e18", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Mon Nov 16 11:05:43 EST 2015", 
+fdjt.builduuid = "5abf1891-165d-4ed6-a8fa-9c989a23d5f7", fdjt.CodexLayout.sourcehash = "A742ABD754FA51DBC08518F328E3A225EE8B4FBB", 
+Knodule.version = "v0.8-154-g4218590", metaBook.version = "v0.8-166-g01e923a", metaBook.buildid = "d4a6487d-a5d8-4ebf-a9aa-846f211e1d14", 
+metaBook.buildtime = "Mon Nov 16 12:55:47 EST 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });

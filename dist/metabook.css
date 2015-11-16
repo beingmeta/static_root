@@ -4072,18 +4072,21 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
         font-size: 30px; height: 40px;}
     #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE { font-size: 30px;}
 
+    #METABOOKCOVER #METABOOKCOVERMESSAGE,
+    #METABOOKCOVER.coverpage #METABOOKCOVERMESSAGE {
+        bottom: 0px; top: auto; z-index: 200;}
+
     #METABOOKCOVER > div { left: 10px; right: 10px;}
 
     html._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
     html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
     
+    #METABOOKCOVER div.userbox a.metabookref { float: left;}
     #METABOOKCOVER div.userbox a.metabookusername { float: right;}
     #METABOOKCOVER div.userbox span.text { display: none;}
-    #METABOOKCOVER div.userbox span.bookplate a { display: none;}
-
 
     #METABOOKCOVER > #METABOOKCOVERCONTROLS {
-        height: 80px; white-space: normal; }
+        height: 60px; white-space: normal; }
 
     #METABOOKCOVER div.loginbox {font-size: 1em;}
 
@@ -4096,6 +4099,12 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
         font-size: 1.5em;
         margin-right: 1ex;
         margin-left: 1ex;}
+
+    #METABOOKCOVER div.flap {
+        left: 5%; right: 5%;
+        top: 40px; bottom: 100px;
+        padding: 2px 1ex 1ex 2px;}
+
 }
 
 @media (pointer: coarse) {
