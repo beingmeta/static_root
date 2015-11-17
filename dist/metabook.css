@@ -6076,11 +6076,11 @@ a[href].wikicon, a[href].wikiref.wikicon {
     color: transparent; overflow: hidden; text-decoration: none;
     max-height: 1.5em; max-width: 1.5em; height: 1.5em; width: 1.5em; 
     padding: 1px; border: solid transparent 1px;
-    background-image: url(g/sbooks/wikipedia.svgz);
+    background-image: url(g/metabook/wikipedia.svgz);
     background-position: center; background-repeat: no-repeat;
     background-size: contain;}
 html._NOSVG a[href].wikicon, html._NOSVG a[href].wikiref.wikicon {
-    background-image: url(g/sbooks/wikipedia128w.png);}
+    background-image: url(g/metabook/wikipedia128w.png);}
 a[href].wikicon:hover, html._MOUSE a[href].wikicon:hover {
     color: transparent; text-deocration: none;}
 html._MOUSE a[href].wikicon:hover,
@@ -6090,11 +6090,11 @@ html._MOUSE a[href].wikicon.tapholding {
 
 a[href].wikiref, a[href].sbwikiref {
     white-space: nowrap; padding-right: 1em;
-    background-image: url(g/sbooks/wikipedia.svgz);
+    background-image: url(g/metabook/wikipedia.svgz);
     background-position: bottom right; background-repeat: no-repeat;
     background-size: 1em;}
 html._NOSVG a[href].wikiref, html._NOSVG a[href].sbwikiref {
-    background-image: url(g/sbooks/wikipedia64w.png);}
+    background-image: url(g/metabook/wikipedia64w.png);}
 
 div.metabooknotebody { margin-left: 3em;}
 div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
