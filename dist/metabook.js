@@ -30953,7 +30953,8 @@ metaBook.setMode=
             if (flag) {
                 metaBook.hudup=true;
                 dropClass(document.body,/\b(openhud|openglossmark)\b/g);
-                addClass(document.body,"hudup");}
+                addClass(document.body,"hudup");
+                if (!(mB.mode)) addClass(document.body,"mbNOMODE");}
             else {
                 metaBook.hudup=false;
                 if (metaBook.previewing)
@@ -31334,9 +31335,8 @@ metaBook.setMode=
                     dropClass(skimmer,"transanimate");
                     fdjtDOM.removeListener(
                         skimmer,"transitionend",dropTransAnimate);};
-                if ((false)&&(skimpoint)&&(pct)) {
-                    skimmer.style[fdjtDOM.transform]=
-                        "translate("+pct+",0)";
+                if ((skimpoint)&&(pct)) {
+                    skimmer.style[fdjtDOM.transform]="translate(0,-110%)";
                     setTimeout(function(){
                         addClass(skimmer,"transanimate");
                         fdjtDOM.addListener(
@@ -31532,6 +31532,8 @@ metaBook.setMode=
             fdjtDOM.addClass(document.body,"mbSHOWHELP");};
 
         return setMode;})();
+
+
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -32661,21 +32663,11 @@ metaBook.setMode=
             setQuery(metaBook.empty_query);
             input.value="";
             metaBook.empty_cloud.clearSelection();
-            metaBook.empty_cloud.complete("");}
+            metaBook.empty_cloud.complete("");
+            metaBook.setMode("refinesearch");}
         // input.focus();
     }
     metaBook.UI.handlers.clearSearch=clearSearch;
-    
-    metaBook.toggleSearch=function(evt){
-        evt=evt||window.event;
-        if ((metaBook.mode==="refinesearch")||
-            (metaBook.mode==="searchresults"))
-            metaBook.setMode(false);
-        else {
-            metaBook.setMode("refinesearch");
-            if (!(metaBook.touch))
-                $ID("METABOOKSEARCHINPUT").focus();}
-        fdjtUI.cancel(evt);};
     
     /* Search result listings */
 
@@ -36954,7 +36946,7 @@ metaBook.setMode=
          "#METABOOKSHOWCOVER": {
              tap: showcover_tapped, release: showcover_released},
          "#METABOOKHUDHELP": {click: metaBook.UI.dropHUD},
-         ".helphud": {click: metaBook.UI.dropHUD},
+         ".hudtip": {click: metaBook.UI.dropHUD},
          ".metabookheart": {tap: flyleaf_tap},
          "#METABOOKPAGEREFTEXT": {tap: enterPageRef},
          "#METABOOKPAGENOTEXT": {tap: enterPageNum},
@@ -39038,7 +39030,7 @@ metaBook.HTML.hud=
     "         displayed for help when there isn't an active reader mode) -->\n"+
     "    <div id=\"METABOOKAPPHELP\"></div>\n"+
     "  </div>\n"+
-    "  <div id=\"METABOOKHUDHELP\"></div>\n"+
+    "  <div id=\"METABOOKHUDHELP\" class=\"helpbox\"></div>\n"+
     "  <div id=\"METABOOKKEYBOARDHELPBOX\" class=\"closed\">\n"+
     "    <span class=\"keep\" onclick=\"metaBook.keyboardHelp(true);\">keep</span>\n"+
     "    <span class=\"close\" onclick=\"metaBook.keyboardHelp(false);\">close</span>\n"+
@@ -39049,21 +39041,21 @@ metaBook.HTML.hud=
     "      Show keyboard help\n"+
     "    </div>\n"+
     "  </div>\n"+
-    "  <div class=\"helphud topcenter\">\n"+
+    "  <div class=\"hudtip topcenter\">\n"+
     "    <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span>\n"+
     "    at the top of the page to see the &metaBook; <em>tools</em>\n"+
     "  </div>\n"+
-    "  <div class=\"helphud topleft\" data-hudmode=\"toc\">\n"+
+    "  <div class=\"hudtip topleft\" data-hudmode=\"toc\">\n"+
     "    <span class=\"nobreak\"><span class=\"arrow\">&#x2190;</span>navigate</span><br/>\n"+
     "    <span class=\"nobreak\">outline</span></div>\n"+
-    "  <div class=\"helphud topright\" data-hudmode=\"search\">\n"+
+    "  <div class=\"hudtip topright\" data-hudmode=\"search\">\n"+
     "    <span class=\"nobreak\"><span class=\"arrow\">&#x2192;</span>search</span><br/>\n"+
     "    for&nbsp;tags\n"+
     "  </div>\n"+
-    "  <div class=\"helphud leftmiddle\">\n"+
+    "  <div class=\"hudtip leftmiddle\">\n"+
     "    back page\n"+
     "  </div>\n"+
-    "  <div class=\"helphud rightmiddle\">\n"+
+    "  <div class=\"hudtip rightmiddle\">\n"+
     "    next page\n"+
     "  </div>\n"+
     "</div>\n"+
@@ -39076,7 +39068,7 @@ metaBook.HTML.hud=
     "      <span class=\"cancelchanges\">discard changes</span>\n"+
     "    </span>\n"+
     "  </div>\n"+
-    "  <div class=\"helphud botcenter\">\n"+
+    "  <div class=\"hudtip botcenter\">\n"+
     "    <span style=\"font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;\">\n"+
     "      &#x2193;</span> this bar shows where you are in the book:\n"+
     "    <span class=\"fortouch\">tap</span><span class=\"notouch\">click</span>\n"+
@@ -39146,10 +39138,10 @@ metaBook.HTML.hud=
     "       class=\"hudbutton hudmodebutton botleft\"\n"+
     "       id=\"METABOOKHELPBUTTON\"\n"+
     "       hudmode=\"help\"/>\n"+
-    "  <div class=\"helphud botright\" data-hudmode=\"toc\">\n"+
+    "  <div class=\"hudtip botright\" data-hudmode=\"toc\">\n"+
     "    <span class=\"nobreak\">browse</span><br/>\n"+
     "    <span class=\"nobreak\">glosses<span class=\"arrow\">&#x2192;</span></span></div>\n"+
-    "  <div class=\"helphud botleft\">\n"+
+    "  <div class=\"hudtip botleft\">\n"+
     "    <span class=\"nobreak\">toggle</span><br/>\n"+
     "    <span class=\"nobreak\"><span class=\"arrow\">&#x2190;</span>help</span></div>\n"+
     "</div>\n"+
@@ -39433,7 +39425,7 @@ metaBook.HTML.help=
 /*   generated from the file "metabook/html/hudhelp.html" */
 
 metaBook.HTML.hudhelp=
-    "<div id=\"METABOOKTOCHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKTOCHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Navigating your &sBook;</h2>\n"+
     "  <p>The <strong>outline overleaf</strong> at the top of the page\n"+
@@ -39462,7 +39454,7 @@ metaBook.HTML.hudhelp=
     "    <span class=\"fortouch\">Tapping</span><span class=\"notouch\">Clicking</span>\n"+
     "    the segment lets you glimpse the start of that section.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKADDGLOSSHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKADDGLOSSHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Add your own gloss</h2>\n"+
     "  <p><strong class=\"fortouch\">Tap</strong>\n"+
@@ -39488,7 +39480,7 @@ metaBook.HTML.hudhelp=
     "    &ldquo;<tt>#compound tag</tt>,&rdquo; pressing <kbd>Enter</kbd>\n"+
     "    when done.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKGLOSSATTACHHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKGLOSSATTACHHELP\" class=\"helpbox\">\n"+
     "  <p><img src=\"{{bmg}}metabook/diaglink.svgz\"\n"+
     "          onerror=\"this.src='{{bmg}}metabook/diaglink64x64.png'\"\n"+
     "          class=\"inline\" alt=\"the link icon\"/>\n"+
@@ -39498,7 +39490,7 @@ metaBook.HTML.hudhelp=
     "    e.g. <strong>[@</strong><tt>http://www.whitehouse.gov/</tt>\n"+
     "    The White House<strong>]</strong>.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKGLOSSTAGHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKGLOSSTAGHELP\" class=\"helpbox\">\n"+
     "  <p><img src=\"{{bmg}}metabook/tagicon.svgz\"\n"+
     "          onerror=\"this.src='{{bmg}}metabook/tagicon64x64.png'\"\n"+
     "          class=\"inline\" alt=\"the tag icon\"/>\n"+
@@ -39510,7 +39502,7 @@ metaBook.HTML.hudhelp=
     "    to make your tags <strong>more useful</strong> for browsing\n"+
     "    and search by yourself or others.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSKIMTOCHELP\" class=\"helpbox atfoot fdjtadjustfont\">\n"+
+    "<div id=\"METABOOKSKIMTOCHELP\" class=\"helpbox fdjtadjustfont\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Skimming by sections</h2>\n"+
     "  <p>You're <span>skimming</span> through a slice of your book\n"+
@@ -39532,7 +39524,7 @@ metaBook.HTML.hudhelp=
     "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/> o'n\n"+
     "    the edges of the page.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSKIMSEARCHHELP\" class=\"helpbox atfoot fdjtadjustfont\">\n"+
+    "<div id=\"METABOOKSKIMSEARCHHELP\" class=\"helpbox fdjtadjustfont\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Skimming your search</h2>\n"+
     "  <p>You're currently <span>skimming</span> through the results\n"+
@@ -39568,7 +39560,7 @@ metaBook.HTML.hudhelp=
     "                       class=\"inline\"/>\n"+
     "    on the edges of the page.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSKIMGLOSSESHELP\" class=\"helpbox fdjtadjustfont atfoot\">\n"+
+    "<div id=\"METABOOKSKIMGLOSSESHELP\" class=\"helpbox fdjtadjustfont\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Skimming Glosses</h2>\n"+
     "  <p>You're <span>skimming</span> through your book based on the\n"+
@@ -39614,20 +39606,20 @@ metaBook.HTML.hudhelp=
     "                       class=\"inline\"/>\n"+
     "    on the edges of the page.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKGOTOPAGEHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKGOTOPAGEHELP\" class=\"helpbox\">\n"+
     "  <p>Enter a page number at the top of the page to jump directly to that\n"+
     "    page.<br/> Use the escape key or <span class=\"fortouch\">tap</span>\n"+
     "    <span class=\"notouch\">click</span> at the bottom of the page to\n"+
     "    cancel.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKGOTOREFHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKGOTOREFHELP\" class=\"helpbox\">\n"+
     "  <p>Enter a reference page number (from the reference version of the\n"+
     "    book) at the top of the page to jump to that part of the book.<br/>\n"+
     "    Use the escape key or <span class=\"fortouch\">tap</span>\n"+
     "    <span class=\"notouch\">click</span> at the bottom of the page to\n"+
     "    cancel.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKGOTOLOCHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKGOTOLOCHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Got to a specific location</h2>\n"+
     "  <p>Enter a numeric percentage (in the field at the top of the page)\n"+
@@ -39637,7 +39629,7 @@ metaBook.HTML.hudhelp=
     "    <span class=\"notouch\">click</span> at the bottom of the page to\n"+
     "    cancel and return to the text.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSEARCHINPUTHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKSEARCHINPUTHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Searching tags and text</h2>\n"+
     "  <p>You are searching for passages or glosses within your book, using\n"+
@@ -39660,7 +39652,7 @@ metaBook.HTML.hudhelp=
     "    using the <kbd>Enter</kbd> key in an empty input box.  If there\n"+
     "    are few enough results, it will switch to them automatically.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSEARCHRESULTSHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKSEARCHRESULTSHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Browsing search results</h2>\n"+
     "  <p><img src=\"/static/g/metabook/searchtabs.png\" class=\"screengrab\"/>\n"+
@@ -39683,7 +39675,7 @@ metaBook.HTML.hudhelp=
     "    </span> a result lets you glimpse the result in context\n"+
     "    without leaving the list of results.</p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKALLGLOSSESHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKALLGLOSSESHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    All glosses</h2>\n"+
     "  <p>These are <span>all of the glosses</span> applied to your\n"+
@@ -39711,7 +39703,7 @@ metaBook.HTML.hudhelp=
     "    <span class=\"notouch\">click</span> to add more sources.\n"+
     "  </p>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKSTATICTOCHELP\" class=\"helpbox atfoot\">\n"+
+    "<div id=\"METABOOKSTATICTOCHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    The Table of Contents</h2>\n"+
     "  <p>The <span>table of contents</span> provides a visually\n"+
@@ -40246,9 +40238,9 @@ fdjt.CodexLayout.sourcehash='A742ABD754FA51DBC08518F328E3A225EE8B4FBB';
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-169-g30b7d1c';
-metaBook.buildid='5cd8f220-796d-4c8e-89c3-7f4132b33926';
-metaBook.buildtime='Tue Nov 17 10:00:58 EST 2015';
+metaBook.version='v0.8-175-g75220b7';
+metaBook.buildid='f925dd19-51ab-4be7-bb2f-2c18198978cc';
+metaBook.buildtime='Wed Nov 18 10:13:22 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
