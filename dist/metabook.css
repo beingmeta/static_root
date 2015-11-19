@@ -1081,9 +1081,9 @@ body.taptouch {}
     margin: 0px !important;
     padding: 0px !important;
     border: 0px !important;
-    background-color: yellow; }
+    background-color: rgba(255,255,0,0.7); }
 .fdjtselecting .fdjtselectstart, .fdjtselecting .fdjtselectend {
-    background-color: gold; }
+    background-color: rgba(255,215,0,0.7); }
 
 .fdjtselecting .fdjtselected:hover,
 .fdjtselecting .fdjtselectstart:hover,
@@ -2101,7 +2101,7 @@ span.note.ellipsis span.elision, span.note.ellipsis span.delision {
     background-color: transparent;
     border: 0px transparent;}
 #METABOOKFRAME input[TYPE="TEXT"] {
-    box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     padding-left: 0.3ex;}
 
 /* Fuzzy selections */
@@ -2704,7 +2704,7 @@ section.mbpreviewing h7, div.html5section.mbpreviewing h7 {
     color: rgb(122,34,95); } 
 
 .mbexcerpt {
-    text-shadow: 0.2ex 0.2ex rgba(255, 215, 0, 0.53);}
+    text-shadow: 0.2ex 0.2ex 2px rgba(255, 215, 0, 0.53);}
 
 /* Startup messages */
 
@@ -4389,7 +4389,10 @@ html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
 #METABOOKFRAME.metabookuifontnormal #METABOOKHUD { font-size: 3em; }
 #METABOOKFRAME.metabookuifontsmall #METABOOKHUD { font-size: 1.5em; }
 
-#METABOOKHUD .metabookhelp, #METABOOKHUD .helpbox,
+#METABOOKHUD .metabookhelp {
+    font-size: 3vh;}
+
+#METABOOKHUD .helpbox,
 #METABOOKHUD .metabookslice {
     font-size: 16px; font-size: 1rem;}
 html._TOUCH #METABOOKHUD .metabookhelp,
@@ -5955,14 +5958,14 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 @media only screen and /* (min-width: 320px) and */
             (max-width: 480px) {
     #CODEXPAGE {
-        top: 0px; bottom: 40px;
+        top: 25px; bottom: 40px;
         left: 5px; right: 5px;}}
 /* Tablet */
 @media only screen and
             (min-width: 480px) and
             (max-width: 800px) {
     #CODEXPAGE {
-        top: 20px; bottom: 50px;
+        top: 25px; bottom: 50px;
         left: 25px; right: 25px;}
 }
 @media only screen and
@@ -5970,7 +5973,7 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
             (max-width: 1024px) and
             (orientation: portrait) {
     #CODEXPAGE {
-        top: 20px; bottom: 50px;
+        top: 25px; bottom: 50px;
         left: 40px; right: 40px;}
 }
 @media only screen and
@@ -5978,7 +5981,7 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
             (max-width: 1024px) and
             (orientation: landscape) {
     #CODEXPAGE {
-        top: 10px; bottom: 50px;
+        top: 25px; bottom: 50px;
         left: 50px; right: 50px;}}
 
 /* Handheld media rules */
@@ -6077,9 +6080,11 @@ div.helpbox p img.left {
     margin-left: -70px;
     vertical-align: top;}
 div.helpbox kbd { font-weight: bold; }
-div.helpbox img.inline { background-color: gray; }
+div.helpbox img.inline { background-color: white; }
 div.helpbox p img.screengrab {
     float: right; height: 2em;}
+
+img.inlineright { float: right; max-height: 2em;}
 
 body.mbSHOWHELP #METABOOKHELPCONTENT { z-index: 500; }
 body.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
@@ -6087,9 +6092,7 @@ body.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
     opacity: 0.9;}
 
 #METABOOKHELP h1 {
-    font-size: 1.5em;
-    text-align: center;
-    margin-bottom: 1ex;}
+    font-size: 1.3em; text-align: center;}
 
 body.hudup.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
     background-color: silver; border-color: black;}
@@ -6145,15 +6148,17 @@ body.mbSHOWHELP #METABOOKHUDHELP,
 body.mbSHOWHELP #METABOOKHUD.addgloss #METABOOKHUDHELP { 
     pointer-events: all;
     display: block; 
-    opacity: 0.9;}
-body.hudup.metabookhelp #METABOOKHUDHELP { display: block; }
+    opacity: 1;}
 body.mbSHOWHELP.hudup #METABOOKFOOT #METABOOKPAGEBAR {opacity: 0.1;}
+body.mbSHOWHELP.mbNOMODE #METABOOKHUDHELP {
+    display: none;}
 
 #METABOOKHUD div.helpbox {
     border-color: black; z-index: 250;}
 body.mbSHOWHELP #METABOOKHUD .hudtip,
 body.mbSHOWHELP #METABOOKHUD .hudbutton {
     opacity: 0.5;}
+
 body.mbSHOWHELP #METABOOKHUD.addgloss div.metabookhelp, 
 body.mbSHOWHELP.hudup #METABOOKHUD div.metabookhelp, 
 body.mbSHOWHELP.mbSHRINK #METABOOKHUD div.metabookhelp,
@@ -6265,6 +6270,7 @@ div.helpbox blockquote p {
     -moz-border-radius: 6px; -webkit-border-radius: 6px; 
     font-size: initial;
     display: none;}
+#METABOOKHUD .hudtip span.arrow { display: none; }
 #METABOOKHUD .hudtip.topleft {top: 3px; left: 60px; text-align: right;}
 #METABOOKHUD .hudtip.topright {top: 3px; right: 60px; text-align: left;}
 #METABOOKHUD .hudtip.botleft {bottom: 25px; left: 60px; text-align: right;}
@@ -6277,7 +6283,7 @@ div.helpbox blockquote p {
     -o-border-radius-topleft: 0px; -oborder-radius-topright: 0px;}
 
 #METABOOKHUD .hudtip.botcenter {
-    bottom: 25px;
+    bottom: 40px;
     width: 50%; left: 25%; right: 25%;
     text-align: center;}
 
@@ -6342,7 +6348,7 @@ div.metabookhelp td {
 
 div.metabookhelp h1 {
     margin-top: 3px !important;
-    margin-bottom: 0.5ex !important;
+    margin-bottom: 1.5ex !important;
     padding-top: 0px !important;}
 
 div.metabookhelp .action {
@@ -6395,9 +6401,9 @@ div.metabookhelp .glossbarbox {
     padding-right: 2px; border-right: solid blue 3px; margin-right: 4px;
     max-width: 3px; width: 3px; height: 2em;}
 
-#METABOOKHUD div.metabookhelp.hudpanel {
+div#METABOOKHELP {
     position: absolute; text-align: left;
-    top: 50px; bottom: 80px; left: 80px; right: 80px; 
+    top: 100px; bottom: 125px; left: 80px; right: 80px; 
     height: auto; width: auto;
     padding: 0px;
     padding-right: 1ex; padding-right: 2vw;
@@ -6412,7 +6418,8 @@ div.metabookhelp .glossbarbox {
     -webkit-opacity: 0.98;
     -khtml-opacity: 0.98;
     -moz-opacity: 0.98;
-    -o-opacity: 0.98;}
+    -o-opacity: 0.98;
+    display: none;}
 #METABOOKHUD #METABOOKHELP.hudpanel { overflow: auto;}
 
 #METABOOKCOVER div.metabookhelp#METABOOKAPPHELP,
@@ -6422,10 +6429,15 @@ div.metabookhelp .glossbarbox {
     text-align: center; margin-bottom: 1ex;}
 #METABOOKAPPHELP table, .metabookhelp p {
     margin-left: auto; margin-right: auto;
-    margin-top: 0.5ex; margin-bottom: 1ex;
+    margin-top: 1ex; margin-bottom: 1.5em;
     max-width: 40em; clear: both;}
 .metabookhelp p img.floatleft, .metabookhelp p img.floatright {
   max-width: 20%; max-height: 3em; width: auto; height: auto;}
+
+.metabookhelp .fdjtselected {
+    background-color: rgba(255,255,0,0.7); }
+.metabookhelp .fdjtselectstart, .metabookhelp .fdjtselectend {
+    background-color: rgba(255,215,0,0.7); }
 
 .metabookhelp p { color: rgb(60,60,60); }
 .metabookhelp p strong {
@@ -6714,13 +6726,26 @@ div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
     font-size: 100%; line-height: 125%;
     white-space: nowrap; overflow: hidden;
     margin-bottom: 0.1em; margin-right: 1ex;
-    border-bottom: solid transparent 0.2em;
+    border-bottom: solid transparent 0.1em;
     box-sizing: border-box;}
-.mbtoc { height: 1.5em; }
-.mbtoc
-div.metabookslice .mbtoc.skimpoint {
+.mbtoc { height: 1.3em; }
+div.metabookslice .mbtoc.mblivetoc {
+    border-bottom-color: red;
+    border-bottom-style: dotted;}
+div.metabookslice .mbtoc.mblivetoc.mbcurtoc {
+    border-bottom-style: solid;}
+div.metabookslice .mbtoc.skimpoint,
+div.metabookslice .mbtoc.mbcurtoc {
+    background-color: transparent;}
+
+.mbtoc div.posbar {
+    position: absolute; left: 0px; top: 0px;
     background-color: transparent;
-    border-bottom-color: red;}
+    box-sizing: content-box; height: 100%; z-index: 50;
+    border: 0px; border-right: solid red 2px;
+    display: none;}
+.mbtoc.mblivetoc div.posbar {
+    display: block;}
 
 .mbtoc .context .tocpath { padding-left: 1ex; }
 .mbtoc .context {
@@ -6745,7 +6770,7 @@ div.metabookslice .mbtoc.skimpoint {
     white-space: normal;}
 .mbtoc div.elements {
     transform: translate(0,0); overflow: visible;
-    margin: 0px; padding: 0px; border: 0px; height: 1.5em;
+    margin: 0px; padding: 0px; border: 0px; height: 1.3em;
     z-index: -50; margin-left: 2em;}
 .mbtoc a.brick {
     position: absolute; display: inline-block;
@@ -6754,14 +6779,12 @@ div.metabookslice .mbtoc.skimpoint {
     background-color: lightblue;
     opacity: 0.8;
     height: 1.25em;}
-.mbtoc a.brick.cohi, .mbtoc.cohi a.showsize {
-    background-color: gold;}
+/* .mbtoc a.brick.cohi, .mbtoc.cohi a.showsize {background-color: gold;} */
 .mbtoc .toctext {
     position: relative; height: 0px; overflow: visible;
     pointer-events: none;
     z-index: 100; }
-.mbtoc.cohi {
-    border-bottom-color: gold;}
+/* .mbtoc.cohi {border-bottom-color: gold;} */
 .mbtoc.cohi a.sectname, .mbtoc.cohi a.sectname:visited,
 #METABOOKHEARTBODY .mbtoc.cohi a.sectname:visited,
 #METABOOKHEARTBODY .mbtoc.cohi a.sectname {
@@ -6769,7 +6792,7 @@ div.metabookslice .mbtoc.skimpoint {
 .mbtoc a.showsize {
     position: absolute; display: inline-block;
     box-sizing: border-box;
-    background-color: lightblue;
+    background-color: silver;
     height: 1.2em; }
 .mbtoc.mbtoc1 { font-size: 120%;}
 .mbtoc.mbtoc1.fdjtoversize { font-size: 105%;}

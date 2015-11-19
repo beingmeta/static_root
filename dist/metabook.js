@@ -23973,13 +23973,14 @@ fdjt.CodexLayout.dbname="metaBook";
         var info=metaBook.Info(metaBook.head);
         while (info) {
             var tocelt=document.getElementById("MBTOC4"+info.frag);
-            var hinfo=info.head, hhlen=((hinfo)&&(hinfo.ends_at-hinfo.starts_at));
+            var hinfo=info.head;
+            var hhlen=((hinfo)&&(hinfo.ends_at-hinfo.starts_at));
             var start=info.starts_at; var end=info.ends_at;
             var progress=((location-start)*100)/hhlen;
             var bar=false, appbar=false;
             if (tocelt) {
                 // tocelt.title=Math.round(progress)+"%";
-                bar=fdjtDOM.getFirstChild(tocelt,".progressbar");}
+                bar=fdjtDOM.getFirstChild(tocelt,".posbar");}
             if (Trace.toc)
                 fdjtLog("For tocbar %o/%o loc=%o start=%o end=%o progress=%o",
                         bar,appbar,location,start,end,progress);
@@ -23987,20 +23988,6 @@ fdjt.CodexLayout.dbname="metaBook";
                 if (bar) bar.style.width=(progress)+"%";
                 if (appbar) appbar.style.width=(progress)+"%";}
             info=info.head;}
-        var spanbars=fdjtDOM.$(".spanbar");
-        var i=0; while (i<spanbars.length) {
-            var spanbar=spanbars[i++];
-            var width=spanbar.ends-spanbar.starts;
-            var ratio=(location-spanbar.starts)/width;
-            if (Trace.toc)
-                fdjtLog("ratio for spanbar %o[%d] is %o [%o,%o,%o]",
-                        spanbar,spanbar.childNodes[0].childNodes.length,
-                        ratio,spanbar.starts,location,spanbar.ends);
-            if ((ratio>=0) && (ratio<=1)) {
-                var progressbox=fdjtDOM.$(".progressbox",spanbar);
-                if (progressbox.length>0) {
-                    progressbox=progressbox[0];
-                    progressbox.style.left=((Math.round(ratio*10000))/100)+"%";}}}
         metaBook.location=location;}
     metaBook.setLocation=setLocation;
 
@@ -24569,7 +24556,7 @@ metaBook.DOMScan=(function(){
             else if (child.nodeType!==1) return 0;
             else {}
             var tag=child.tagName, classname=child.className;
-            var id=child.getAttribute('data-tocid')||id;
+            var id=child.getAttribute('data-tocid')||child.id;
 
             if ((metaBook.ignore)&&(metaBook.ignore.match(child)))
                 return;
@@ -24694,7 +24681,7 @@ metaBook.DOMScan=(function(){
                  (classname.search(/\b(sbook|pubtool)ignore\b/)>=0))||
                 ((metaBook.ignore)&&(metaBook.ignore.match(child))))
                 return;
-            if ((toclevel)&&(!(info.tocdone)))
+            if (toclevel)
                 handleHead(child,id,docinfo,scanstate,toclevel,
                            curhead,curinfo,curlevel);
             else if (info) {
@@ -30544,8 +30531,8 @@ metaBook.TOCSlice=
             addClass(tocbar,"mbtocleaf");
             showsize.style.width=((inner_length/outer_length)*100)+"%";
             showsize.style.left=((rel_start/outer_length)*100)+"%";
-            elements.appendChild(showsize);
             elements.appendChild(fdjtDOM("div.posbar"));
+            elements.appendChild(showsize);
             tocbar.id="MBTOC4"+headinfo.frag;
             tocbar.setAttribute("name","MBTOC4"+headinfo.frag);
             tocbar.setAttribute("data-passage",headinfo.frag);
@@ -31335,7 +31322,7 @@ metaBook.setMode=
                     dropClass(skimmer,"transanimate");
                     fdjtDOM.removeListener(
                         skimmer,"transitionend",dropTransAnimate);};
-                if ((skimpoint)&&(pct)) {
+                if ((false)&&(skimpoint)&&(pct)) {
                     skimmer.style[fdjtDOM.transform]="translate(0,-110%)";
                     setTimeout(function(){
                         addClass(skimmer,"transanimate");
@@ -39025,7 +39012,7 @@ metaBook.HTML.hud=
     "  <div id=\"METABOOKHEARTBODY\"></div>\n"+
     "</div>\n"+
     "<div id=\"METABOOKHELPCONTENT\">\n"+
-    "  <div id=\"METABOOKHELP\" class=\"hudpanel metabookhelp\">\n"+
+    "  <div id=\"METABOOKHELP\" class=\"metabookhelp\">\n"+
     "    <!-- This is the help text for reading the book as a whole (it get's\n"+
     "         displayed for help when there isn't an active reader mode) -->\n"+
     "    <div id=\"METABOOKAPPHELP\"></div>\n"+
@@ -39069,12 +39056,13 @@ metaBook.HTML.hud=
     "    </span>\n"+
     "  </div>\n"+
     "  <div class=\"hudtip botcenter\">\n"+
-    "    <span style=\"font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;\">\n"+
-    "      &#x2193;</span> this bar shows where you are in the book:\n"+
+    "    <span style=\"font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;\" class=\"arrow\">\n"+
+    "      &#x2193;</span>\n"+
+    "    this bar shows where you are in the book;\n"+
     "    <span class=\"fortouch\">tap</span><span class=\"notouch\">click</span>\n"+
-    "    to jump, press to preview,\n"+
-    "    or <span style=\"white-space: nowrap;\"><span class=\"fortouch\">tap</span>\n"+
-    "      <span class=\"notouch\">click</span> numbers to change them</span>\n"+
+    "    to jump, press to skim, and <span class=\"fortouch\">tap</span>\n"+
+    "      <span class=\"notouch\">click</span> page numbers or percentage\n"+
+    "      locations to change them.\n"+
     "  </div>\n"+
     "  <div id=\"METABOOKPAGEBAR\">\n"+
     "    <div class=\"textfoot\">\n"+
@@ -39357,10 +39345,12 @@ metaBook.HTML.help=
     "<p><img src=\"{{bmg}}metabook/browser_edges.svgz\"\n"+
     "        onerror=\"this.src='{{bmg}}metabook/browser_edges32x32.png'\"\n"+
     "        alt=\"top of browser\" class=\"floatright\"/>\n"+
-    "  <strong>Move by pages</strong> <span class=\"fortouch\">by swiping left or right</span>\n"+
+    "  <strong>Move by pages</strong>\n"+
+    "  <span class=\"fortouch\">by swiping left or right</span>\n"+
     "  <span class=\"notouch\">using the Space or Backspace keys</span> or\n"+
     "  <span class=\"fortouch\">tapping</span> <span class=\"notouch\">clicking</span>\n"+
-    "  on the left or right of the page.</p>\n"+
+    "  on the left or right regions of the page.</p>\n"+
+    "<!--\n"+
     "<p><img src=\"{{bmg}}metabook/browser_corners.svgz\" \n"+
     "        onerror=\"this.src='{{bmg}}metabook/browser_corners32x32.png'\"\n"+
     "        alt=\"top of browser\" class=\"floatright\"/>\n"+
@@ -39374,14 +39364,7 @@ metaBook.HTML.help=
     "  the <img src=\"{{bmg}}metabook/help.svgz\" alt=\"top of browser\"\n"+
     "  onerror=\"this.src='{{bmg}}metabook/help50x50.png'\" class=\"inline\"/>\n"+
     "  icon in the lower left corner of the page.</p>\n"+
-    "<p><strong>Mark up your book</strong> by pressing and holding or\n"+
-    "  double <span class=\"fortouch\">tapping</span>\n"+
-    "  <span class=\"notouch\">clicking</span> on the\n"+
-    "content.  <strong>Enter notes, tags, links, etc</strong> in\n"+
-    "the <dfn>gloss box</dfn> at the top of the\n"+
-    "page. <strong>Drag <span class=\"fortouch\">your finger</span>\n"+
-    "  <span class=\"notouch\">the pointer</span></strong> to highlight an\n"+
-    "excerpt.</p>\n"+
+    "-->\n"+
     "<p style=\"text-indent: 0px;\">\n"+
     "  <span class=\"glossbarbox\"> </span>\n"+
     "  <strong>Blue <dfn>gloss bars</dfn></strong> in the right margin\n"+
@@ -39390,6 +39373,18 @@ metaBook.HTML.help=
     "      left</span> <span class=\"notouch\">Click to the left</span></strong>\n"+
     "  of the blue bar to see associated notes, tags, links, etc.</p>\n"+
     "\n"+
+    "<p><strong>Add your own glosses</strong> by\n"+
+    "double <span class=\"fortouch\">tapping</span>\n"+
+    "  <span class=\"notouch\">clicking</span> on the content or pressing and\n"+
+    "  holding to select text.  <strong>Enter notes, tags, links,\n"+
+    "  etc</strong> in the <dfn>gloss box</dfn> appearing at the top of the\n"+
+    "  page. <strong>Drag <span class=\"fortouch\">your finger</span>\n"+
+    "  <span class=\"notouch\">the pointer</span></strong> to select adjust\n"+
+    "  the <span class=\"fdjtselected\"><span class=\"fdjtselectstart\">beginning</span>\n"+
+    "  and <span class=\"fdjtselectend\">end</span></span> of highlighted\n"+
+    "  text.</p>\n"+
+    "\n"+
+    "<!--\n"+
     "<p class=\"tightbottom\">\n"+
     "  <img src=\"{{bmg}}metabook/docs/pagebar_zoom.png\" class=\"floatright\"/>\n"+
     "  <strong>Browse the book</strong> using the <dfn>pagebar</dfn> along\n"+
@@ -39409,6 +39404,7 @@ metaBook.HTML.help=
     "    are or <span class=\"fortouch\">move\n"+
     "      it</span> <span class=\"notouch\">drag the mouse</span> out of the\n"+
     "    pagebar to return to where you were.</span></p>\n"+
+    "-->\n"+
     "\n"+
     "<!--\n"+
     "    /* Emacs local variables\n"+
@@ -39425,35 +39421,6 @@ metaBook.HTML.help=
 /*   generated from the file "metabook/html/hudhelp.html" */
 
 metaBook.HTML.hudhelp=
-    "<div id=\"METABOOKTOCHELP\" class=\"helpbox\">\n"+
-    "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
-    "    Navigating your &sBook;</h2>\n"+
-    "  <p>The <strong>outline overleaf</strong> at the top of the page\n"+
-    "    shows a partial map of your book centered on the current location.\n"+
-    "    You can use it to browse or navigate the book.\n"+
-    "    The <span style=\"color: blue;\">blue regions</span> indicate your\n"+
-    "    current location.</p>\n"+
-    "  <p><span class=\"fortouch\">Tapping</span>\n"+
-    "    <span class=\"notouch\">Clicking</span> on the map jumps to the\n"+
-    "    corresponding location in the book;</p>\n"+
-    "  <p><span>Pressing or holding</span> lets you glimpse the\n"+
-    "    location without actually jumping there.</p>\n"+
-    "  <p><span>Layout stripes</span> <img class=\"screenshot right\"\n"+
-    "                                      src=\"{{bmg}}metabook/tocstripe_screenshot.png\"/>\n"+
-    "    display the arrangement and sizes of divisions at a particular\n"+
-    "    level in the book.  The segment for the current section is light\n"+
-    "    blue and contains a red bar indicating your relative position.</p>\n"+
-    "  <p><strong>Subsection clouds</strong> appear when you're at the\n"+
-    "    beginning of a section which has its own subsections.  It consists\n"+
-    "    of a layout stripe for all of its subsections together with a\n"+
-    "    cloud of subsection names.\n"+
-    "    <span class=\"fortouch\">Tapping</span><span class=\"notouch\">Clicking</span>\n"+
-    "    a name or segment jumps to that subsection.\n"+
-    "    <span class=\"fortouch\">Pressing</span><span class=\"notouch\">Clicking</span>\n"+
-    "    and holding a name shows the corresponding segment;\n"+
-    "    <span class=\"fortouch\">Tapping</span><span class=\"notouch\">Clicking</span>\n"+
-    "    the segment lets you glimpse the start of that section.</p>\n"+
-    "</div>\n"+
     "<div id=\"METABOOKADDGLOSSHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Add your own gloss</h2>\n"+
@@ -39505,60 +39472,76 @@ metaBook.HTML.hudhelp=
     "<div id=\"METABOOKSKIMTOCHELP\" class=\"helpbox fdjtadjustfont\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Skimming by sections</h2>\n"+
-    "  <p>You're <span>skimming</span> through a slice of your book\n"+
-    "    based on the chapters and sections in the book's table of\n"+
-    "    contents.</p>\n"+
+    "  <p>You're <span>skimming</span> through your book based on the\n"+
+    "    chapters, sections, and subsections in the table of contents.</p>\n"+
     "  <p class=\"fortouch\">\n"+
-    "    <span>Swipe left or right with two fingers</span> to move\n"+
-    "    forward and backward by sections or use the\n"+
+    "    <span>Swipe left or right with two fingers</span> to move forward\n"+
+    "    and backward by sections or use the\n"+
     "    <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "         onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
-    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/'>\n"+
-    "    on the edges of the page.</p>\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\"\n"+
+    "    class=\"inline\"/'> and <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    class=\"inline\"/'> arrows on the sides of the page. These also\n"+
+    "    indicate the number of sections in each direction.</p>\n"+
     "  <p class=\"notouch\">\n"+
     "    Use the <span>arrow keys</span> to move forward and backward by\n"+
-    "    sections or click the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/> doubl'e\n"+
-    "    arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/> o'n\n"+
-    "    the edges of the page.</p>\n"+
+    "    sections or use the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\"\n"+
+    "    class=\"inline\"/> and <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    class=\"inline\"/> arrows on the sides of the page.  These also\n"+
+    "    indicate the number of sections in each direction.</p>\n"+
+    "  <p><span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span>\n"+
+    "    the book text to minimize the interface;\n"+
+    "    <span class=\"fortouch\">tap</span><span class=\"notouch\">click</span>\n"+
+    "    again to stop skimming altogether.</p>\n"+
+    "  <p>The <img src=\"{{bmg}}metabook/tocicon.svgz\"\n"+
+    "              onerror=\"this.src='{{bmg}}metabook/tocicon50x50.png\"\n"+
+    "              class=\"inline\"> in\n"+
+    "              the lower right corner returns to the table of contents.\n"+
+    "              The <strong>overleaf</strong> at the top of the page\n"+
+    "              shows the current point in the table of\n"+
+    "              contents; <span class=\"fortouch\">tap</span>\n"+
+    "    <span class=\"notouch\">click</span> once to expand it and again to\n"+
+    "    return to the TOC.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKSKIMSEARCHHELP\" class=\"helpbox fdjtadjustfont\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Skimming your search</h2>\n"+
-    "  <p>You're currently <span>skimming</span> through the results\n"+
-    "    of your search.  The current search result is shown in\n"+
-    "    the <strong>overleaf</strong> at the top of the page and\n"+
+    "  <p>You're currently <span>skimming</span> through the results of\n"+
+    "    your search.  The current search result is shown in\n"+
+    "    the <strong>overleaf</strong> at the top of the page and the\n"+
     "    matching text is highlighted in the body.</p>\n"+
-    "  <p>Return to the search results by\n"+
-    "    <span class=\"fortouch\">double\n"+
-    "      tapping</span> <span class=\"notouch\">double clicking</span> the\n"+
-    "    overleaf or using the <img src=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
-    "                               onerror=\"this.src='{{bmg}}metabook/tagsearch50x50.png\" class=\"inline\"/> ico'n\n"+
-    "    in the lower\n"+
-    "    right of the page.  <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click\n"+
-    "      on</span> the overleaf to see (or hide) the rest of the\n"+
-    "    result.  <span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> the content to stop skimming.</p>\n"+
     "  <p class=\"fortouch\">\n"+
-    "    <span>Swipe left or right with two fingers</span> to move\n"+
-    "    forward and backward by single results or use the\n"+
+    "    <span>Swipe left or right with two fingers</span> to move to the\n"+
+    "    next (or previous) result or use the\n"+
     "    <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "         onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
-    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/'>\n"+
-    "    on the edges of the page.</p>\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\"\n"+
+    "    class=\"inline\"/'> and <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    class=\"inline\"/'> arrows on the sides of the page.  These also\n"+
+    "    indicate the number of search results in each direction.</p>\n"+
     "  <p class=\"notouch\">\n"+
-    "    Use the <span>arrow keys</span> on your keyboard to move forward and\n"+
-    "    backward by single results or <span class=\"fortouch\">tap</span>\n"+
-    "    <span class=\"notouch\">click</span>\n"+
-    "    the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "             onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
-    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png'\"\n"+
-    "                       class=\"inline\"/>\n"+
-    "    on the edges of the page.</p>\n"+
+    "    Use the <span>arrow keys</span> to to the next or previous search\n"+
+    "    result or use the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\"\n"+
+    "    class=\"inline\"/> and <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    class=\"inline\"/> arrows on the sides of the page.  These also\n"+
+    "    indicate the number of search results in each direction.</p>\n"+
+    "  <p><span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span>\n"+
+    "    the book text to minimize the interface;\n"+
+    "    <span class=\"fortouch\">tap</span><span class=\"notouch\">click</span>\n"+
+    "    again to stop skimming altogether.</p>\n"+
+    "  <p>The <img src=\"{{bmg}}metabook/tagsearch.svgz\"\n"+
+    "              onerror=\"this.src='{{bmg}}metabook/tagsearch50x50.png\"\n"+
+    "              class=\"inline\">\n"+
+    "    icon in the lower right corner returns to the search results.\n"+
+    "    The <strong>overleaf</strong> at the top of the page\n"+
+    "    shows the result being\n"+
+    "    displayed; <span class=\"fortouch\">tap</span>\n"+
+    "    <span class=\"notouch\">click</span> it once to expand it and again\n"+
+    "    to return to the list of results.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKSKIMGLOSSESHELP\" class=\"helpbox fdjtadjustfont\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
@@ -39567,44 +39550,38 @@ metaBook.HTML.hudhelp=
     "    glosses (highlights, notes, etc) which you or others have added.\n"+
     "    The <strong>overleaf</strong> at the top of the page shows the\n"+
     "    current gloss and the text itself shows any highlights.</p>\n"+
-    "  <p>Return to the list of glosses by\n"+
-    "    <span class=\"fortouch\">double\n"+
-    "      tapping</span> <span class=\"notouch\">double clicking</span> the\n"+
-    "    overleaf or using the <img src=\"{{bmg}}metabook/allglosses.svgz\"\n"+
-    "                               onerror=\"this.src='{{bmg}}metabook/allglosses50x50.png\" class=\"inline\"/> ico'n\n"+
-    "    in the lower right of the\n"+
-    "    page.  <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click\n"+
-    "      on</span> the overleaf to see the entire text of the\n"+
-    "    gloss.  <span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> the content to stop skimming the\n"+
-    "    glosses.</p>\n"+
-    "  <p><span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click on</span>\n"+
-    "    the <strong>overleaf</strong> to expand or contract it;\n"+
-    "    <span class=\"fortouch\">Double tap</span>\n"+
-    "    <span class=\"notouch\">Double click</span> to return to the search\n"+
-    "    results.  <span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> the content to stop\n"+
-    "    skimming.\n"+
-    "  </p>\n"+
     "  <p class=\"fortouch\">\n"+
-    "    <span>Swipe left or right with two fingers</span> to move\n"+
-    "    forward and backward by single glosses or use the\n"+
+    "    <span>Swipe left or right with two fingers</span> to move to the\n"+
+    "    next (or previous) gloss or use the\n"+
     "    <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "         onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
-    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\" class=\"inline\"/'>\n"+
-    "    on the edges of the page.</p>\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\"\n"+
+    "    class=\"inline\"/'> and <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    class=\"inline\"/'> arrows on the sides of the page.  These also\n"+
+    "    indicate the number of glosses in each direction.</p>\n"+
     "  <p class=\"notouch\">\n"+
-    "    Use the <span>arrow keys</span> on your keyboard to move forward and\n"+
-    "    backward by single glosses or <span class=\"fortouch\">tap</span>\n"+
-    "    <span class=\"notouch\">click</span>\n"+
-    "    the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
-    "             onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\" class=\"inline\"/'>\n"+
-    "    double arrows <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
-    "                       onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png'\"\n"+
-    "                       class=\"inline\"/>\n"+
-    "    on the edges of the page.</p>\n"+
+    "    Use the <span>arrow keys</span> to to the next or previous gloss\n"+
+    "    or use the <img src=\"{{bmg}}metabook/skim_left.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_left100x100.png\"\n"+
+    "    class=\"inline\"/> and <img src=\"{{bmg}}metabook/skim_right.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/skim_right100x100.png\"\n"+
+    "    class=\"inline\"/> arrows on the sides of the page.  These also\n"+
+    "    indicate the number of glosses in each direction.\n"+
+    "  </p>\n"+
+    "  <p><span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span>\n"+
+    "    the book text to minimize the interface;\n"+
+    "    <span class=\"fortouch\">tap</span><span class=\"notouch\">click</span>\n"+
+    "    again to stop skimming\n"+
+    "    altogether.</p>\n"+
+    "  <p>The <img src=\"{{bmg}}metabook/allglosses.svgz\"\n"+
+    "              onerror=\"this.src='{{bmg}}metabook/allglosses0x50.png\"\n"+
+    "              class=\"inline\">\n"+
+    "              button in the lower right corner returns to the list of\n"+
+    "              glosses.  The <strong>overleaf</strong> at the top of\n"+
+    "              the page shows the gloss you're\n"+
+    "              seeing; <span class=\"fortouch\">tap</span>\n"+
+    "    <span class=\"notouch\">click</span> it once to expand it and again\n"+
+    "    to return to the list of results.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKGOTOPAGEHELP\" class=\"helpbox\">\n"+
     "  <p>Enter a page number at the top of the page to jump directly to that\n"+
@@ -39633,93 +39610,112 @@ metaBook.HTML.hudhelp=
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Searching tags and text</h2>\n"+
     "  <p>You are searching for passages or glosses within your book, using\n"+
-    "    either semantic <span class=\"dterm\">tags</span>\n"+
-    "    or literal <span class=\"rawterm\">terms</span>.  As you type or edit in\n"+
-    "    the search box, the cloud of tags and phrases will grow or shrink\n"+
-    "    to display matching phrases, tags, or synonyms of tags.</p>\n"+
+    "    either semantic <span class=\"dterm\">tags</span> or\n"+
+    "    literal <span class=\"rawterm\">terms</span>.  As you type or edit\n"+
+    "    the text in the search box, the cloud of tags and phrases will\n"+
+    "    grow or shrink to display matching phrases, tags, or tag\n"+
+    "    synonyms.</p>\n"+
     "  <p><span class=\"fortouch\">Tapping</span>\n"+
     "    <span class=\"notouch\">Clicking</span>\n"+
-    "    <span>adds a term or tag</span> to the current search, generating\n"+
-    "    both results and an updated cloud of terms and tags.  Tags may\n"+
-    "    be related to other tags (for\n"+
+    "    <span>a term or tag</span> adds it to the current search,\n"+
+    "    generating both new results and an updated cloud of associated\n"+
+    "    terms and tags.  Tags may be related to other tags (for\n"+
     "    example, <span class=\"dterm\">dachshund</span>\n"+
     "    to <span class=\"dterm\">dog</span>) and those relationships are\n"+
     "    used in your search.</p>\n"+
-    "  <p>Once you have specified <span>at least one tag or term</span>, you\n"+
-    "    can see the matching results by\n"+
-    "    either <span class=\"fortouch\">tapping</span>\n"+
-    "    <span class=\"notouch\">clicking</span> on the result count or\n"+
-    "    using the <kbd>Enter</kbd> key in an empty input box.  If there\n"+
-    "    are few enough results, it will switch to them automatically.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKSEARCHRESULTSHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    Browsing search results</h2>\n"+
-    "  <p><img src=\"/static/g/metabook/searchtabs.png\" class=\"screengrab\"/>\n"+
-    "          These are the <span>results of your search</span>, ordered by\n"+
-    "          relevance and position within the book.  You may change or\n"+
-    "          refine your search by either using the text box or selecting\n"+
-    "          one of the tag tabs above the results.</p>\n"+
+    "  <p>The results of your search are ordered by relevance and position\n"+
+    "    within the book.  Refine or change your search by selecting one of\n"+
+    "    the tabs ('co-tags' or 'all tags') above the\n"+
+    "    results<img src=\"/static/g/metabook/searchtabs.png\"\n"+
+    "    class=\"screengrab\"/> or by simply entering more text.  Co-tags are\n"+
+    "    tags which occur among the current search results; all tags are\n"+
+    "    all tags used throughout the book.</p>\n"+
     "  <p class=\"notouch\">Use the space and backspace keys to move through\n"+
-    "    the list of glosses page-by-page; combine with the shift key to move\n"+
-    "    in larger increments.</p>\n"+
-    "  <p class=\"fortouch\">Swipe to the left or right to move page-by-page\n"+
-    "    through the search results or swipe with two fingers to move in\n"+
-    "    larger increments.</p>\n"+
+    "    the list of results page-by-page; combine with the shift key to\n"+
+    "    move in larger increments. The <strong>percentage\n"+
+    "    indicator</strong> <img src=\"{{bmg}}/metabook/pagecontrol.png\"\n"+
+    "    class=\"inlineright\"/>at the bottom of the listing can be edited to\n"+
+    "    move anywhere in the list of results.</p>\n"+
+    "  <p class=\"fortouch\">Swipe left or right to move page-by-page through\n"+
+    "    the search results; swipe with two fingers to move in larger\n"+
+    "    increments.  The <strong>percentage indicator</strong>\n"+
+    "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
+    "    at the bottom of the listing can be edited to move anywhere in the\n"+
+    "    list of results.</p>\n"+
     "  <p><span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> a result to jump to that part\n"+
-    "    of the book and begin <span>skimming</span> through the search results\n"+
-    "    from that point.</p>\n"+
-    "  <p><span class=\"notouch\">Holding the mouse button down\n"+
-    "      on</span><span class=\"fortouch\">Pressing and holding\n"+
-    "    </span> a result lets you glimpse the result in context\n"+
-    "    without leaving the list of results.</p>\n"+
+    "    <span class=\"notouch\">Click</span> a search result to jump to that\n"+
+    "    part of the book and begin <span>skimming</span> through the\n"+
+    "    search results starting at that point.</p>\n"+
+    "  <p><span class=\"notouch\">Hold the mouse button down\n"+
+    "      on</span><span class=\"fortouch\">Press and hold</span> a result\n"+
+    "      to see it in in context; release to return to the list of\n"+
+    "      results.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKALLGLOSSESHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    All glosses</h2>\n"+
     "  <p>These are <span>all of the glosses</span> applied to your\n"+
     "    copy of this book.</p>\n"+
-    "  <p class=\"notouch\">Use the space and backspace keys to move through\n"+
-    "    the list of glosses page-by-page; combine with the shift key to move\n"+
-    "    in larger increments.</p>\n"+
-    "  <p class=\"fortouch\">Swipe to the left or right to move\n"+
-    "    page-by-page through the list of glosses or swipe with two fingers\n"+
-    "    to move in larger increments.</p>\n"+
-    "  <p><span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> a gloss to jump to the\n"+
-    "    location where it is applied.  You can\n"+
-    "    then <span>skim</span> through the book based on the these\n"+
-    "    glosses.</p>\n"+
-    "  <p><span class=\"notouch\">Hold down the mouse button\n"+
-    "      over</span><span class=\"fortouch\">Press and hold\n"+
-    "    </span> a gloss to see its context without leaving the list of\n"+
-    "    glosses.</p>\n"+
-    "  <p>The <span>icons</span> at the top of the screen show\n"+
+    "  <p>The <strong>row of icons</strong> at the top of the screen show\n"+
     "    the <span>creators or layers</span> where different glosses\n"+
     "    originate. <span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> the icons to see glosses from\n"+
-    "    a single source or double <span class=\"fortouch\">tap</span>\n"+
-    "    <span class=\"notouch\">click</span> to add more sources.\n"+
-    "  </p>\n"+
+    "    <span class=\"notouch\">Click</span> the icons to just see glosses\n"+
+    "    from a single source or double <span class=\"fortouch\">tap</span>\n"+
+    "    <span class=\"notouch\">click</span> to add glosses from other\n"+
+    "    sources.</p>\n"+
+    "  <p class=\"notouch\">The <strong>space and backspace keys</strong>\n"+
+    "    move through the list of glosses page-by-page; combine them with\n"+
+    "    the shift key to move in larger increments. The <strong>percentage\n"+
+    "    indicator</strong> <img src=\"{{bmg}}/metabook/pagecontrol.png\"\n"+
+    "    class=\"inlineright\"/> at the bottom of the listing can be edited\n"+
+    "    to move anywhere in the list of glosses.</p>\n"+
+    "  <p class=\"fortouch\">Swipe left or right to move page-by-page through\n"+
+    "    the glosses; swipe with two fingers to move in larger increments.\n"+
+    "    The <strong>percentage indicator</strong>\n"+
+    "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
+    "    at the bottom of the listing can be edited to move anywhere in the\n"+
+    "    list of glosses.</p>\n"+
+    "  <p><span class=\"fortouch\">Tap</span>\n"+
+    "    <span class=\"notouch\">Click</span> a search result to jump to that\n"+
+    "    part of the book and begin <span>skimming</span> through the\n"+
+    "    displayed glosses starting at that point.</p>\n"+
+    "  <p><span class=\"notouch\">Hold the mouse button down\n"+
+    "      on</span><span class=\"fortouch\">Press and hold</span> a result\n"+
+    "    to see it in in context; release to return to the list of\n"+
+    "    results.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKSTATICTOCHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    The Table of Contents</h2>\n"+
-    "  <p>The <span>table of contents</span> provides a visually\n"+
-    "    annotated hierarchical map of your book.  Red lines indicate your\n"+
-    "    current reading location and the blue bars indicate the size and\n"+
-    "    relative position of a subsection within its section.</p>\n"+
-    "  <p><span class=\"action fortouch\">Touch</span>\n"+
-    "    <span class=\"notouch action\">Click</span> an entry to\n"+
-    "    start <em>skimming</em> the book starting at that\n"+
-    "    location; <span class=\"action fortouch\">Touch</span>\n"+
-    "    <span class=\"notouch action\">Click</span> the text to stop\n"+
-    "    skimming.</p>\n"+
-    "  <p><span class=\"action fortouch\">Press and hold</span>\n"+
-    "    <span class=\"notouch action\">Press and hold over</span> an entry\n"+
-    "    to view that part of the book <em>without</em> leaving the table\n"+
-    "    of contents.</p>\n"+
+    "  <p>The <strong>table of contents</strong> displays a hierarchical\n"+
+    "    map of your book created by the author or publisher.  Red lines\n"+
+    "    indicate your current reading location and the blue bars indicate\n"+
+    "    the size and relative position of a subsection within its\n"+
+    "    section.</p>\n"+
+    "  <p class=\"notouch\">Use the space and backspace keys to move through\n"+
+    "    the outline page-by-page; combine with the shift key to move in\n"+
+    "    larger increments. The <strong>percentage indicator</strong>\n"+
+    "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
+    "    at the bottom of the listing can be edited to move to a specific\n"+
+    "    percentage.</p>\n"+
+    "  <p class=\"fortouch\">Swipe left or right to move page-by-page through\n"+
+    "    the glosses; swipe with two fingers to move in larger increments.\n"+
+    "    The <strong>percentage indicator</strong>\n"+
+    "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
+    "    at the bottom of the listing can be edited to move to a specific\n"+
+    "    percentage.</p>\n"+
+    "  <p><span class=\"fortouch\">Tap</span>\n"+
+    "    <span class=\"notouch\">Click</span> a line in the TOC to jump to\n"+
+    "    that section and begin <span>skimming</span> through the search\n"+
+    "    results starting at that point.</p>\n"+
+    "  <p><span class=\"notouch\">Hold the mouse button down\n"+
+    "      on</span><span class=\"fortouch\">Press and hold</span> a result\n"+
+    "      to see it in in context; release to return to the table of\n"+
+    "      contents.</p>\n"+
     "</div>\n"+
     "\n"+
     "<!--\n"+
@@ -40228,19 +40224,19 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1522-ge763e18';
+fdjt.revision='1.5-1525-ga61b080';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Mon Nov 16 11:05:43 EST 2015';
-fdjt.builduuid='5abf1891-165d-4ed6-a8fa-9c989a23d5f7';
+fdjt.buildtime='Wed Nov 18 19:13:51 EST 2015';
+fdjt.builduuid='4b2a09ab-cc09-49a0-8df8-787a6d63f4a4';
 
 fdjt.CodexLayout.sourcehash='A742ABD754FA51DBC08518F328E3A225EE8B4FBB';
 
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-175-g75220b7';
-metaBook.buildid='f925dd19-51ab-4be7-bb2f-2c18198978cc';
-metaBook.buildtime='Wed Nov 18 10:13:22 EST 2015';
+metaBook.version='v0.8-176-g140a251';
+metaBook.buildid='2acf678c-84bb-40dd-8eab-761089dacf91';
+metaBook.buildtime='Wed Nov 18 19:36:54 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
