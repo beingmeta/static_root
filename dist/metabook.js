@@ -12146,7 +12146,8 @@ fdjt.TextIndex=(function(){
     var is=0, islim=default_stopwords_init.length;
     while (is<islim) {
         var stop_word=default_stopwords_init[is++];
-        default_stopwords[stop_word]=stop_word;}
+        if (stop_word.indexOf("'")<0)
+            default_stopwords[stop_word]=stop_word;}
 
     function TextIndex(opts){
         if (!(opts)) opts={};
@@ -12155,14 +12156,18 @@ fdjt.TextIndex=(function(){
         var termindex={}, idterms={}, allterms=[], allids=[];
         var i, lim;
         
+        var glue=/^[-'_@.\/]$/;
         function _indexer(string,id){
-            var stdtext=stdspace(string).replace(/­/g,"");
+            var stdtext=stdspace(string);
             var words=stdtext.split(/\b/g), termlist=[];
             var i=0, lim=words.length;
             while (i<lim) {
-                var term=words[i++], iscap=/[A-Z][^A-Z]/.exec(term);
+                var term=words[i++], iscap=/[A-Z][^A-Z]/.exec(term), next=words[i];
+                if (term.search(/\w/)<0) continue;
+                if ((next)&&(glue.exec(next))&&
+                    ((i+1)<lim)&&(words[i+1].search(/\w/)>=0)) {
+                    term=term+next+words[i+1]; i=i+2;}
                 if (term.length<2) continue;
-                else if (term.search(/\w/)<0) continue;
                 else if (stopwords.hasOwnProperty(term)) continue;
                 else if ((iscap)&&(stopwords.hasOwnProperty(term.toLowerCase())))
                     continue;
@@ -14966,7 +14971,7 @@ if (!(fdjt.UI)) fdjt.UI={};
         var i=0; var lim=keys.length;
         while (i<lim) {
             var key=keys[i++];
-            var completions=bykey.get(key);
+            var completions=bykey[key];
             if (completions) {
                 if (!(completions instanceof Array))
                     completions=[completions];
@@ -17750,8 +17755,6 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
         if (keep.length) return keep;
         else return undefined;}
     Knodule.importTagSlot=importTagSlot;
-
-    // Knodule.addTags=function addTags(){};
 
     function TagQuery(tags,dbs,weights){
         if (arguments.length===0) return this;
@@ -25762,7 +25765,7 @@ metaBook.DOMScan=(function(){
     
     function handlePublisherIndex(pubindex,whendone){
         if (!(pubindex))
-            pubindex=metaBook._publisher_index||window._sbook_autoindex;
+            pubindex=metaBook._publisher_index||window._pubtool_autoindex;
         if (!(pubindex)) {
             if (whendone) whendone();
             return;}
@@ -25771,7 +25774,7 @@ metaBook.DOMScan=(function(){
                 fdjtLog("Processing provided index of %d keys and %d refs",
                         pubindex._nkeys,pubindex._nrefs);
             else fdjtLog("Processing provided index");}
-        metaBook.useIndexData(pubindex,metaBook.knodule,false,whendone);}
+        mB.useIndexData(pubindex,metaBook.knodule,false,whendone);}
 
     function indexingDone(){
         if ((Trace.indexing)||(Trace.startup))
@@ -25964,15 +25967,14 @@ metaBook.DOMScan=(function(){
         fdjtAsync.slowmap(
             handleIndexEntry,alltags,
             {watchfn: ((alltags.length>100)&&(tracelevel>1)&&(indexProgress)),
-             done:
-             function(state){
+             slice: 200,space: 10})
+            .then(function(state){
                 fdjtLog("Book index links %d keys to %d refs",ntags,nitems);
                 dropClass(document.body,"mbINDEXING");
                 metaBook.tagmaxweight=maxweight;
                 metaBook.tagminweight=minweight;
                 if (whendone) return whendone();
-                else return state;},
-             slice: 200,space: 10});}
+                else return state;});}
     metaBook.useIndexData=useIndexData;
     function indexProgress(state,i,lim){
         if (state!=='suspend') return;
@@ -25984,7 +25986,7 @@ metaBook.DOMScan=(function(){
     /* Applying various tagging schemes */
 
     function applyMultiTagSpans() {
-        var tags=fdjtDOM.$(".sbooktags");
+        var tags=fdjtDOM.$(".metabooktags,.mbtags");
         var i=0, lim=tags.length;
         while (i<lim) {
             var elt=tags[i++];
@@ -25997,7 +25999,7 @@ metaBook.DOMScan=(function(){
                 var j=0, jlim=tagstrings.length;
                 while (j<jlim) addTags(info,tagstrings[j++]);}}}
     function applyTagSpans() {
-        var tags=fdjtDOM.$(".sbooktag");
+        var tags=fdjtDOM.$(".metabooktag,.mbtag");
         var i=0; var lim=tags.length;
         while (i<lim) {
             var tagelt=tags[i++];
@@ -26102,20 +26104,20 @@ metaBook.DOMScan=(function(){
         applyMultiTagSpans();
         applyTagAttributes(metadata);
         var pubindex=metaBook._publisher_index||
-            window._sbook_autoindex;
+            window._pubtool_autoindex;
         if (pubindex) {
             handlePublisherIndex(pubindex,indexingDone);
             metaBook._publisher_index=false;
-            window._sbook_autoindex=false;}
-        else if ($ID("SBOOKAUTOINDEX")) {
-            var elt=$ID("SBOOKAUTOINDEX");
+            window._pubtool_autoindex=false;}
+        else if ($ID("PUTBOOLAUTOINDEX")) {
+            var elt=$ID("PUBTOOLAUTOINDEX");
             fdjtDOM.addListener(elt,"load",function(evt){
                 evt=evt||window.event;
                 handlePublisherIndex(false,indexingDone);
                 metaBook._publisher_index=false;
-                window._sbook_autoindex=false;});}
+                window._pubtool_autoindex=false;});}
         else {
-            var indexref=getLink("SBOOKS.bookindex");
+            var indexref=getLink("PUBTOOL.bookindex");
             if (indexref) {
                 var script_elt=document.createElement("SCRIPT");
                 script_elt.setAttribute("src",indexref);
@@ -26124,7 +26126,7 @@ metaBook.DOMScan=(function(){
                 fdjtDOM.addListener(script_elt,"load",function(){
                     handlePublisherIndex(false,indexingDone);
                     metaBook._publisher_index=false;
-                    window._sbook_autoindex=false;});
+                    window._pubtool_autoindex=false;});
                 document.body.appendChild(script_elt);}
             else indexingDone();}}
     metaBook.setupIndex=setupIndex;
@@ -40224,19 +40226,19 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1525-ga61b080';
+fdjt.revision='1.5-1527-g3ce872c';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Nov 18 19:13:51 EST 2015';
-fdjt.builduuid='4b2a09ab-cc09-49a0-8df8-787a6d63f4a4';
+fdjt.buildtime='Fri Nov 20 07:10:25 EST 2015';
+fdjt.builduuid='461af03b-b408-4d8a-8200-bb6d8b75479c';
 
 fdjt.CodexLayout.sourcehash='A742ABD754FA51DBC08518F328E3A225EE8B4FBB';
 
 
 Knodule.version='v0.8-154-g4218590';
 // sBooks metaBook build information
-metaBook.version='v0.8-176-g140a251';
-metaBook.buildid='2acf678c-84bb-40dd-8eab-761089dacf91';
-metaBook.buildtime='Wed Nov 18 19:36:54 EST 2015';
+metaBook.version='v0.8-178-g3e38f81';
+metaBook.buildid='96d3c384-1c1f-47dd-9717-83b64f6caeda';
+metaBook.buildtime='Fri Nov 20 07:10:30 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

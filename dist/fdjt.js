@@ -10979,7 +10979,8 @@ fdjt.TextIndex=(function(){
     var is=0, islim=default_stopwords_init.length;
     while (is<islim) {
         var stop_word=default_stopwords_init[is++];
-        default_stopwords[stop_word]=stop_word;}
+        if (stop_word.indexOf("'")<0)
+            default_stopwords[stop_word]=stop_word;}
 
     function TextIndex(opts){
         if (!(opts)) opts={};
@@ -10988,14 +10989,18 @@ fdjt.TextIndex=(function(){
         var termindex={}, idterms={}, allterms=[], allids=[];
         var i, lim;
         
+        var glue=/^[-'_@.\/]$/;
         function _indexer(string,id){
-            var stdtext=stdspace(string).replace(/­/g,"");
+            var stdtext=stdspace(string);
             var words=stdtext.split(/\b/g), termlist=[];
             var i=0, lim=words.length;
             while (i<lim) {
-                var term=words[i++], iscap=/[A-Z][^A-Z]/.exec(term);
+                var term=words[i++], iscap=/[A-Z][^A-Z]/.exec(term), next=words[i];
+                if (term.search(/\w/)<0) continue;
+                if ((next)&&(glue.exec(next))&&
+                    ((i+1)<lim)&&(words[i+1].search(/\w/)>=0)) {
+                    term=term+next+words[i+1]; i=i+2;}
                 if (term.length<2) continue;
-                else if (term.search(/\w/)<0) continue;
                 else if (stopwords.hasOwnProperty(term)) continue;
                 else if ((iscap)&&(stopwords.hasOwnProperty(term.toLowerCase())))
                     continue;
@@ -13799,7 +13804,7 @@ if (!(fdjt.UI)) fdjt.UI={};
         var i=0; var lim=keys.length;
         while (i<lim) {
             var key=keys[i++];
-            var completions=bykey.get(key);
+            var completions=bykey[key];
             if (completions) {
                 if (!(completions instanceof Array))
                     completions=[completions];
@@ -16139,8 +16144,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1525-ga61b080';
+fdjt.revision='1.5-1527-g3ce872c';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Nov 18 19:13:51 EST 2015';
-fdjt.builduuid='4b2a09ab-cc09-49a0-8df8-787a6d63f4a4';
+fdjt.buildtime='Fri Nov 20 07:10:25 EST 2015';
+fdjt.builduuid='461af03b-b408-4d8a-8200-bb6d8b75479c';
 
