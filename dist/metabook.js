@@ -11100,7 +11100,7 @@ fdjt.RefDB=(function(){
     RefDB.StringMap=StringMap;
 
     function RefMap(db) {this._db=db; return this;}
-    RefMap.prototype.get=function(key){
+    RefMap.prototype.get=function RefMapGet(key){
         if (typeof key === "string") {
             if (this.hasOwnProperty(key)) return this[key];
             else return undefined;}
@@ -11108,13 +11108,13 @@ fdjt.RefDB=(function(){
             var id=((this.uniqueids)&&key._id)||key._qid||key.getQID();
             return this[id];}
         else return undefined;};
-    RefMap.prototype.set=function(key,val){
+    RefMap.prototype.set=function RefMapSet(key,val){
         if (typeof key === "string") this[key]=val;
         else if (key instanceof Ref) {
             var id=key._qid||((this.uniqueid)&&key._id)||key.getQID();
             this[id]=val;}
         else return false;};
-    RefMap.prototype.increment=function(key,delta){
+    RefMap.prototype.increment=function RefMapIncrement(key,delta){
         if (typeof key === "string") {
             if (this.hasOwnProperty(key))
                 this[key]=this[key]+delta;
@@ -11127,7 +11127,7 @@ fdjt.RefDB=(function(){
     
     /* Miscellaneous array and table functions */
 
-    RefDB.add=function(obj,field,val,nodup){
+    RefDB.add=function refDBAdd(obj,field,val,nodup){
         if (arguments.length===2)
             return set_add(obj,field);
         else if (obj instanceof Ref)
@@ -11144,7 +11144,7 @@ fdjt.RefDB=(function(){
         if ((obj._all) && (!(arr_contains(obj._all,field))))
             obj._all.push(field);};
 
-    RefDB.drop=function(obj,field,val){
+    RefDB.drop=function refDBDrop(obj,field,val){
         if (arguments.length===2)
             return set_drop(obj,field);
         else if (obj instanceof Ref)
@@ -11159,7 +11159,7 @@ fdjt.RefDB=(function(){
             else vals.splice(pos,1);}
         else {}};
 
-    RefDB.test=function(obj,field,val){
+    RefDB.test=function refDBTest(obj,field,val){
         if (arguments.length===2)
             return arr_contains(obj,field);
         else if (obj instanceof Ref)
@@ -11174,10 +11174,10 @@ fdjt.RefDB=(function(){
             else return true;}
         else return false;};
 
-    RefDB.insert=function(array,value){
+    RefDB.insert=function RefDBInsert(array,value){
         if (arr_position(array,value)<0) array.push(value);};
 
-    RefDB.remove=function(array,value,count){
+    RefDB.remove=function RefDBInsert(array,value,count){
         var pos=arr_position(array,value);
         if (pos<0) return array;
         array.splice(pos,1);
@@ -11188,7 +11188,7 @@ fdjt.RefDB=(function(){
                 array.splice(pos,1); count--;}}
         return array;};
 
-    RefDB.indexOf=function(array,elt,pos){
+    RefDB.indexOf=function RefDBIndexOf(array,elt,pos){
         if (pos) return array.indexOf(elt,pos);
         else return array.indexOf(elt);};
 
@@ -13907,6 +13907,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   
   function showPage(container,start,dir){
     if (!(container=getContainer(container))) return;
+    if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     var shown=toArray(getChildren(container,".fdjtshow"));
     var curstart=getChild(container,".fdjtstartofpage");
     var curend=getChild(container,".fdjtendofpage");
@@ -13916,7 +13917,6 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var padding=getGeometry(container,false,true).bottom_padding, h;
     var tap_event_name=((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
-    if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
       startpos=0; start=children[0];}
     else if ((typeof start === "number")&&(start>0)&&(start<1)) {
@@ -24348,6 +24348,7 @@ metaBook.DOMScan=(function(){
         var stdspace=fdjtString.stdspace;
         var getStyle=fdjtDOM.getStyle;
         var rootns=root.namespaceURI;
+        var baseid=mB.baseid;
         
         var idmap={};
         
@@ -24548,6 +24549,7 @@ metaBook.DOMScan=(function(){
             var curhead=scanstate.curhead;
             var curinfo=scanstate.curinfo;
             var curlevel=scanstate.curlevel;
+            if (!(baseid)) baseid=mB.baseid;
             scanstate.nodecount++;
             // Location tracking and TOC building
             if (child.nodeType===3) {
@@ -24559,7 +24561,9 @@ metaBook.DOMScan=(function(){
             else if (child.nodeType!==1) return 0;
             else {}
             var tag=child.tagName, classname=child.className;
-            var id=child.getAttribute('data-tocid')||child.id;
+            var id=child.id;
+            if (!((id)&&(id.search(baseid)===0)))
+                id=child.getAttribute('data-tocid')||child.id;
 
             if ((metaBook.ignore)&&(metaBook.ignore.match(child)))
                 return;
@@ -24579,7 +24583,7 @@ metaBook.DOMScan=(function(){
                 fdjtLog("Scanning %o level=%o, loc=%o, head=%o: %j",
                         child,curlevel,location,curhead,curinfo);
 
-            if ((!(id))&&(!(metaBook.baseid))) {
+            if ((!(id))&&(!(baseid))) {
                 // If there isn't a known BASEID, we generate
                 //  ids for block level elements using WSN.
                 var wsn=false;
@@ -24588,17 +24592,16 @@ metaBook.DOMScan=(function(){
                              /block|list-item|table|table-row/)===0))&&
                     ((child.childNodes)&&(child.childNodes.length))&&
                     (wsn=md5ID(child))) {
-                    var baseid="WSN_"+wsn, wsnid=baseid, count=1;
-                    if (baseid!=="WSN_") {
+                    var wbaseid="WSN_"+wsn, wsnid=wbaseid, count=1;
+                    if (wbaseid!=="WSN_") {
                         while ((document.getElementById[wsnid])||(idmap[wsnid]))
-                            wsnid=baseid+"_"+(count++);
-                        if (baseid!==wsnid) {
+                            wsnid=wbaseid+"_"+(count++);
+                        if (wbaseid!==wsnid) {
                             var text=fdjtDOM.textify(child);
                             fdjtLog.warn("Duplicate WSN ID %s: %s",
                                          wsnid,text);}
                         id=child.id=wsnid; idmap[wsnid]=child;}}}
-            else if ((id)&&(metaBook.baseid)&&
-                     (id.search(metaBook.baseid)!==0))
+            else if ((id)&&(baseid)&&(id.search(baseid)!==0))
                 id=false;
             else if (!(id)) {}
             else if (!(idmap[id])) idmap[id]=child;
@@ -24657,15 +24660,18 @@ metaBook.DOMScan=(function(){
             else if ((info=docinfo[id])) {}
             else {
                 allids.push(id); info=new ScanInfo(id,scanstate);
-                docinfo[id]=info; info.elt=child;}
+                if (docinfo[id]!==info) window.alert("Wrong");
+                docinfo[id]=info;
+                info.elt=child;}
             // The header functionality is handled by its surrounding
             // section (which should have a toclevel of its own)
             if ((scanstate.notoc)||(tag==='header')) {
                 scanstate.notoc=true; toclevel=0;}
             scanstate.eltcount++;
-            if ((info)&&(id)&&(child.id)&&(child.id!==id))
+            if ((info)&&(id)&&(child.id)&&(child.id!==id)) {
                 // Store info under both ID and TOCID if different
-                docinfo[child.id]=info;
+                info.addAlias(child.id);
+                docinfo[child.id]=info;}
             if (info) {
                 info.starts_at=scanstate.location;
                 info.bookhead=
@@ -24699,7 +24705,9 @@ metaBook.DOMScan=(function(){
                     while (alti<altlen) {
                         var altid=altids[alti++];
                         if (docinfo[altid]) {}
-                        else docinfo[altid]=info;}}}
+                        else {
+                            info.addAlias(altid);
+                            docinfo[altid]=info;}}}}
 
             if (((classname)&&(classname.search)&&
                  (classname.search(/\b(sbook|pubtool)terminal\b/)>=0))||
@@ -29345,13 +29353,14 @@ metaBook.Slice=(function () {
         this.needupdate=true;
         this.update();};
 
-    MetaBookSlice.prototype.addCards=function addCards(adds){
+    MetaBookSlice.prototype.addCards=function addCards(adds,scores){
         if (!(adds)) return;
         if (!(adds instanceof Array)) adds=[adds];
         if (adds.length===0) return;
+        if (!(scores)) scores=this.scores||false;
         if (metaBook.Trace.slices) 
-            fdjtLog("Adding %d cards to slice %o",
-                    adds.length,this.container);
+            fdjtLog("Adding %d cards to slice %o with scores %o",
+                    adds.length,this.container,scores);
         var byid=this.byid, cards=this.cards;
         var i=0, lim=adds.length;
         while (i<lim) {
@@ -29360,7 +29369,7 @@ metaBook.Slice=(function () {
             if ((add.about)&&(add.dom)) {
                 info=add; card=add.dom;}
             if ((add.nodeType)&&(add.nodeType===1)&&
-                     (hasClass(add,"metabookcard"))) {
+                (hasClass(add,"metabookcard"))) {
                 card=add; id=add.name||add.getAttribute("name");
                 if (!(id)) continue;
                 if ((info=byid[id])) {
@@ -29379,6 +29388,8 @@ metaBook.Slice=(function () {
                 byid[id]=info={added: fdjtTime(),id: id,about: about};
             else if (!(byid[id])) byid[id]=info;
             else {}
+            if ((scores)&&(scores.get(add)))
+                info.score=scores.get(add);
             info.dom=card;
             if (card.getAttribute("data-location"))
                 info.location=parseInt(card.getAttribute("data-location"),10);
@@ -32665,30 +32676,32 @@ metaBook.setMode=
         if (!(this instanceof SearchResults))
             return new SearchResults(query);
         this.query=query; this.results=query.results;
+        this.scores=query.scores;
         return MetaBookSlice.call(
-            this,fdjtDOM("div.metabookslice.mbsyncslice.searchslice"),this.results);}
+            this,fdjtDOM("div.metabookslice.mbsyncslice.searchslice"),
+            this.results);}
     metaBook.SearchResults=SearchResults;
 
     SearchResults.prototype=new MetaBookSlice();
     SearchResults.prototype.renderCard=function renderSearchResult(result){
         return metaBook.renderCard(result,this.query);};
     SearchResults.prototype.sortfn=function searchResultsSortFn(x,y){
-        if (x.score) {
-            if (y.score) {
-                if (x.score===y.score) {
-                    if (x.location) {
-                        if (y.location) {
-                            if (x.location===y.location) {
-                                if (x.timestamp) {
-                                    if (y.timestamp)
-                                        return x.timestamp-y.timestamp;
-                                    else return -1;}
-                                else return 1;}
-                            else return x.location-y.location;}
-                        else return -1;}}
-                else return (y.score-x.score);}
-            else return -1;}
-        else return 1;};
+        if ((typeof x.score === "number")&&(typeof y.score === "number")) {
+            if (x.score!==y.score) return y.score-x.score;}
+        else if (typeof x.score === "number") return -1;
+        else if (typeof y.score === "number") return 1;
+        else {}
+        if ((typeof x.location === "number")&&(typeof y.location === "number")) {
+            if (x.location!==y.location) return x.location-y.location;}
+        else if (typeof x.location === "number") return -1;
+        else if (typeof y.location === "number") return 1;
+        else {}
+        if ((typeof x.timestamp === "number")&&(typeof y.timestamp === "number")) {
+            if (x.timestamp!==y.timestamp) return x.timestamp-y.timestamp;}
+        else if (typeof x.timestamp === "number") return -1;
+        else if (typeof y.timestamp === "number") return 1;
+        else {}
+        return 0;};
 
     /* Show search results */
 
@@ -40226,19 +40239,19 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1527-g3ce872c';
+fdjt.revision='1.5-1528-g7393626';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Nov 20 07:10:25 EST 2015';
-fdjt.builduuid='461af03b-b408-4d8a-8200-bb6d8b75479c';
+fdjt.buildtime='Fri Nov 20 11:23:35 EST 2015';
+fdjt.builduuid='4f9dabf4-0e06-4398-a7b0-57cf800c0800';
 
 fdjt.CodexLayout.sourcehash='A742ABD754FA51DBC08518F328E3A225EE8B4FBB';
 
 
-Knodule.version='v0.8-154-g4218590';
+Knodule.version='v0.8-155-g9a698e9';
 // sBooks metaBook build information
-metaBook.version='v0.8-178-g3e38f81';
-metaBook.buildid='96d3c384-1c1f-47dd-9717-83b64f6caeda';
-metaBook.buildtime='Fri Nov 20 07:10:30 EST 2015';
+metaBook.version='v0.8-180-ge1637cd';
+metaBook.buildid='d473820a-49a1-4dfd-8a1b-69ea536657e0';
+metaBook.buildtime='Fri Nov 20 12:22:29 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

@@ -9933,7 +9933,7 @@ fdjt.RefDB=(function(){
     RefDB.StringMap=StringMap;
 
     function RefMap(db) {this._db=db; return this;}
-    RefMap.prototype.get=function(key){
+    RefMap.prototype.get=function RefMapGet(key){
         if (typeof key === "string") {
             if (this.hasOwnProperty(key)) return this[key];
             else return undefined;}
@@ -9941,13 +9941,13 @@ fdjt.RefDB=(function(){
             var id=((this.uniqueids)&&key._id)||key._qid||key.getQID();
             return this[id];}
         else return undefined;};
-    RefMap.prototype.set=function(key,val){
+    RefMap.prototype.set=function RefMapSet(key,val){
         if (typeof key === "string") this[key]=val;
         else if (key instanceof Ref) {
             var id=key._qid||((this.uniqueid)&&key._id)||key.getQID();
             this[id]=val;}
         else return false;};
-    RefMap.prototype.increment=function(key,delta){
+    RefMap.prototype.increment=function RefMapIncrement(key,delta){
         if (typeof key === "string") {
             if (this.hasOwnProperty(key))
                 this[key]=this[key]+delta;
@@ -9960,7 +9960,7 @@ fdjt.RefDB=(function(){
     
     /* Miscellaneous array and table functions */
 
-    RefDB.add=function(obj,field,val,nodup){
+    RefDB.add=function refDBAdd(obj,field,val,nodup){
         if (arguments.length===2)
             return set_add(obj,field);
         else if (obj instanceof Ref)
@@ -9977,7 +9977,7 @@ fdjt.RefDB=(function(){
         if ((obj._all) && (!(arr_contains(obj._all,field))))
             obj._all.push(field);};
 
-    RefDB.drop=function(obj,field,val){
+    RefDB.drop=function refDBDrop(obj,field,val){
         if (arguments.length===2)
             return set_drop(obj,field);
         else if (obj instanceof Ref)
@@ -9992,7 +9992,7 @@ fdjt.RefDB=(function(){
             else vals.splice(pos,1);}
         else {}};
 
-    RefDB.test=function(obj,field,val){
+    RefDB.test=function refDBTest(obj,field,val){
         if (arguments.length===2)
             return arr_contains(obj,field);
         else if (obj instanceof Ref)
@@ -10007,10 +10007,10 @@ fdjt.RefDB=(function(){
             else return true;}
         else return false;};
 
-    RefDB.insert=function(array,value){
+    RefDB.insert=function RefDBInsert(array,value){
         if (arr_position(array,value)<0) array.push(value);};
 
-    RefDB.remove=function(array,value,count){
+    RefDB.remove=function RefDBInsert(array,value,count){
         var pos=arr_position(array,value);
         if (pos<0) return array;
         array.splice(pos,1);
@@ -10021,7 +10021,7 @@ fdjt.RefDB=(function(){
                 array.splice(pos,1); count--;}}
         return array;};
 
-    RefDB.indexOf=function(array,elt,pos){
+    RefDB.indexOf=function RefDBIndexOf(array,elt,pos){
         if (pos) return array.indexOf(elt,pos);
         else return array.indexOf(elt);};
 
@@ -12740,6 +12740,7 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
   
   function showPage(container,start,dir){
     if (!(container=getContainer(container))) return;
+    if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     var shown=toArray(getChildren(container,".fdjtshow"));
     var curstart=getChild(container,".fdjtstartofpage");
     var curend=getChild(container,".fdjtendofpage");
@@ -12749,7 +12750,6 @@ fdjt.showPage=fdjt.UI.showPage=(function(){
     var padding=getGeometry(container,false,true).bottom_padding, h;
     var tap_event_name=((fdjt.device.touch)?("touchstart"):("click"));
     if (children.length===0) return;
-    if (typeof dir !== "number") dir=1; else if (dir<0) dir=-1; else dir=1;
     if (!(start)) {
       startpos=0; start=children[0];}
     else if ((typeof start === "number")&&(start>0)&&(start<1)) {
@@ -16144,8 +16144,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1527-g3ce872c';
+fdjt.revision='1.5-1528-g7393626';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Nov 20 07:10:25 EST 2015';
-fdjt.builduuid='461af03b-b408-4d8a-8200-bb6d8b75479c';
+fdjt.buildtime='Fri Nov 20 11:23:35 EST 2015';
+fdjt.builduuid='4f9dabf4-0e06-4398-a7b0-57cf800c0800';
 
