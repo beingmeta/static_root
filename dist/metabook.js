@@ -24507,7 +24507,8 @@ metaBook.DOMScan=(function(){
                                 scanlevel,scan||false,scaninfo,
                                 (scanlevel<level));
                     if (scanlevel<level) break;
-                    if (level===scanlevel) {
+                    else if (scaninfo===rootinfo) break;
+                    else if (level===scanlevel) {
                         headinfo.prev=scaninfo;
                         scaninfo.next=headinfo;}
                     scaninfo.ends_at=scanstate.location;
@@ -24601,8 +24602,7 @@ metaBook.DOMScan=(function(){
                             fdjtLog.warn("Duplicate WSN ID %s: %s",
                                          wsnid,text);}
                         id=child.id=wsnid; idmap[wsnid]=child;}}}
-            else if ((id)&&(baseid)&&(id.search(baseid)!==0))
-                id=false;
+            // else if ((id)&&(baseid)&&(id.search(baseid)!==0)) id=false;
             else if (!(id)) {}
             else if (!(idmap[id])) idmap[id]=child;
             else if (idmap[id]!==child) {
@@ -24648,7 +24648,9 @@ metaBook.DOMScan=(function(){
             var toclevel=getLevel(child,curlevel), info=false;
             if ((toclevel)&&(!(id))) {
                 var parent=child.parentNode;
-                info=((parent.id)&&(docinfo[parent.id]))||
+                var plevel=getLevel(parent);
+                if (typeof plevel !== "number")
+                    info=((parent.id)&&(docinfo[parent.id]))||
                     ((parent.getAttribute("data-tocid"))&&
                      (docinfo[parent.getAttribute("data-tocid")]));
                 if (info) {
@@ -39589,7 +39591,7 @@ metaBook.HTML.hudhelp=
     "    again to stop skimming\n"+
     "    altogether.</p>\n"+
     "  <p>The <img src=\"{{bmg}}metabook/allglosses.svgz\"\n"+
-    "              onerror=\"this.src='{{bmg}}metabook/allglosses0x50.png\"\n"+
+    "              onerror=\"this.src='{{bmg}}metabook/allglosses50x50.png\"\n"+
     "              class=\"inline\">\n"+
     "              button in the lower right corner returns to the list of\n"+
     "              glosses.  The <strong>overleaf</strong> at the top of\n"+
@@ -40249,9 +40251,9 @@ fdjt.CodexLayout.sourcehash='A742ABD754FA51DBC08518F328E3A225EE8B4FBB';
 
 Knodule.version='v0.8-155-g9a698e9';
 // sBooks metaBook build information
-metaBook.version='v0.8-180-ge1637cd';
-metaBook.buildid='d473820a-49a1-4dfd-8a1b-69ea536657e0';
-metaBook.buildtime='Fri Nov 20 12:22:29 EST 2015';
+metaBook.version='v0.8-182-g5fb3f3e';
+metaBook.buildid='ac315b8e-7868-4263-9901-9ae0e68205e3';
+metaBook.buildtime='Mon Nov 23 17:41:18 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
