@@ -3758,16 +3758,22 @@ html._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
     padding-bottom: 2px;}
 #METABOOKCOVER div.userbox {
     padding-top: 0px;}
+html._NOUSER #METABOOKCOVER div.userbox {display: none;}
 
 #METABOOKCOVER div.controls > div.fdjtfontwrapper {
     width: 100%;}
 
-html._NOUSER #METABOOKCOVER > div {
+html._NOUSER #METABOOKCOVER div.flap {
     top: 65px; bottom: 150px; }
-html._USER #METABOOKCOVER > div.userbox {
-    height: 40px; padding-top: 1px; display: block;}
-html._NOUSER #METABOOKCOVER > div.loginbox {
-    height: 70px; display: block;}
+#METABOOKCOVER div.userbox { 
+    height: 40px; padding-top: 1px; 
+    display: none;}
+#METABOOKCOVER div.loginbox {
+    height: 70px;}
+html._USER #METABOOKCOVER div.userbox {
+    display: block;}
+html._USER #METABOOKCOVER div.loginbox {
+    display: none;}
 
 #METABOOKCOVER div.loginmessage {
     height: 30px; text-align: center;
@@ -3802,7 +3808,7 @@ div.loginbox form > button, div.loginbox form > input[TYPE="TEXT"],
 div.loginbox form > span, div.loginbox form > select {
     height: 1.5em; vertical-align: top;}
 
-#METABOOKCOVER > div.userbox {
+#METABOOKCOVER div.userbox {
     background-color: black; color: gold;
     text-align: center;}
 #METABOOKCOVER div.userbox a:link,
@@ -4065,7 +4071,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 /* Phone */
 @media only screen and /* (min-width: 320px) and */
             (max-width: 480px) {
-    html._NOUSER #METABOOKCOVER > div { bottom: 150px; }
+    html._NOUSER #METABOOKCOVER div.flap { bottom: 150px; }
     #METABOOKCOVERMESSAGE div.message { font-size: 0.7em;}
     #METABOOKCOVERMESSAGE div#METABOOKOPENTAB {
         font-size: 30px; height: 40px;}
@@ -4075,7 +4081,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
     #METABOOKCOVER.coverpage #METABOOKCOVERMESSAGE {
         bottom: 0px; top: auto; z-index: 200;}
 
-    #METABOOKCOVER > div { left: 10px; right: 10px;}
+    #METABOOKCOVER div.flap { left: 10px; right: 10px;}
 
     html._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
     html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
