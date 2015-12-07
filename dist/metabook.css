@@ -3504,7 +3504,7 @@ body.mbREADY.mbLAYOUT #METABOOKCOVERMESSAGE { display: block;}
 
 #METABOOKCOVERCONTROLS {
     white-space: nowrap;
-    font-size: 20px; font-size: 1.5rem; font-size: 3vw;}
+    font-size: 20px; font-size: 1.5rem; font-size: 5vw;}
 
 #METABOOKCOVERCONTROLS {
     box-sizing: border-box;
@@ -3753,7 +3753,7 @@ html._SHOWCONSOLE .control[alt='Console'] {display: none;}
     margin: 0px; margin-top: 0.25ex; margin-right: 0.25ex;
     background-color: silver;
     float: right;}
-#METABOOKCONSOLE #METABOOKCONSOLEINPUT textarea { width: 90%;}
+#METABOOKCONSOLE #METABOOKCONSOLEINPUT textarea { width: 80%;}
 html._TOUCH #METABOOKCONSOLE #METABOOKCONSOLEINPUT.uptop {
     position: absolute;
     top: 5px; left: 10%; right: 10%; width: 90%;
@@ -3907,7 +3907,10 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
         width: 48%; font-size: 16px; font-size: 1rem;
         display: inline-block;}
     #METABOOKCOVER div.loginbox form input[TYPE="TEXT"]:focus {
-        width: 100%; max-width: 100%; z-index: 100;}}
+        width: 100%; max-width: 100%; z-index: 100;}
+    #METABOOKCONSOLE #METABOOKCONSOLEINPUT { margin-left: 1em; }
+    #METABOOKCONSOLE #METABOOKCONSOLEINPUT textarea { width: 70%;}
+}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -4053,7 +4056,7 @@ form.metabooksettings div.checkspans .checkspan.ischecked {
 form.metabooksettings div.fontsizes span.label {
     line-height: 1;}
 form.metabooksettings div.fontsizes button {
-    margin-bottom: 1ex;}
+    margin-bottom: 1ex; margin-top: 0.5ex;}
 form.metabooksettings div.fontsizes span.checkspan {
     border-bottom: transparent solid 3px;}
 form.metabooksettings div.fontsizes span.checkspan span.sample {
@@ -4141,6 +4144,12 @@ div.fdjtdialog.fdjtconfirm.mbsettings div.message {
     form.metabooksettings>div.fontsizes {
         font-size: 14px;}
 
+}
+
+@media only screen and (max-width: 650px) {
+    form.metabooksettings>div.fontsizes span.samples { font-size: 100%; }
+    form.metabooksettings .button, form.metabooksettings button {
+        font-size: 1rem;}
 }
 
 
@@ -8027,6 +8036,8 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
     background-color: rgba(255,255,240,0.5);}
 #METABOOKSHOWCOVER {
     background-color: gray; color: white;}
+@media screen and (max-width: 640px) {
+    #METABOOKSHOWCOVER { color: transparent; }}
 
 /* skimmer.css */
 

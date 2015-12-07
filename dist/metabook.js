@@ -40273,8 +40273,8 @@ fdjt.CodexLayout.sourcehash='FF56E386AAD788A997CF5477BA94BB849B1E8580';
 Knodule.version='v0.8-155-g9a698e9';
 // sBooks metaBook build information
 metaBook.version='v0.8-200-gd53ea4b';
-metaBook.buildid='dbd74b86-da7d-4f9c-9d87-e7db7be4206a';
-metaBook.buildtime='Mon Dec  7 14:26:52 EST 2015';
+metaBook.buildid='dca9df2f-50a0-4246-b0d9-a10a4b04432d';
+metaBook.buildtime='Mon Dec  7 14:52:37 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
