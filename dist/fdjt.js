@@ -7756,12 +7756,15 @@ fdjt.DOM=
             wstyle.width=wstyle.height="100%";
             w=wrapper.offsetWidth; h=wrapper.offsetHeight;
             wstyle.width=wstyle.height="";
+            wstyle.maxWidth=wstyle.maxHeight="100%";
+            w=wrapper.offsetWidth; h=wrapper.offsetHeight;
             size=adjustWrapperFont(
                 wrapper,10,false,size,min,max,w,h,fudge,dolog);
             size=adjustWrapperFont(
                 wrapper,5,false,size,min,max,w,h,fudge,dolog);
             size=adjustWrapperFont(
                 wrapper,1,false,size,min,max,w,h,fudge,dolog);
+            wstyle.maxWidth=wstyle.maxHeight="";
             node.style.display=node_display;
             if (size===100) {
                 if (dolog)
@@ -16144,8 +16147,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1528-g7393626';
+fdjt.revision='1.5-1532-g296420c';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Nov 20 11:23:35 EST 2015';
-fdjt.builduuid='4f9dabf4-0e06-4398-a7b0-57cf800c0800';
+fdjt.buildtime='Mon Dec 7 13:44:40 EST 2015';
+fdjt.builduuid='6b2832e4-780c-44c5-9b43-e9aba8b448b8';
 
