@@ -3504,7 +3504,7 @@ body.mbREADY.mbLAYOUT #METABOOKCOVERMESSAGE { display: block;}
 
 #METABOOKCOVERCONTROLS {
     white-space: nowrap;
-    font-size: 20px; font-size: 1.5rem; font-size: 5vw;}
+    font-size: 24px; font-size: 1.5rem; font-size: 3vw;}
 
 #METABOOKCOVERCONTROLS {
     box-sizing: border-box;
@@ -3910,6 +3910,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
         width: 100%; max-width: 100%; z-index: 100;}
     #METABOOKCONSOLE #METABOOKCONSOLEINPUT { margin-left: 1em; }
     #METABOOKCONSOLE #METABOOKCONSOLEINPUT textarea { width: 70%;}
+    #METABOOKCOVERCONTROLS {font-size: 5vw; white-space: wrap;}
 }
 
 /* Emacs local variables

@@ -39941,7 +39941,7 @@ metaBook.HTML.cover=
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "  <iframe name=\"BOOKHUBAPP\" id=\"BOOKHUBAPP\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
     "</div>\n"+
-    "<div id=\"METABOOKCOVERCONTROLS\" \n"+
+    "<div id=\"METABOOKCOVERCONTROLS\" class=\"adjustfonts\" \n"+
     "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;\">\n"+
     "  <span class=\"control\" data-mode=\"coverpage\" title=\"see the cover\"\n"+
     "        tabindex=\"1\">\n"+
@@ -40272,9 +40272,9 @@ fdjt.CodexLayout.sourcehash='FF56E386AAD788A997CF5477BA94BB849B1E8580';
 
 Knodule.version='v0.8-155-g9a698e9';
 // sBooks metaBook build information
-metaBook.version='v0.8-200-gd53ea4b';
-metaBook.buildid='dca9df2f-50a0-4246-b0d9-a10a4b04432d';
-metaBook.buildtime='Mon Dec  7 14:52:37 EST 2015';
+metaBook.version='v0.8-201-g2f42d20';
+metaBook.buildid='a1e202cb-cbff-4e1a-bc75-0295e05ce6de';
+metaBook.buildtime='Mon Dec  7 15:14:29 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
