@@ -1,7 +1,7 @@
 #!/usr/bin/env fdexec
 ;;; -*- Mode: Scheme; -*-
 (use-module
- '{logger logctl texttools sbooks aws/s3 gpath mttools varconfig})
+ '{logger logctl texttools aws/s3 gpath mttools varconfig})
 
 (define %loglevel %notice%)
 (logctl! 'aws/s3 %notice%)
