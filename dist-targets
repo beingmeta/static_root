@@ -2,6 +2,8 @@ s3://beingmeta/static/
 s3://bookhubio/static/
 s3://static.bookhub.io/
 s3://bookhub-static/
+s3://bkhub/static/
+s3://opendocs/static/
 s3://pubtool/static/
 s3://bemeta/static/
 s3://bestatic/
@@ -19,4 +21,3 @@ s3://beingmeta-eu-west/static/
 s3://beingmeta-oz/static/
 s3://beingmeta-asia-japan/static/
 s3://beingmeta-asia-south/static/
-
