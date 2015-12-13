@@ -1070,10 +1070,7 @@ body.taptouch {}
     border: 0px !important;}
 .fdjtselecting {
      user-select: none;
-    -o-user-select: none;
-    -moz-user-select: none;
-    -webkit-tap-highlight-color: rgba(0,0,0,0.5);
-    -webkit-user-select: none;}
+    -webkit-tap-highlight-color: rgba(0,0,0,0.5);}
 .fdjtselectwrap {}
 .fdjtselectwrap {background-color: rgba(247, 247, 124, 0.25);}
 
@@ -1238,8 +1235,6 @@ div.fdjtpage .fdjtpageinfo span.pct {
     pointer-events: all;
     cursor: text;}
 div.fdjtpage .fdjtpageinfo span.pct span.value {
-    -webkit-user-select: text;
-    -moz-select: text;
     user-select: text;}
 div.fdjtpage div.fdjtpageinfo span.count { display: none;}
 div.fdjtpage div.fdjtpageinfo span.count strong {
@@ -1506,7 +1501,6 @@ dfn {
  */
 
 hr {
-    -moz-box-sizing: content-box;
     box-sizing: content-box;
     height: 0;
 }
@@ -1811,21 +1805,12 @@ div.codexpage.codexworkpage {
     pointer-events: none !important;
     z-index: -250 !important;
     opacity: 0.0 !important;
-    -o-opacity: 0.0 !important;
-    -moz-opacity: 0.0 !important;
-    -webkit-opacity: 0.0 !important;
-    transition-property: none !important;
-    -o-transition-property: none !important;
-    -moz-transition-property: none !important;
-    -webkit-transition-property: none !important;}
+    transition-property: none !important;}
 
 body.debugcodexlayout div.codexpage.codexworkpage {
     visibility: visible !important;
     z-index: inherit !important;
-    opacity: 1.0 !important;
-    -o-opacity: 1.0 !important;
-    -moz-opacity: 1.0 !important;
-    -webkit-opacity: 1.0 !important;}
+    opacity: 1.0 !important;}
  
 div.codexpage h1.codexpagetop, div.codexpage h2.codexpagetop,
 div.codexpage h3.codexpagetop, div.codexpage h4.codexpagetop,
@@ -1846,8 +1831,7 @@ div.codexpage img {
     max-height: 90%; max-width: 90%; width: auto; height: auto;}
 div.codexpage div.fdjtadjusted {
     position: absolute; width: 100%; height: 100%;
-    box-sizing: border-box; -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;}
+    box-sizing: border-box;}
 
 .codexfullpage {
    page-break-before: always; page-break-after: always;
