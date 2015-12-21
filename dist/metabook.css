@@ -2571,7 +2571,7 @@ div.fdjtdialog.fdjtconfirm.metabooktaptap div.choices {
 /* Custom dialog rules */
 
 div.fdjtdialog.savegloss {
-    top: 0px; left: 50px; right: 50px; height: 2em;
+    top: 0px; left: 50px; right: 50px; height: 3.5em;
     border-top: 0px; border-radius: 1ex;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
@@ -2584,7 +2584,7 @@ div.fdjtdialog.savegloss div.choices {
     margin-top: 0px; padding-top: 3px;
     text-align: right;}
 div.fdjtdialog.savegloss div.choices button {
-    font-weight: bold; }
+    font-weight: bold; margin-top: 0.5ex;}
 div.fdjtdialog.savegloss.closing .countdown {
     display: inline-block;}
 div.fdjtdialog.savegloss .message {
@@ -2750,8 +2750,9 @@ body._ANIMATE div.mbpagecontrol {
     transition-property: opacity,background-color;
     transition-duration: 0.2s;}
 
-body.mbSKIMMING div.mbpagecontrol {
-    opacity: 0.4;}
+body.mbSKIMMING div.mbpagecontrol,
+body.mbSKIMMING #METABOOKMENU {
+    opacity: 0.6;}
 body.mbSKIMMING.hudup div.mbpagecontrol,
 html._MOUSE body.hudup div.mbpagecontrol:hover {
     opacity: 0.8; }
@@ -4190,7 +4191,7 @@ html._TOUCH #METABOOKHUD .metabookslice {
     border-width: 2px;}
 body.hudup #METABOOKHUD.openhead #METABOOKHEAD {
     background-color: rgba(141,168,191, 0.8);
-    max-height: 100px; height: auto;}
+    max-height: 50%; height: auto;}
 body.hudup #METABOOKHUD.openheart.openhead #METABOOKHEAD {
     min-height: 60px;}
 body.hudup #METABOOKHEAD .hudpanel {background-color: transparent;}
@@ -5153,8 +5154,12 @@ body.openhud #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT,
 body.mbSKIMMING #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT {
     /* display: block; */}
 body.hudup.mbPREVIEW #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT,
-body.hudup.mbSHOWHELP #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT {
+body.hudup.mbSHOWHELP #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT,
+body.hudup.mbSHOWHELP #METABOOKHUD #METABOOKFOOT #METABOOKPAGEBAR,
+body.openhud.mbSHOWHELP #METABOOKHUD #METABOOKFOOT #METABOOKPAGEBAR {
     display: none;}
+body.mbSHOWHELP #METABOOKHUD #METABOOKFOOT #METABOOKPAGEBAR {
+    opacity: 0.5;}
 
 #METABOOKHUD.splash #METABOOKFOOT #METABOOKSHOWTEXT,
 #METABOOKHUD.gotopage #METABOOKFOOT #METABOOKSHOWTEXT,
@@ -5613,10 +5618,6 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 #METABOOKHUD #METABOOKHELP {}
 #METABOOKHUD div.helpbox {}
 
-#METABOOKHUDHELP div.helpbox {
-    overflow: hidden;
-    font-size: 1rem;}
-
 div.helpbox p {
     margin-top: 1ex; margin-bottom: 1ex;
     margin-left: 1em; margin-right: 1em;
@@ -5649,19 +5650,12 @@ html._TOUCH #METABOOKHUD .helpbox {
 img.inlineright { float: right; max-height: 2em;}
 
 body.mbSHOWHELP #METABOOKHELPCONTENT { z-index: 500; }
-body.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
-    background-color: silver; border-color: black;
-    opacity: 0.9;}
 
 #METABOOKHELP h1 {
     font-size: 1.3em; text-align: center;}
 
-body.hudup.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
-    background-color: silver; border-color: black;}
-
 div.helpbox {
     position: absolute;
-    background-color: silver; color: black;
     padding: 1ex; padding-top: 0.5ex; border: solid transparent 3px;
     border-radius: 1ex;
     z-index: -250;
@@ -5692,11 +5686,10 @@ div#METABOOKHUDHELP {
     border-bottom-right-radius: 0px;
     display: none;}
 
-div#METABOOKHUDHELP div.helpbox {
-    position: static;
-    border: 0px; 
-    border-radius: 0px;
-    padding: 0px;}
+#METABOOKHUDHELP div.helpbox {
+    position: static; overflow: auto; font-size: 1rem;
+    border: 0px; border-radius: 0px;
+    padding: 0px; padding-bottom: 1em;}
 
 body.mbSHOWHELP #METABOOKHUDHELP,
 body.mbSHOWHELP #METABOOKHUD.addgloss #METABOOKHUDHELP { 
@@ -5707,8 +5700,7 @@ body.mbSHOWHELP.hudup #METABOOKFOOT #METABOOKPAGEBAR {opacity: 0.1;}
 body.mbSHOWHELP.mbNOMODE #METABOOKHUDHELP {
     display: none;}
 
-#METABOOKHUD div.helpbox {
-    border-color: black; z-index: 250;}
+#METABOOKHUD div.helpbox {z-index: 250;}
 body.mbSHOWHELP #METABOOKHUD .hudtip,
 body.mbSHOWHELP #METABOOKHUD .hudbutton {
     opacity: 0.5;}
@@ -5741,7 +5733,7 @@ body.mbSHOWHELP #METABOOKHUD.expandsearch #METABOOKSEARCHINPUTHELP.helpbox,
 body.mbSHOWHELP #METABOOKHUD.searchresults #METABOOKSEARCHRESULTSHELP.helpbox,
 body.mbSHOWHELP #METABOOKHUD.allglosses #METABOOKALLGLOSSESHELP.helpbox,
 body.mbSHOWHELP #METABOOKHUD.statictoc #METABOOKSTATICTOCHELP.helpbox {
-    border-color: black; z-index: 500; display: block; opacity: 0.9;
+    z-index: 500; display: block; opacity: 0.9;
     display: block;}
 
 body.mbSHOWHELP.mbSKIMMING #METABOOKHUD.searchresults
@@ -5761,7 +5753,7 @@ body.mbSHOWHELP.mbSKIMMING #METABOOKHUD.allglosses
 #METABOOKHUD.gotopage #METABOOKGOTOPAGEHELP.helpbox,
 #METABOOKHUD.gotoloc #METABOOKGOTOLOCHELP.helpbox,
 #METABOOKHUD.gotoref #METABOOKGOTOREFHELP.helpbox {
-    border-color: black; z-index: 260; opacity: 0.9; }
+    z-index: 260; opacity: 0.9; }
 
 body.mbSHOWHELP.mbPREVIEW #METABOOKHUD #METABOOKHUDHELP {
     opacity: 0.05;}
@@ -5772,7 +5764,6 @@ body.mbSHOWHELP.openglossmark #METABOOKPOINTGLOSSES {
 div.helpbox p {}
 
 div.helpbox h3, div.helpbox h2 { margin-top: 0px;}
-div.helpbox .clicktarget { color: lightblue; }
 div.helpbox img.screenshot {
     width: 80%; margin-left: 10%; margin-right: 10%;}
 div.helpbox img.screenshot.right {
@@ -5873,39 +5864,15 @@ span.metabooktogglehelp {
 body.NOSVG span.metabooktogglehelp {
     background-image: url(g/metabook/hide_help64x64.png);}
 
-div.metabookhelp td {
-    color: rgba(0,0,0,0.75);}
-
 div.metabookhelp h1 {
     margin-top: 3px !important;
     margin-bottom: 1.5ex !important;
     padding-top: 0px !important;}
 
-div.metabookhelp .action {
-    color: darkblue;}
 div.metabookhelp .result {
-    font-style: italic; color: rgba(0,0,0,1);}
+    font-style: italic;}
 div.metabookhelp td dfn {
     color: rgba(0,0,0,1);}
-div.metabookhelp > table, div.metabookhelp > div > table {
-    margin-left: 2%; margin-right: 2%; width: 96%;
-    margin-top: 1em;}
-div.metabookhelp table th, div.metabookhelp table td {
-    padding-bottom: 0px; padding-top: 0px;}
-div.metabookhelp table th { padding-right: 0.5ex;}
-div.metabookhelp table th img {
-    background-color: rgba(141,168,191, 0.5); padding: 0px;
-    height: 3em; width: auto;
-    vertical-align: top;}
-div.metabookhelp table tbody tr:first-child th,
-div.metabookhelp table tbody tr:first-child td {
-    padding-top: 1ex; }
-div.metabookhelp table table {
-    margin-left: 2%; margin-right: 2%;}
-div.metabookhelp table td.icon { width: 32px;}
-div.metabookhelp table td.icon img { width: 32px;}
-div.metabookhelp table td.textleft { text-align: left;}
-div.metabookhelp table td.textright { text-align: right;}
 
 div.metabookhelp .result span { display: none; }
 
@@ -5940,9 +5907,7 @@ div#METABOOKHELP {
     padding: 0px;
     padding-right: 1ex; padding-right: 2vw;
     padding-left: 1ex; padding-left: 2vw;
-    background-color: lightgray; color: black;
     border-radius: 1ex;
-    border: solid gray 4px;
     opacity: 0.98;
     display: none;}
 #METABOOKHUD #METABOOKHELP.hudpanel { overflow: auto;}
@@ -5959,8 +5924,10 @@ div#METABOOKHELP {
 .metabookhelp p img.floatleft, .metabookhelp p img.floatright {
   max-width: 20%; max-height: 3em; width: auto; height: auto;}
 
-.metabookhelp .fdjtselected {
+.metabookhelp .fdjtselected,
+.helpbox .fdjtselected {
     background-color: rgba(255,255,0,0.7); }
+.helpbox .fdjtselectstart, .helpbox .fdjtselectend,
 .metabookhelp .fdjtselectstart, .metabookhelp .fdjtselectend {
     background-color: rgba(255,215,0,0.7); }
 
@@ -6080,12 +6047,11 @@ div.metabookslice input[TYPE="TEXT"] {
 div.metabookslice div.metabookcard {
     margin-left: 20px;}
 div.metabookslice div.metabookcard.skimpoint {
-    margin-left: 10px; padding-left: 10px;
-    border-left-color: darkblue;}
+    margin-left: 10px; padding-left: 10px; padding-bottom: 1ex;
+    border-left-color: darkblue;
+    font-size: 110%;}
 div.metabookslice.sourced div.metabookcard { display: none;}
 div.metabookslice.sourced div.metabookcard.sourced { display: block;}
-div.metabookslice div.metabookcard.skimpoint {
-    font-size: 120%;}
 
 div.metabookslice.onepassage .tocblock .tochead {display:none;}
 
@@ -6539,6 +6505,9 @@ body._ANIMATE #METABOOKSKIMMER {
 #METABOOKSKIMMER .metabookcardbody {
     border-bottom-left-radius: 1ex;
     border-bottom-right-radius: 1ex;}
+#METABOOKSKIMMER .metabookcard,
+#METABOOKSKIMMER .tochead {
+    border-left: 0px;}
 
 body._ANIMATE #METABOOKSKIMMER.transanimate {
     transition-property: transform; 
@@ -7257,9 +7226,6 @@ div.metabookglossform.focused .glossetc .excerpt {
 div.metabookglossform.private .checkspan.postgloss {
     display: none;}
 
-body.hudup div.metabookglossform form .excerpt {
-    display: inline-block; }
-
 div.metabookglossform .checkspan.postgloss {}
 div.metabookglossform .checkspan.postgloss input[type='checkbox'] {
     vertical-align: bottom; height: 1em; width: 1em;}
@@ -7964,7 +7930,9 @@ body.mbMEDIA #METABOOKMEDIA #METABOOKMEDIATARGET {
     background-color: rgba(141,168,191, 0.9);
     border-color: rgba(70, 130, 180, 0.54);}
 
-body.hudup #METABOOKSKIMMER,
+body.hudup #METABOOKSKIMMER {
+    background-color: hsla(0, 44%, 90%, 0.7);}
+
 body #METABOOKHUD.openhead.addgloss #METABOOKHEAD, 
 body.hudup #METABOOKHUD.openhead #METABOOKHEAD {
     background-color: rgba(141,168,191, 0.95);}
@@ -8160,11 +8128,24 @@ body.hudup.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
 div.helpbox {
     background-color: silver; color: black;}
 #METABOOKHUD .hudtip {
-    background-color: rgba(141,168,191, 0.5);}
-div.metabookhelp table th img {
-    background-color: rgba(141,168,191, 0.5);}
+    background-color: rgba(141,168,191, 0.8);}
 div#METABOOKHELP {
-    background-color: lightgray; color: black;}
+    background-color: lightgray; color: black;
+    border: solid gray 4px;}
+
+body.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
+    background-color: silver; border-color: black;
+    opacity: 0.9;}
+body.hudup.mbSHOWHELP #METABOOKHUD img.hudbutton#METABOOKHELPBUTTON {
+    background-color: silver; border-color: black;}
+
+div.helpbox {
+    background-color: silver; color: black;
+    border-color: blue;}
+div.helpbox .clicktarget { color: lightblue; }
+
+div.metabookhelp .action {color: darkblue;}
+div.metabookhelp .result {color: rgba(0,0,0,1);}
 
 .metabookhelp .fdjtselected {
     background-color: rgba(255,255,0,0.7); }
@@ -8180,11 +8161,11 @@ div#METABOOKHELP {
 /* search.css */
 
 div.resultinfo .stats > span {
-    background-color: white;}
+    background-color: silver;}
 #METABOOKHUD.refinesearch div.resultinfo span.refinecount, 
 #METABOOKHUD.expandsearch div.resultinfo span.showalltags,
 #METABOOKHUD.searchresults div.resultinfo span.resultcount {
-    font-weight: bold; background-color: silver; cursor: default;}
+    font-weight: bold; background-color: white; cursor: default;}
 
 /* settings.css */
 

@@ -29258,7 +29258,8 @@ metaBook.Slice=(function () {
         this.live=false; this.needupdate=false;
         this.addCards(cards);
         if (metaBook.touch) opts.packthresh=40;
-        if ((cards)&&(cards.length)) this.update();
+        if ((cards)&&(cards.length)&&(container.parentNode))
+            this.update();
         return this;}
 
     MetaBookSlice.prototype.setLive=function setSliceLive(flag){
@@ -32407,6 +32408,7 @@ metaBook.setMode=
             metaBook.qstring="";
             return;}
         else dropClass(metaBook.HUD,"emptysearch");
+        mB.empty_cloud.complete("");
         var qstring=query.getString();
         if (qstring!==metaBook.qstring) {
             displayQuery(query,$ID("METABOOKSEARCH"));
@@ -35224,6 +35226,7 @@ metaBook.setMode=
     var submitEvent=fdjtUI.submitEvent;
     var noDefault=fdjt.UI.noDefault;
     var cancel=fdjt.UI.cancel;
+    var noBubble=fdjt.UI.noBubble;
 
     var reticle=fdjtUI.Reticle;
 
@@ -36140,8 +36143,16 @@ metaBook.setMode=
         else if (kc===38) {  /* arrow up */
             setHUD(false);
             metaBook.pageBackward(evt);}
-        else if (kc===37) metaBook.skimBackward(evt); /* arrow left */
-        else if (kc===39) metaBook.skimForward(evt); /* arrow right */
+        else if (kc===37) {  /* arrow left */
+            if ((mB.mode)&&(!(mB.skimming))&&
+                (pagers[metaBook.mode]))
+                showPage.fastBackward(pagers[metaBook.mode]);                
+            else metaBook.skimBackward(evt);}
+        else if (kc===39) {  /* arrow right */
+            if ((mB.mode)&&(!(mB.skimming))&&
+                (pagers[metaBook.mode]))
+                showPage.fastForward(pagers[metaBook.mode]);                
+            else metaBook.skimForward(evt);}
         // Don't interrupt text input for space, etc
         else if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
         else if (kc===32) { // Space
@@ -36814,7 +36825,7 @@ metaBook.setMode=
             ((target.tagName==="INPUT")&&
              (target.type.search(fdjtDOM.text_input_types)>=0))) {
             target.focus();
-            cancel(evt);}
+            noBubble(evt);}
         else if ((target.tagName==="A")&&(target.href)) {
             var href=target.href;
             if (href[0]==='#') {
@@ -39052,7 +39063,9 @@ metaBook.HTML.hud=
     "    </div>\n"+
     "    <div class=\"resultinfo notags noresults\" id=\"METABOOKSEARCHINFO\">\n"+
     "      <span class=\"noresults\">No results</span>\n"+
-    "      <span class=\"noquery\">Add tags to see or refine results</span>\n"+
+    "      <span class=\"noquery\">\n"+
+    "        <span class=\"fortouch\">Tap</span> <span class=\"notouch\">Click</span>\n"+
+    "        tags or start typing to begin a search</span>\n"+
     "      <span class=\"stats\">\n"+
     "        <span class=\"resultcount metabookshowsearch\"></span>\n"+
     "        <span class=\"refinecount metabookrefinesearch\"></span>\n"+
@@ -39474,16 +39487,17 @@ metaBook.HTML.help=
 metaBook.HTML.hudhelp=
     "<div id=\"METABOOKADDGLOSSHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
-    "    Add your own gloss</h2>\n"+
+    "    Add your own gloss to a passage</h2>\n"+
     "  <p><strong class=\"fortouch\">Tap</strong>\n"+
-    "    <strong class=\"notouch\">Click</strong> or <strong>drag and\n"+
-    "    release</strong> the menu button\n"+
-    "    <img src=\"{{bmg}}metabook/downmenu.svgz\"\n"+
-    "         onerror=\"this.src='{{bmg}}metabook/downmenu64x64.png\" class=\"inline'\"\n"+
-    "         style=\"border: solid black 1px; padding: 0px;\"/> for more\n"+
-    "    options.</p>\n"+
+    "    <strong class=\"notouch\">Click</strong>\n"+
+    "    or <strong><span class=\"fortouch\">touch</span> \n"+
+    "      <span class=\"notouch\">press</span> and drag</strong> the menu\n"+
+    "    button <img src=\"{{bmg}}metabook/downmenu.svgz\"\n"+
+    "    onerror=\"this.src='{{bmg}}metabook/downmenu64x64.png\"\n"+
+    "    class=\"inline\" style=\"border: solid black 1px; padding: 0px;\"/>\n"+
+    "    for more options (<strong>release</strong> to select).</p>\n"+
     "  <p><img src=\"{{bmg}}metabook/remark.svgz\"\n"+
-    "          onerror=\"this.src='{{bmg}}metabook/remark64x64.png\" class=\"screengrab'\"\n"+
+    "          onerror=\"this.src='{{bmg}}metabook/remark64x64.png\" class=\"screengrab\"\n"+
     "          alt=\"the balloon icon\"/> Type your comments in the input\n"+
     "          box, ending with <kbd>Enter</kbd> and using\n"+
     "    <kbd>Shift-Enter</kbd> to insert a newline.  Specify **bold** or\n"+
@@ -39497,6 +39511,14 @@ metaBook.HTML.hudhelp=
     "    <strong>Add simple tags</strong> as <tt>#tag</tt> or even\n"+
     "    &ldquo;<tt>#compound tag</tt>,&rdquo; pressing <kbd>Enter</kbd>\n"+
     "    when done.</p>\n"+
+    "  <p><strong><span class=\"fortouch\">Tap</span> \n"+
+    "      <span class=\"notouch\">Click</span> the passage</strong> to\n"+
+    "    show or hide the gloss form; press and drag the \n"+
+    "    <span class=\"fdjtselected\"><span class=\"fdjtselectstart\">ends</span>\n"+
+    "      of the <span class=\"fdjtselectend\">highlight</span></span> to change\n"+
+    "    it.  <strong><span class=\"fortouch\">Tap</span>\n"+
+    "      <span class=\"notouch\">Click</span> anywhere else</strong> to close\n"+
+    "    the gloss (and save or discard your changes).</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKGLOSSATTACHHELP\" class=\"helpbox\">\n"+
     "  <p><img src=\"{{bmg}}metabook/diaglink.svgz\"\n"+
@@ -39685,26 +39707,28 @@ metaBook.HTML.hudhelp=
     "    class=\"screengrab\"/> or by simply entering more text.  Co-tags are\n"+
     "    tags which occur among the current search results; all tags are\n"+
     "    all tags used throughout the book.</p>\n"+
-    "  <p class=\"notouch\">Use the space and backspace keys to move through\n"+
-    "    the list of results page-by-page; combine with the shift key to\n"+
-    "    move in larger increments. The <strong>percentage\n"+
+    "  <p class=\"notouch\">Use <strong>the space and backspace keys</strong>\n"+
+    "    to move through the list of results page-by-page; <strong>combine\n"+
+    "    with the shift key</strong> or use the <strong>arrow keys</strong>\n"+
+    "    to move in larger increments. Use the <strong>percentage\n"+
     "    indicator</strong> <img src=\"{{bmg}}/metabook/pagecontrol.png\"\n"+
-    "    class=\"inlineright\"/>at the bottom of the listing can be edited to\n"+
-    "    move anywhere in the list of results.</p>\n"+
-    "  <p class=\"fortouch\">Swipe left or right to move page-by-page through\n"+
-    "    the search results; swipe with two fingers to move in larger\n"+
-    "    increments.  The <strong>percentage indicator</strong>\n"+
+    "    class=\"inlineright\"/> to move page-by-page or to enter a specific\n"+
+    "    percentage (just click on the number).</p>\n"+
+    "  <p class=\"fortouch\"><strong>Swipe left or right</strong> to move\n"+
+    "    page-by-page through the search results; <strong>swipe with two\n"+
+    "    fingers</strong> to move in larger increments.  Use\n"+
+    "    the <strong>percentage indicator</strong>\n"+
     "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
-    "    at the bottom of the listing can be edited to move anywhere in the\n"+
-    "    list of results.</p>\n"+
-    "  <p><span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> a search result to jump to that\n"+
-    "    part of the book and begin <span>skimming</span> through the\n"+
-    "    search results starting at that point.</p>\n"+
-    "  <p><span class=\"notouch\">Hold the mouse button down\n"+
-    "      on</span><span class=\"fortouch\">Press and hold</span> a result\n"+
-    "      to see it in in context; release to return to the list of\n"+
-    "      results.</p>\n"+
+    "    to move page-by-page or to enter a specific percentage (just tap\n"+
+    "    on the number).</p>\n"+
+    "  <p><strong><span class=\"fortouch\">Tap</span>\n"+
+    "    <span class=\"notouch\">Click</span> a search result</strong> to\n"+
+    "    jump to that part of the book and begin <span>skimming</span>\n"+
+    "    through the search results starting at that point.</p>\n"+
+    "  <p><strong><span class=\"notouch\">Hold the mouse button down\n"+
+    "      on</span><span class=\"fortouch\">Press and hold</span> a\n"+
+    "      result</strong> to preview the result in in its context;\n"+
+    "      <strong>release</strong> to return to the list of results.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKALLGLOSSESHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
@@ -39720,52 +39744,59 @@ metaBook.HTML.hudhelp=
     "    sources.</p>\n"+
     "  <p class=\"notouch\">The <strong>space and backspace keys</strong>\n"+
     "    move through the list of glosses page-by-page; combine them with\n"+
-    "    the shift key to move in larger increments. The <strong>percentage\n"+
-    "    indicator</strong> <img src=\"{{bmg}}/metabook/pagecontrol.png\"\n"+
-    "    class=\"inlineright\"/> at the bottom of the listing can be edited\n"+
-    "    to move anywhere in the list of glosses.</p>\n"+
-    "  <p class=\"fortouch\">Swipe left or right to move page-by-page through\n"+
-    "    the glosses; swipe with two fingers to move in larger increments.\n"+
-    "    The <strong>percentage indicator</strong>\n"+
+    "    the shift key or use the <strong>arrow keys</strong> to move in\n"+
+    "    larger increments. Use the <strong>percentage indicator</strong>\n"+
     "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
-    "    at the bottom of the listing can be edited to move anywhere in the\n"+
-    "    list of glosses.</p>\n"+
+    "    to move page-by-page or to enter a specific percentage (just click\n"+
+    "    on the number).</p>\n"+
+    "  <p class=\"fortouch\"><strong>Swipe left or right</strong> to move\n"+
+    "    page-by-page through the glosses; <strong>swipe with two\n"+
+    "    fingers</strong> to move in larger increments.  Use\n"+
+    "    the <strong>percentage indicator</strong>\n"+
+    "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
+    "    to move page-by-page or to enter a specific percentage (just tap\n"+
+    "    on the number).</p>\n"+
     "  <p><span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> a search result to jump to that\n"+
-    "    part of the book and begin <span>skimming</span> through the\n"+
+    "    <span class=\"notouch\">Click</span> a particular gloss to jump to\n"+
+    "    that part of the book and begin <span>skimming</span> through the\n"+
     "    displayed glosses starting at that point.</p>\n"+
     "  <p><span class=\"notouch\">Hold the mouse button down\n"+
-    "      on</span><span class=\"fortouch\">Press and hold</span> a result\n"+
-    "    to see it in in context; release to return to the list of\n"+
-    "    results.</p>\n"+
+    "      on</span><span class=\"fortouch\">Press and hold</span> a a gloss\n"+
+    "      to see it in in context; <strong>release</strong> to return to the list of\n"+
+    "      glosses.</p>\n"+
     "</div>\n"+
     "<div id=\"METABOOKSTATICTOCHELP\" class=\"helpbox\">\n"+
     "  <h2><span class=\"metabooktogglehelp\">Ok</span>\n"+
     "    The Table of Contents</h2>\n"+
-    "  <p>The <strong>table of contents</strong> displays a hierarchical\n"+
-    "    map of your book created by the author or publisher.  Red lines\n"+
-    "    indicate your current reading location; the light-colored bars\n"+
-    "    indicate the subsection's size and position within its parent.</p>\n"+
-    "  <p class=\"notouch\">Use the space and backspace keys to move through\n"+
-    "    the outline page-by-page; combine with the shift key to move in\n"+
-    "    larger increments. The <strong>percentage indicator</strong>\n"+
+    "  <p>The <strong>table of contents</strong> (TOC) displays a\n"+
+    "    hierarchical map of your book created by the author or publisher.\n"+
+    "    Red lines indicate your current reading location; the\n"+
+    "    light-colored bars indicate the subsection's size and position\n"+
+    "    within its parent.</p>\n"+
+    "  <p class=\"notouch\">Use <strong>the space and backspace keys</strong>\n"+
+    "    to move through the TOC page-by-page; <strong>combine with the\n"+
+    "    shift key</strong> or use the <strong>arrow keys</strong> to move\n"+
+    "    in larger increments. You can also use the <strong>percentage\n"+
+    "    indicator</strong> <img src=\"{{bmg}}/metabook/pagecontrol.png\"\n"+
+    "    class=\"inlineright\"/> to move page-by-page or enter a specific\n"+
+    "    percentage (just click on the number).</p>\n"+
+    "  <p class=\"fortouch\"><strong>Swipe left or right</strong> to move\n"+
+    "    page-by-page through the TOC; <strong>swipe with two\n"+
+    "    fingers</strong> to move in larger increments.  You can also use\n"+
+    "    the <strong>percentage indicator</strong>\n"+
     "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
-    "    at the bottom of the listing can be edited to move to a specific\n"+
-    "    percentage.</p>\n"+
-    "  <p class=\"fortouch\">Swipe left or right to move page-by-page through\n"+
-    "    the glosses; swipe with two fingers to move in larger increments.\n"+
-    "    The <strong>percentage indicator</strong>\n"+
-    "    <img src=\"{{bmg}}/metabook/pagecontrol.png\" class=\"inlineright\"/>\n"+
-    "    at the bottom of the listing can be edited to move to a specific\n"+
-    "    percentage.</p>\n"+
-    "  <p><span class=\"fortouch\">Tap</span>\n"+
-    "    <span class=\"notouch\">Click</span> a line in the TOC to jump to\n"+
-    "    that section.  You'll start <em>skimming</em> through the table of\n"+
-    "    contents while seeing the content of the book.</p>\n"+
-    "  <p><span class=\"notouch\">Hold the mouse button down\n"+
-    "      on</span><span class=\"fortouch\">Press and hold</span> an entry\n"+
-    "      to see the content without leaving the table of contents.\n"+
-    "      Release to return.</p>\n"+
+    "    to move forward or backward or to enter a specific percentage\n"+
+    "    (just tap on the number).</p>\n"+
+    "  <p><strong><span class=\"fortouch\">Tap</span>\n"+
+    "    <span class=\"notouch\">Click</span> a line</strong> in the TOC to\n"+
+    "    jump to that section.  You'll start <em>skimming</em> through the\n"+
+    "    table of contents while seeing the content of the book.</p>\n"+
+    "  <p><strong>\n"+
+    "      <span class=\"notouch\">Hold the mouse button down\n"+
+    "        on</span><span class=\"fortouch\">Press and hold</span> a TOC\n"+
+    "        line</strong> to preview the section without leaving the table\n"+
+    "        of contents.  <strong>Release</strong> to return to the TOC\n"+
+    "        listing.</p>\n"+
     "</div>\n"+
     "\n"+
     "<!--\n"+
@@ -40284,9 +40315,9 @@ fdjt.CodexLayout.sourcehash='FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2';
 
 Knodule.version='v0.8-155-g9a698e9';
 // sBooks metaBook build information
-metaBook.version='v0.8-209-g0cdcf2c';
-metaBook.buildid='04f9f536-9246-4f76-957b-731446338824';
-metaBook.buildtime='Sun Dec 20 19:35:21 EST 2015';
+metaBook.version='v0.8-219-g1bffe09';
+metaBook.buildid='ec1e6599-24be-4343-8dfa-c1cfa38bf2a7';
+metaBook.buildtime='Mon Dec 21 09:58:56 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
