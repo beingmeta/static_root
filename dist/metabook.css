@@ -2750,7 +2750,9 @@ body._ANIMATE div.mbpagecontrol {
     transition-property: opacity,background-color;
     transition-duration: 0.2s;}
 
-body.mbSKIMMING div.mbpagecontrol,
+body.mbSKIMMING div.mbpagecontrol {
+    opacity: 0.4;}
+body.mbSKIMMING.hudup div.mbpagecontrol,
 html._MOUSE body.hudup div.mbpagecontrol:hover {
     opacity: 0.8; }
 
@@ -6078,9 +6080,12 @@ div.metabookslice input[TYPE="TEXT"] {
 div.metabookslice div.metabookcard {
     margin-left: 20px;}
 div.metabookslice div.metabookcard.skimpoint {
-    margin-left: 10px; padding-left: 10px;}
+    margin-left: 10px; padding-left: 10px;
+    border-left-color: darkblue;}
 div.metabookslice.sourced div.metabookcard { display: none;}
 div.metabookslice.sourced div.metabookcard.sourced { display: block;}
+div.metabookslice div.metabookcard.skimpoint {
+    font-size: 120%;}
 
 div.metabookslice.onepassage .tocblock .tochead {display:none;}
 
@@ -6128,15 +6133,15 @@ div.tochead {
     position: relative; /* width: 100%; */
     border-top: solid black 2px; border-bottom: solid black 4px;
     text-align: left; vertical-align: middle;}
-div.tochead { background-color: whitesmoke; color: blue; }
+div.tochead { background-color: whitesmoke; color: darkblue; }
 div.tochead span.spacer, div.idhead span.spacer {
     font-size: 125%; font-weight: bold; font-style: italic;}
 div.tochead .paratext {
     color: darkblue; font-style: italic; padding-left: 5px;}
 div.tochead span.head {
-    font-size: 80%; padding-left: 5px; opacity: 0.75;}
+    font-size: 90%; padding-left: 5px;}
 div.tochead span.headtext {
-    white-space: nowrap; font-size: 90%;}
+    white-space: nowrap; vertical-align: top;}
 div.tochead hr {
     min-width: 3px;
     border: none; border-right: solid gold 1px; border-left: solid gold 1px;
@@ -6600,12 +6605,12 @@ body.hudup #METABOOKSKIMMER div.metabookcardbody {font-size: 100%;}
 body.hudup #METABOOKSKIMMER div.metabookcardbody img.button {
     display: inline-block;}
 
-#METABOOKSKIMMER div.metabookcard.gloss > div.tochead,
+#METABOOKSKIMMER div.metabookcard.gloss div.tochead,
 #METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody {
     margin-left: 50px;}
 #METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody {
     padding-left: 4px;}
-#METABOOKSKIMMER div.metabookcard.gloss  > div.tochead {
+#METABOOKSKIMMER div.metabookcard.gloss div.tochead {
     padding-left: 0px;}
 #METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody img.glosspic,
 #METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody .sourcepic {
@@ -6637,9 +6642,12 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER .controller,
 body.hudup #METABOOKHUD #METABOOKSKIMMER span.whencollapsed {
     display: none;}
 
+#METABOOKSKIMMER div.tochead, #METABOOKSKIMMER div.idhead {
+    border-bottom: solid black 1px;}
+
 #METABOOKSKIMMER div.metabookcard,
-#METABOOKSKIMMER div.metabookcard > div.tochead,
-#METABOOKSKIMMER div.metabookcard > div.idhead {
+#METABOOKSKIMMER div.metabookcard div.tochead,
+#METABOOKSKIMMER div.metabookcard div.idhead {
     margin-left: 0px;}
 #METABOOKSKIMMER div.metabookcard {
     min-height: 50px;}
@@ -6694,17 +6702,18 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
 
 div.metabookcard {
     margin-left: 20px; margin-right: 0px;
+    border-left: transparent solid 1px;
     box-sizing: border-box;}
-div.metabookcard > div.idhead, div.metabookcard > div.tochead {
+div.metabookcard > div.idhead, div.metabookcard div.tochead {
     max-height: 3ex; white-space: nowrap;
     text-overflow: ellipsis; overflow: hidden;
     line-height: 100%;}
 
-div.metabookcard > div.idhead { margin-left: -10px;}
-div.metabookcard > div.tochead { margin-left: -20px; }
+div.metabookcard div.idhead { margin-left: -10px;}
+div.metabookcard div.tochead { margin-left: -20px; }
 
-#METABOOKHUD.openglossmark div.metabookcard > div.idhead { display: none;}
-#METABOOKHUD.openglossmark div.metabookcard > div.tochead { display: none;}
+#METABOOKHUD.openglossmark div.metabookcard div.idhead { display: none;}
+#METABOOKHUD.openglossmark div.metabookcard div.tochead { display: none;}
 
 /* Sbook notes */
 
@@ -8188,8 +8197,10 @@ form.metabooksettings .button.exit {
 
 /* slices.css */
 
+body.hudup #METABOOKSKIMMER div.metabookcard,
 div.metabookslice div.skimpoint {
-    background-color: hsla(207,44%,90%,0.7);}
+    /* background-color: hsla(207,44%,90%,0.7); */
+    background-color: hsla(0, 44%, 90%, 0.7);}
 div.metabooksources img.button.everyone.selected { background-color: silver; }
 div.metabooksources img.button.source.selected,
 div.metabooksources div.button.source.selected {

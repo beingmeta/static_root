@@ -5285,7 +5285,7 @@ fdjt.DOM=
         fdjtDOM.tP=toggleParent;
 
         var text_input_types=
-            fdjtDOM.text_input_types=/text|url|email|search|password/i;
+            fdjtDOM.text_input_types=/text|url|email|search|tel|number|range|password/i;
         function isTextInput(target){
             return (((target.tagName==='INPUT')&&
                      (target.type.search(text_input_types)===0))||
@@ -14089,6 +14089,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
     var noDefault=fdjtUI.noDefault;
     // var cancel=fdjtUI.cancel;
     var eTarget=fdjtUI.T;
+    var isTextInput=fdjtDOM.isTextInput;
 
     var cleared=0;
     var serial_count=1;
@@ -14588,6 +14589,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 x=x+hot_xoff; y=y+hot_yoff;
                 target=document.elementFromPoint(x,y);}
             else target=eTarget(evt);
+            if ((target)&&(isTextInput(target))) return;
             var delta=(Math.abs(x-touch_x))+(Math.abs(y-touch_y));
             var dt=fdjtET()-touch_t;
             if ((trace>2)||(traceall>2))
@@ -14741,6 +14743,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             var target=(((hot_xoff)||(hot_yoff))?
                         (document.elementFromPoint(touch_x,touch_y)):
                         (eTarget(evt)));
+            if ((target)&&(isTextInput(target))) return;
             if (!(touch_n)) touch_n=n_touches; else
                 if (n_touches>touch_n) touch_n=n_touches;
             if ((!(bubble))) noBubble(evt);
@@ -14838,6 +14841,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 abortpress(evt,"up");
                 return;}
             var target=eTarget(evt);
+            if ((target)&&(isTextInput(target))) return;
             if ((!(bubble))) noBubble(evt);
             if (override) noDefault(evt);
             var holder=getParent(target,".tapholder");
@@ -16147,6 +16151,6 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 // FDJT build information
 fdjt.revision='1.5-1537-gbdda232';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun Dec 13 14:47:30 EST 2015';
-fdjt.builduuid='15285354-f6e7-4a72-bd6f-f73d6e5912d4';
+fdjt.buildtime='Sun Dec 20 17:55:54 EST 2015';
+fdjt.builduuid='3e6bea37-ad17-42b5-849a-c03d799d7d73';
 

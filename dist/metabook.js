@@ -6452,7 +6452,7 @@ fdjt.DOM=
         fdjtDOM.tP=toggleParent;
 
         var text_input_types=
-            fdjtDOM.text_input_types=/text|url|email|search|password/i;
+            fdjtDOM.text_input_types=/text|url|email|search|tel|number|range|password/i;
         function isTextInput(target){
             return (((target.tagName==='INPUT')&&
                      (target.type.search(text_input_types)===0))||
@@ -15256,6 +15256,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
     var noDefault=fdjtUI.noDefault;
     // var cancel=fdjtUI.cancel;
     var eTarget=fdjtUI.T;
+    var isTextInput=fdjtDOM.isTextInput;
 
     var cleared=0;
     var serial_count=1;
@@ -15755,6 +15756,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 x=x+hot_xoff; y=y+hot_yoff;
                 target=document.elementFromPoint(x,y);}
             else target=eTarget(evt);
+            if ((target)&&(isTextInput(target))) return;
             var delta=(Math.abs(x-touch_x))+(Math.abs(y-touch_y));
             var dt=fdjtET()-touch_t;
             if ((trace>2)||(traceall>2))
@@ -15908,6 +15910,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             var target=(((hot_xoff)||(hot_yoff))?
                         (document.elementFromPoint(touch_x,touch_y)):
                         (eTarget(evt)));
+            if ((target)&&(isTextInput(target))) return;
             if (!(touch_n)) touch_n=n_touches; else
                 if (n_touches>touch_n) touch_n=n_touches;
             if ((!(bubble))) noBubble(evt);
@@ -16005,6 +16008,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 abortpress(evt,"up");
                 return;}
             var target=eTarget(evt);
+            if ((target)&&(isTextInput(target))) return;
             if ((!(bubble))) noBubble(evt);
             if (override) noDefault(evt);
             var holder=getParent(target,".tapholder");
@@ -24517,14 +24521,19 @@ metaBook.DOMScan=(function(){
                         fdjtLog("Finding head@%d: s=%o, i=%j, sh=%o, cmp=%o",
                                 scanlevel,scan||false,scaninfo,
                                 (scanlevel<level));
-                    if (scanlevel<=level) break;
+                    if (scanlevel<level) break;
                     else if (scaninfo===rootinfo) break;
+                    else if ((scaninfo.head)&&(scaninfo.head.level)&&
+                             (scaninfo.head.level>=level)) {
+                        // The head hierarchy is really messed up, so 
+                        // don't keep iterating.
+                        fdjtLog.warn("Corrupted TOCINFO at %o",head);
+                        break;}
                     else if (level===scanlevel) {
                         headinfo.prev=scaninfo;
                         scaninfo.next=headinfo;}
                     scaninfo.ends_at=scanstate.location;
                     scanstate.tagstack=scanstate.tagstack.slice(0,-1);
-                    if (level===scanlevel) break;
                     scaninfo=scaninfo.head;
                     scan=scaninfo.elt||document.getElementById(scaninfo.frag);
                     scanlevel=((scaninfo)?(scaninfo.level):(0));}
@@ -29471,6 +29480,9 @@ metaBook.Slice=(function () {
 
     MetaBookSlice.prototype.setLocation=function setSliceLocation(location){
         var cards=this.cards; var i=0, lim=cards.length, last_card=false;
+        if ((this.skimpos)&&(this.cards[this.skimpos])&&
+            ((this.cards[this.skimpos].location)===location))
+            return;
         while (i<lim) {
             var card=cards[i];
             if (typeof card.location !== "number") {i++; continue;}
@@ -36293,10 +36305,14 @@ metaBook.setMode=
                     setMode("allglosses"); return;}
                 else if (mode==="statictoc") {
                     setMode("statictoc"); return;}}
-            if ((hasClass(document.body,"mbSKIMMING"))&&(mode_live))
-                mB.stopSkimming();
-            else if (mode_live) setMode(false,true);
-            else setMode(mode);}
+            if (mode_live) {
+                if (hasClass(document.body,"mbSKIMMING"))
+                    mB.stopSkimming();
+                else setMode(false,true);}
+            else {
+                if (hasClass(document.body,"mbSKIMMING"))
+                    mB.stopSkimming();
+                setMode(mode);}}
         else if (evt.type==="hold") 
             addClass(document.body,"_HOLDING");
         else dropClass(document.body,"_HOLDING");}
@@ -40260,17 +40276,17 @@ metaBook.HTML.settings=
 // FDJT build information
 fdjt.revision='1.5-1537-gbdda232';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun Dec 13 14:47:30 EST 2015';
-fdjt.builduuid='15285354-f6e7-4a72-bd6f-f73d6e5912d4';
+fdjt.buildtime='Sun Dec 20 17:55:54 EST 2015';
+fdjt.builduuid='3e6bea37-ad17-42b5-849a-c03d799d7d73';
 
 fdjt.CodexLayout.sourcehash='FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2';
 
 
 Knodule.version='v0.8-155-g9a698e9';
 // sBooks metaBook build information
-metaBook.version='v0.8-203-gea14082';
-metaBook.buildid='88562d54-e09d-4001-ad29-2848ec6cba22';
-metaBook.buildtime='Sun Dec 13 14:47:42 EST 2015';
+metaBook.version='v0.8-209-g0cdcf2c';
+metaBook.buildid='04f9f536-9246-4f76-957b-731446338824';
+metaBook.buildtime='Sun Dec 20 19:35:21 EST 2015';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

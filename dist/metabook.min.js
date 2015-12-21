@@ -4912,7 +4912,7 @@ fdjt.DOM = function() {
         };
     }, fdjtDOM.swapClass = swapClass, fdjtDOM.setClass = setClass, fdjtDOM.toggleClass = toggleClass, 
     fdjtDOM.tC = toggleClass, fdjtDOM.toggleParent = toggleParent, fdjtDOM.tP = toggleParent;
-    var text_input_types = fdjtDOM.text_input_types = /text|url|email|search|password/i;
+    var text_input_types = fdjtDOM.text_input_types = /text|url|email|search|tel|number|range|password/i;
     fdjtDOM.isTextInput = isTextInput;
     var selectors = {};
     Selector.prototype.match = function(elt) {
@@ -8488,39 +8488,44 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             pressed && cleared > start_t) return abortpress(evt, "move/cleared"), void 0;
             if ((touched || pressed) && !mouse_down) return abortpress(evt, "move/up"), void 0;
             var x = evt.clientX || getClientX(evt, touch_x, touch_y), y = evt.clientY || getClientY(evt, touch_x, touch_y), distance = pressed ? xyd(x, y, target_x, target_y) : xyd(x, y, start_x, start_y);
-            evt.touches || hot_xoff || hot_yoff ? (x += hot_xoff, y += hot_yoff, target = document.elementFromPoint(x, y)) : target = eTarget(evt);
-            var delta = Math.abs(x - touch_x) + Math.abs(y - touch_y), dt = fdjtET() - touch_t;
-            if ((trace > 2 || traceall > 2) && fdjtLog("TapHold/move(%s) s=%d,%d tt=%d,%d t=%d,%d c=%d,%d d=%d thresh=%o, dt=%o md=%o, pressed=%o, touched=%o, event=%o target=%o", thid, start_x, start_y, target_x, target_y, touch_x, touch_y, x, y, distance, movethresh, dt, mouse_down, pressed, touched, evt, target), 
-            !target) return touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
-            void 0;
-            var holder = getParent(target, ".tapholder");
-            return holder !== elt ? ((trace > 2 || traceall > 2) && trace_ignore_move(evt, thid, elt, holder, th_target, target, start_x, start_y, target_x, target_y, touch_x, touch_y), 
-            th_target && ((trace || traceall) && fdjtLog("setWanderTimeout(%s): h=%o!=elt=%o", thid, holder, elt), 
-            wander_timer = setTimeout(function() {
-                abortpress(evt, "taphold_wander_timeout");
-            }, wanderthresh), pressed && (noslip || slipped(pressed, evt, {
-                relatedTarget: !1
-            }), setTarget(!1))), void 0) : (wander_timer && (clearTimeout(wander_timer), wander_timer = !1, 
-            (trace > 2 || traceall > 2) && fdjtLog("Wander return(%s) %o pressed=%o, target=%o", thid, evt, pressed, th_target), 
-            pressed && !th_target && (setTarget(pressed), held(pressed, evt))), touched || pressed ? movethresh && th_timer && distance > movethresh ? ((trace > 1 || traceall > 1) && fdjtLog("TapHold/move/cancel(%s) s=%d,%d tt=%d,%d t=%d,%d c=%d,%d d=%d thresh=%o, dt=%o md=%o, event=%o", thid, start_x, start_y, target_x, target_y, touch_x, touch_y, x, y, distance, movethresh, dt, mouse_down, evt), 
-            abortpress(evt, "movefar"), th_timer && clearTimeout(th_timer), pressed_at = touched = th_timer = pressed = !1, 
-            th_targets = [], !swipe_t && !no_swipe && min_swipe > 0 && xyd(start_x, start_y, x, y) > min_swipe && swiped(target, evt, start_x, start_y, x, y), 
-            setTarget(!1), touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
-            void 0) : 10 * minmove > delta && dt > 0 && minmove > delta / dt ? ((trace > 2 || traceall > 2) && fdjtLog("TapHold/move/ignore(%s) s=%d,%d t=%d,%d c=%d,%d dt=%o total=%d/%o, local=%d/%o/%o, thresh=%o md=%o", thid, start_x, start_y, touch_x, touch_y, x, y, dt, distance, movethresh, delta, delta / dt, minmove, mouse_down), 
-            touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
-            void 0) : ((trace > 2 || traceall > 2) && fdjtLog("TapHold/move(%s) s=%d,%d t=%d,%d c=%d,%d dt=%o total=%d/%o, local=%d/%o/%o, md=%o", thid, start_x, start_y, touch_x, touch_y, x, y, dt, distance, movethresh, delta, minmove, delta / dt, mouse_down), 
-            touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
-            target = getParent(target, touchable), evt.touches && evt.touches.length && evt.touches.length > maxtouches || (reticle.live && reticle.onmousemove(evt, touch_x, touch_y), 
-            target || (target = getRealTarget(elt, touchable, touch_x, touch_y)), target && (hasParent(target, ".tapholder") && !noslip && setTarget(target), 
-            evt.touches && touched && !pressed && th_targets[th_targets.length - 1] !== th_target && th_targets.push(th_target), 
-            mouse_down ? pressed && th_target !== pressed && !hasParent(th_target, pressed) && !hasParent(pressed, th_target) && noslip ? ((trace > 1 || traceall > 1) && fdjtLog("TapHold/move(%s) endpress pressed=%o tt=%o %o", thid, pressed, th_target, evt), 
-            endpress(evt)) : pressed && th_target !== pressed && (noslip || slipped(pressed, evt, {
-                relatedTarget: target
-            }), pressed = th_target, pressed_at = pressed ? fdjtET() : !1, held(pressed)) : (noslip || slipped(pressed, evt, {
-                relatedTarget: target
-            }), pressed_at = pressed = !1))), void 0) : (!swipe_t && !no_swipe && min_swipe > 0 && xyd(start_x, start_y, x, y) > min_swipe && swiped(target, evt, start_x, start_y, x, y), 
-            touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
-            void 0));
+            if (evt.touches || hot_xoff || hot_yoff ? (x += hot_xoff, y += hot_yoff, target = document.elementFromPoint(x, y)) : target = eTarget(evt), 
+            !target || !isTextInput(target)) {
+                var delta = Math.abs(x - touch_x) + Math.abs(y - touch_y), dt = fdjtET() - touch_t;
+                if ((trace > 2 || traceall > 2) && fdjtLog("TapHold/move(%s) s=%d,%d tt=%d,%d t=%d,%d c=%d,%d d=%d thresh=%o, dt=%o md=%o, pressed=%o, touched=%o, event=%o target=%o", thid, start_x, start_y, target_x, target_y, touch_x, touch_y, x, y, distance, movethresh, dt, mouse_down, pressed, touched, evt, target), 
+                !target) return touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
+                void 0;
+                var holder = getParent(target, ".tapholder");
+                if (holder !== elt) return (trace > 2 || traceall > 2) && trace_ignore_move(evt, thid, elt, holder, th_target, target, start_x, start_y, target_x, target_y, touch_x, touch_y), 
+                th_target && ((trace || traceall) && fdjtLog("setWanderTimeout(%s): h=%o!=elt=%o", thid, holder, elt), 
+                wander_timer = setTimeout(function() {
+                    abortpress(evt, "taphold_wander_timeout");
+                }, wanderthresh), pressed && (noslip || slipped(pressed, evt, {
+                    relatedTarget: !1
+                }), setTarget(!1))), void 0;
+                if (wander_timer && (clearTimeout(wander_timer), wander_timer = !1, (trace > 2 || traceall > 2) && fdjtLog("Wander return(%s) %o pressed=%o, target=%o", thid, evt, pressed, th_target), 
+                pressed && !th_target && (setTarget(pressed), held(pressed, evt))), !touched && !pressed) return !swipe_t && !no_swipe && min_swipe > 0 && xyd(start_x, start_y, x, y) > min_swipe && swiped(target, evt, start_x, start_y, x, y), 
+                touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
+                void 0;
+                if (movethresh && th_timer && distance > movethresh) return (trace > 1 || traceall > 1) && fdjtLog("TapHold/move/cancel(%s) s=%d,%d tt=%d,%d t=%d,%d c=%d,%d d=%d thresh=%o, dt=%o md=%o, event=%o", thid, start_x, start_y, target_x, target_y, touch_x, touch_y, x, y, distance, movethresh, dt, mouse_down, evt), 
+                abortpress(evt, "movefar"), th_timer && clearTimeout(th_timer), pressed_at = touched = th_timer = pressed = !1, 
+                th_targets = [], !swipe_t && !no_swipe && min_swipe > 0 && xyd(start_x, start_y, x, y) > min_swipe && swiped(target, evt, start_x, start_y, x, y), 
+                setTarget(!1), touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
+                void 0;
+                if (10 * minmove > delta && dt > 0 && minmove > delta / dt) return (trace > 2 || traceall > 2) && fdjtLog("TapHold/move/ignore(%s) s=%d,%d t=%d,%d c=%d,%d dt=%o total=%d/%o, local=%d/%o/%o, thresh=%o md=%o", thid, start_x, start_y, touch_x, touch_y, x, y, dt, distance, movethresh, delta, delta / dt, minmove, mouse_down), 
+                touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
+                void 0;
+                (trace > 2 || traceall > 2) && fdjtLog("TapHold/move(%s) s=%d,%d t=%d,%d c=%d,%d dt=%o total=%d/%o, local=%d/%o/%o, md=%o", thid, start_x, start_y, touch_x, touch_y, x, y, dt, distance, movethresh, delta, minmove, delta / dt, mouse_down), 
+                touch_x = x, touch_y = y, touch_t = fdjtET(), touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, 
+                target = getParent(target, touchable), evt.touches && evt.touches.length && evt.touches.length > maxtouches || (reticle.live && reticle.onmousemove(evt, touch_x, touch_y), 
+                target || (target = getRealTarget(elt, touchable, touch_x, touch_y)), target && (hasParent(target, ".tapholder") && !noslip && setTarget(target), 
+                evt.touches && touched && !pressed && th_targets[th_targets.length - 1] !== th_target && th_targets.push(th_target), 
+                mouse_down ? pressed && th_target !== pressed && !hasParent(th_target, pressed) && !hasParent(pressed, th_target) && noslip ? ((trace > 1 || traceall > 1) && fdjtLog("TapHold/move(%s) endpress pressed=%o tt=%o %o", thid, pressed, th_target, evt), 
+                endpress(evt)) : pressed && th_target !== pressed && (noslip || slipped(pressed, evt, {
+                    relatedTarget: target
+                }), pressed = th_target, pressed_at = pressed ? fdjtET() : !1, held(pressed)) : (noslip || slipped(pressed, evt, {
+                    relatedTarget: target
+                }), pressed_at = pressed = !1)));
+            }
         }
         function trace_ignore_move(evt, thid, elt, holder, th_target, target, start_x, start_y, target_x, target_y, touch_x, touch_y) {
             fdjtLog("TapHold/move%s/farout(%s) %o %o -> %o s=%d,%d tt=%d,%d t=%d,%d", mouse_down ? "/md" : "", thid, evt, th_target, target, start_x, start_y, target_x, target_y, touch_x, touch_y), 
@@ -8533,54 +8538,58 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
                 touch_y = (evt.clientY || getClientY(evt) || touch_y) + hot_yoff, start_x = target_x = touch_x, 
                 start_y = target_y = touch_y, target_t = touch_t = fdjtET();
                 var target = hot_xoff || hot_yoff ? document.elementFromPoint(touch_x, touch_y) : eTarget(evt);
-                touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, bubble || noBubble(evt), 
-                override && noDefault(evt);
-                var new_event = !1, holder = getParent(target, ".tapholder");
-                if ((trace > 1 || traceall > 1) && fdjtLog("TapHold/down(%s) %o tht=%o target=%o holder=%o elt=%o", thid, evt, th_target, target, holder, elt), 
-                holder !== elt) return (trace > 1 || traceall > 1) && fdjtLog("TapHold/ignore(%s) %o tht=%o t=%o h=%o elt=%o", thid, evt, th_target, target, holder, elt), 
-                void 0;
-                if (target && (target = getParent(target, touchable)), scrolling && evt.touches && maxtouches >= evt.touches.length && (scroll_x >= 0 && (scroll_x = scrolling.scrollLeft + (evt.touches[0].pageX - window.pageXOffset)), 
-                scroll_y >= 0 && (scroll_y = scrolling.scrollLeft + (evt.touches[0].pageY - window.pageYOffset))), 
-                evt.touches && (target = document.elementFromPoint(touch_x, touch_y)), (trace > 1 || traceall > 1) && fdjtLog("TapHold/down2(%s) %o tht=%o trg=%o s=%o,%o,%o t=%o,%o m=%o tch=%o prs=%o ttt=%o", thid, evt, th_target, target, start_x, start_y, start_t, touch_x, touch_y, mouse_down, touched, pressed, taptapmsecs || !1), 
-                evt.touches && th_target) {
-                    var cur_holder = getParent(elt, ".tapholder"), touch = evt.changedTouches[0];
-                    if ((trace > 1 || traceall > 1) && fdjtLog("TapHold(%s) second touch on %o (in %o) after %o (in %o)", thid, target, holder, th_target, cur_holder, cur_holder === holder), 
-                    touchtoo && cur_holder === holder) return (trace > 1 || traceall > 1) && fdjtLog("TapHold(%s) touchtoo with touchtoo on %o after %o: %o", thid, target, th_target, evt), 
-                    touchtoo.call ? (touchtoo.call(th, evt), void 0) : (new_event = document.createEvent("UIEvent"), 
-                    new_event.initUIEvent("touchtoo", !0, !0, window, 0), new_event.screenX = touch.screenX, 
-                    new_event.screenY = touch.screenY, new_event.clientX = touch.clientX, new_event.clientY = touch.clientY, 
-                    new_event.ctrlKey = evt.ctrlKey, new_event.altKey = evt.altKey, new_event.shiftKey = evt.shiftKey, 
-                    new_event.metaKey = evt.metaKey, new_event.touches = document.createTouchList(touch), 
-                    new_event.targetTouches = document.createTouchList(touch), new_event.changedTouches = document.createTouchList(touch), 
-                    target.dispatchEvent(new_event), void 0);
-                    cur_holder && holder && cur_holder !== holder && ((trace > 1 || traceall > 1) && fdjtLog("TapHold(%s) Clearing on %o, moving %o to %o", thid, th_target, evt, target), 
-                    new_event = document.createEvent("TouchEvent"), new_event.initTouchEvent(evt.type, !0, !0, window, null, touch.screenX, touch.screenY, touch.clientX, touch.clientY, evt.ctrlKey, evt.altKey, evt.shiftKey, evt.metaKey, document.createTouchList(touch), document.createTouchList(touch), document.createTouchList(touch)));
+                if (!target || !isTextInput(target)) {
+                    touch_n ? n_touches > touch_n && (touch_n = n_touches) : touch_n = n_touches, bubble || noBubble(evt), 
+                    override && noDefault(evt);
+                    var new_event = !1, holder = getParent(target, ".tapholder");
+                    if ((trace > 1 || traceall > 1) && fdjtLog("TapHold/down(%s) %o tht=%o target=%o holder=%o elt=%o", thid, evt, th_target, target, holder, elt), 
+                    holder !== elt) return (trace > 1 || traceall > 1) && fdjtLog("TapHold/ignore(%s) %o tht=%o t=%o h=%o elt=%o", thid, evt, th_target, target, holder, elt), 
+                    void 0;
+                    if (target && (target = getParent(target, touchable)), scrolling && evt.touches && maxtouches >= evt.touches.length && (scroll_x >= 0 && (scroll_x = scrolling.scrollLeft + (evt.touches[0].pageX - window.pageXOffset)), 
+                    scroll_y >= 0 && (scroll_y = scrolling.scrollLeft + (evt.touches[0].pageY - window.pageYOffset))), 
+                    evt.touches && (target = document.elementFromPoint(touch_x, touch_y)), (trace > 1 || traceall > 1) && fdjtLog("TapHold/down2(%s) %o tht=%o trg=%o s=%o,%o,%o t=%o,%o m=%o tch=%o prs=%o ttt=%o", thid, evt, th_target, target, start_x, start_y, start_t, touch_x, touch_y, mouse_down, touched, pressed, taptapmsecs || !1), 
+                    evt.touches && th_target) {
+                        var cur_holder = getParent(elt, ".tapholder"), touch = evt.changedTouches[0];
+                        if ((trace > 1 || traceall > 1) && fdjtLog("TapHold(%s) second touch on %o (in %o) after %o (in %o)", thid, target, holder, th_target, cur_holder, cur_holder === holder), 
+                        touchtoo && cur_holder === holder) return (trace > 1 || traceall > 1) && fdjtLog("TapHold(%s) touchtoo with touchtoo on %o after %o: %o", thid, target, th_target, evt), 
+                        touchtoo.call ? (touchtoo.call(th, evt), void 0) : (new_event = document.createEvent("UIEvent"), 
+                        new_event.initUIEvent("touchtoo", !0, !0, window, 0), new_event.screenX = touch.screenX, 
+                        new_event.screenY = touch.screenY, new_event.clientX = touch.clientX, new_event.clientY = touch.clientY, 
+                        new_event.ctrlKey = evt.ctrlKey, new_event.altKey = evt.altKey, new_event.shiftKey = evt.shiftKey, 
+                        new_event.metaKey = evt.metaKey, new_event.touches = document.createTouchList(touch), 
+                        new_event.targetTouches = document.createTouchList(touch), new_event.changedTouches = document.createTouchList(touch), 
+                        target.dispatchEvent(new_event), void 0);
+                        cur_holder && holder && cur_holder !== holder && ((trace > 1 || traceall > 1) && fdjtLog("TapHold(%s) Clearing on %o, moving %o to %o", thid, th_target, evt, target), 
+                        new_event = document.createEvent("TouchEvent"), new_event.initTouchEvent(evt.type, !0, !0, window, null, touch.screenX, touch.screenY, touch.clientX, touch.clientY, evt.ctrlKey, evt.altKey, evt.shiftKey, evt.metaKey, document.createTouchList(touch), document.createTouchList(touch), document.createTouchList(touch)));
+                    }
+                    if (new_event) return abortpress(evt, "down/touch2"), target.dispatchEvent(new_event), 
+                    void 0;
+                    setTarget(target), th_targets = [], start_t = fdjtET(), (trace > 1 || traceall > 1) && fdjtLog("TapHold/down3(%s) %o t=%o x=%o y=%o t=%o touched=%o", thid, evt, th_target, start_x, start_y, start_t, touched), 
+                    untouchable && untouchable(evt) || touched || startpress(evt, holdmsecs);
                 }
-                if (new_event) return abortpress(evt, "down/touch2"), target.dispatchEvent(new_event), 
-                void 0;
-                setTarget(target), th_targets = [], start_t = fdjtET(), (trace > 1 || traceall > 1) && fdjtLog("TapHold/down3(%s) %o t=%o x=%o y=%o t=%o touched=%o", thid, evt, th_target, start_x, start_y, start_t, touched), 
-                untouchable && untouchable(evt) || touched || startpress(evt, holdmsecs);
             }
         }
         function taphold_up(evt) {
             if (evt = evt || window.event, mouse_down = !1, cleared > start_t) return abortpress(evt, "up"), 
             void 0;
             var target = eTarget(evt);
-            bubble || noBubble(evt), override && noDefault(evt);
-            var holder = getParent(target, ".tapholder");
-            if (holder !== elt) return (trace > 1 || traceall > 1) && fdjtLog("TapHold/up/ignore(%s) %o tht=%o target=%o holder=%o elt=%o", thid, evt, th_target, target, holder, elt), 
-            void 0;
-            if (target && (target = getParent(target, touchable)), touch_x = (evt.clientX || getClientX(evt) || touch_x) + hot_xoff, 
-            touch_y = (evt.clientY || getClientY(evt) || touch_y) + hot_yoff, touch_t = fdjtET(), 
-            (!target || hot_xoff || hot_yoff) && (target = getRealTarget(elt, touchable, touch_x, touch_y)), 
-            (trace > 1 || traceall > 1) && fdjtLog("TapHold/up(%s) %o tht=%o d=%o s=%o,%o,%o t=%o,%o m=%o touched=%o pressed=%o ttt=%o swipe_t=%o", thid, evt, th_target, xyd(start_x, start_y, touch_x, touch_y), start_x, start_y, start_t, touch_x, touch_y, mouse_down, touched, pressed, taptapmsecs, swipe_t), 
-            !(evt.changedTouches && evt.changedTouches.length && evt.changedTouches.length > maxtouches)) {
-                var swipe_len = swipe_t ? 0 : xyd(start_x, start_y, touch_x, touch_y);
-                if (touched || pressed) {
-                    if (untouchable && untouchable(evt)) return;
-                    endpress(evt);
-                } else !(min_swipe > 0 && swipe_len > min_swipe) || no_swipe || touched && touched === elt || pressed && pressed === elt ? (touched || pressed) && (untouchable && untouchable(evt) || endpress(evt)) : swiped(target, evt, start_x, start_y, touch_x, touch_y);
-                cleartouch();
+            if (!target || !isTextInput(target)) {
+                bubble || noBubble(evt), override && noDefault(evt);
+                var holder = getParent(target, ".tapholder");
+                if (holder !== elt) return (trace > 1 || traceall > 1) && fdjtLog("TapHold/up/ignore(%s) %o tht=%o target=%o holder=%o elt=%o", thid, evt, th_target, target, holder, elt), 
+                void 0;
+                if (target && (target = getParent(target, touchable)), touch_x = (evt.clientX || getClientX(evt) || touch_x) + hot_xoff, 
+                touch_y = (evt.clientY || getClientY(evt) || touch_y) + hot_yoff, touch_t = fdjtET(), 
+                (!target || hot_xoff || hot_yoff) && (target = getRealTarget(elt, touchable, touch_x, touch_y)), 
+                (trace > 1 || traceall > 1) && fdjtLog("TapHold/up(%s) %o tht=%o d=%o s=%o,%o,%o t=%o,%o m=%o touched=%o pressed=%o ttt=%o swipe_t=%o", thid, evt, th_target, xyd(start_x, start_y, touch_x, touch_y), start_x, start_y, start_t, touch_x, touch_y, mouse_down, touched, pressed, taptapmsecs, swipe_t), 
+                !(evt.changedTouches && evt.changedTouches.length && evt.changedTouches.length > maxtouches)) {
+                    var swipe_len = swipe_t ? 0 : xyd(start_x, start_y, touch_x, touch_y);
+                    if (touched || pressed) {
+                        if (untouchable && untouchable(evt)) return;
+                        endpress(evt);
+                    } else !(min_swipe > 0 && swipe_len > min_swipe) || no_swipe || touched && touched === elt || pressed && pressed === elt ? (touched || pressed) && (untouchable && untouchable(evt) || endpress(evt)) : swiped(target, evt, start_x, start_y, touch_x, touch_y);
+                    cleartouch();
+                }
             }
         }
         function taphold_cancel(evt) {
@@ -8689,7 +8698,7 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         return "number" == typeof flag ? traceall = flag : flag && (traceall = default_opts.traceall || 2), 
         cur;
     }
-    var fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, fdjtET = fdjt.ET, traceall = 0, window_setup = !1, default_opts = {}, getChildren = fdjtDOM.getChildren, addClass = fdjtDOM.addClass, dropClass = fdjtDOM.dropClass, hasClass = fdjtDOM.hasClass, getParent = fdjtDOM.getParent, hasParent = fdjtDOM.hasParent, reticle = fdjtUI.Reticle, noBubble = fdjtUI.noBubble, noDefault = fdjtUI.noDefault, eTarget = fdjtUI.T, cleared = 0, serial_count = 1, keynums = {
+    var fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, fdjtET = fdjt.ET, traceall = 0, window_setup = !1, default_opts = {}, getChildren = fdjtDOM.getChildren, addClass = fdjtDOM.addClass, dropClass = fdjtDOM.dropClass, hasClass = fdjtDOM.hasClass, getParent = fdjtDOM.getParent, hasParent = fdjtDOM.hasParent, reticle = fdjtUI.Reticle, noBubble = fdjtUI.noBubble, noDefault = fdjtUI.noDefault, eTarget = fdjtUI.T, isTextInput = fdjtDOM.isTextInput, cleared = 0, serial_count = 1, keynums = {
         shift: 16,
         alt: 18,
         control: 17,
@@ -12296,10 +12305,15 @@ var metaBook = {
             scanstate.lastinfo.next = headinfo, delete scanstate.lastlevel, delete scanstate.lasthead, 
             delete scanstate.lastinfo); else {
                 for (var scan = curhead, scaninfo = curinfo, scanlevel = curinfo.level; scaninfo && (Trace.domscan > 2 && fdjtLog("Finding head@%d: s=%o, i=%j, sh=%o, cmp=%o", scanlevel, scan || !1, scaninfo, level > scanlevel), 
-                !(level >= scanlevel)) && scaninfo !== rootinfo && (level === scanlevel && (headinfo.prev = scaninfo, 
-                scaninfo.next = headinfo), scaninfo.ends_at = scanstate.location, scanstate.tagstack = scanstate.tagstack.slice(0, -1), 
-                level !== scanlevel); ) scaninfo = scaninfo.head, scan = scaninfo.elt || document.getElementById(scaninfo.frag), 
-                scanlevel = scaninfo ? scaninfo.level : 0;
+                !(level > scanlevel)) && scaninfo !== rootinfo; ) {
+                    if (scaninfo.head && scaninfo.head.level && scaninfo.head.level >= level) {
+                        fdjtLog.warn("Corrupted TOCINFO at %o", head);
+                        break;
+                    }
+                    level === scanlevel && (headinfo.prev = scaninfo, scaninfo.next = headinfo), scaninfo.ends_at = scanstate.location, 
+                    scanstate.tagstack = scanstate.tagstack.slice(0, -1), scaninfo = scaninfo.head, 
+                    scan = scaninfo.elt || document.getElementById(scaninfo.frag), scanlevel = scaninfo ? scaninfo.level : 0;
+                }
                 Trace.domscan > 2 && fdjtLog("Found parent: up=%o, info=%o, leel=%d, sh=%o", scan || !1, scaninfo, scaninfo.level, scaninfo.head), 
                 headinfo.head = scaninfo, headinfo.indexRef("head", scaninfo), scaninfo.sub.push(headinfo);
             }
@@ -14632,7 +14646,8 @@ var metaBook = {
         return card ? 0 > (pos = this.shown.indexOf(card)) && (pos = this.visible.indexOf(card)) : pos = this.skimpos, 
         pos >= 0 ? this.visible[pos] : !1;
     }, MetaBookSlice.prototype.setLocation = function(location) {
-        for (var cards = this.cards, i = 0, lim = cards.length, last_card = !1; lim > i; ) {
+        var cards = this.cards, i = 0, lim = cards.length, last_card = !1;
+        if (!this.skimpos || !this.cards[this.skimpos] || this.cards[this.skimpos].location !== location) for (;lim > i; ) {
             var card = cards[i];
             if ("number" == typeof card.location) {
                 if (card.location === location) return this.setSkim(card), void 0;
@@ -17803,7 +17818,8 @@ var metaBook = {
                     if ("allglosses" === mode) return setMode("allglosses"), void 0;
                     if ("statictoc" === mode) return setMode("statictoc"), void 0;
                 }
-                hasClass(document.body, "mbSKIMMING") && mode_live ? mB.stopSkimming() : mode_live ? setMode(!1, !0) : setMode(mode);
+                mode_live ? hasClass(document.body, "mbSKIMMING") ? mB.stopSkimming() : setMode(!1, !0) : (hasClass(document.body, "mbSKIMMING") && mB.stopSkimming(), 
+                setMode(mode));
             } else "hold" === evt.type ? addClass(document.body, "_HOLDING") : dropClass(document.body, "_HOLDING");
         }
     }
@@ -19377,10 +19393,10 @@ metaBook.HTML.console = '<h1>metaBook Console</h1>\n<div class=\'message\' id=\'
 metaBook.HTML.messages = '<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPSCAN">\n  <div class="indicator"></div>\n  <div class="message">\n    Scanning the book content for structure and metadata.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTOC">\n  <div class="indicator"></div>\n  <div class="message">\n    Setting up tables of content for book navigation.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPKNO">\n  <div class="indicator"></div>\n  <div class="message">\n    Processing embedded or referenced knowledge bases.\n    <div id="METABOOKSTARTUPKNODETAILS"></div>\n  </div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTAGGING">\n  <div class="indicator"></div>\n  <div class="message">Indexing with published tags.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPCLOUDS">\n  <div class="indicator"></div>\n  <div class="message">Setting up tag clouds for search and glossing.</div>\n</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKNEWGLOSSES">\n  <div class="indicator"></div>\n  <div class="message">Applying your glosses to your book.</div>\n</div>\n<!--\n     /* Emacs local variables\n     ;;;  Local variables: ***\n     ;;;  compile-command: "cd ../..; make" ***\n     ;;;  End: ***\n     */\n  -->\n\n', 
 metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" class="adjustfonts" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <a href="https://www.bookhub.io/" target="_blank" class="metabookref"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      This book</a>\n    <span class="text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/" class="metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="text">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="text">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="text">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="text">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="text">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="text">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1537-gbdda232", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Sun Dec 13 14:47:30 EST 2015", 
-fdjt.builduuid = "15285354-f6e7-4a72-bd6f-f73d6e5912d4", fdjt.CodexLayout.sourcehash = "FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2", 
-Knodule.version = "v0.8-155-g9a698e9", metaBook.version = "v0.8-203-gea14082", metaBook.buildid = "88562d54-e09d-4001-ad29-2848ec6cba22", 
-metaBook.buildtime = "Sun Dec 13 14:47:42 EST 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
+fdjt.revision = "1.5-1537-gbdda232", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Sun Dec 20 17:55:54 EST 2015", 
+fdjt.builduuid = "3e6bea37-ad17-42b5-849a-c03d799d7d73", fdjt.CodexLayout.sourcehash = "FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2", 
+Knodule.version = "v0.8-155-g9a698e9", metaBook.version = "v0.8-209-g0cdcf2c", metaBook.buildid = "04f9f536-9246-4f76-957b-731446338824", 
+metaBook.buildtime = "Sun Dec 20 19:35:21 EST 2015", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });
