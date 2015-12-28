@@ -3854,9 +3854,9 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
     html._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
     html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
     
-    #METABOOKCOVER div.userbox a.metabookref { float: left;}
-    #METABOOKCOVER div.userbox a.metabookusername { float: right;}
-    #METABOOKCOVER div.userbox span.text { display: none;}
+    #METABOOKCOVER div.userbox a.bookplate__bookref { float: left;}
+    #METABOOKCOVER div.userbox span.bookplate__username { float: right;}
+    #METABOOKCOVER div.userbox span.bookplate__text { display: none;}
 
     #METABOOKCOVER > #METABOOKCOVERCONTROLS {
         height: 60px; white-space: normal; }
@@ -4067,7 +4067,7 @@ form.metabooksettings > div.checkspan input[type='RADIO'],
 form.metabooksettings > div.checkspan input[type='CHECKBOX'] { 
     float: left; width: 1.2em; height: 1.2em; 
     margin-right: 1ex;}
-form.metabooksettings div.checkspan span.text {
+form.metabooksettings div.checkspan span.checktext {
     color: gray; font-size: 120%;}
 form.metabooksettings div.checkspan input {}
 
@@ -4082,7 +4082,7 @@ html._SHOWCONSOLE form.metabooksettings > div.showconsole{
 #METABOOKCOVER form.metabooksettings a,
 form.metabooksettings a {
     color: blue; }
-form.metabooksettings span.opendyslexical span.text {
+form.metabooksettings span.opendyslexical span.checktext {
     font-family: 'Open Dyslexic', serif;}
 
 form.metabooksettings div.fontfamily {}
@@ -6369,7 +6369,7 @@ html._MOUSE .cloud .showall:hover,
 
 .cloud .variation { 
     font-size: 70%; color: purple; font-style: italic;}
-.cloud > .rawterm > .text, .cloud > .rootform > .text {
+.cloud > .rawterm > .termtext, .cloud > .rootform > .termtext {
     font-size: 70%;}
 
 .cloud .nomatchmsg {
@@ -8200,8 +8200,6 @@ div.metabookglossform div.response .respexcerpt {
     background-color: yellow;}
 div.metabookglossform div .respdate {
     color: purple;}
-div.metabookglossform form div.excerpt span.text {
-    background-color: yellow;}
 div.metabookglossform .glosslink.waschecked {
     background-color: pink; border-color: red;}
 div.metabookglossform .glosslink.ischecked.waschecked {

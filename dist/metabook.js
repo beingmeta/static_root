@@ -17937,7 +17937,7 @@ if (KNode!==Knode) fdjt.Log("Weird stuff");
         var span=fdjtDOM(((israw)?("span.rawterm"):("span.dterm")),
                          checkbox," ",variations,
                          ((israw)?
-                          (fdjtDOM("span.text","\u201c"+text+"\u201d")):
+                          (fdjtDOM("span.termtext","\u201c"+text+"\u201d")):
                           (text)));
         if ((lang)||(cloud)) {
             addClass(span,"completion");
@@ -23276,13 +23276,13 @@ fdjt.DOM.noautofontadjust=true;
        current location.  This IS passed to the homescreen
        standalone app, so we can use it to get a real authentication
        token.*/
-    function iosHomeKludge(){
+    function iosAuthKludge(){
         if ((!(metaBook.user))||(fdjt.device.standalone)||
-            (!(fdjt.device.mobilesafari))||
-            (!(mB.mycopyid)))
+            (!(fdjt.device.mobilesafari)))
             return;
         var auth=mB.mycopyid;
         if (!(auth)) return;
+        if (mB.iOSKludge===auth) return; else mB.iOSKludge=auth;
         var eauth=encodeURIComponent(auth);
         var url=location.href, qmark=url.indexOf('?'), hashmark=url.indexOf('#');
         var base=((qmark<0)?((hashmark<0)?(url):(url.slice(0,hashmark))):
@@ -23321,13 +23321,14 @@ fdjt.DOM.noautofontadjust=true;
                 if ((metaBook.user)&&(!(fdjt.device.standalone))&&
                     (!(document[fdjtDOM.isHidden]))&&
                     (fdjt.device.mobilesafari))
-                    iosHomeKludge();},
+                    iosAuthKludge();},
                         300000);}
     function setupKludgeTimer(){
         updateKludgeTimer();
         if (fdjtDOM.isHidden)
             fdjtDOM.addListener(document,fdjtDOM.vischange,
                                 updateKludgeTimer);
+        metaBook.iosAuthKludge=iosAuthKludge;
         updateKludgeTimer();}
     if ((!(fdjt.device.standalone))&&(fdjt.device.mobilesafari))
         fdjt.addInit(setupKludgeTimer,"setupKludgeTimer");
@@ -24521,15 +24522,17 @@ metaBook.DOMScan=(function(){
                         fdjtLog("Finding head@%d: s=%o, i=%j, sh=%o, cmp=%o",
                                 scanlevel,scan||false,scaninfo,
                                 (scanlevel<level));
-                    if (scanlevel<level) break;
+                    if ((!(scanlevel))||(scanlevel<level)) break;
                     else if (scaninfo===rootinfo) break;
-                    else if ((scaninfo.head)&&(scaninfo.head.level)&&
-                             (scaninfo.head.level>=level)) {
+                    else if ((scaninfo.head)&&
+                             (scaninfo.head.level)&&
+                             (scaninfo.head.level>=scanlevel)) {
                         // The head hierarchy is really messed up, so 
                         // don't keep iterating.
                         fdjtLog.warn("Corrupted TOCINFO at %o",head);
                         break;}
                     else if (level===scanlevel) {
+                        // Link up prev/next when popping up a level
                         headinfo.prev=scaninfo;
                         scaninfo.next=headinfo;}
                     scaninfo.ends_at=scanstate.location;
@@ -27080,7 +27083,9 @@ metaBook.DOMScan=(function(){
             if ((metaBook.mycopyid)&&
                 (info.mycopyid!==metaBook.mycopyid))
                 fdjtLog.warn("Mismatched mycopyids");
-            else metaBook.mycopyid=info.mycopyid;}
+            if (info.mycopyid!==metaBook.mycopyid) {
+                metaBook.mycopyid=info.mycopyid;
+                if (mB.iosAuthKludge) mB.iosAuthKludge();}}
         if (!(metaBook.docinfo)) { /* Scan not done */
             metaBook.scandone=function(){loadInfo(info);};
             return;}
@@ -27397,7 +27402,8 @@ metaBook.DOMScan=(function(){
                 ((metaBook.mycopyid_expires)&&(expires)&&
                  (expires>metaBook.mycopyid_expires))) {
                 metaBook.mycopyid=string; metaBook.mycopyid_expires=expires;
-                metaBook.saveLocal("mycopyid("+mB.docuri+")",string);}
+                metaBook.saveLocal("mycopyid("+mB.docuri+")",string);
+                if (mB.iosAuthKludge) mB.iosAuthKludge();}
             else {}
             if ((need_mycopyid)&&(need_mycopyid.length)) {
                 var needs=need_mycopyid; need_mycopyid=[];
@@ -27676,8 +27682,6 @@ metaBook.Startup=
             // Initialize domain and origin for browsers which care
             try {document.domain="bookhub.io";}
             catch (ex) {fdjtLog.warn("Error setting document.domain");}
-            try {document.origin="bookhub.io";}
-            catch (ex) {fdjtLog.warn("Error setting document.origin");}
 
             // First, define common schemas
             fdjtDOM.addAppSchema("METABOOK","http://metabook.bookhub.io/");
@@ -28216,9 +28220,12 @@ metaBook.Startup=
                 else metaBook.autotoc=false;}
 
             if (!(metaBook.nologin)) {
-                metaBook.mycopyid=getMeta("BOOKHUB.mycopyid")||
+                var mycopyid=getMeta("BOOKHUB.mycopyid")||
                     (getLocal("mycopyid("+refuri+")"))||
-                    false;}}
+                    false;
+                if ((mycopyid)&&(mycopyid!==mB.mycopid)) 
+                    if (mB.iosAuthKludge) mB.iosAuthKludge();
+                mB.mycopyid=mycopyid;}}
 
         function setupDevice(){
             var root=document.documentElement||document.body;
@@ -30020,7 +30027,7 @@ metaBook.Slice=(function () {
             var spec=usespec+
                 ((isrootform)?(".rootform"):(".rawterm"))+
                 ((tag.length>20)?(".longterm"):(""));
-            entry=fdjtDOM(spec,fdjtDOM("span.text","\u201c"+tag+"\u201d"));
+            entry=fdjtDOM(spec,fdjtDOM("span.termtext","\u201c"+tag+"\u201d"));
             entry.setAttribute("data-key",tag);
             entry.setAttribute("data-value",tag);
             if (isrootform)
@@ -30817,11 +30824,10 @@ metaBook.setMode=
             function messageHandler(evt){
                 var origin=evt.origin;
                 if (Trace.messages)
-                    fdjtLog("Got a message from %s with payload %o",
-                            origin,evt.data);
-                if (origin.search(/https:\/\/[^\/]+.(metabooks|sbooks).net/)!==0) {
-                    fdjtLog.warn("Rejecting insecure message from %s",
-                                 origin);
+                    fdjtLog("Got a message from %s with payload %j",origin,evt.data);
+                if (origin.search(/https?:\/\/[^\/]+.(bookhub\.io|metabooks\.net|sbooks\.net)/)!==0) {
+                    fdjtLog.warn("Rejecting insecure message from %s: %s",
+                                 origin,evt.data);
                     return;}
                 if (evt.data==="sbooksapp") {
                     setMode("sbooksapp");}
@@ -40021,11 +40027,13 @@ metaBook.HTML.cover=
     "<div class=\"userbox controls\"\n"+
     "     data-maxfont=\"120%\" id=\"METABOOKUSERBOX\">\n"+
     "  <span class=\"bookplate\">\n"+
-    "    <a href=\"https://www.bookhub.io/\" target=\"_blank\" class=\"metabookref\"\n"+
+    "    <a href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
+    "       class=\"bookplate__bookref metabookref\"\n"+
     "       title=\"Learn more about the metaBook reader and bookhub.io\" tabindex=\"9\">\n"+
     "      This book</a>\n"+
-    "    <span class=\"text\">is personalized for</span>\n"+
-    "    <a href=\"https://my.bookhub.io/profile/\" class=\"metabookusername\"\n"+
+    "    <span class=\"bookplate__text\">is personalized for</span>\n"+
+    "    <a href=\"https://my.bookhub.io/profile/\"\n"+
+    "       class=\"bookplate__username metabookusername\"\n"+
     "       title=\"Edit your profile, add social networks, etc\"\n"+
     "       target=\"_blank\" tabindex=\"10\">\n"+
     "      you</a></span>\n"+
@@ -40210,7 +40218,7 @@ metaBook.HTML.settings=
     "    <span class=\"checkspan opendyslexical\"\n"+
     "          title=\"OpenDyslexic is a font designed to increase readability for readers with dyslexia\">\n"+
     "      <input TYPE=\"CHECKBOX\" NAME=\"dyslexical\" VALUE=\"yes\"/>\n"+
-    "      <span class=\"text\">Use OpenDyslexic font</span>\n"+
+    "      <span class=\"checktext\">Use OpenDyslexic font</span>\n"+
     "      <a href=\"http://opendyslexic.org/\"\n"+
     "         title=\"The Open Dyslexic font site\">(about)</a>\n"+
     "    </span>\n"+
@@ -40241,10 +40249,10 @@ metaBook.HTML.settings=
     "    <span class=\"label smaller\">Animate</span>\n"+
     "    <span class=\"checkspan\">\n"+
     "      <input TYPE=\"CHECKBOX\" NAME=\"animatecontent\" VALUE=\"yes\"/>\n"+
-    "      <span class=\"text\">content (page flips, etc)</span></span>\n"+
+    "      <span class=\"checktext\">content (page flips, etc)</span></span>\n"+
     "    <span class=\"checkspan\">\n"+
     "      <input TYPE=\"CHECKBOX\" NAME=\"animatehud\" VALUE=\"yes\"/>\n"+
-    "      <span class=\"text\">interface (overlays, controls, etc)</span></span>\n"+
+    "      <span class=\"checktext\">interface (overlays, controls, etc)</span></span>\n"+
     "  </div>\n"+
     "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"header dataheader cf\">\n"+
@@ -40259,7 +40267,7 @@ metaBook.HTML.settings=
     "           onerror=\"this.src='{{bmg}}metabook/reset50x50.png\" alt=\"\"/>\n"+
     "      Reset</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"locsync\" VALUE=\"yes\"/>\n"+
-    "    <span class=\"text\">\n"+
+    "    <span class=\"checktext\">\n"+
     "      Sync your <strong>reading location</strong> with other devices</span>\n"+
     "  </div>\n"+
     "  <div class=\"clearfloats\"></div>\n"+
@@ -40270,7 +40278,7 @@ metaBook.HTML.settings=
     "           onerror=\"this.error='{{bmg}}metabook/refresh50x50.png\" alt=\"\"/>\n"+
     "      Reload</button>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"cacheglosses\" VALUE=\"yes\" CHECKED/>\n"+
-    "    <span class=\"text\">\n"+
+    "    <span class=\"checktext\">\n"+
     "      Save copies of <strong>glosses</strong>\n"+
     "      and <strong>layers</strong> on this device</span>\n"+
     "  </div>\n"+
@@ -40278,7 +40286,7 @@ metaBook.HTML.settings=
     "  <div class=\"checkspan showconsole cf\">\n"+
     "    <span class=\"label\">Developer</span>\n"+
     "    <input TYPE=\"CHECKBOX\" NAME=\"showconsole\" VALUE=\"yes\"/>\n"+
-    "    <span class=\"text\">Show the application console</span>\n"+
+    "    <span class=\"checktext\">Show the application console</span>\n"+
     "  </div>\n"+
     "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"info\" id=\"METABOOKINFOPANEL\">\n"+
@@ -40305,20 +40313,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1537-gbdda232';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun Dec 20 17:55:54 EST 2015';
-fdjt.builduuid='3e6bea37-ad17-42b5-849a-c03d799d7d73';
+fdjt.revision='1.5-1539-g84399ed';
+fdjt.buildhost='dev-52-4-39-174';
+fdjt.buildtime='Wed Dec 23 14:32:29 UTC 2015';
+fdjt.builduuid='c3d84689-e27b-4ea7-83e6-dabf2b8f2043';
 
-fdjt.CodexLayout.sourcehash='FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2';
+fdjt.CodexLayout.sourcehash='';
 
 
-Knodule.version='v0.8-155-g9a698e9';
+Knodule.version='v0.8-156-ga7eef6e';
 // sBooks metaBook build information
-metaBook.version='v0.8-219-g1bffe09';
-metaBook.buildid='ec1e6599-24be-4343-8dfa-c1cfa38bf2a7';
-metaBook.buildtime='Mon Dec 21 09:58:56 EST 2015';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-230-g603c883';
+metaBook.buildid='a41b5860-9809-4cf9-bb44-182a2cd1b2b3';
+metaBook.buildtime='Mon Dec 28 22:52:26 UTC 2015';
+metaBook.buildhost='dev-52-4-39-174';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
