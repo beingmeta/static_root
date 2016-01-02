@@ -7,10 +7,11 @@ ECHO=/bin/echo
 CLEAN=/bin/rm -f
 PATH:=/usr/local/bin:${PATH}
 FDJT_FILES=fdjt/header.js \
-	fdjt/promise.js fdjt/async.js \
+	fdjt/promise.js fdjt/async.js fdjt/fetch.js \
 	fdjt/charnames.js fdjt/string.js fdjt/time.js \
 	fdjt/template.js fdjt/hash.js \
-	fdjt/log.js fdjt/init.js fdjt/state.js fdjt/dom.js \
+	fdjt/log.js fdjt/init.js fdjt/state.js \
+	fdjt/dom.js fdjt/adjustfont.js \
 	fdjt/json.js fdjt/refdb.js fdjt/ajax.js fdjt/wsn.js \
 	fdjt/textindex.js \
 	fdjt/ui.js fdjt/showpage.js fdjt/dialog.js fdjt/completions.js \
