@@ -14,6 +14,8 @@ aloha:
 	git clone git@github.com:beingmeta/Aloha-Editor aloha
 iscroll:
 	git clone https://github.com/beingmeta/iscroll.git iscroll
+fetch:
+	git clone https://github.com/beingmeta/fetch fetch
 update:
 	cd markdown; git pull
 	cd xmarkdown; git pull
