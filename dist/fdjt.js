@@ -498,6 +498,435 @@ fdjt.Async=fdjt.ASync=fdjt.async=
 */
 /* -*- Mode: Javascript; -*- */
 
+/* ######################### fdjt/dom.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+   of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or
+   any later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+*/
+/* jshint browser: true */
+/* globals Promise, self */
+
+(function(self) {
+    'use strict';
+    /*
+      Copyright (c) 2014-2015 GitHub, Inc.
+
+      Permission is hereby granted, free of charge, to any person obtaining
+      a copy of this software and associated documentation files (the
+      "Software"), to deal in the Software without restriction, including
+      without limitation the rights to use, copy, modify, merge, publish,
+      distribute, sublicense, and/or sell copies of the Software, and to
+      permit persons to whom the Software is furnished to do so, subject to
+      the following conditions:
+
+      The above copyright notice and this permission notice shall be
+      included in all copies or substantial portions of the Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+      NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+      LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+      OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+      WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    */
+
+    if (self.fetch) {
+	return;
+    }
+
+    function normalizeName(name) {
+	if (typeof name !== 'string') {
+	    name = String(name);
+	}
+	if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+	    throw new TypeError('Invalid character in header field name');
+	}
+	return name.toLowerCase();
+    }
+
+    function normalizeValue(value) {
+	if (typeof value !== 'string') {
+	    value = String(value);
+	}
+	return value;
+    }
+
+    function Headers(headers) {
+	this.map = {};
+
+	if (headers instanceof Headers) {
+	    headers.forEach(function(value, name) {
+		this.append(name, value);
+	    }, this);
+
+	} else if (headers) {
+	    Object.getOwnPropertyNames(headers).forEach(function(name) {
+		this.append(name, headers[name]);
+	    }, this);
+	}
+    }
+
+    Headers.prototype.append = function(name, value) {
+	name = normalizeName(name);
+	value = normalizeValue(value);
+	var list = this.map[name];
+	if (!list) {
+	    list = [];
+	    this.map[name] = list;
+	}
+	list.push(value);
+    };
+
+    Headers.prototype['delete'] = function(name) {
+	delete this.map[normalizeName(name)];
+    };
+
+    Headers.prototype.get = function(name) {
+	var values = this.map[normalizeName(name)];
+	return values ? values[0] : null;
+    };
+
+    Headers.prototype.getAll = function(name) {
+	return this.map[normalizeName(name)] || [];
+    };
+
+    Headers.prototype.has = function(name) {
+	return this.map.hasOwnProperty(normalizeName(name));
+    };
+
+    Headers.prototype.set = function(name, value) {
+	this.map[normalizeName(name)] = [normalizeValue(value)];
+    };
+
+    Headers.prototype.forEach = function(callback, thisArg) {
+	Object.getOwnPropertyNames(this.map).forEach(function(name) {
+	    this.map[name].forEach(function(value) {
+		callback.call(thisArg, value, name, this);
+	    }, this);
+	}, this);
+    };
+
+    function consumed(body) {
+	if (body.bodyUsed) {
+	    return Promise.reject(new TypeError('Already read'));
+	}
+	body.bodyUsed = true;
+    }
+
+    function fileReaderReady(reader) {
+	return new Promise(function(resolve, reject) {
+	    reader.onload = function() {
+		resolve(reader.result);
+	    };
+	    reader.onerror = function() {
+		reject(reader.error);
+	    };
+	});
+    }
+
+    function readBlobAsArrayBuffer(blob) {
+	var reader = new FileReader();
+	reader.readAsArrayBuffer(blob);
+	return fileReaderReady(reader);
+    }
+
+    function readBlobAsText(blob) {
+	var reader = new FileReader();
+	reader.readAsText(blob);
+	return fileReaderReady(reader);
+    }
+
+    var support = {
+	blob: 'FileReader' in self && 'Blob' in self && (function() {
+	    try {
+		new Blob();
+		return true;
+	    } catch(e) {
+		return false;
+	    }
+	})(),
+	formData: 'FormData' in self,
+	arrayBuffer: 'ArrayBuffer' in self
+    };
+
+    function Body() {
+	this.bodyUsed = false;
+
+
+	this._initBody = function(body) {
+	    this._bodyInit = body;
+	    if (typeof body === 'string') {
+		this._bodyText = body;
+	    } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+		this._bodyBlob = body;
+	    } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+		this._bodyFormData = body;
+	    } else if (!body) {
+		this._bodyText = '';
+	    } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
+		// Only support ArrayBuffers for POST method.
+		// Receiving ArrayBuffers happens via Blobs, instead.
+	    } else {
+		throw new Error('unsupported BodyInit type');
+	    }
+	};
+
+	if (support.blob) {
+	    this.blob = function() {
+		var rejected = consumed(this);
+		if (rejected) {
+		    return rejected;
+		}
+
+		if (this._bodyBlob) {
+		    return Promise.resolve(this._bodyBlob);
+		} else if (this._bodyFormData) {
+		    throw new Error('could not read FormData body as blob');
+		} else {
+		    return Promise.resolve(new Blob([this._bodyText]));
+		}
+	    };
+
+	    this.arrayBuffer = function() {
+		return this.blob().then(readBlobAsArrayBuffer);
+	    };
+
+	    this.text = function() {
+		var rejected = consumed(this);
+		if (rejected) {
+		    return rejected;
+		}
+
+		if (this._bodyBlob) {
+		    return readBlobAsText(this._bodyBlob);
+		} else if (this._bodyFormData) {
+		    throw new Error('could not read FormData body as text');
+		} else {
+		    return Promise.resolve(this._bodyText);
+		}
+	    };
+	} else {
+	    this.text = function() {
+		var rejected = consumed(this);
+		return rejected ? rejected : Promise.resolve(this._bodyText);
+	    };
+	}
+
+	if (support.formData) {
+	    this.formData = function() {
+		return this.text().then(decode);
+	    };
+	}
+
+	this.json = function() {
+	    return this.text().then(JSON.parse);
+	};
+
+	return this;
+    }
+
+    // HTTP methods whose capitalization should be normalized
+    var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
+
+    function normalizeMethod(method) {
+	var upcased = method.toUpperCase();
+	return (methods.indexOf(upcased) > -1) ? upcased : method;
+    }
+
+    function Request(input, options) {
+	options = options || {};
+	var body = options.body;
+	if (Request.prototype.isPrototypeOf(input)) {
+	    if (input.bodyUsed) {
+		throw new TypeError('Already read');
+	    }
+	    this.url = input.url;
+	    this.credentials = input.credentials;
+	    if (!options.headers) {
+		this.headers = new Headers(input.headers);
+	    }
+	    this.method = input.method;
+	    this.mode = input.mode;
+	    if (!body) {
+		body = input._bodyInit;
+		input.bodyUsed = true;
+	    }
+	} else {
+	    this.url = input;
+	}
+
+	this.credentials = options.credentials || this.credentials || 'omit';
+	if (options.headers || !this.headers) {
+	    this.headers = new Headers(options.headers);
+	}
+	this.method = normalizeMethod(options.method || this.method || 'GET');
+	this.mode = options.mode || this.mode || null;
+	this.referrer = null;
+
+	if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+	    throw new TypeError('Body not allowed for GET or HEAD requests');
+	}
+	this._initBody(body);
+    }
+
+    Request.prototype.clone = function() {
+	return new Request(this);
+    };
+
+    function decode(body) {
+	var form = new FormData();
+	body.trim().split('&').forEach(function(bytes) {
+	    if (bytes) {
+		var split = bytes.split('=');
+		var name = split.shift().replace(/\+/g, ' ');
+		var value = split.join('=').replace(/\+/g, ' ');
+		form.append(decodeURIComponent(name), decodeURIComponent(value));
+	    }
+	});
+	return form;
+    }
+
+    function headers(xhr) {
+	var head = new Headers();
+	var pairs = xhr.getAllResponseHeaders().trim().split('\n');
+	pairs.forEach(function(header) {
+	    var split = header.trim().split(':');
+	    var key = split.shift().trim();
+	    var value = split.join(':').trim();
+	    head.append(key, value);
+	});
+	return head;
+    }
+
+    Body.call(Request.prototype);
+
+    function Response(bodyInit, options) {
+	if (!options) {
+	    options = {};
+	}
+
+	this._initBody(bodyInit);
+	this.type = 'default';
+	this.status = options.status;
+	this.ok = this.status >= 200 && this.status < 300;
+	this.statusText = options.statusText;
+	this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers);
+	this.url = options.url || '';
+    }
+
+    Body.call(Response.prototype);
+
+    Response.prototype.clone = function() {
+	return new Response(this._bodyInit, {
+	    status: this.status,
+	    statusText: this.statusText,
+	    headers: new Headers(this.headers),
+	    url: this.url
+	});
+    };
+
+    Response.error = function() {
+	var response = new Response(null, {status: 0, statusText: ''});
+	response.type = 'error';
+	return response;
+    };
+
+    var redirectStatuses = [301, 302, 303, 307, 308];
+
+    Response.redirect = function(url, status) {
+	if (redirectStatuses.indexOf(status) === -1) {
+	    throw new RangeError('Invalid status code');
+	}
+
+	return new Response(null, {status: status, headers: {location: url}});
+    };
+
+    self.Headers = Headers;
+    self.Request = Request;
+    self.Response = Response;
+
+    self.fetch = function(input, init) {
+	return new Promise(function(resolve, reject) {
+	    var request;
+	    if (Request.prototype.isPrototypeOf(input) && !init) {
+		request = input;
+	    } else {
+		request = new Request(input, init);
+	    }
+
+	    var xhr = new XMLHttpRequest();
+
+	    function responseURL() {
+		if ('responseURL' in xhr) {
+		    return xhr.responseURL;
+		}
+
+		// Avoid security warnings on getResponseHeader when not allowed by CORS
+		if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
+		    return xhr.getResponseHeader('X-Request-URL');
+		}
+
+		return;
+	    }
+
+	    xhr.onload = function() {
+		var status = (xhr.status === 1223) ? 204 : xhr.status;
+		if (status < 100 || status > 599) {
+		    reject(new TypeError('Network request failed'));
+		    return;
+		}
+		var options = {
+		    status: status,
+		    statusText: xhr.statusText,
+		    headers: headers(xhr),
+		    url: responseURL()
+		};
+		var body = 'response' in xhr ? xhr.response : xhr.responseText;
+		resolve(new Response(body, options));
+	    };
+
+	    xhr.onerror = function() {
+		reject(new TypeError('Network request failed'));
+	    };
+
+	    xhr.open(request.method, request.url, true);
+
+	    if (request.credentials === 'include') {
+		xhr.withCredentials = true;
+	    }
+
+	    if ('responseType' in xhr && support.blob) {
+		xhr.responseType = 'blob';
+	    }
+
+	    request.headers.forEach(function(value, name) {
+		xhr.setRequestHeader(name, value);
+	    }).
+
+	    xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
+	});
+    };
+    self.fetch.polyfill = true;
+})(self||window||this);
+/* -*- Mode: Javascript; -*- */
+
 /* ######################### fdjt/string.js ###################### */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -5292,6 +5721,10 @@ fdjt.DOM=
                     (target.tagName==='TEXTAREA'));}
         fdjtDOM.isTextInput=isTextInput;
         
+        function isImage(target){
+            return (target.tagName==='IMG');}
+        fdjtDOM.isImage=isImage;
+
         /* Simple CSS selectors */
 
         var selectors={};
@@ -6220,6 +6653,133 @@ fdjt.DOM=
         fdjtDOM.hoverflow=function(node){
             return (node.scrollWidth/node.clientWidth);};
 
+        /* Listeners */
+
+        function addListener(node,evtype,handler){
+            if (!(node)) node=document;
+            if (typeof node === 'string') {
+                var elt=fdjtID(node);
+                if (!(node)) {
+                    fdjtLog.warn("Can't find #%s",node);
+                    return;}
+                node=elt;}
+            else if (((Array.isArray)&&(Array.isArray(node)))||
+                     ((window.NodeList)&&(node instanceof window.NodeList))) {
+                var i=0; var lim=node.length;
+                while (i<lim) addListener(node[i++],evtype,handler);
+                return;}
+            else if ((node!==window)&&(!(node.nodeType))) {
+                fdjtLog.warn("Bad target(s) arg to addListener(%s) %o",evtype,node);
+                return;}
+            // OK, actually do it
+            if (evtype==='title') { 
+                // Not really a listener, but helpful
+                if (typeof handler === 'string') 
+                    if (node.title)
+                        node.title='('+handler+') '+node.title;
+                else node.title=handler;}
+            else if (evtype[0]==='=')
+                node[evtype.slice(1)]=handler;
+            else if (node.addEventListener)  {
+                // fdjtLog("Adding listener %o for %o to %o",handler,evtype,node);
+                return node.addEventListener(evtype,handler,false);}
+            else if (node.attachEvent)
+                return node.attachEvent('on'+evtype,handler);
+            else fdjtLog.warn('This node never listens: %o',node);}
+        fdjtDOM.addListener=addListener;
+
+        function defListeners(handlers,defs){
+            if ((handlers)&&(defs))
+                for (var domspec in defs) {
+                    if (defs.hasOwnProperty(domspec)) {
+                        var evtable=defs[domspec];
+                        var addto=handlers[domspec];
+                        if ((!(addto))||
+                            (!(handlers.hasOwnProperty(domspec))))
+                            handlers[domspec]=addto={};
+                        for (var evtype in evtable) {
+                            if (evtable.hasOwnProperty(evtype))
+                                addto[evtype]=evtable[evtype];}}}}
+        fdjtDOM.defListeners=defListeners;
+
+        var events_pat=/^([^:]+)$/;
+        var spec_events_pat=/^([^: ]+):([^: ]+)$/;
+
+        function addListeners(node,handlers){
+            if (handlers) {
+                for (var evtype in handlers) {
+                    if (handlers.hasOwnProperty(evtype)) {
+                        var match=false, val=handlers[evtype];
+                        if (!(val.call)) {}
+                        else if (events_pat.exec(evtype))
+                            addListener(node,evtype,handlers[evtype]);
+                        else if ((match=spec_events_pat.exec(evtype))) {
+                            var ev=match[2];
+                            var handler=handlers[evtype];
+                            var elts=node.querySelectorAll(match[1]);
+                            addListener(elts,ev,handler);}}}}}
+        fdjtDOM.addListeners=addListeners;
+        
+        function removeListener(node,evtype,handler){
+            if (!(node)) node=document;
+            if (typeof node === 'string') {
+                var elt=fdjtID(node);
+                if (!(node)) {
+                    fdjtLog("Can't find #%s",node);
+                    return;}
+                node=elt;}
+            else if (((Array.isArray)&&(Array.isArray(node)))||
+                     ((window.NodeList)&&(node instanceof window.NodeList))) {
+                var i=0; var lim=node.length;
+                while (i<lim) removeListener(node[i++],evtype,handler);
+                return;}
+            else if ((node!==window)&&(!(node.nodeType))) {
+                fdjtLog.warn("Bad target(s) arg to removeListener(%s) %o",evtype,node);
+                return;}
+            // OK, actually do it
+            if (node.removeEventListener)  {
+                return node.removeEventListener(evtype,handler,false);}
+            else if (node.detachEvent)
+                return node.detachEvent('on'+evtype,handler);
+            else fdjtLog.warn('This node never listens: %o',node);}
+        fdjtDOM.removeListener=removeListener;
+
+        function eventTarget(evt) {
+            evt=evt||window.event; 
+            return (evt.target)||(evt.srcElement);}
+        fdjtDOM.T=eventTarget;
+        fdjtDOM.eventTarget=eventTarget;
+        fdjtDOM.getTarget=eventTarget;
+
+        function cancelEvent(evt){
+            evt=evt||window.event;
+            if (evt.preventDefault) evt.preventDefault();
+            else evt.returnValue=false;
+            evt.cancelBubble=true;}
+        fdjtDOM.cancel=cancelEvent;
+
+        function triggerClick(elt){
+            if (document.createEvent) { // in chrome
+                var e = document.createEvent('MouseEvents');
+                e.initEvent( 'click', true, true );
+                elt.dispatchEvent(e);
+                return;}
+            else {
+                fdjtLog.warn("Couldn't trigger click");
+                return;}}
+        fdjtDOM.triggerClick=triggerClick;
+
+        /* Scrolling by pages */
+        function pageScroll(container,n){
+            var ch=container.clientHeight, delta=ch*n;
+            var sh=container.scrollHeight, st=container.scrollTop;
+            var nt=st+delta;
+            if (ch>=sh) return;
+            if (nt<0) container.scrollTop=0;
+            else if ((nt+ch)>=sh) container.scrollTop=sh-ch;
+            else container.scrollTop=nt;}
+        fdjtDOM.pageScroll=pageScroll;
+
         /* Sizing to fit */
 
         var default_trace_adjust=false;
@@ -6414,6 +6974,92 @@ fdjt.DOM=
             delete container.bestfit;
             delete container.goodscale;};
         
+        /* Scaling to fit using CSS transforms */
+
+        function scale_node(node,fudge,origin,shrink){
+            if (!(origin)) origin=node.getAttribute("data-origin");
+            if (!(shrink)) shrink=node.getAttribute("data-shrink");
+            if (!(fudge)) fudge=node.getAttribute("data-fudge");
+
+            // Clear any existing adjustments
+            var first=node.firstChild, wrapper=
+                ((first.className==="fdjtadjusted")?(first):
+                 (getFirstChild(node,"fdjtadjusted")));
+            if (wrapper) wrapper.setAttribute("style","");
+
+            var geom=getGeometry(node,false,true), inside=getInsideBounds(node);
+            var avail_width=((fudge)?(fudge*geom.inner_width):
+                             (geom.inner_width));
+            var avail_height=((fudge)?(fudge*geom.inner_height):
+                              (geom.inner_height));
+
+            if ((inside.height<=avail_height)&&(inside.width<=avail_width)) {
+                // Everything is inside
+                if (!(shrink)) return;
+                // If you fit closely in any dimension, don't try scaling
+                if (((inside.height<avail_height)&&
+                     (inside.height>=(avail_height*0.9)))||
+                    ((inside.width<geom.inner_width)&&
+                     (inside.width>=(avail_height*0.9))))
+                    return;}
+            if (!(wrapper)) {
+                var nodes=[], children=node.childNodes;
+                var i=0, lim=children.length;
+                while (i<lim) nodes.push(children[i++]);
+                wrapper=fdjtDOM("div.fdjtadjusted");
+                i=0; lim=nodes.length; while (i<lim)
+                    wrapper.appendChild(nodes[i++]);
+                node.appendChild(wrapper);}
+            var w_scale=avail_width/inside.width;
+            var h_scale=avail_height/inside.height;
+            var scale=((w_scale<h_scale)?(w_scale):(h_scale));
+            wrapper.style[fdjtDOM.transform]="scale("+scale+","+scale+")";
+            wrapper.style[fdjtDOM.transformOrigin]=origin||"50% 0%";}
+
+        function scaleAll(){
+            var all=fdjtDOM.$(".fdjtadjustfit");
+            var i=0, lim=all.length; while (i<lim)
+                scale_node(all[i++]);}
+        
+        function scaleToFit(node,fudge,origin){
+            fdjtDOM.addClass(node,"fdjtadjustfit");
+            if ((fudge)&&(typeof fudge !== "number")) fudge=0.9;
+            if (fudge) node.setAttribute("data-fudge",fudge);
+            if (origin) node.setAttribute("data-origin",origin);
+            scale_node(node,fudge,origin);
+            return node;}
+        fdjtDOM.scaleToFit=scaleToFit;
+        fdjtDOM.scaleToFit.scaleNode=fdjtDOM.scaleToFit.adjust=scale_node;
+        
+        function scale_revert(node,wrapper){
+            if (!(wrapper)) {
+                if (hasClass(node,"fdjtadjusted")) {
+                    wrapper=node; node=wrapper.parentNode;}
+                else wrapper=
+                    ((node.firstChild.className==="fdjtadjusted")?
+                     (node.firstChild):(getFirstChild(node,"fdjtadjusted")));}
+            if ((node)&&(wrapper)) {
+                var nodes=[], children=wrapper.childNodes;
+                var i=0, lim=children.length;
+                while (i<lim) nodes.push(children[i++]);
+                var frag=document.createDocumentFragment();
+                i=0; lim=nodes.length; while (i<lim) {
+                    frag.appendChild(nodes[i++]);}
+                node.replaceChild(frag,wrapper);
+                return node;}
+            else return false;}
+        fdjtDOM.scaleToFit.revert=scale_revert;
+
+        function revertAll(){
+            var all=fdjtDOM.$(".fdjtadjusted");
+            var i=0, lim=all.length; while (i<lim) {
+                var wrapper=all[i++];
+                scale_revert(wrapper.parentNode,wrapper);}}
+        fdjtDOM.scaleToFit.revertAll=revertAll;
+
+        fdjt.addInit(scaleAll);
+        fdjtDOM.addListener(window,"resize",scaleAll);
+
         /* Getting various kinds of metadata */
 
         function getHTML(){
@@ -6911,203 +7557,6 @@ fdjt.DOM=
             else return false;}
         fdjtDOM.addCSSRule=addCSSRule;
 
-        /* Listeners (should be in UI?) */
-
-        function addListener(node,evtype,handler){
-            if (!(node)) node=document;
-            if (typeof node === 'string') {
-                var elt=fdjtID(node);
-                if (!(node)) {
-                    fdjtLog.warn("Can't find #%s",node);
-                    return;}
-                node=elt;}
-            else if (((Array.isArray)&&(Array.isArray(node)))||
-                     ((window.NodeList)&&(node instanceof window.NodeList))) {
-                var i=0; var lim=node.length;
-                while (i<lim) addListener(node[i++],evtype,handler);
-                return;}
-            else if ((node!==window)&&(!(node.nodeType))) {
-                fdjtLog.warn("Bad target(s) arg to addListener(%s) %o",evtype,node);
-                return;}
-            // OK, actually do it
-            if (evtype==='title') { 
-                // Not really a listener, but helpful
-                if (typeof handler === 'string') 
-                    if (node.title)
-                        node.title='('+handler+') '+node.title;
-                else node.title=handler;}
-            else if (evtype[0]==='=')
-                node[evtype.slice(1)]=handler;
-            else if (node.addEventListener)  {
-                // fdjtLog("Adding listener %o for %o to %o",handler,evtype,node);
-                return node.addEventListener(evtype,handler,false);}
-            else if (node.attachEvent)
-                return node.attachEvent('on'+evtype,handler);
-            else fdjtLog.warn('This node never listens: %o',node);}
-        fdjtDOM.addListener=addListener;
-
-        function defListeners(handlers,defs){
-            if ((handlers)&&(defs))
-                for (var domspec in defs) {
-                    if (defs.hasOwnProperty(domspec)) {
-                        var evtable=defs[domspec];
-                        var addto=handlers[domspec];
-                        if ((!(addto))||
-                            (!(handlers.hasOwnProperty(domspec))))
-                            handlers[domspec]=addto={};
-                        for (var evtype in evtable) {
-                            if (evtable.hasOwnProperty(evtype))
-                                addto[evtype]=evtable[evtype];}}}}
-        fdjtDOM.defListeners=defListeners;
-
-        var events_pat=/^([^:]+)$/;
-        var spec_events_pat=/^([^: ]+):([^: ]+)$/;
-
-        function addListeners(node,handlers){
-            if (handlers) {
-                for (var evtype in handlers) {
-                    if (handlers.hasOwnProperty(evtype)) {
-                        var match=false, val=handlers[evtype];
-                        if (!(val.call)) {}
-                        else if (events_pat.exec(evtype))
-                            addListener(node,evtype,handlers[evtype]);
-                        else if ((match=spec_events_pat.exec(evtype))) {
-                            var ev=match[2];
-                            var handler=handlers[evtype];
-                            var elts=node.querySelectorAll(match[1]);
-                            addListener(elts,ev,handler);}}}}}
-        fdjtDOM.addListeners=addListeners;
-        
-        function removeListener(node,evtype,handler){
-            if (!(node)) node=document;
-            if (typeof node === 'string') {
-                var elt=fdjtID(node);
-                if (!(node)) {
-                    fdjtLog("Can't find #%s",node);
-                    return;}
-                node=elt;}
-            else if (((Array.isArray)&&(Array.isArray(node)))||
-                     ((window.NodeList)&&(node instanceof window.NodeList))) {
-                var i=0; var lim=node.length;
-                while (i<lim) removeListener(node[i++],evtype,handler);
-                return;}
-            else if ((node!==window)&&(!(node.nodeType))) {
-                fdjtLog.warn("Bad target(s) arg to removeListener(%s) %o",evtype,node);
-                return;}
-            // OK, actually do it
-            if (node.removeEventListener)  {
-                return node.removeEventListener(evtype,handler,false);}
-            else if (node.detachEvent)
-                return node.detachEvent('on'+evtype,handler);
-            else fdjtLog.warn('This node never listens: %o',node);}
-        fdjtDOM.removeListener=removeListener;
-
-        fdjtDOM.T=function(evt) {
-            evt=evt||window.event; return (evt.target)||(evt.srcElement);};
-
-        fdjtDOM.cancel=function(evt){
-            evt=evt||window.event;
-            if (evt.preventDefault) evt.preventDefault();
-            else evt.returnValue=false;
-            evt.cancelBubble=true;};
-
-        function triggerClick(elt){
-            if (document.createEvent) { // in chrome
-                var e = document.createEvent('MouseEvents');
-                e.initEvent( 'click', true, true );
-                elt.dispatchEvent(e);
-                return;}
-            else {
-                fdjtLog.warn("Couldn't trigger click");
-                return;}}
-        fdjtDOM.triggerClick=triggerClick;
-
-        /* Scaling to fit using CSS transforms */
-
-        function scale_node(node,fudge,origin,shrink){
-            if (!(origin)) origin=node.getAttribute("data-origin");
-            if (!(shrink)) shrink=node.getAttribute("data-shrink");
-            if (!(fudge)) fudge=node.getAttribute("data-fudge");
-
-            // Clear any existing adjustments
-            var first=node.firstChild, wrapper=
-                ((first.className==="fdjtadjusted")?(first):
-                 (getFirstChild(node,"fdjtadjusted")));
-            if (wrapper) wrapper.setAttribute("style","");
-
-            var geom=getGeometry(node,false,true), inside=getInsideBounds(node);
-            var avail_width=((fudge)?(fudge*geom.inner_width):
-                             (geom.inner_width));
-            var avail_height=((fudge)?(fudge*geom.inner_height):
-                              (geom.inner_height));
-
-            if ((inside.height<=avail_height)&&(inside.width<=avail_width)) {
-                // Everything is inside
-                if (!(shrink)) return;
-                // If you fit closely in any dimension, don't try scaling
-                if (((inside.height<avail_height)&&
-                     (inside.height>=(avail_height*0.9)))||
-                    ((inside.width<geom.inner_width)&&
-                     (inside.width>=(avail_height*0.9))))
-                    return;}
-            if (!(wrapper)) {
-                var nodes=[], children=node.childNodes;
-                var i=0, lim=children.length;
-                while (i<lim) nodes.push(children[i++]);
-                wrapper=fdjtDOM("div.fdjtadjusted");
-                i=0; lim=nodes.length; while (i<lim)
-                    wrapper.appendChild(nodes[i++]);
-                node.appendChild(wrapper);}
-            var w_scale=avail_width/inside.width;
-            var h_scale=avail_height/inside.height;
-            var scale=((w_scale<h_scale)?(w_scale):(h_scale));
-            wrapper.style[fdjtDOM.transform]="scale("+scale+","+scale+")";
-            wrapper.style[fdjtDOM.transformOrigin]=origin||"50% 0%";}
-
-        function scaleAll(){
-            var all=fdjtDOM.$(".fdjtadjustfit");
-            var i=0, lim=all.length; while (i<lim)
-                scale_node(all[i++]);}
-        
-        function scaleToFit(node,fudge,origin){
-            fdjtDOM.addClass(node,"fdjtadjustfit");
-            if ((fudge)&&(typeof fudge !== "number")) fudge=0.9;
-            if (fudge) node.setAttribute("data-fudge",fudge);
-            if (origin) node.setAttribute("data-origin",origin);
-            scale_node(node,fudge,origin);
-            return node;}
-        fdjtDOM.scaleToFit=scaleToFit;
-        fdjtDOM.scaleToFit.scaleNode=fdjtDOM.scaleToFit.adjust=scale_node;
-        
-        function scale_revert(node,wrapper){
-            if (!(wrapper)) {
-                if (hasClass(node,"fdjtadjusted")) {
-                    wrapper=node; node=wrapper.parentNode;}
-                else wrapper=
-                    ((node.firstChild.className==="fdjtadjusted")?
-                     (node.firstChild):(getFirstChild(node,"fdjtadjusted")));}
-            if ((node)&&(wrapper)) {
-                var nodes=[], children=wrapper.childNodes;
-                var i=0, lim=children.length;
-                while (i<lim) nodes.push(children[i++]);
-                var frag=document.createDocumentFragment();
-                i=0; lim=nodes.length; while (i<lim) {
-                    frag.appendChild(nodes[i++]);}
-                node.replaceChild(frag,wrapper);
-                return node;}
-            else return false;}
-        fdjtDOM.scaleToFit.revert=scale_revert;
-
-        function revertAll(){
-            var all=fdjtDOM.$(".fdjtadjusted");
-            var i=0, lim=all.length; while (i<lim) {
-                var wrapper=all[i++];
-                scale_revert(wrapper.parentNode,wrapper);}}
-        fdjtDOM.scaleToFit.revertAll=revertAll;
-
-        fdjt.addInit(scaleAll);
-        fdjtDOM.addListener(window,"resize",scaleAll);
-
         /* Check for SVG */
         var nosvg;
 
@@ -7509,10 +7958,6 @@ fdjt.DOM=
                 return firstText(node.firstChild);
             else return false;}
 
-        /* Paragraph hashes */
-
-        // fdjtDOM.getParaHash=function(node){return paraHash(textify(node,true,false,false));};
-
         /* Getting transition event names */
 
         var transition_events=[
@@ -7667,180 +8112,6 @@ fdjt.DOM=
             else return datauri;}
         fdjtDOM.data2URL=data2URL;
 
-        /* Tweaking fonts */
-
-        var floor=Math.floor;
-
-        function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge,dolog){
-            var ow=floor(wrapper.scrollWidth), oh=floor(wrapper.scrollHeight);
-            var nw, nh, newsize;
-            var wstyle=wrapper.style;
-            if (typeof fudge!== "number") fudge=1;
-
-            // These are cases where one dimension is on the edge but
-            // the other dimension is inside the edge
-            if ((ow<=w)&&(oh<=h)&&(oh>=(h-fudge))) return size;
-            // We actually skip this case because increasing the font size
-            //  might not increase the width if it forces a new line break
-            // else if ((sh<=h)&&(sw<=w)&&(sw>=(w-fudge))) return size;
-
-            // Figure out if we need to grow or shrink 
-            if ((ow>w)||(oh>h)) delta=-delta;
-
-            if (delta>0) wstyle.maxWidth=floor(w)+"px";
-
-            if (!(size)) {size=100; wstyle.fontSize=size+"%";}
-            if (!(min)) min=20;
-            if (!(max)) max=150;
-            newsize=size+delta;
-            wstyle.fontSize=newsize+"%";
-            nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);
-            while ((size>=min)&&(size<=max)&&
-                   ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
-                size=newsize; newsize=newsize+delta;
-                wstyle.fontSize=newsize+"%";
-                if (dolog)
-                    fdjtLog(
-                        "Adjust %o to %dx%d %o: size=%d=%d+(%d), %dx%d => %dx%d",
-                        wrapper.parentNode,w,h,wrapper,newsize,size,delta,
-                        ow,oh,nw,nh);
-                nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);}
-            wstyle.maxWidth='';
-            if (delta>0) {
-                wstyle.fontSize=size+"%";
-                return size;}
-            else return newsize;}
-                
-        function adjustFontSize(node,min_font,max_font,fudge){
-            var h=node.offsetHeight, w=node.offsetWidth;
-            var dolog=hasClass(node,"_fdjtlog");
-            var node_display='';
-            if ((h===0)||(w===0)) {
-                // Do a little to make the element visible if it's not.
-                node_display=node.style.display;
-                node.style.display='initial';
-                h=node.offsetHeight; w=node.offsetWidth;
-                if ((h===0)||(w===0)) {
-                    node.style.display=node_display;
-                    return;}}
-            else {}
-            if ((h===0)||(w===0)) {
-                node.style.display=node_display;
-                return;}
-            var wrapper=wrapChildren(node,"div.fdjtfontwrapper");
-            var wstyle=wrapper.style, size=100;
-            wstyle.boxSizing='border-box';
-            wstyle.padding=wstyle.margin="0px";
-            wstyle.fontSize=size+"%";
-            wstyle.transitionProperty='none';
-            wstyle.transitionDuration='0s';
-            wstyle[fdjtDOM.transitionProperty]='none';
-            wstyle[fdjtDOM.transitionDuration]='0s';
-            wstyle.visibility='visible';
-            if ((h===0)||(w===0)) {
-                node.removeChild(wrapper);
-                fdjtDOM.append(node,toArray(wrapper.childNodes));
-                node.style.display=node_display;
-                return;}
-            var min=((min_font)||(node.getAttribute("data-minfont"))||(20));
-            var max=((max_font)||(node.getAttribute("data-maxfont"))||(200));
-            if (typeof fudge!=="number") fudge=node.getAttribute("data-fudge");
-            if (typeof min === "string") min=parseFloat(min,10);
-            if (typeof max === "string") max=parseFloat(max,10);
-            if (typeof fudge === "string") fudge=parseInt(fudge,10);
-            if (typeof fudge !== "number") fudge=2;
-            wstyle.width=wstyle.height="100%";
-            w=wrapper.offsetWidth; h=wrapper.offsetHeight;
-            wstyle.width=wstyle.height="100%";
-            wstyle.maxWidth=wstyle.maxHeight="100%";
-            w=wrapper.offsetWidth; h=wrapper.offsetHeight;
-            wstyle.width=wstyle.height="";
-            size=adjustWrapperFont(
-                wrapper,10,false,size,min,max,w,h,fudge,dolog);
-            size=adjustWrapperFont(
-                wrapper,5,false,size,min,max,w,h,fudge,dolog);
-            size=adjustWrapperFont(
-                wrapper,1,false,size,min,max,w,h,fudge,dolog);
-            wstyle.maxWidth=wstyle.maxHeight="";
-            node.style.display=node_display;
-            if (size===100) {
-                if (dolog)
-                    fdjtLog("No need to resize %o towards %dx%d",node,w,h);
-                node.removeChild(wrapper);
-                fdjtDOM.append(node,toArray(wrapper.childNodes));}
-            else {
-                wstyle.width=''; wstyle.height='';
-                wstyle.maxWidth=''; wstyle.maxHeight='';
-                if (dolog)
-                    fdjtLog("Adjusted (%s) %o towards %dx%d, wrapper @ %d,%d",
-                            wstyle.fontSize,node,w,h,
-                            wrapper.scrollWidth,wrapper.scrollHeight);
-                // We reset all of these
-                wstyle.transitionProperty='';
-                wstyle.transitionDuration='';
-                wstyle[fdjtDOM.transitionProperty]='';
-                wstyle[fdjtDOM.transitionDuration]='';
-                var cwstyle=getStyle(wrapper);
-                if (cwstyle[fdjtDOM.transitionProperty]) { 
-                    wstyle.fontSize=''; wstyle.visibility='';
-                    wstyle.fontSize=size+"%";}
-                else wstyle.visibility='';}
-            return size;}
-        fdjtDOM.adjustFontSize=fdjtDOM.tweakFontSize=adjustFontSize;
-        
-        function resetFontSize(node){
-            var wrapper=getFirstChild(node,".fdjtfontwrapper");
-            if (wrapper) wrapper.style.fontSize="100%";}
-        fdjtDOM.resetFontSize=resetFontSize;
-
-        fdjtDOM.autofont=".fdjtadjustfont,.adjustfont";
-        function adjustFonts(arg,top){
-            var all=[];
-            if (!(arg)) all=fdjtDOM.$(fdjtDOM.autofont);
-            else if (typeof arg === "string") {
-                if (document.getElementByID(arg)) 
-                    all=[document.getElementByID(arg)];
-                else {
-                    fdjtDOM.autofont=fdjtDOM.autofont+","+arg;
-                    all=fdjtDOM.$(arg);}}
-            else if (arg.nodeType===1) {
-                var sel=new Selector(fdjtDOM.autofont);
-                if (sel.match(arg))
-                    all=[arg];
-                else all=fdjtDOM.getChildren(arg,fdjtDOM.autofont);}
-            else all=fdjtDOM.$(fdjtDOM.autofont);
-            var i=0, lim=all.length;
-            if (lim) while (i<lim) adjustFontSize(all[i++]);
-            else if (top) adjustFontSize(top);}
-        fdjtDOM.tweakFont=fdjtDOM.tweakFonts=
-            fdjtDOM.adjustFont=fdjtDOM.adjustFonts=adjustFonts;
-        
-        function adjustPositionedChildren(node){
-            if ((!(node))||(node.nodeType!==1)) return;
-            var style=getStyle(node);
-            if ((node.childNodes)&&(node.childNodes.length)) {
-                var children=node.childNodes; var i=0, lim=children.length;
-                while (i<lim) {
-                    var child=children[i++];
-                    if (child.nodeType===1)
-                        adjustPositionedChildren(child);}}
-            if (((style.display==='block')||(style.display==='inline-block'))&&
-                ((style.position==='absolute')||(style.position==='fixed')))
-                adjustFontSize(node);}
-        function adjustLayoutFonts(node){
-            var marked=fdjtDOM.getChildren(node,fdjtDOM.autofont);
-            var i=0, lim=marked.length;
-            if (lim===0) adjustPositionedChildren(node);
-            else while (i<lim) adjustFontSize(marked[i++]);}
-        fdjtDOM.adjustLayoutFonts=adjustLayoutFonts;
-
-        function autoAdjustFonts(){
-            if (fdjtDOM.noautofontadjust) return;
-            adjustFonts();
-            fdjtDOM.addListener(window,"resize",adjustFonts);}
-
-        fdjt.addInit(autoAdjustFonts,"adjustFonts");
-        
         function addUXClasses(){
             var device=fdjt.device;
             var prefix=fdjt.cxprefix||"_";
@@ -7899,6 +8170,236 @@ fdjt.DOM=
     fdjt.DOM.rAF=fdjt.DOM.requestAnimationFrame=rAF;
     fdjt.DOM.cAF=fdjt.DOM.cancelAnimationFrame=cAF;
 }());
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; -*- */
+
+/* ######################### fdjt/adjustfont.js ###################### */
+
+/* Copyright (C) 2012-2014 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+   of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or
+   any later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+
+   This is based on the implementation by Charlie Park described at:
+   http:://charlipark.org/hatchshow/
+
+*/
+/* jshint browser: true */
+
+/* To do:
+   add maxheight constraints
+   more documentation
+*/
+
+// var fdjt=((window.fdjt)||{});
+
+(function(){
+    "use strict";
+    /* Tweaking fonts */
+
+    var floor=Math.floor;
+    var fdjtDOM=fdjt.DOM;
+    var fdjtLog=fdjt.Log;
+    var getFirstChild=fdjtDOM.getFirstChild;
+    var wrapChildren=fdjtDOM.wrapChildren;
+    var getStyle=fdjtDOM.getStyle;
+    var Selector=fdjtDOM.Selector;
+    var hasClass=fdjtDOM.hasClass;
+
+    function toArray(arg) {
+        return Array.prototype.slice.call(arg);}
+
+    function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge,dolog){
+        var ow=floor(wrapper.scrollWidth), oh=floor(wrapper.scrollHeight);
+        var nw, nh, newsize;
+        var wstyle=wrapper.style;
+        if (typeof fudge!== "number") fudge=1;
+
+        // These are cases where one dimension is on the edge but
+        // the other dimension is inside the edge
+        if ((ow<=w)&&(oh<=h)&&(oh>=(h-fudge))) return size;
+        // We actually skip this case because increasing the font size
+        //  might not increase the width if it forces a new line break
+        // else if ((sh<=h)&&(sw<=w)&&(sw>=(w-fudge))) return size;
+
+        // Figure out if we need to grow or shrink 
+        if ((ow>w)||(oh>h)) delta=-delta;
+
+        if (delta>0) wstyle.maxWidth=floor(w)+"px";
+
+        if (!(size)) {size=100; wstyle.fontSize=size+"%";}
+        if (!(min)) min=20;
+        if (!(max)) max=150;
+        newsize=size+delta;
+        wstyle.fontSize=newsize+"%";
+        nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);
+        while ((size>=min)&&(size<=max)&&
+               ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
+            size=newsize; newsize=newsize+delta;
+            wstyle.fontSize=newsize+"%";
+            if (dolog)
+                fdjtLog(
+                    "Adjust %o to %dx%d %o: size=%d=%d+(%d), %dx%d => %dx%d",
+                    wrapper.parentNode,w,h,wrapper,newsize,size,delta,
+                    ow,oh,nw,nh);
+            nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);}
+        wstyle.maxWidth='';
+        if (delta>0) {
+            wstyle.fontSize=size+"%";
+            return size;}
+        else return newsize;}
+    
+    function adjustFontSize(node,min_font,max_font,fudge){
+        var h=node.offsetHeight, w=node.offsetWidth;
+        var dolog=hasClass(node,"_fdjtlog");
+        var node_display='';
+        if ((h===0)||(w===0)) {
+            // Do a little to make the element visible if it's not.
+            node_display=node.style.display;
+            node.style.display='initial';
+            h=node.offsetHeight; w=node.offsetWidth;
+            if ((h===0)||(w===0)) {
+                node.style.display=node_display;
+                return;}}
+        else {}
+        if ((h===0)||(w===0)) {
+            node.style.display=node_display;
+            return;}
+        var wrapper=wrapChildren(node,"div.fdjtfontwrapper");
+        var wstyle=wrapper.style, size=100;
+        wstyle.boxSizing='border-box';
+        wstyle.padding=wstyle.margin="0px";
+        wstyle.fontSize=size+"%";
+        wstyle.transitionProperty='none';
+        wstyle.transitionDuration='0s';
+        wstyle[fdjtDOM.transitionProperty]='none';
+        wstyle[fdjtDOM.transitionDuration]='0s';
+        wstyle.visibility='visible';
+        if ((h===0)||(w===0)) {
+            node.removeChild(wrapper);
+            fdjtDOM.append(node,toArray(wrapper.childNodes));
+            node.style.display=node_display;
+            return;}
+        var min=((min_font)||(node.getAttribute("data-minfont"))||(20));
+        var max=((max_font)||(node.getAttribute("data-maxfont"))||(200));
+        if (typeof fudge!=="number") fudge=node.getAttribute("data-fudge");
+        if (typeof min === "string") min=parseFloat(min,10);
+        if (typeof max === "string") max=parseFloat(max,10);
+        if (typeof fudge === "string") fudge=parseInt(fudge,10);
+        if (typeof fudge !== "number") fudge=2;
+        wstyle.width=wstyle.height="100%";
+        w=wrapper.offsetWidth; h=wrapper.offsetHeight;
+        wstyle.width=wstyle.height="100%";
+        wstyle.maxWidth=wstyle.maxHeight="100%";
+        w=wrapper.offsetWidth; h=wrapper.offsetHeight;
+        wstyle.width=wstyle.height="";
+        size=adjustWrapperFont(
+            wrapper,10,false,size,min,max,w,h,fudge,dolog);
+        size=adjustWrapperFont(
+            wrapper,5,false,size,min,max,w,h,fudge,dolog);
+        size=adjustWrapperFont(
+            wrapper,1,false,size,min,max,w,h,fudge,dolog);
+        wstyle.maxWidth=wstyle.maxHeight="";
+        node.style.display=node_display;
+        if (size===100) {
+            if (dolog)
+                fdjtLog("No need to resize %o towards %dx%d",node,w,h);
+            node.removeChild(wrapper);
+            fdjtDOM.append(node,toArray(wrapper.childNodes));}
+        else {
+            wstyle.width=''; wstyle.height='';
+            wstyle.maxWidth=''; wstyle.maxHeight='';
+            if (dolog)
+                fdjtLog("Adjusted (%s) %o towards %dx%d, wrapper @ %d,%d",
+                        wstyle.fontSize,node,w,h,
+                        wrapper.scrollWidth,wrapper.scrollHeight);
+            // We reset all of these
+            wstyle.transitionProperty='';
+            wstyle.transitionDuration='';
+            wstyle[fdjtDOM.transitionProperty]='';
+            wstyle[fdjtDOM.transitionDuration]='';
+            var cwstyle=getStyle(wrapper);
+            if (cwstyle[fdjtDOM.transitionProperty]) { 
+                wstyle.fontSize=''; wstyle.visibility='';
+                wstyle.fontSize=size+"%";}
+            else wstyle.visibility='';}
+        return size;}
+    fdjtDOM.adjustFontSize=fdjtDOM.tweakFontSize=adjustFontSize;
+    
+    function resetFontSize(node){
+        var wrapper=getFirstChild(node,".fdjtfontwrapper");
+        if (wrapper) wrapper.style.fontSize="100%";}
+    fdjtDOM.resetFontSize=resetFontSize;
+
+    fdjtDOM.autofont=".fdjtadjustfont,.adjustfont";
+    function adjustFonts(arg,top){
+        var all=[];
+        if (!(arg)) all=fdjtDOM.$(fdjtDOM.autofont);
+        else if (typeof arg === "string") {
+            if (document.getElementByID(arg)) 
+                all=[document.getElementByID(arg)];
+            else {
+                fdjtDOM.autofont=fdjtDOM.autofont+","+arg;
+                all=fdjtDOM.$(arg);}}
+        else if (arg.nodeType===1) {
+            var sel=new Selector(fdjtDOM.autofont);
+            if (sel.match(arg))
+                all=[arg];
+            else all=fdjtDOM.getChildren(arg,fdjtDOM.autofont);}
+        else all=fdjtDOM.$(fdjtDOM.autofont);
+        var i=0, lim=all.length;
+        if (lim) while (i<lim) adjustFontSize(all[i++]);
+        else if (top) adjustFontSize(top);}
+    fdjtDOM.tweakFont=fdjtDOM.tweakFonts=
+        fdjtDOM.adjustFont=fdjtDOM.adjustFonts=adjustFonts;
+    
+    function adjustPositionedChildren(node){
+        if ((!(node))||(node.nodeType!==1)) return;
+        var style=getStyle(node);
+        if ((node.childNodes)&&(node.childNodes.length)) {
+            var children=node.childNodes; var i=0, lim=children.length;
+            while (i<lim) {
+                var child=children[i++];
+                if (child.nodeType===1)
+                    adjustPositionedChildren(child);}}
+        if (((style.display==='block')||(style.display==='inline-block'))&&
+            ((style.position==='absolute')||(style.position==='fixed')))
+            adjustFontSize(node);}
+    function adjustLayoutFonts(node){
+        var marked=fdjtDOM.getChildren(node,fdjtDOM.autofont);
+        var i=0, lim=marked.length;
+        if (lim===0) adjustPositionedChildren(node);
+        else while (i<lim) adjustFontSize(marked[i++]);}
+    fdjtDOM.adjustLayoutFonts=adjustLayoutFonts;
+
+    function autoAdjustFonts(){
+        if (fdjtDOM.noautofontadjust) return;
+        adjustFonts();
+        fdjtDOM.addListener(window,"resize",adjustFonts);}
+
+    fdjt.addInit(autoAdjustFonts,"adjustFonts");
+    
+})();
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -16149,8 +16650,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1539-g84399ed';
-fdjt.buildhost='dev-52-4-39-174';
-fdjt.buildtime='Wed Dec 23 14:32:29 UTC 2015';
-fdjt.builduuid='c3d84689-e27b-4ea7-83e6-dabf2b8f2043';
+fdjt.revision='1.5-1542-g1070681';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Mon Jan 4 11:54:26 EST 2016';
+fdjt.builduuid='82c2a768-413a-4442-95e7-31708d6fa93c';
 

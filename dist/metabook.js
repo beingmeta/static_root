@@ -1665,6 +1665,435 @@ fdjt.Async=fdjt.ASync=fdjt.async=
 */
 /* -*- Mode: Javascript; -*- */
 
+/* ######################### fdjt/dom.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+   of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or
+   any later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+*/
+/* jshint browser: true */
+/* globals Promise, self */
+
+(function(self) {
+    'use strict';
+    /*
+      Copyright (c) 2014-2015 GitHub, Inc.
+
+      Permission is hereby granted, free of charge, to any person obtaining
+      a copy of this software and associated documentation files (the
+      "Software"), to deal in the Software without restriction, including
+      without limitation the rights to use, copy, modify, merge, publish,
+      distribute, sublicense, and/or sell copies of the Software, and to
+      permit persons to whom the Software is furnished to do so, subject to
+      the following conditions:
+
+      The above copyright notice and this permission notice shall be
+      included in all copies or substantial portions of the Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+      NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+      LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+      OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+      WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    */
+
+    if (self.fetch) {
+	return;
+    }
+
+    function normalizeName(name) {
+	if (typeof name !== 'string') {
+	    name = String(name);
+	}
+	if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+	    throw new TypeError('Invalid character in header field name');
+	}
+	return name.toLowerCase();
+    }
+
+    function normalizeValue(value) {
+	if (typeof value !== 'string') {
+	    value = String(value);
+	}
+	return value;
+    }
+
+    function Headers(headers) {
+	this.map = {};
+
+	if (headers instanceof Headers) {
+	    headers.forEach(function(value, name) {
+		this.append(name, value);
+	    }, this);
+
+	} else if (headers) {
+	    Object.getOwnPropertyNames(headers).forEach(function(name) {
+		this.append(name, headers[name]);
+	    }, this);
+	}
+    }
+
+    Headers.prototype.append = function(name, value) {
+	name = normalizeName(name);
+	value = normalizeValue(value);
+	var list = this.map[name];
+	if (!list) {
+	    list = [];
+	    this.map[name] = list;
+	}
+	list.push(value);
+    };
+
+    Headers.prototype['delete'] = function(name) {
+	delete this.map[normalizeName(name)];
+    };
+
+    Headers.prototype.get = function(name) {
+	var values = this.map[normalizeName(name)];
+	return values ? values[0] : null;
+    };
+
+    Headers.prototype.getAll = function(name) {
+	return this.map[normalizeName(name)] || [];
+    };
+
+    Headers.prototype.has = function(name) {
+	return this.map.hasOwnProperty(normalizeName(name));
+    };
+
+    Headers.prototype.set = function(name, value) {
+	this.map[normalizeName(name)] = [normalizeValue(value)];
+    };
+
+    Headers.prototype.forEach = function(callback, thisArg) {
+	Object.getOwnPropertyNames(this.map).forEach(function(name) {
+	    this.map[name].forEach(function(value) {
+		callback.call(thisArg, value, name, this);
+	    }, this);
+	}, this);
+    };
+
+    function consumed(body) {
+	if (body.bodyUsed) {
+	    return Promise.reject(new TypeError('Already read'));
+	}
+	body.bodyUsed = true;
+    }
+
+    function fileReaderReady(reader) {
+	return new Promise(function(resolve, reject) {
+	    reader.onload = function() {
+		resolve(reader.result);
+	    };
+	    reader.onerror = function() {
+		reject(reader.error);
+	    };
+	});
+    }
+
+    function readBlobAsArrayBuffer(blob) {
+	var reader = new FileReader();
+	reader.readAsArrayBuffer(blob);
+	return fileReaderReady(reader);
+    }
+
+    function readBlobAsText(blob) {
+	var reader = new FileReader();
+	reader.readAsText(blob);
+	return fileReaderReady(reader);
+    }
+
+    var support = {
+	blob: 'FileReader' in self && 'Blob' in self && (function() {
+	    try {
+		new Blob();
+		return true;
+	    } catch(e) {
+		return false;
+	    }
+	})(),
+	formData: 'FormData' in self,
+	arrayBuffer: 'ArrayBuffer' in self
+    };
+
+    function Body() {
+	this.bodyUsed = false;
+
+
+	this._initBody = function(body) {
+	    this._bodyInit = body;
+	    if (typeof body === 'string') {
+		this._bodyText = body;
+	    } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+		this._bodyBlob = body;
+	    } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+		this._bodyFormData = body;
+	    } else if (!body) {
+		this._bodyText = '';
+	    } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
+		// Only support ArrayBuffers for POST method.
+		// Receiving ArrayBuffers happens via Blobs, instead.
+	    } else {
+		throw new Error('unsupported BodyInit type');
+	    }
+	};
+
+	if (support.blob) {
+	    this.blob = function() {
+		var rejected = consumed(this);
+		if (rejected) {
+		    return rejected;
+		}
+
+		if (this._bodyBlob) {
+		    return Promise.resolve(this._bodyBlob);
+		} else if (this._bodyFormData) {
+		    throw new Error('could not read FormData body as blob');
+		} else {
+		    return Promise.resolve(new Blob([this._bodyText]));
+		}
+	    };
+
+	    this.arrayBuffer = function() {
+		return this.blob().then(readBlobAsArrayBuffer);
+	    };
+
+	    this.text = function() {
+		var rejected = consumed(this);
+		if (rejected) {
+		    return rejected;
+		}
+
+		if (this._bodyBlob) {
+		    return readBlobAsText(this._bodyBlob);
+		} else if (this._bodyFormData) {
+		    throw new Error('could not read FormData body as text');
+		} else {
+		    return Promise.resolve(this._bodyText);
+		}
+	    };
+	} else {
+	    this.text = function() {
+		var rejected = consumed(this);
+		return rejected ? rejected : Promise.resolve(this._bodyText);
+	    };
+	}
+
+	if (support.formData) {
+	    this.formData = function() {
+		return this.text().then(decode);
+	    };
+	}
+
+	this.json = function() {
+	    return this.text().then(JSON.parse);
+	};
+
+	return this;
+    }
+
+    // HTTP methods whose capitalization should be normalized
+    var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
+
+    function normalizeMethod(method) {
+	var upcased = method.toUpperCase();
+	return (methods.indexOf(upcased) > -1) ? upcased : method;
+    }
+
+    function Request(input, options) {
+	options = options || {};
+	var body = options.body;
+	if (Request.prototype.isPrototypeOf(input)) {
+	    if (input.bodyUsed) {
+		throw new TypeError('Already read');
+	    }
+	    this.url = input.url;
+	    this.credentials = input.credentials;
+	    if (!options.headers) {
+		this.headers = new Headers(input.headers);
+	    }
+	    this.method = input.method;
+	    this.mode = input.mode;
+	    if (!body) {
+		body = input._bodyInit;
+		input.bodyUsed = true;
+	    }
+	} else {
+	    this.url = input;
+	}
+
+	this.credentials = options.credentials || this.credentials || 'omit';
+	if (options.headers || !this.headers) {
+	    this.headers = new Headers(options.headers);
+	}
+	this.method = normalizeMethod(options.method || this.method || 'GET');
+	this.mode = options.mode || this.mode || null;
+	this.referrer = null;
+
+	if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+	    throw new TypeError('Body not allowed for GET or HEAD requests');
+	}
+	this._initBody(body);
+    }
+
+    Request.prototype.clone = function() {
+	return new Request(this);
+    };
+
+    function decode(body) {
+	var form = new FormData();
+	body.trim().split('&').forEach(function(bytes) {
+	    if (bytes) {
+		var split = bytes.split('=');
+		var name = split.shift().replace(/\+/g, ' ');
+		var value = split.join('=').replace(/\+/g, ' ');
+		form.append(decodeURIComponent(name), decodeURIComponent(value));
+	    }
+	});
+	return form;
+    }
+
+    function headers(xhr) {
+	var head = new Headers();
+	var pairs = xhr.getAllResponseHeaders().trim().split('\n');
+	pairs.forEach(function(header) {
+	    var split = header.trim().split(':');
+	    var key = split.shift().trim();
+	    var value = split.join(':').trim();
+	    head.append(key, value);
+	});
+	return head;
+    }
+
+    Body.call(Request.prototype);
+
+    function Response(bodyInit, options) {
+	if (!options) {
+	    options = {};
+	}
+
+	this._initBody(bodyInit);
+	this.type = 'default';
+	this.status = options.status;
+	this.ok = this.status >= 200 && this.status < 300;
+	this.statusText = options.statusText;
+	this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers);
+	this.url = options.url || '';
+    }
+
+    Body.call(Response.prototype);
+
+    Response.prototype.clone = function() {
+	return new Response(this._bodyInit, {
+	    status: this.status,
+	    statusText: this.statusText,
+	    headers: new Headers(this.headers),
+	    url: this.url
+	});
+    };
+
+    Response.error = function() {
+	var response = new Response(null, {status: 0, statusText: ''});
+	response.type = 'error';
+	return response;
+    };
+
+    var redirectStatuses = [301, 302, 303, 307, 308];
+
+    Response.redirect = function(url, status) {
+	if (redirectStatuses.indexOf(status) === -1) {
+	    throw new RangeError('Invalid status code');
+	}
+
+	return new Response(null, {status: status, headers: {location: url}});
+    };
+
+    self.Headers = Headers;
+    self.Request = Request;
+    self.Response = Response;
+
+    self.fetch = function(input, init) {
+	return new Promise(function(resolve, reject) {
+	    var request;
+	    if (Request.prototype.isPrototypeOf(input) && !init) {
+		request = input;
+	    } else {
+		request = new Request(input, init);
+	    }
+
+	    var xhr = new XMLHttpRequest();
+
+	    function responseURL() {
+		if ('responseURL' in xhr) {
+		    return xhr.responseURL;
+		}
+
+		// Avoid security warnings on getResponseHeader when not allowed by CORS
+		if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
+		    return xhr.getResponseHeader('X-Request-URL');
+		}
+
+		return;
+	    }
+
+	    xhr.onload = function() {
+		var status = (xhr.status === 1223) ? 204 : xhr.status;
+		if (status < 100 || status > 599) {
+		    reject(new TypeError('Network request failed'));
+		    return;
+		}
+		var options = {
+		    status: status,
+		    statusText: xhr.statusText,
+		    headers: headers(xhr),
+		    url: responseURL()
+		};
+		var body = 'response' in xhr ? xhr.response : xhr.responseText;
+		resolve(new Response(body, options));
+	    };
+
+	    xhr.onerror = function() {
+		reject(new TypeError('Network request failed'));
+	    };
+
+	    xhr.open(request.method, request.url, true);
+
+	    if (request.credentials === 'include') {
+		xhr.withCredentials = true;
+	    }
+
+	    if ('responseType' in xhr && support.blob) {
+		xhr.responseType = 'blob';
+	    }
+
+	    request.headers.forEach(function(value, name) {
+		xhr.setRequestHeader(name, value);
+	    }).
+
+	    xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
+	});
+    };
+    self.fetch.polyfill = true;
+})(self||window||this);
+/* -*- Mode: Javascript; -*- */
+
 /* ######################### fdjt/string.js ###################### */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -6459,6 +6888,10 @@ fdjt.DOM=
                     (target.tagName==='TEXTAREA'));}
         fdjtDOM.isTextInput=isTextInput;
         
+        function isImage(target){
+            return (target.tagName==='IMG');}
+        fdjtDOM.isImage=isImage;
+
         /* Simple CSS selectors */
 
         var selectors={};
@@ -7387,6 +7820,133 @@ fdjt.DOM=
         fdjtDOM.hoverflow=function(node){
             return (node.scrollWidth/node.clientWidth);};
 
+        /* Listeners */
+
+        function addListener(node,evtype,handler){
+            if (!(node)) node=document;
+            if (typeof node === 'string') {
+                var elt=fdjtID(node);
+                if (!(node)) {
+                    fdjtLog.warn("Can't find #%s",node);
+                    return;}
+                node=elt;}
+            else if (((Array.isArray)&&(Array.isArray(node)))||
+                     ((window.NodeList)&&(node instanceof window.NodeList))) {
+                var i=0; var lim=node.length;
+                while (i<lim) addListener(node[i++],evtype,handler);
+                return;}
+            else if ((node!==window)&&(!(node.nodeType))) {
+                fdjtLog.warn("Bad target(s) arg to addListener(%s) %o",evtype,node);
+                return;}
+            // OK, actually do it
+            if (evtype==='title') { 
+                // Not really a listener, but helpful
+                if (typeof handler === 'string') 
+                    if (node.title)
+                        node.title='('+handler+') '+node.title;
+                else node.title=handler;}
+            else if (evtype[0]==='=')
+                node[evtype.slice(1)]=handler;
+            else if (node.addEventListener)  {
+                // fdjtLog("Adding listener %o for %o to %o",handler,evtype,node);
+                return node.addEventListener(evtype,handler,false);}
+            else if (node.attachEvent)
+                return node.attachEvent('on'+evtype,handler);
+            else fdjtLog.warn('This node never listens: %o',node);}
+        fdjtDOM.addListener=addListener;
+
+        function defListeners(handlers,defs){
+            if ((handlers)&&(defs))
+                for (var domspec in defs) {
+                    if (defs.hasOwnProperty(domspec)) {
+                        var evtable=defs[domspec];
+                        var addto=handlers[domspec];
+                        if ((!(addto))||
+                            (!(handlers.hasOwnProperty(domspec))))
+                            handlers[domspec]=addto={};
+                        for (var evtype in evtable) {
+                            if (evtable.hasOwnProperty(evtype))
+                                addto[evtype]=evtable[evtype];}}}}
+        fdjtDOM.defListeners=defListeners;
+
+        var events_pat=/^([^:]+)$/;
+        var spec_events_pat=/^([^: ]+):([^: ]+)$/;
+
+        function addListeners(node,handlers){
+            if (handlers) {
+                for (var evtype in handlers) {
+                    if (handlers.hasOwnProperty(evtype)) {
+                        var match=false, val=handlers[evtype];
+                        if (!(val.call)) {}
+                        else if (events_pat.exec(evtype))
+                            addListener(node,evtype,handlers[evtype]);
+                        else if ((match=spec_events_pat.exec(evtype))) {
+                            var ev=match[2];
+                            var handler=handlers[evtype];
+                            var elts=node.querySelectorAll(match[1]);
+                            addListener(elts,ev,handler);}}}}}
+        fdjtDOM.addListeners=addListeners;
+        
+        function removeListener(node,evtype,handler){
+            if (!(node)) node=document;
+            if (typeof node === 'string') {
+                var elt=fdjtID(node);
+                if (!(node)) {
+                    fdjtLog("Can't find #%s",node);
+                    return;}
+                node=elt;}
+            else if (((Array.isArray)&&(Array.isArray(node)))||
+                     ((window.NodeList)&&(node instanceof window.NodeList))) {
+                var i=0; var lim=node.length;
+                while (i<lim) removeListener(node[i++],evtype,handler);
+                return;}
+            else if ((node!==window)&&(!(node.nodeType))) {
+                fdjtLog.warn("Bad target(s) arg to removeListener(%s) %o",evtype,node);
+                return;}
+            // OK, actually do it
+            if (node.removeEventListener)  {
+                return node.removeEventListener(evtype,handler,false);}
+            else if (node.detachEvent)
+                return node.detachEvent('on'+evtype,handler);
+            else fdjtLog.warn('This node never listens: %o',node);}
+        fdjtDOM.removeListener=removeListener;
+
+        function eventTarget(evt) {
+            evt=evt||window.event; 
+            return (evt.target)||(evt.srcElement);}
+        fdjtDOM.T=eventTarget;
+        fdjtDOM.eventTarget=eventTarget;
+        fdjtDOM.getTarget=eventTarget;
+
+        function cancelEvent(evt){
+            evt=evt||window.event;
+            if (evt.preventDefault) evt.preventDefault();
+            else evt.returnValue=false;
+            evt.cancelBubble=true;}
+        fdjtDOM.cancel=cancelEvent;
+
+        function triggerClick(elt){
+            if (document.createEvent) { // in chrome
+                var e = document.createEvent('MouseEvents');
+                e.initEvent( 'click', true, true );
+                elt.dispatchEvent(e);
+                return;}
+            else {
+                fdjtLog.warn("Couldn't trigger click");
+                return;}}
+        fdjtDOM.triggerClick=triggerClick;
+
+        /* Scrolling by pages */
+        function pageScroll(container,n){
+            var ch=container.clientHeight, delta=ch*n;
+            var sh=container.scrollHeight, st=container.scrollTop;
+            var nt=st+delta;
+            if (ch>=sh) return;
+            if (nt<0) container.scrollTop=0;
+            else if ((nt+ch)>=sh) container.scrollTop=sh-ch;
+            else container.scrollTop=nt;}
+        fdjtDOM.pageScroll=pageScroll;
+
         /* Sizing to fit */
 
         var default_trace_adjust=false;
@@ -7581,6 +8141,92 @@ fdjt.DOM=
             delete container.bestfit;
             delete container.goodscale;};
         
+        /* Scaling to fit using CSS transforms */
+
+        function scale_node(node,fudge,origin,shrink){
+            if (!(origin)) origin=node.getAttribute("data-origin");
+            if (!(shrink)) shrink=node.getAttribute("data-shrink");
+            if (!(fudge)) fudge=node.getAttribute("data-fudge");
+
+            // Clear any existing adjustments
+            var first=node.firstChild, wrapper=
+                ((first.className==="fdjtadjusted")?(first):
+                 (getFirstChild(node,"fdjtadjusted")));
+            if (wrapper) wrapper.setAttribute("style","");
+
+            var geom=getGeometry(node,false,true), inside=getInsideBounds(node);
+            var avail_width=((fudge)?(fudge*geom.inner_width):
+                             (geom.inner_width));
+            var avail_height=((fudge)?(fudge*geom.inner_height):
+                              (geom.inner_height));
+
+            if ((inside.height<=avail_height)&&(inside.width<=avail_width)) {
+                // Everything is inside
+                if (!(shrink)) return;
+                // If you fit closely in any dimension, don't try scaling
+                if (((inside.height<avail_height)&&
+                     (inside.height>=(avail_height*0.9)))||
+                    ((inside.width<geom.inner_width)&&
+                     (inside.width>=(avail_height*0.9))))
+                    return;}
+            if (!(wrapper)) {
+                var nodes=[], children=node.childNodes;
+                var i=0, lim=children.length;
+                while (i<lim) nodes.push(children[i++]);
+                wrapper=fdjtDOM("div.fdjtadjusted");
+                i=0; lim=nodes.length; while (i<lim)
+                    wrapper.appendChild(nodes[i++]);
+                node.appendChild(wrapper);}
+            var w_scale=avail_width/inside.width;
+            var h_scale=avail_height/inside.height;
+            var scale=((w_scale<h_scale)?(w_scale):(h_scale));
+            wrapper.style[fdjtDOM.transform]="scale("+scale+","+scale+")";
+            wrapper.style[fdjtDOM.transformOrigin]=origin||"50% 0%";}
+
+        function scaleAll(){
+            var all=fdjtDOM.$(".fdjtadjustfit");
+            var i=0, lim=all.length; while (i<lim)
+                scale_node(all[i++]);}
+        
+        function scaleToFit(node,fudge,origin){
+            fdjtDOM.addClass(node,"fdjtadjustfit");
+            if ((fudge)&&(typeof fudge !== "number")) fudge=0.9;
+            if (fudge) node.setAttribute("data-fudge",fudge);
+            if (origin) node.setAttribute("data-origin",origin);
+            scale_node(node,fudge,origin);
+            return node;}
+        fdjtDOM.scaleToFit=scaleToFit;
+        fdjtDOM.scaleToFit.scaleNode=fdjtDOM.scaleToFit.adjust=scale_node;
+        
+        function scale_revert(node,wrapper){
+            if (!(wrapper)) {
+                if (hasClass(node,"fdjtadjusted")) {
+                    wrapper=node; node=wrapper.parentNode;}
+                else wrapper=
+                    ((node.firstChild.className==="fdjtadjusted")?
+                     (node.firstChild):(getFirstChild(node,"fdjtadjusted")));}
+            if ((node)&&(wrapper)) {
+                var nodes=[], children=wrapper.childNodes;
+                var i=0, lim=children.length;
+                while (i<lim) nodes.push(children[i++]);
+                var frag=document.createDocumentFragment();
+                i=0; lim=nodes.length; while (i<lim) {
+                    frag.appendChild(nodes[i++]);}
+                node.replaceChild(frag,wrapper);
+                return node;}
+            else return false;}
+        fdjtDOM.scaleToFit.revert=scale_revert;
+
+        function revertAll(){
+            var all=fdjtDOM.$(".fdjtadjusted");
+            var i=0, lim=all.length; while (i<lim) {
+                var wrapper=all[i++];
+                scale_revert(wrapper.parentNode,wrapper);}}
+        fdjtDOM.scaleToFit.revertAll=revertAll;
+
+        fdjt.addInit(scaleAll);
+        fdjtDOM.addListener(window,"resize",scaleAll);
+
         /* Getting various kinds of metadata */
 
         function getHTML(){
@@ -8078,203 +8724,6 @@ fdjt.DOM=
             else return false;}
         fdjtDOM.addCSSRule=addCSSRule;
 
-        /* Listeners (should be in UI?) */
-
-        function addListener(node,evtype,handler){
-            if (!(node)) node=document;
-            if (typeof node === 'string') {
-                var elt=fdjtID(node);
-                if (!(node)) {
-                    fdjtLog.warn("Can't find #%s",node);
-                    return;}
-                node=elt;}
-            else if (((Array.isArray)&&(Array.isArray(node)))||
-                     ((window.NodeList)&&(node instanceof window.NodeList))) {
-                var i=0; var lim=node.length;
-                while (i<lim) addListener(node[i++],evtype,handler);
-                return;}
-            else if ((node!==window)&&(!(node.nodeType))) {
-                fdjtLog.warn("Bad target(s) arg to addListener(%s) %o",evtype,node);
-                return;}
-            // OK, actually do it
-            if (evtype==='title') { 
-                // Not really a listener, but helpful
-                if (typeof handler === 'string') 
-                    if (node.title)
-                        node.title='('+handler+') '+node.title;
-                else node.title=handler;}
-            else if (evtype[0]==='=')
-                node[evtype.slice(1)]=handler;
-            else if (node.addEventListener)  {
-                // fdjtLog("Adding listener %o for %o to %o",handler,evtype,node);
-                return node.addEventListener(evtype,handler,false);}
-            else if (node.attachEvent)
-                return node.attachEvent('on'+evtype,handler);
-            else fdjtLog.warn('This node never listens: %o',node);}
-        fdjtDOM.addListener=addListener;
-
-        function defListeners(handlers,defs){
-            if ((handlers)&&(defs))
-                for (var domspec in defs) {
-                    if (defs.hasOwnProperty(domspec)) {
-                        var evtable=defs[domspec];
-                        var addto=handlers[domspec];
-                        if ((!(addto))||
-                            (!(handlers.hasOwnProperty(domspec))))
-                            handlers[domspec]=addto={};
-                        for (var evtype in evtable) {
-                            if (evtable.hasOwnProperty(evtype))
-                                addto[evtype]=evtable[evtype];}}}}
-        fdjtDOM.defListeners=defListeners;
-
-        var events_pat=/^([^:]+)$/;
-        var spec_events_pat=/^([^: ]+):([^: ]+)$/;
-
-        function addListeners(node,handlers){
-            if (handlers) {
-                for (var evtype in handlers) {
-                    if (handlers.hasOwnProperty(evtype)) {
-                        var match=false, val=handlers[evtype];
-                        if (!(val.call)) {}
-                        else if (events_pat.exec(evtype))
-                            addListener(node,evtype,handlers[evtype]);
-                        else if ((match=spec_events_pat.exec(evtype))) {
-                            var ev=match[2];
-                            var handler=handlers[evtype];
-                            var elts=node.querySelectorAll(match[1]);
-                            addListener(elts,ev,handler);}}}}}
-        fdjtDOM.addListeners=addListeners;
-        
-        function removeListener(node,evtype,handler){
-            if (!(node)) node=document;
-            if (typeof node === 'string') {
-                var elt=fdjtID(node);
-                if (!(node)) {
-                    fdjtLog("Can't find #%s",node);
-                    return;}
-                node=elt;}
-            else if (((Array.isArray)&&(Array.isArray(node)))||
-                     ((window.NodeList)&&(node instanceof window.NodeList))) {
-                var i=0; var lim=node.length;
-                while (i<lim) removeListener(node[i++],evtype,handler);
-                return;}
-            else if ((node!==window)&&(!(node.nodeType))) {
-                fdjtLog.warn("Bad target(s) arg to removeListener(%s) %o",evtype,node);
-                return;}
-            // OK, actually do it
-            if (node.removeEventListener)  {
-                return node.removeEventListener(evtype,handler,false);}
-            else if (node.detachEvent)
-                return node.detachEvent('on'+evtype,handler);
-            else fdjtLog.warn('This node never listens: %o',node);}
-        fdjtDOM.removeListener=removeListener;
-
-        fdjtDOM.T=function(evt) {
-            evt=evt||window.event; return (evt.target)||(evt.srcElement);};
-
-        fdjtDOM.cancel=function(evt){
-            evt=evt||window.event;
-            if (evt.preventDefault) evt.preventDefault();
-            else evt.returnValue=false;
-            evt.cancelBubble=true;};
-
-        function triggerClick(elt){
-            if (document.createEvent) { // in chrome
-                var e = document.createEvent('MouseEvents');
-                e.initEvent( 'click', true, true );
-                elt.dispatchEvent(e);
-                return;}
-            else {
-                fdjtLog.warn("Couldn't trigger click");
-                return;}}
-        fdjtDOM.triggerClick=triggerClick;
-
-        /* Scaling to fit using CSS transforms */
-
-        function scale_node(node,fudge,origin,shrink){
-            if (!(origin)) origin=node.getAttribute("data-origin");
-            if (!(shrink)) shrink=node.getAttribute("data-shrink");
-            if (!(fudge)) fudge=node.getAttribute("data-fudge");
-
-            // Clear any existing adjustments
-            var first=node.firstChild, wrapper=
-                ((first.className==="fdjtadjusted")?(first):
-                 (getFirstChild(node,"fdjtadjusted")));
-            if (wrapper) wrapper.setAttribute("style","");
-
-            var geom=getGeometry(node,false,true), inside=getInsideBounds(node);
-            var avail_width=((fudge)?(fudge*geom.inner_width):
-                             (geom.inner_width));
-            var avail_height=((fudge)?(fudge*geom.inner_height):
-                              (geom.inner_height));
-
-            if ((inside.height<=avail_height)&&(inside.width<=avail_width)) {
-                // Everything is inside
-                if (!(shrink)) return;
-                // If you fit closely in any dimension, don't try scaling
-                if (((inside.height<avail_height)&&
-                     (inside.height>=(avail_height*0.9)))||
-                    ((inside.width<geom.inner_width)&&
-                     (inside.width>=(avail_height*0.9))))
-                    return;}
-            if (!(wrapper)) {
-                var nodes=[], children=node.childNodes;
-                var i=0, lim=children.length;
-                while (i<lim) nodes.push(children[i++]);
-                wrapper=fdjtDOM("div.fdjtadjusted");
-                i=0; lim=nodes.length; while (i<lim)
-                    wrapper.appendChild(nodes[i++]);
-                node.appendChild(wrapper);}
-            var w_scale=avail_width/inside.width;
-            var h_scale=avail_height/inside.height;
-            var scale=((w_scale<h_scale)?(w_scale):(h_scale));
-            wrapper.style[fdjtDOM.transform]="scale("+scale+","+scale+")";
-            wrapper.style[fdjtDOM.transformOrigin]=origin||"50% 0%";}
-
-        function scaleAll(){
-            var all=fdjtDOM.$(".fdjtadjustfit");
-            var i=0, lim=all.length; while (i<lim)
-                scale_node(all[i++]);}
-        
-        function scaleToFit(node,fudge,origin){
-            fdjtDOM.addClass(node,"fdjtadjustfit");
-            if ((fudge)&&(typeof fudge !== "number")) fudge=0.9;
-            if (fudge) node.setAttribute("data-fudge",fudge);
-            if (origin) node.setAttribute("data-origin",origin);
-            scale_node(node,fudge,origin);
-            return node;}
-        fdjtDOM.scaleToFit=scaleToFit;
-        fdjtDOM.scaleToFit.scaleNode=fdjtDOM.scaleToFit.adjust=scale_node;
-        
-        function scale_revert(node,wrapper){
-            if (!(wrapper)) {
-                if (hasClass(node,"fdjtadjusted")) {
-                    wrapper=node; node=wrapper.parentNode;}
-                else wrapper=
-                    ((node.firstChild.className==="fdjtadjusted")?
-                     (node.firstChild):(getFirstChild(node,"fdjtadjusted")));}
-            if ((node)&&(wrapper)) {
-                var nodes=[], children=wrapper.childNodes;
-                var i=0, lim=children.length;
-                while (i<lim) nodes.push(children[i++]);
-                var frag=document.createDocumentFragment();
-                i=0; lim=nodes.length; while (i<lim) {
-                    frag.appendChild(nodes[i++]);}
-                node.replaceChild(frag,wrapper);
-                return node;}
-            else return false;}
-        fdjtDOM.scaleToFit.revert=scale_revert;
-
-        function revertAll(){
-            var all=fdjtDOM.$(".fdjtadjusted");
-            var i=0, lim=all.length; while (i<lim) {
-                var wrapper=all[i++];
-                scale_revert(wrapper.parentNode,wrapper);}}
-        fdjtDOM.scaleToFit.revertAll=revertAll;
-
-        fdjt.addInit(scaleAll);
-        fdjtDOM.addListener(window,"resize",scaleAll);
-
         /* Check for SVG */
         var nosvg;
 
@@ -8676,10 +9125,6 @@ fdjt.DOM=
                 return firstText(node.firstChild);
             else return false;}
 
-        /* Paragraph hashes */
-
-        // fdjtDOM.getParaHash=function(node){return paraHash(textify(node,true,false,false));};
-
         /* Getting transition event names */
 
         var transition_events=[
@@ -8834,180 +9279,6 @@ fdjt.DOM=
             else return datauri;}
         fdjtDOM.data2URL=data2URL;
 
-        /* Tweaking fonts */
-
-        var floor=Math.floor;
-
-        function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge,dolog){
-            var ow=floor(wrapper.scrollWidth), oh=floor(wrapper.scrollHeight);
-            var nw, nh, newsize;
-            var wstyle=wrapper.style;
-            if (typeof fudge!== "number") fudge=1;
-
-            // These are cases where one dimension is on the edge but
-            // the other dimension is inside the edge
-            if ((ow<=w)&&(oh<=h)&&(oh>=(h-fudge))) return size;
-            // We actually skip this case because increasing the font size
-            //  might not increase the width if it forces a new line break
-            // else if ((sh<=h)&&(sw<=w)&&(sw>=(w-fudge))) return size;
-
-            // Figure out if we need to grow or shrink 
-            if ((ow>w)||(oh>h)) delta=-delta;
-
-            if (delta>0) wstyle.maxWidth=floor(w)+"px";
-
-            if (!(size)) {size=100; wstyle.fontSize=size+"%";}
-            if (!(min)) min=20;
-            if (!(max)) max=150;
-            newsize=size+delta;
-            wstyle.fontSize=newsize+"%";
-            nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);
-            while ((size>=min)&&(size<=max)&&
-                   ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
-                size=newsize; newsize=newsize+delta;
-                wstyle.fontSize=newsize+"%";
-                if (dolog)
-                    fdjtLog(
-                        "Adjust %o to %dx%d %o: size=%d=%d+(%d), %dx%d => %dx%d",
-                        wrapper.parentNode,w,h,wrapper,newsize,size,delta,
-                        ow,oh,nw,nh);
-                nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);}
-            wstyle.maxWidth='';
-            if (delta>0) {
-                wstyle.fontSize=size+"%";
-                return size;}
-            else return newsize;}
-                
-        function adjustFontSize(node,min_font,max_font,fudge){
-            var h=node.offsetHeight, w=node.offsetWidth;
-            var dolog=hasClass(node,"_fdjtlog");
-            var node_display='';
-            if ((h===0)||(w===0)) {
-                // Do a little to make the element visible if it's not.
-                node_display=node.style.display;
-                node.style.display='initial';
-                h=node.offsetHeight; w=node.offsetWidth;
-                if ((h===0)||(w===0)) {
-                    node.style.display=node_display;
-                    return;}}
-            else {}
-            if ((h===0)||(w===0)) {
-                node.style.display=node_display;
-                return;}
-            var wrapper=wrapChildren(node,"div.fdjtfontwrapper");
-            var wstyle=wrapper.style, size=100;
-            wstyle.boxSizing='border-box';
-            wstyle.padding=wstyle.margin="0px";
-            wstyle.fontSize=size+"%";
-            wstyle.transitionProperty='none';
-            wstyle.transitionDuration='0s';
-            wstyle[fdjtDOM.transitionProperty]='none';
-            wstyle[fdjtDOM.transitionDuration]='0s';
-            wstyle.visibility='visible';
-            if ((h===0)||(w===0)) {
-                node.removeChild(wrapper);
-                fdjtDOM.append(node,toArray(wrapper.childNodes));
-                node.style.display=node_display;
-                return;}
-            var min=((min_font)||(node.getAttribute("data-minfont"))||(20));
-            var max=((max_font)||(node.getAttribute("data-maxfont"))||(200));
-            if (typeof fudge!=="number") fudge=node.getAttribute("data-fudge");
-            if (typeof min === "string") min=parseFloat(min,10);
-            if (typeof max === "string") max=parseFloat(max,10);
-            if (typeof fudge === "string") fudge=parseInt(fudge,10);
-            if (typeof fudge !== "number") fudge=2;
-            wstyle.width=wstyle.height="100%";
-            w=wrapper.offsetWidth; h=wrapper.offsetHeight;
-            wstyle.width=wstyle.height="100%";
-            wstyle.maxWidth=wstyle.maxHeight="100%";
-            w=wrapper.offsetWidth; h=wrapper.offsetHeight;
-            wstyle.width=wstyle.height="";
-            size=adjustWrapperFont(
-                wrapper,10,false,size,min,max,w,h,fudge,dolog);
-            size=adjustWrapperFont(
-                wrapper,5,false,size,min,max,w,h,fudge,dolog);
-            size=adjustWrapperFont(
-                wrapper,1,false,size,min,max,w,h,fudge,dolog);
-            wstyle.maxWidth=wstyle.maxHeight="";
-            node.style.display=node_display;
-            if (size===100) {
-                if (dolog)
-                    fdjtLog("No need to resize %o towards %dx%d",node,w,h);
-                node.removeChild(wrapper);
-                fdjtDOM.append(node,toArray(wrapper.childNodes));}
-            else {
-                wstyle.width=''; wstyle.height='';
-                wstyle.maxWidth=''; wstyle.maxHeight='';
-                if (dolog)
-                    fdjtLog("Adjusted (%s) %o towards %dx%d, wrapper @ %d,%d",
-                            wstyle.fontSize,node,w,h,
-                            wrapper.scrollWidth,wrapper.scrollHeight);
-                // We reset all of these
-                wstyle.transitionProperty='';
-                wstyle.transitionDuration='';
-                wstyle[fdjtDOM.transitionProperty]='';
-                wstyle[fdjtDOM.transitionDuration]='';
-                var cwstyle=getStyle(wrapper);
-                if (cwstyle[fdjtDOM.transitionProperty]) { 
-                    wstyle.fontSize=''; wstyle.visibility='';
-                    wstyle.fontSize=size+"%";}
-                else wstyle.visibility='';}
-            return size;}
-        fdjtDOM.adjustFontSize=fdjtDOM.tweakFontSize=adjustFontSize;
-        
-        function resetFontSize(node){
-            var wrapper=getFirstChild(node,".fdjtfontwrapper");
-            if (wrapper) wrapper.style.fontSize="100%";}
-        fdjtDOM.resetFontSize=resetFontSize;
-
-        fdjtDOM.autofont=".fdjtadjustfont,.adjustfont";
-        function adjustFonts(arg,top){
-            var all=[];
-            if (!(arg)) all=fdjtDOM.$(fdjtDOM.autofont);
-            else if (typeof arg === "string") {
-                if (document.getElementByID(arg)) 
-                    all=[document.getElementByID(arg)];
-                else {
-                    fdjtDOM.autofont=fdjtDOM.autofont+","+arg;
-                    all=fdjtDOM.$(arg);}}
-            else if (arg.nodeType===1) {
-                var sel=new Selector(fdjtDOM.autofont);
-                if (sel.match(arg))
-                    all=[arg];
-                else all=fdjtDOM.getChildren(arg,fdjtDOM.autofont);}
-            else all=fdjtDOM.$(fdjtDOM.autofont);
-            var i=0, lim=all.length;
-            if (lim) while (i<lim) adjustFontSize(all[i++]);
-            else if (top) adjustFontSize(top);}
-        fdjtDOM.tweakFont=fdjtDOM.tweakFonts=
-            fdjtDOM.adjustFont=fdjtDOM.adjustFonts=adjustFonts;
-        
-        function adjustPositionedChildren(node){
-            if ((!(node))||(node.nodeType!==1)) return;
-            var style=getStyle(node);
-            if ((node.childNodes)&&(node.childNodes.length)) {
-                var children=node.childNodes; var i=0, lim=children.length;
-                while (i<lim) {
-                    var child=children[i++];
-                    if (child.nodeType===1)
-                        adjustPositionedChildren(child);}}
-            if (((style.display==='block')||(style.display==='inline-block'))&&
-                ((style.position==='absolute')||(style.position==='fixed')))
-                adjustFontSize(node);}
-        function adjustLayoutFonts(node){
-            var marked=fdjtDOM.getChildren(node,fdjtDOM.autofont);
-            var i=0, lim=marked.length;
-            if (lim===0) adjustPositionedChildren(node);
-            else while (i<lim) adjustFontSize(marked[i++]);}
-        fdjtDOM.adjustLayoutFonts=adjustLayoutFonts;
-
-        function autoAdjustFonts(){
-            if (fdjtDOM.noautofontadjust) return;
-            adjustFonts();
-            fdjtDOM.addListener(window,"resize",adjustFonts);}
-
-        fdjt.addInit(autoAdjustFonts,"adjustFonts");
-        
         function addUXClasses(){
             var device=fdjt.device;
             var prefix=fdjt.cxprefix||"_";
@@ -9066,6 +9337,236 @@ fdjt.DOM=
     fdjt.DOM.rAF=fdjt.DOM.requestAnimationFrame=rAF;
     fdjt.DOM.cAF=fdjt.DOM.cancelAnimationFrame=cAF;
 }());
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "make; if test -f ../makefile; then cd ..; make; fi" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; -*- */
+
+/* ######################### fdjt/adjustfont.js ###################### */
+
+/* Copyright (C) 2012-2014 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+   of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or
+   any later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+
+   This is based on the implementation by Charlie Park described at:
+   http:://charlipark.org/hatchshow/
+
+*/
+/* jshint browser: true */
+
+/* To do:
+   add maxheight constraints
+   more documentation
+*/
+
+// var fdjt=((window.fdjt)||{});
+
+(function(){
+    "use strict";
+    /* Tweaking fonts */
+
+    var floor=Math.floor;
+    var fdjtDOM=fdjt.DOM;
+    var fdjtLog=fdjt.Log;
+    var getFirstChild=fdjtDOM.getFirstChild;
+    var wrapChildren=fdjtDOM.wrapChildren;
+    var getStyle=fdjtDOM.getStyle;
+    var Selector=fdjtDOM.Selector;
+    var hasClass=fdjtDOM.hasClass;
+
+    function toArray(arg) {
+        return Array.prototype.slice.call(arg);}
+
+    function adjustWrapperFont(wrapper,delta,done,size,min,max,w,h,fudge,dolog){
+        var ow=floor(wrapper.scrollWidth), oh=floor(wrapper.scrollHeight);
+        var nw, nh, newsize;
+        var wstyle=wrapper.style;
+        if (typeof fudge!== "number") fudge=1;
+
+        // These are cases where one dimension is on the edge but
+        // the other dimension is inside the edge
+        if ((ow<=w)&&(oh<=h)&&(oh>=(h-fudge))) return size;
+        // We actually skip this case because increasing the font size
+        //  might not increase the width if it forces a new line break
+        // else if ((sh<=h)&&(sw<=w)&&(sw>=(w-fudge))) return size;
+
+        // Figure out if we need to grow or shrink 
+        if ((ow>w)||(oh>h)) delta=-delta;
+
+        if (delta>0) wstyle.maxWidth=floor(w)+"px";
+
+        if (!(size)) {size=100; wstyle.fontSize=size+"%";}
+        if (!(min)) min=20;
+        if (!(max)) max=150;
+        newsize=size+delta;
+        wstyle.fontSize=newsize+"%";
+        nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);
+        while ((size>=min)&&(size<=max)&&
+               ((delta>0)?((nw<w)&&(nh<h)):((nw>w)||(nh>h)))) {
+            size=newsize; newsize=newsize+delta;
+            wstyle.fontSize=newsize+"%";
+            if (dolog)
+                fdjtLog(
+                    "Adjust %o to %dx%d %o: size=%d=%d+(%d), %dx%d => %dx%d",
+                    wrapper.parentNode,w,h,wrapper,newsize,size,delta,
+                    ow,oh,nw,nh);
+            nw=floor(wrapper.scrollWidth); nh=floor(wrapper.scrollHeight);}
+        wstyle.maxWidth='';
+        if (delta>0) {
+            wstyle.fontSize=size+"%";
+            return size;}
+        else return newsize;}
+    
+    function adjustFontSize(node,min_font,max_font,fudge){
+        var h=node.offsetHeight, w=node.offsetWidth;
+        var dolog=hasClass(node,"_fdjtlog");
+        var node_display='';
+        if ((h===0)||(w===0)) {
+            // Do a little to make the element visible if it's not.
+            node_display=node.style.display;
+            node.style.display='initial';
+            h=node.offsetHeight; w=node.offsetWidth;
+            if ((h===0)||(w===0)) {
+                node.style.display=node_display;
+                return;}}
+        else {}
+        if ((h===0)||(w===0)) {
+            node.style.display=node_display;
+            return;}
+        var wrapper=wrapChildren(node,"div.fdjtfontwrapper");
+        var wstyle=wrapper.style, size=100;
+        wstyle.boxSizing='border-box';
+        wstyle.padding=wstyle.margin="0px";
+        wstyle.fontSize=size+"%";
+        wstyle.transitionProperty='none';
+        wstyle.transitionDuration='0s';
+        wstyle[fdjtDOM.transitionProperty]='none';
+        wstyle[fdjtDOM.transitionDuration]='0s';
+        wstyle.visibility='visible';
+        if ((h===0)||(w===0)) {
+            node.removeChild(wrapper);
+            fdjtDOM.append(node,toArray(wrapper.childNodes));
+            node.style.display=node_display;
+            return;}
+        var min=((min_font)||(node.getAttribute("data-minfont"))||(20));
+        var max=((max_font)||(node.getAttribute("data-maxfont"))||(200));
+        if (typeof fudge!=="number") fudge=node.getAttribute("data-fudge");
+        if (typeof min === "string") min=parseFloat(min,10);
+        if (typeof max === "string") max=parseFloat(max,10);
+        if (typeof fudge === "string") fudge=parseInt(fudge,10);
+        if (typeof fudge !== "number") fudge=2;
+        wstyle.width=wstyle.height="100%";
+        w=wrapper.offsetWidth; h=wrapper.offsetHeight;
+        wstyle.width=wstyle.height="100%";
+        wstyle.maxWidth=wstyle.maxHeight="100%";
+        w=wrapper.offsetWidth; h=wrapper.offsetHeight;
+        wstyle.width=wstyle.height="";
+        size=adjustWrapperFont(
+            wrapper,10,false,size,min,max,w,h,fudge,dolog);
+        size=adjustWrapperFont(
+            wrapper,5,false,size,min,max,w,h,fudge,dolog);
+        size=adjustWrapperFont(
+            wrapper,1,false,size,min,max,w,h,fudge,dolog);
+        wstyle.maxWidth=wstyle.maxHeight="";
+        node.style.display=node_display;
+        if (size===100) {
+            if (dolog)
+                fdjtLog("No need to resize %o towards %dx%d",node,w,h);
+            node.removeChild(wrapper);
+            fdjtDOM.append(node,toArray(wrapper.childNodes));}
+        else {
+            wstyle.width=''; wstyle.height='';
+            wstyle.maxWidth=''; wstyle.maxHeight='';
+            if (dolog)
+                fdjtLog("Adjusted (%s) %o towards %dx%d, wrapper @ %d,%d",
+                        wstyle.fontSize,node,w,h,
+                        wrapper.scrollWidth,wrapper.scrollHeight);
+            // We reset all of these
+            wstyle.transitionProperty='';
+            wstyle.transitionDuration='';
+            wstyle[fdjtDOM.transitionProperty]='';
+            wstyle[fdjtDOM.transitionDuration]='';
+            var cwstyle=getStyle(wrapper);
+            if (cwstyle[fdjtDOM.transitionProperty]) { 
+                wstyle.fontSize=''; wstyle.visibility='';
+                wstyle.fontSize=size+"%";}
+            else wstyle.visibility='';}
+        return size;}
+    fdjtDOM.adjustFontSize=fdjtDOM.tweakFontSize=adjustFontSize;
+    
+    function resetFontSize(node){
+        var wrapper=getFirstChild(node,".fdjtfontwrapper");
+        if (wrapper) wrapper.style.fontSize="100%";}
+    fdjtDOM.resetFontSize=resetFontSize;
+
+    fdjtDOM.autofont=".fdjtadjustfont,.adjustfont";
+    function adjustFonts(arg,top){
+        var all=[];
+        if (!(arg)) all=fdjtDOM.$(fdjtDOM.autofont);
+        else if (typeof arg === "string") {
+            if (document.getElementByID(arg)) 
+                all=[document.getElementByID(arg)];
+            else {
+                fdjtDOM.autofont=fdjtDOM.autofont+","+arg;
+                all=fdjtDOM.$(arg);}}
+        else if (arg.nodeType===1) {
+            var sel=new Selector(fdjtDOM.autofont);
+            if (sel.match(arg))
+                all=[arg];
+            else all=fdjtDOM.getChildren(arg,fdjtDOM.autofont);}
+        else all=fdjtDOM.$(fdjtDOM.autofont);
+        var i=0, lim=all.length;
+        if (lim) while (i<lim) adjustFontSize(all[i++]);
+        else if (top) adjustFontSize(top);}
+    fdjtDOM.tweakFont=fdjtDOM.tweakFonts=
+        fdjtDOM.adjustFont=fdjtDOM.adjustFonts=adjustFonts;
+    
+    function adjustPositionedChildren(node){
+        if ((!(node))||(node.nodeType!==1)) return;
+        var style=getStyle(node);
+        if ((node.childNodes)&&(node.childNodes.length)) {
+            var children=node.childNodes; var i=0, lim=children.length;
+            while (i<lim) {
+                var child=children[i++];
+                if (child.nodeType===1)
+                    adjustPositionedChildren(child);}}
+        if (((style.display==='block')||(style.display==='inline-block'))&&
+            ((style.position==='absolute')||(style.position==='fixed')))
+            adjustFontSize(node);}
+    function adjustLayoutFonts(node){
+        var marked=fdjtDOM.getChildren(node,fdjtDOM.autofont);
+        var i=0, lim=marked.length;
+        if (lim===0) adjustPositionedChildren(node);
+        else while (i<lim) adjustFontSize(marked[i++]);}
+    fdjtDOM.adjustLayoutFonts=adjustLayoutFonts;
+
+    function autoAdjustFonts(){
+        if (fdjtDOM.noautofontadjust) return;
+        adjustFonts();
+        fdjtDOM.addListener(window,"resize",adjustFonts);}
+
+    fdjt.addInit(autoAdjustFonts,"adjustFonts");
+    
+})();
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -22527,7 +23028,7 @@ var metaBook={
         savegloss: 0,     // When glosses are saved to the server
         glosses: 0,       // How much we're tracing gloss processing
         addgloss: 0,      // Note whenever a gloss post completes
-        glossdata: 1,     // Whether to trace caching/retrieval of glossdata
+        glossdata: 0,     // Whether to trace caching/retrieval of glossdata
         slices: 0,        // How much to trace slice creation and layout
         pagers: 0,        // How much to trace Pager layout
         layout: 0,        // How much to trace document layout
@@ -22540,6 +23041,7 @@ var metaBook={
         selection: false, // Whether to trace text selection events
         highlight: 0,     // Whether to trace highlighting
         indexing: 0,      // How much to trace document indexing
+        zoom: 0,          // How much to trace image zooming
         gestures: 0}      // How much to trace gestures
 };
 
@@ -30986,6 +31488,7 @@ metaBook.setMode=
             if (flag) {
                 metaBook.hudup=true;
                 dropClass(document.body,/\b(openhud|openglossmark)\b/g);
+                dropClass(document.body,"mbSHOWHELP");
                 addClass(document.body,"hudup");
                 if (!(mB.mode)) addClass(document.body,"mbNOMODE");}
             else {
@@ -36087,17 +36590,17 @@ metaBook.setMode=
 
     // We use keydown to handle navigation functions and keypress
     //  to handle mode changes
-    function onkeydown(evt){
+    function mb_onkeydown(evt){
         evt=evt||window.event||null;
         var kc=evt.keyCode;
         var target=fdjtUI.T(evt);
-        // fdjtLog("sbook_onkeydown %o",evt);
         if (evt.keyCode===27) { /* Escape works anywhere */
             if (mB.previewing) {
                 mB.stopPreview("escape_key");
                 fdjtUI.TapHold.clear();}
             dropClass(document.body,"mbZOOM");
             dropClass(document.body,"mbMEDIA");
+            mB.zoomed=false;
             if (mB.mode==="addgloss") metaBook.cancelGloss();
             if (mB.mode) {
                 metaBook.last_mode=metaBook.mode;
@@ -36111,17 +36614,17 @@ metaBook.setMode=
                  (target.tagName==="BUTTON")||
                  (target.isContentEditable))
             return;
-        else if (hasClass(document.body,"mbZOOM"))
-            return;
-        else if ((mB.controlc)&&(evt.ctrlKey)&&((kc===99)||(kc===67))) {
-            if (mB.previewing) mB.stopPreview("onkeydown",true);
+        if (Trace.gestures)
+            fdjtLog("metabook_keydown %o: %o on %o",evt,kc,target);
+        if ((mB.controlc)&&(evt.ctrlKey)&&((kc===99)||(kc===67))) {
+            if (mB.previewing) mB.stopPreview("mb_onkeydown",true);
             fdjtUI.TapHold.clear();
             setMode("console");
             cancel(evt);}
         else if ((evt.altKey)||(evt.ctrlKey)||(evt.metaKey)) return true;
         else if (mB.previewing) {
             // Any key stops a preview and goes to the target
-            mB.stopPreview("onkeydown",true);
+            mB.stopPreview("mb_onkeydown",true);
             fdjtUI.TapHold.clear();
             setHUD(false);
             cancel(evt);
@@ -36130,6 +36633,11 @@ metaBook.setMode=
             metaBook.clearStateDialog();
             metaBook.hideCover();
             cancel(evt);
+            return false;}
+        else if (hasClass(document.body,"mbZOOM")) {
+            if (kc===34) fdjtDOM.pageScroll($ID("METABOOKZOOM"),1);
+            else if (kc===33) fdjtDOM.pageScroll($ID("METABOOKZOOM"),-1);
+            else {}
             return false;}
         else if (mB.glossform) {
             var input=fdjt.DOM.getInput(mB.glossform,"NOTE");
@@ -36198,12 +36706,12 @@ metaBook.setMode=
 
     // At one point, we had the shift key temporarily raise/lower the HUD.
     //  We might do it again, so we keep this definition around
-    function onkeyup(evt){
+    function mb_onkeyup(evt){
         evt=evt||window.event||null;
         if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
         else if ((evt.ctrlKey)||(evt.altKey)||(evt.metaKey)) return true;
         else {}}
-    metaBook.UI.handlers.onkeyup=onkeyup;
+    metaBook.UI.handlers.onkeyup=mb_onkeyup;
 
     /* Keypress handling */
 
@@ -36221,14 +36729,16 @@ metaBook.setMode=
         67: "console", 99: "console"};
 
     // Handle mode changes
-    function onkeypress(evt){
+    function mb_onkeypress(evt){
         var modearg=false; 
         evt=evt||window.event||null;
         var ch=evt.charCode||evt.keyCode;
-        // metaBook.trace("sbook_onkeypress",evt);
-        if (fdjtDOM.isTextInput(fdjtDOM.T(evt))) return true;
+        var target=fdjtDOM.T(evt);
+        if (fdjtDOM.isTextInput(target)) return true;
         else if ((evt.altKey)||(evt.ctrlKey)||(evt.metaKey)) return true;
-        else if ((ch===72)||(ch===104)) { // 'H' or 'h'
+        if (Trace.gestures)
+            fdjtLog("metabook_onkeypress %o: %o on %o",evt,ch,target);
+        if ((ch===72)||(ch===104)) { // 'H' or 'h'
             metaBook.clearStateDialog();
             metaBook.hideCover();
             fdjtDOM.toggleClass(document.body,'metabookhelp');
@@ -36237,6 +36747,10 @@ metaBook.setMode=
             metaBook.clearStateDialog();
             metaBook.toggleCover();
             return false;}
+        else if (hasClass(document.body,"mbZOOM")) {
+            if (ch===43) /*+*/ { return mB.zoom(1.1);}
+            else if (ch===45) /*-*/ {return mB.zoom(0.9);}
+            else modearg=modechars[ch];}
         else modearg=modechars[ch];
         if (modearg==="openheart")
             modearg=metaBook.last_heartmode||"about";
@@ -36251,7 +36765,7 @@ metaBook.setMode=
             metaBook.setFocus($ID("METABOOKSEARCHINPUT"));
         else metaBook.clearFocus($ID("METABOOKSEARCHINPUT"));
         fdjtDOM.cancel(evt);}
-    metaBook.UI.handlers.onkeypress=onkeypress;
+    metaBook.UI.handlers.onkeypress=mb_onkeypress;
 
     function goto_keypress(evt){
         evt=evt||window.event||null;
@@ -36765,7 +37279,7 @@ metaBook.setMode=
             target.blur();}}
     metaBook.clearFocus=clearFocus;
 
-    function metabookfocus(evt){
+    function mb_onfocus(evt){
         evt=evt||window.event;
         var target=fdjtUI.T(evt);
         var input=getParent(target,'textarea');
@@ -36774,8 +37288,8 @@ metaBook.setMode=
             (input.type.search(fdjtDOM.text_types)!==0))
             return;
         setFocus(input);}
-    metaBook.UI.focus=metabookfocus;
-    function metabookblur(evt){
+    metaBook.UI.focus=mb_onfocus;
+    function mb_onblur(evt){
         evt=evt||window.event;
         var target=((evt.nodeType)?(evt):(fdjtUI.T(evt)));
         var input=getParent(target,'textarea');
@@ -36786,7 +37300,7 @@ metaBook.setMode=
             (input.type.search(fdjtDOM.text_types)!==0))
             return;
         clearFocus(input);}
-    metaBook.UI.blur=metabookblur;
+    metaBook.UI.blur=mb_onblur;
 
     function metabookmouseout(evt){
         var target=fdjtUI.T(evt);
@@ -36968,12 +37482,12 @@ metaBook.setMode=
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.mouse,
         {window: {
-            keyup: onkeyup,
-            keydown: onkeydown,
-            keypress: onkeypress,
-            focus: metabookfocus,
+            keyup: mb_onkeyup,
+            keydown: mb_onkeydown,
+            keypress: mb_onkeypress,
+            focus: mb_onfocus,
             mouseout: metabookmouseout,
-            blur: metabookblur},
+            blur: mb_onblur},
          "#METABOOKBODY": {
              mouseup: global_mouseup},
          content: {tap: body_tapped,
@@ -37084,12 +37598,12 @@ metaBook.setMode=
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.touch,
         {window: {
-            keyup: onkeyup,
-            keydown: onkeydown,
-            keypress: onkeypress,
+            keyup: mb_onkeyup,
+            keydown: mb_onkeydown,
+            keypress: mb_onkeypress,
             touchmove: preview_touchmove_nodefault,
-            focus: metabookfocus,
-            blur: metabookblur},
+            focus: mb_onfocus,
+            blur: mb_onblur},
          content: {tap: body_tapped,
                    hold: body_held,
                    taptap: body_taptap,
@@ -37450,15 +37964,21 @@ metaBook.setMode=
     "use strict";
 
     var fdjtDOM=fdjt.DOM;
-
-    var mB=metaBook, $ID=fdjt.ID;
+    var fdjtLog=fdjt.Log;
+    var cancel=fdjtDOM.cancel;
+    var getTarget=fdjtDOM.T;
+    var hasParent=fdjtDOM.hasParent;
     var addClass=fdjtDOM.addClass;
     var dropClass=fdjtDOM.dropClass;
+
+    var mB=metaBook, $ID=fdjt.ID;
+    var Trace=mB.Trace;
 
     /* Full page zoom mode */
     
     function startZoom(node){
         var zoom_target=$ID("METABOOKZOOMTARGET"), copy;
+        if ((Trace.zoom)||(Trace.mode)) fdjtLog("startZoom %o",node);
         if (!(node)) return stopZoom();
         if (metaBook.zoomtarget===node) {
             metaBook.zoomed=node;
@@ -37478,7 +37998,14 @@ metaBook.setMode=
         copy.setAttribute("style","");
         copy.id="METABOOKZOOMTARGET";
         fdjt.DOM.replace(zoom_target,copy);
-        addClass(document.body,"mbZOOM");}
+        addClass(document.body,"mbZOOM");
+        var mz=$ID("METABOOKZOOM");
+        var zb=$ID("METABOOKZOOM");
+        var xscale=((0.9*mz.clientWidth)/mz.scrollWidth);
+        var yscale=((0.9*mz.clientHeight)/mz.scrollHeight);
+        mB.zoomscale=1; zb.style[fdjt.DOM.transform]="";
+        if (xscale<yscale) setZoom(xscale);
+        else setZoom(yscale);}
     metaBook.startZoom=startZoom;
 
     function stopZoom(evt){
@@ -37487,30 +38014,135 @@ metaBook.setMode=
         if (evt) fdjt.UI.cancel(evt);}
     metaBook.stopZoom=stopZoom;
 
+    function setZoom(scale,zx,zy) {
+        var mz=$ID("METABOOKZOOM");
+        var zb=$ID("METABOOKZOOMBOX");
+        var rx=mz.scrollLeft/mz.scrollWidth;
+        var ry=mz.scrollTop/mz.scrollHeight;
+        if (typeof zx === 'number') {
+            mB.zoomX=zx||0; mB.zoomY=zy||0;}
+        else if (typeof mB.zoomX === 'number') {
+            zx=mB.zoomX; zy=mB.zoomY;}
+        else {}
+        if ((Trace.zoom)||(Trace.gestures)) {
+            if (typeof zx=== 'number')
+                fdjtLog("setZoom(%o) @%o,%o %o",scale,zx,zy,zb);
+            else fdjtLog("setZoom(%o) @%o,%o %o",scale,rx,ry,zb);}
+        if (!(scale)) {
+            mB.zoomX=mB.zoomY=false;
+            mB.zoomscale=1; zb.style[fdjt.DOM.transform]="";
+            var xscale=((0.9*mz.clientWidth)/mz.scrollWidth);
+            var yscale=((0.9*mz.clientHeight)/mz.scrollHeight);
+            if (xscale<yscale) setZoom(xscale);
+            else setZoom(yscale);}
+        else {
+            metaBook.zoomscale=scale;
+            if (typeof zx === 'number') {
+                zb.style[fdjt.DOM.transform]=
+                    "transform("+zx+"px,"+zy+"px) "+
+                    "scale("+scale+")";}
+            else zb.style[fdjt.DOM.transform]="scale("+scale+")";
+            if (Trace.zoom)
+                fdjtLog("%s=%s %o",fdjt.DOM.transform,zb.style[fdjt.DOM.transform],
+                        zb);}
+        if (typeof zx !== 'number') {
+            mB.zoomX=mB.zoomY=false;
+            mz.scrollLeft=rx*mz.scrollWidth;
+            mz.scrollTop=ry*mz.scrollHeight;}}
+    function zoom(adjust){
+        if (!(adjust)) setZoom(false);
+        else setZoom((metaBook.zoomscale||1)*adjust);}
+    metaBook.zoom=zoom;
+
     function zoomIn(evt){
-        evt=evt||window.event;
-        var zb=$ID("METABOOKZOOMBOX");
-        var scale=metaBook.zoomscale;
-        if (!(scale)) scale=metaBook.zoomscale=1.0;
-        scale=scale*1.1;
-        metaBook.zoomscale=scale;
-        zb.style[fdjt.DOM.transform]="scale("+scale+")";
-        fdjt.UI.cancel(evt);}
+        evt=evt||window.event; zoom(1.1); fdjt.UI.cancel(evt);}
     function zoomOut(evt){
-        evt=evt||window.event;
-        var zb=$ID("METABOOKZOOMBOX");
-        var scale=metaBook.zoomscale;
-        if (!(scale)) scale=metaBook.zoomscale=1.0;
-        scale=scale/1.1;
-        metaBook.zoomscale=scale;
-        zb.style[fdjt.DOM.transform]="scale("+scale+")";
-        fdjt.UI.cancel(evt);}
+        evt=evt||window.event; zoom(1/1.1); fdjt.UI.cancel(evt);}
     function unZoom(evt){
-        evt=evt||window.event;
-        var zb=$ID("METABOOKZOOMBOX");
-        zb.style[fdjt.DOM.transform]="";
-        metaBook.zoomscale=false;
-        fdjt.UI.cancel(evt);}
+        evt=evt||window.event; zoom(false); fdjt.UI.cancel(evt);}
+
+    var d_start, d_last, cg_x, cg_y;
+    var panstart_x, panstart_y, pan_dx, pan_dy;
+    function zoom_touchstart(evt){
+        if (!((evt)&&(evt.touches)&&(evt.touches.length>=1))) return;
+        var zc=$ID("METABOOKZOOMCONTROLS"), target=getTarget(evt);
+        if (hasParent(target,zc)) return;
+        var touches=evt.touches, touch1=touches[0];
+        var x1=touch1.clientX, y1=touch1.clientY;
+        if (evt.touches.length===2) {
+            var touch2=touches[1];
+            var x2=touch2.clientX, y2=touch2.clientY;
+            var dx=x2-x1, dy=y2-y1;
+            var d=Math.sqrt((dx*dx)+(dy*dy));
+            cg_x=(x1+x2)/2; cg_y=(y1+y2)/2;
+            if ((Trace.zoom)||(Trace.gestures))
+                fdjtLog("zoom_touchstart(2) %o: d=%o@[%o,%o] [%o,%o]-[%o,%o]",
+                        evt,d,cg_x,cg_y,x1,y1,x2,y2);
+            d_last=d_start=d;
+            panstart_x=panstart_y=pan_dx=pan_dy=false;
+            cancel(evt);}
+        else if (evt.touches.length===1) {
+            panstart_x=x1; panstart_y=y1;
+            if ((Trace.zoom)||(Trace.gestures))
+                fdjtLog("zoom_touchstart(1) %o: [%o,%o]",evt,x1,y1);
+            cancel(evt);}
+        else {}}
+    function zoom_touchmove(evt){
+        if (!((evt)&&(evt.touches)&&(evt.touches.length>=1))) return;
+        var zb=$ID("METABOOKZOOMBOX"); var zbs=zb.style;
+        var zoomscale=mB.zoomscale||1; 
+        var transform=fdjtDOM.transform;
+        var touches=evt.touches, touch1=touches[0];
+        var x1=touch1.clientX, y1=touch1.clientY;
+        var off_x=(mB.zoomX||0), off_y=(mB.zoomY||0);
+        if ((evt.touches.length===2)&&(typeof d_last === 'number')) {
+            var touch2=touches[1];
+            var x2=touch2.clientX, y2=touch2.clientY;
+            var ncg_x=(x1+x2)/2, ncg_y=(y1+y2)/2;
+            var dx=x2-x1, dy=y2-y1, d=Math.sqrt((dx*dx)+(dy*dy));
+            var scale=((d/d_start)*(zoomscale));
+            off_x=off_x+((ncg_x*zoomscale)-(ncg_x*scale));
+            off_y=off_y+((ncg_y*zoomscale)-(ncg_y*scale));
+            if ((Trace.zoom)||(Trace.gestures>1))
+                fdjtLog("zoom_touchmove(2) %o: d=%o->%o@[%o,%o] [%o,%o] [%o,%o]",
+                        evt,d_last,d,ncg_x,ncg_y,x1,y1,x2,y2);
+            zbs[transform]="translate("+off_x+"px,"+off_y+"px) "+"scale("+scale+")";
+            if (Trace.zoom) fdjtLog("%s %o: %s",transform,zb,zbs[transform]);
+            cg_x=ncg_x; cg_y=ncg_y; d_last=d;
+            cancel(evt);}
+        else if ((evt.touches.length===1)&&(typeof panstart_x === 'number')) {
+            pan_dx=(x1-panstart_x); pan_dy=(y1-panstart_y);
+            off_x=off_x+pan_dx; off_y=off_y+pan_dy; 
+            if ((Trace.zoom)||(Trace.gestures>1))
+                fdjtLog("zoom_touchmove(1) %o: [%o,%o]=[%o,%o]+([%o,%o]=[%o,%o]-[%o,%o])",
+                        evt,off_x,off_y,mB.zoomX,mB.zoomY,pan_dx,pan_dy,
+                        x1,y1,panstart_x,panstart_y);
+            zbs[transform]=
+                "translate("+off_x+"px,"+off_y+"px) "+"scale("+zoomscale+")";
+            if (Trace.zoom) fdjtLog("%s %o: %s",transform,zb,zbs[transform]);
+            cancel(evt);}
+        else {}}
+    function zoom_touchend(evt){
+        var zoomscale=mB.zoomscale||1;
+        var off_x=(mB.zoomX||0), off_y=(mB.zoomY||0);
+        if ((d_last)&&(d_start)) {
+            var scale=(d_last/d_start);
+            off_x=off_x+((cg_x*zoomscale)-(cg_x*scale*zoomscale));
+            off_y=off_y+((cg_y*zoomscale)-(cg_y*scale*zoomscale));
+            if ((Trace.zoom)||(Trace.gestures))
+                fdjtLog("zoom_touchend(2) %o: %o=%o/%o@[%o,%o] zx=%o zy=%o",
+                        evt,scale,d_last,d_start,cg_x,cg_y,off_x,off_y);
+            setZoom((scale)*(zoomscale),off_x,off_y);
+            off_x=off_y=d_last=d_start=false;}
+        else if (typeof panstart_x === 'number') {
+            var new_x=(mB.zoomX||0), new_y=(mB.zoomY||0);
+            if ((Trace.zoom)||(Trace.gestures))
+                fdjtLog("zoom_touchend(2) %o: [%o,%o]=[%o,%o] start [%o,%o]",
+                        evt,new_x+pan_dx,new_y+pan_dy,pan_dx,pan_dy,
+                        panstart_x,panstart_y);
+            mB.zoomX=new_x+pan_dx; mB.zoomY=new_y+pan_dy;
+            pan_dx=pan_dy=panstart_x=panstart_y=false;}
+        else {}}
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.mouse,
@@ -37522,11 +38154,15 @@ metaBook.setMode=
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.touch,
-        {"#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
+        {"#METABOOKZOOM": {
+            touchstart: zoom_touchstart,
+            touchmove: zoom_touchmove,
+            touchend: zoom_touchend},
+         "#METABOOKZOOMCLOSE": {click: metaBook.stopZoom},
          "#METABOOKZOOMHELP": {click: metaBook.toggleHelp},
-         "#METABOOKZOOMIN": {click: zoomIn},
-         "#METABOOKZOOMOUT": {click: zoomOut},
-         "#METABOOKUNZOOM": {click: unZoom}});
+         "#METABOOKZOOMIN": {touchend: zoomIn},
+         "#METABOOKZOOMOUT": {touchend: zoomOut},
+         "#METABOOKUNZOOM": {touchend: unZoom}});
 
     // Not yet implemented, but the idea is to save some number of
     // audio/video/iframe elements to make restoring them faster.
@@ -37614,15 +38250,24 @@ metaBook.setMode=
                                            1500);}
         else dropClass(document.body,"mbMEDIA");
         fdjt.UI.cancel(evt);}
-    metaBook.hideMedia=hideMedia;
+
+    function zoomMedia(evt){
+        evt=evt||window.event;
+        var target=getTarget(evt);
+        var media_elt=$ID("METABOOKMEDIATARGET");
+        if ((target===media_elt)&&(fdjtDOM.isImage(target))) {
+            dropClass(document.body,"mbMEDIA");
+            mB.startZoom(media_elt);}}
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.mouse,
-        {"#METABOOKCLOSEMEDIA": {mousedown: closeMedia_tapped}});
+        {"#METABOOKCLOSEMEDIA": {mousedown: closeMedia_tapped},
+         "#METABOOKMEDIA": {click: zoomMedia}});
 
     fdjt.DOM.defListeners(
         metaBook.UI.handlers.touch,
-        {"#METABOOKCLOSEMEDIA": {touchstart: closeMedia_tapped}});
+        {"#METABOOKCLOSEMEDIA": {touchend: closeMedia_tapped},
+         "#METABOOKMEDIA": {touchend: zoomMedia}});
 
 })();
 
@@ -39132,8 +39777,8 @@ metaBook.HTML.hud=
     "    this bar shows where you are in the book;\n"+
     "    <span class=\"fortouch\">tap</span><span class=\"notouch\">click</span>\n"+
     "    to jump, press to skim, and <span class=\"fortouch\">tap</span>\n"+
-    "      <span class=\"notouch\">click</span> page numbers or percentage\n"+
-    "      locations to change them.\n"+
+    "      <span class=\"notouch\">click</span> numeric indicators to change\n"+
+    "      them.\n"+
     "  </div>\n"+
     "  <div id=\"METABOOKPAGEBAR\">\n"+
     "    <div class=\"textfoot\">\n"+
@@ -39435,8 +40080,7 @@ metaBook.HTML.help=
     "  onerror=\"this.src='{{bmg}}metabook/help50x50.png'\" class=\"inline\"/>\n"+
     "  icon in the lower left corner of the page.</p>\n"+
     "-->\n"+
-    "<p style=\"text-indent: 0px; text-align: right;\">\n"+
-    "  <span class=\"glossbarbox\"> </span>\n"+
+    "<p class=\"glossexample\">\n"+
     "  <strong style=\"color: blue;\">Blue <dfn>gloss bars</dfn></strong> in\n"+
     "  the right margin indicate glosses already overlaid on your\n"+
     "  book.  <strong><span class=\"fortouch\">Tap or drag\n"+
@@ -39453,6 +40097,13 @@ metaBook.HTML.help=
     "  the <span class=\"fdjtselected\"><span class=\"fdjtselectstart\">beginning</span>\n"+
     "  and <span class=\"fdjtselectend\">end</span></span> of highlighted\n"+
     "  text.</p>\n"+
+    "\n"+
+    "<p class=\"helphelp\">\n"+
+    "  <strong>Show this and other help</strong> by\n"+
+    "  <span class=\"fortouch\">tapping</span><span class=\"notouch\">clicking</span>\n"+
+    "  the <img src=\"{{bmg}}metabook/help.svgz\" alt=\"top of browser\"\n"+
+    "           onerror=\"this.src='{{bmg}}metabook/help50x50.png'\" class=\"inline\"/>\n"+
+    "  icon in the lower left of the page.</p>\n"+
     "\n"+
     "<!--\n"+
     "<p class=\"tightbottom\">\n"+
@@ -40313,20 +40964,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1539-g84399ed';
-fdjt.buildhost='dev-52-4-39-174';
-fdjt.buildtime='Wed Dec 23 14:32:29 UTC 2015';
-fdjt.builduuid='c3d84689-e27b-4ea7-83e6-dabf2b8f2043';
+fdjt.revision='1.5-1542-g1070681';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Mon Jan 4 11:54:26 EST 2016';
+fdjt.builduuid='82c2a768-413a-4442-95e7-31708d6fa93c';
 
-fdjt.CodexLayout.sourcehash='';
+fdjt.CodexLayout.sourcehash='FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2';
 
 
 Knodule.version='v0.8-156-ga7eef6e';
 // sBooks metaBook build information
-metaBook.version='v0.8-230-g603c883';
-metaBook.buildid='a41b5860-9809-4cf9-bb44-182a2cd1b2b3';
-metaBook.buildtime='Mon Dec 28 22:52:26 UTC 2015';
-metaBook.buildhost='dev-52-4-39-174';
+metaBook.version='v0.8-235-gf1cc351';
+metaBook.buildid='efea517d-29a6-47af-b03b-b531d3797b5a';
+metaBook.buildtime='Mon Jan  4 12:41:08 EST 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
