@@ -313,24 +313,21 @@ fdjt.Async=fdjt.ASync=fdjt.async=
 
         function fdjtAsync(fn,args){
             function async_call(resolve,reject){
-                function doit(){
+                function async_doit(){
                     var value;
                     try {
                         if (args) value=fn.call(null,args);
                         else value=fn();
                         resolve(value);}
                     catch (ex) {reject(ex);}}
-                setTimeout(doit,1);}
+                setTimeout(async_doit,1);}
             return new Promise(async_call);}
 
         function getnow() {return (new Date()).getTime();}
-
+        
         function timeslice(fcns,slice,space,stop,done,fail){
             var timer=false;
-            if (typeof slice !== 'number') slice=100;
-            if (typeof space !== 'number') space=100;
-            var i=0; var lim=fcns.length;
-            var slicefn=function(){
+            function slicefn(){
                 var timelim=getnow()+slice;
                 var nextspace=false;
                 while (i<lim) {
@@ -346,15 +343,19 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                 else {
                     clearTimeout(timer); 
                     timer=false;
-                    done(false);}};
+                    done(false);}}
+            if (typeof slice !== 'number') slice=100;
+            if (typeof space !== 'number') space=100;
+            var i=0; var lim=fcns.length;
             return slicefn();}
-        fdjtAsync.timeslice=function(fcns,opts){
+        function timeslice_method(fcns,opts){
             if (!(opts)) opts={};
             var slice=opts.slice||100, space=opts.space||100;
             var stop=opts.stop||false;
             function timeslicing(success,failure){
                 timeslice(fcns,slice,space,stop,success,failure);}
-            return new Promise(timeslicing);};
+            return new Promise(timeslicing);}
+        fdjtAsync.timeslice=timeslice_method;
 
         function slowmap(fn,vec,watch,done,failed,slice,space,onerr,watch_slice){
             var i=0; var lim=vec.length; var chunks=0;
@@ -363,7 +364,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             if (!(slice)) slice=100;
             if (!(space)) space=slice;
             if (!(watch_slice)) watch_slice=0;
-            var stepfn=function(){
+            function slowmap_stepfn(){
                 try {
                     var started=getnow(); var now=started;
                     var stopat=started+slice;
@@ -391,7 +392,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                         used=used+(now-started);
                         if (watch) watch('suspend',i,lim,chunks,used,
                                          zerostart);
-                        timer=setTimeout(stepfn,space);}
+                        timer=setTimeout(slowmap_stepfn,space);}
                     else {
                         now=getnow(); used=used+(now-started);
                         clearTimeout(timer); timer=false;
@@ -403,9 +404,9 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                             watch('done',i,lim,chunks,used,zerostart,donetime);
                         if ((done)&&(done.call)) 
                             done(vec,now-zerostart,used);}}
-                catch (ex) {if (failed) failed(ex);}};
-            timer=setTimeout(stepfn,space);}
-        fdjtAsync.slowmap=function(fcn,vec,opts){
+                catch (ex) {if (failed) failed(ex);}}
+            timer=setTimeout(slowmap_stepfn,space);}
+        function slowmap_handler(fcn,vec,opts){
             if (!(opts)) opts={};
             var slice=opts.slice, space=opts.space, onerr=opts.onerr;
             var watchfn=opts.watchfn, watch_slice=opts.watch;
@@ -431,17 +432,19 @@ fdjt.Async=fdjt.ASync=fdjt.async=
                              reject,
                              slice,space,onerr,watch_slice);}
             if (watch_slice<1) watch_slice=vec.length*watch_slice;
-            return new Promise(slowmapping);};
-
-        // Returns a function, that, as long as it continues to be invoked, will not
-        // be triggered. The function will be called after it stops being called for
-        // N milliseconds. If `immediate` is passed, trigger the function on the
-        // leading edge, instead of the trailing.
+            return new Promise(slowmapping);}
+        fdjtAsync.slowmap=slowmap_handler;
+        
+        // Returns a function, that, as long as it continues to be
+        // invoked, will not be triggered. The function will be called
+        // after it stops being called for N milliseconds. If
+        // `immediate` is passed, trigger the function on the leading
+        // edge, instead of the trailing.
         function debounce(func, wait, immediate) {
             var timeout;
-            return function() {
+            return function debounced() {
                 var context = this, args = arguments;
-                var later = function() {
+                var later = function debounce_later() {
                     timeout = null;
                     if (!immediate) func.apply(context, args);
                 };
@@ -477,7 +480,7 @@ fdjt.Async=fdjt.ASync=fdjt.async=
         function once(fn, context) { 
             var result;
 
-            return function() { 
+            return function justonce() { 
                 if(fn) {
                     result = fn.apply(context || this, arguments);
                     fn = null;
@@ -4329,9 +4332,10 @@ fdjt.Log=(function(){
                 frag.appendChild(document.createTextNode("\n"));}
             domconsole.appendChild(frag);
             backlog=[];}}
-    fdjtLog.update=function(){
-        if (fdjtLog.console) update_log(fdjtLog.console);};
-
+    function updateLogHandler(){
+        if (fdjtLog.console) update_log(fdjtLog.console);}
+    fdjtLog.update=updateLogHandler;
+    
     function remote_log(msg){
         var req=new XMLHttpRequest();
         req.open('POST',fdjtLog.logurl,(!(fdjtLog.logsync)));
@@ -4339,18 +4343,22 @@ fdjt.Log=(function(){
         req.send(msg);
         return req;}
 
-    fdjtLog.warn=function(){
+    
+    function fdjtLogWarn(){
         if ((!(fdjtLog.console_fn))&&
             (!(window.console)&&(window.console.log)&&
              (window.console.log.count))) {
             var output=fdjtString.apply(null,arguments);
             window.alert(output);}
-        else fdjtLog.apply(null,arguments);};
-
-    fdjtLog.uhoh=function(){
-        if (fdjtLog.debugging) fdjtLog.warn.call(this,arguments);};
-
-    fdjtLog.bkpt=function(){
+        else fdjtLog.apply(null,arguments);}
+    fdjtLog.warn=fdjtLogWarn;
+    
+    function fdjtLogUhOh(){
+        if (fdjtLog.debugging) 
+            fdjtLog.warn.call(null,arguments);}
+    fdjtLog.uhoh=fdjtLogUhOh;
+    
+    function fdjtLogBkpt(){
         var output=false;
         if ((fdjtLog.doformat)&&(typeof fdjtString !== 'undefined'))
             output=fdjtString.apply(null,arguments);
@@ -4361,8 +4369,8 @@ fdjt.Log=(function(){
                  (window.console.count))
             if (output)
                 window.console.log.call(window.console,output);
-        else window.console.log.apply(window.console,arguments);
-    };
+        else window.console.log.apply(window.console,arguments);}
+    fdjtLog.bkpt=fdjtLogBkpt;
 
     fdjtLog.useconsole=true;
 
@@ -4374,7 +4382,6 @@ fdjt.Log=(function(){
                 try {window.console.log("Testing console");}
                 catch (ex) { use_console_log=false;}}}
         else use_console_log=false;}
-
 
     // This is for temporary trace statements; we use a different name
     //  so that they're easy to find.
@@ -5228,6 +5235,7 @@ fdjt.DOM=
         var usenative=true;
         var fdjtString=fdjt.String;
         var fdjtLog=fdjt.Log;
+        var aslice=Array.prototype.slice;
 
         var css_selector_regex=/((^|[.#])[^.#\[\s]+)|(\[[^ \]=]+=[^\]]+\])|(\[[^ \]=]+\])/ig;
 
@@ -5276,7 +5284,8 @@ fdjt.DOM=
                 for (var attrib in spec) {
                     if (attrib==="tagName") continue;
                     else node.setAttribute(attrib,spec[attrib]);}}
-            domappend(node,arguments,1);
+            var j=1, lim=arguments.length; while (j<lim)
+                domappend(node,arguments[j++]);
             return node;}
 
         fdjtDOM.useNative=function(flag) {
@@ -5310,7 +5319,10 @@ fdjt.DOM=
         fdjt.ID=fdjtID;
 
         function domappend(node,content,i) {
-            if (content.nodeType) node.appendChild(content);
+            if (content===0) 
+                node.appendChild(document.createTextNode("0"));
+            else if (!(content)) return;
+            else if (content.nodeType) node.appendChild(content);
             else if (typeof content === 'string') 
                 node.appendChild(document.createTextNode(content));
             else if (content.toDOM)
@@ -5362,7 +5374,8 @@ fdjt.DOM=
             else if (content.toHTML)
                 return dominsert(before,node,content.toHTML());
             else if (content.length-i>1) {
-                var frag=(((window.documentFragment)&&(node instanceof window.DocumentFragment))?
+                var frag=(((window.documentFragment)&&
+                           (node instanceof window.DocumentFragment))?
                           (node):(document.createDocumentFragment()));
                 domappend(frag,content,i);
                 node.insertBefore(frag,before);
@@ -5376,7 +5389,7 @@ fdjt.DOM=
         fdjtDOM.appendArray=domappend;
         
         function toArray(arg) {
-            return Array.prototype.slice.call(arg);}
+            return aslice.call(arg);}
         fdjtDOM.toArray=toArray;
         function extendArray(result,arg) {
             var i=0; var lim=arg.length;
@@ -5388,8 +5401,8 @@ fdjt.DOM=
                 if (start) return arg.slice(start);
                 else return arg;}
             else if (start)
-                return Array.prototype.slice.call(arg,start||0);
-            else return Array.prototype.slice.call(arg,start||0);}
+                return aslice.call(arg,start||0);
+            else return aslice.call(arg,start||0);}
         fdjtDOM.Array=TOA;
         fdjtDOM.slice=TOA;
 
@@ -5580,7 +5593,8 @@ fdjt.DOM=
             else newinfo=classname+" "+classinfo;
             if (attrib) {
                 elt.setAttribute(attrib,newinfo);
-                // This sometimes trigger a CSS update that doesn't happen otherwise
+                // This sometimes trigger a CSS update that doesn't
+                // happen otherwise
                 elt.className=elt.className;}
             else elt.className=newinfo;
             return true;}
@@ -5609,7 +5623,8 @@ fdjt.DOM=
                     elt.classList.remove(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
+                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                  (elt.className))||null);
             if ((typeof classinfo !== "string")||(classinfo===""))
                 return false;
             var class_regex=
@@ -6102,25 +6117,31 @@ fdjt.DOM=
             while (n>=0) node.removeChild(children[n--]);}
         fdjtDOM.removeChildren=removeChildren;
 
-        fdjtDOM.append=function (node) {
+        function DOMappend(node) {
             if (typeof node === 'string') node=document.getElementById(node);
-            domappend(node,arguments,1);};
-        fdjtDOM.prepend=function (node) {
+            domappend(node,aslice.call(arguments),1);}
+        fdjtDOM.append=DOMappend;
+        function DOMprepend(node) {
             if (typeof node === 'string') node=document.getElementById(node);
             if (node.firstChild)
-                dominsert(node.firstChild,arguments,1);
-            else domappend(node,arguments,1);};
-
-        fdjtDOM.insertBefore=function (before) {
+                dominsert(node.firstChild,aslice.call(arguments),1);
+            else domappend(node,aslice.call(arguments),1);}
+        fdjtDOM.prepend=DOMprepend;
+        
+        function DOMinsertBefore(before) {
             if (typeof before === 'string')
                 before=document.getElementById(before);
-            dominsert(before,arguments,1);};
-        fdjtDOM.insertAfter=function (after) {
+            dominsert(before,aslice.call(arguments),1);}
+        fdjtDOM.insertBefore=DOMinsertBefore;
+        function DOMinsertAfter(after) {
             if (typeof after === 'string')
                 after=document.getElementById(after);
             if (after.nextSibling)
-                dominsert(after.nextSibling,arguments,1);
-            else domappend(after.parentNode,arguments,1);};
+                dominsert(after.nextSibling,
+                          aslice.call(arguments),1);
+            else domappend(after.parentNode,
+                           aslice.call(arguments),1);}
+        fdjtDOM.insertAfter=DOMinsertAfter;
         
         /* DOM construction shortcuts */
 
@@ -6155,14 +6176,14 @@ fdjt.DOM=
         fdjtDOM.Anchor=function(href,spec){
             spec=tag_spec(spec,"A");
             var node=fdjtDOM(spec); node.href=href;
-            domappend(node,arguments,2);
+            domappend(node,aslice.call(arguments),2);
             return node;};
         fdjtDOM.Image=function(src,spec,alt,title){
             spec=tag_spec(spec,"IMG");
             var node=fdjtDOM(spec); node.src=src;
             if (alt) node.alt=alt;
             if (title) node.title=title;
-            domappend(node,arguments,4);
+            domappend(node,aslice.call(arguments),4);
             return node;};
 
         function getInputs(root,name,type){
@@ -6283,17 +6304,13 @@ fdjt.DOM=
             if (typeof elt === 'string') elt=document.getElementById(elt);
             if (!(elt)) return elt;
             if (elt.nodeType!==1) throw "Not an element";
-            try {
-                var style=
-                    ((window.getComputedStyle)&&
-                     (window.getComputedStyle(elt,null)))||
-                    (elt.currentStyle);
-                if (!(style)) return false;
-                else if (prop) return style[prop];
-                else return style;}
-            catch (ex) {
-                fdjtLog("Unexpected style error %o",ex);
-                return false;}}
+            var style=
+                ((window.getComputedStyle)&&
+                 (window.getComputedStyle(elt,null)))||
+                (elt.currentStyle);
+            if (!(style)) return false;
+            else if (prop) return style[prop];
+            else return style;}
         fdjtDOM.getStyle=getStyle;
 
         function styleString(elt){
@@ -8144,8 +8161,10 @@ fdjt.DOM=
 (function() {
     "use strict";
     var lastTime = 0;
-    var rAF=window.requestAnimationFrame;
-    var cAF=window.cancelAnimationFrame;
+    var rAF=(window.requestAnimationFrame)&&
+        (function(thunk){window.requestAnimationFrame(thunk);});
+    var cAF=(window.cancelAnimationFrame)&&
+        (function(thunk){window.cancelAnimationFrame(thunk);});
     var vendors = ['webkit', 'moz','ms','o'];
 
     function fakeAnimationFrame(callback) {
@@ -10049,12 +10068,13 @@ fdjt.RefDB=(function(){
                 result._sortlen=1;
                 return result;}}
         else {
-            result=[];
-            for (arg in arguments)
-                if (!(arg)) {}
-            else if (arg instanceof Array)
-                result=result.concat(arg);
-            else result.push(arg);
+            var i=0, lim=arguments.length; result=[];
+            while (i<lim) {
+                var each_arg=arguments[i++];
+                if (!(each_arg)) {}
+                else if (each_arg instanceof Array)
+                    result=result.concat(each_arg);
+                else result.push(each_arg);}
             return setify(result);}}
     RefDB.Set=fdjtSet;
     fdjt.Set=fdjtSet;
@@ -14742,6 +14762,23 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             else return 1;}
         else return 0;}
 
+    function initSound(name,th,opts,elt){
+        var found=(th[name])||
+            ((opts)&&(opts[name]))||
+            (elt.getAttribute("data-"+name))||
+            (TapHold[name]);
+        if (found) th[name]=found;
+        return found;}
+    function playSound(name,evt,th){
+        var target=((evt.nodeType)&&(evt))||(fdjtUI.T(evt));
+        if ((th.mute)||(TapHold.mute)||
+            (hasClass(target,"fdjtmute"))||
+            (hasClass(th.container,"fdjtmute"))) 
+            return false;
+        var sound=(target.getAttribute("data-"+name))||(th[name]);
+        if (typeof sound === "string") sound=document.getElementById(sound);
+        if (sound) sound.play();}
+
     function TapHold(elt,opts){
         if (!(elt)) {
             fdjtLog.warn("TapHold with no argument!");
@@ -14825,6 +14862,13 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
 
         var getParents=fdjtDOM.getParents;
 
+        initSound("tapsound",th,opts,elt);
+        initSound("holdsound",th,opts,elt);
+        initSound("releasesound",th,opts,elt);
+        initSound("slipsound",th,opts,elt);
+        initSound("taptapsound",th,opts,elt);
+        initSound("swipesound",th,opts,elt);
+
         function start_holding(){
             var parents=getParents(elt,".tapholdcontext");
             if ((parents)&&(parents.length)) {
@@ -14905,11 +14949,13 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
         function tapped(target,evt,x,y){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
+            playSound("tapsound",target,th);
             return synthEvent(target,"tap",th,evt,x,y,false);}
         function held(target,evt,x,y){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
             no_swipe=true;
+            playSound("holdsound",target,th);
             if (holdclass) setTimeout(start_holding,20);
             return synthEvent(target,"hold",th,evt,x,y,false);}
         function released(target,evt,x,y){
@@ -14917,6 +14963,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 ((th_target_t)&&(th_last)&&(fdjtET()-th_target_t));
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
+            playSound("releasesound",target,th);
             if (holdclass)
                 setTimeout(check_holding,50);
             if ((target_time)&&(target_time<200)) {
@@ -14933,14 +14980,17 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if ((evt)&&(!(also.hasOwnProperty('relatedTarget')))) {
                 var rel=evt.relatedTarget;
                 if (rel!==target) also.relatedTarget=rel;}
+            playSound("slipsound",target,th);
             if (holdclass)
                 setTimeout(check_holding,50);
             return synthEvent(target,"slip",th,evt,touch_x,touch_y,also);}
         function taptapped(target,evt){
+            playSound("taptapsound",target,th);
             return synthEvent(target,"taptap",th,evt,
                               touch_x,touch_y,false,trace);}
         function swiped(target,evt,sx,sy,cx,cy){
             var dx=cx-sx, dy=cy-sy; swipe_t=fdjtET();
+            playSound("swipesound",target,th);
             return synthEvent(target,"swipe",th,evt,cx,cy,
                               {startX: sx,startY: sy,endX: cx,endY: cy,
                                deltaX: dx,deltaY: dy});}
@@ -15007,7 +15057,8 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                     tap_target=th_target;
                     if ((taptapmsecs)&&(taptapmsecs>0)) {
                         tt_timer=setTimeout(function(){
-                            tt_timer=false; tapped(tap_target,evt,x,y);},
+                            tt_timer=false; 
+                            tapped(tap_target,evt,x,y);},
                                             taptapmsecs);}
                     else tapped(th_target,evt,x,y);}
                 else if (noslip) {}
@@ -16650,8 +16701,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1542-g1070681';
+fdjt.revision='1.5-1554-g4c9a9ad';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Mon Jan 4 11:54:26 EST 2016';
-fdjt.builduuid='82c2a768-413a-4442-95e7-31708d6fa93c';
+fdjt.buildtime='Tue Jan 19 11:29:15 EST 2016';
+fdjt.builduuid='d87df17d-ebaa-4071-b221-df76c8c57ce3';
 
