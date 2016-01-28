@@ -969,7 +969,7 @@ div.fdjtdialog {
     z-index: 250; 
     opacity: .99;
     transition-property: opacity;
-    transition-duration:  0.5s;
+    transition-duration:  0.50s;
     transition-timing-function:  ease-in;
     border: solid black 4px;
     border-radius: 1em;}
