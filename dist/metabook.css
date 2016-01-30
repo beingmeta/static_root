@@ -1122,7 +1122,7 @@ html._TOUCH .fdjtselecting .fdjtselectend:hover {
     z-index: 200; white-space: nowrap; pointer-events: none;
     background-color: gray; padding: 6px; font-size: 120%; 
     width: fit-content; height: fit-content;
-    transform: translate(-50%,-2em);
+    transform: translate3d(-50%,-2em,0);
     position: absolute;}
 .fdjtselectloupe > span {
     background-color: white;}
@@ -1980,7 +1980,7 @@ body.mbLAYOUT #CODEXCONTENT { display: none;}
 
 /* The page content gets a little transparent when the HUD comes up*/
 body._ANIMATE.hudup #CODEXPAGE {
-    transition-property: opacity; transition-duration: 0.25s;}
+    transition-property: opacity; transition-duration: 0.2s;}
 body.hudup #CODEXPAGE {opacity: 0.8;}
 body.hudup.mbPREVIEW #CODEXPAGE {opacity: 1;}
 
@@ -1991,8 +1991,8 @@ body.mbPREVIEW #CODEXPAGE, body.mbSHRINK #CODEXPAGE  {
 /* This is for page shrinking when appropriate */
 body._ANIMATE #CODEXPAGE {
     transition-property: opacity,transform;
-    transition-duration: 0.25s;}
-body #CODEXPAGE {transform: scale(1,1);}
+    transition-duration: 0.2s;}
+body #CODEXPAGE {transform: scale(1,1) translateZ(0);}
 
 body.mbSHRINK #CODEXPAGE, body.mbPREVIEW #CODEXPAGE,
 body.mbSKIMMING #CODEXPAGE {transform-origin: center center;}
@@ -2045,7 +2045,7 @@ body._BYPAGE #CODEXPAGE #CODEXCONTENT .metabookpagebreak {
     display: none;}
 
 body._ANIMATE body.metabookfixed div.codexpage {
-    transition-property: opacity; transition-duration: 0.5s;}
+    transition-property: opacity; transition-duration: 0.1s;}
 
 /* The content */
 
@@ -2206,11 +2206,11 @@ html._MOUSE .glossmark#METABOOKOPENGLOSSMARK.hover > img {
 .mbSKIMMING .glossmark, .mbPREVIEW .glossmark {
     opacity: 0.5;}
 
-/* Displaying the sbook target */
+/* Displaying the passage target */
 
 body._ANIMATE .mbtarget, body.mbSHRINK .mbtarget {
     transition-property: color,background-color;
-    transition-duration: 6s;}
+    transition-duration: 4s;}
 body.hudup .mbtarget, body.mbSHRINK .mbtarget {
     cursor: pointer;}
 body.hudup .mbtarget, body.mbSHRINK .mbtarget,
@@ -2231,11 +2231,6 @@ div.sbooksection.mbnewtarget > *:first-child {
    (actually, the body should probably never be a target, but when it is...)
 */
 body.mbtarget { color: inherit;}
-
-/*
-body._ANIMATE .glossmark > img {
-    transition-property: opacity; transition-duration: 0.5s;}
-*/
 
 .mbtarget > .glossmark {
     border-right-color: blue;} /* double */
@@ -2400,15 +2395,15 @@ html._MOUSE a[href]:hover {text-decoration: underline;}
 
 /* Block elements */
 
-#METABOOKBODY #SBOOKDETAILS,
-#METABOOKBODY #SBOOKASIDES,
-#METABOOKBODY #SBOOKNOTES {
+#METABOOKBODY #METABOOKDETAILS,
+#METABOOKBODY #METABOOKASIDES,
+#METABOOKBODY #METABOOKNOTES {
     page-break-before: always;}
 
-#METABOOKBODY #SBOOKDETAILS detail,
-#METABOOKBODY #SBOOKDETAILS .sbookdetail,
-#METABOOKBODY #SBOOKDETAILS aside,
-#METABOOKBODY #SBOOKDETAILS .sbookaside {
+#METABOOKBODY #METABOOKDETAILS detail,
+#METABOOKBODY #METABOOKDETAILS .sbookdetail,
+#METABOOKBODY #METABOOKDETAILS aside,
+#METABOOKBODY #METABOOKDETAILS .sbookaside {
     page-break-before: always;}
 
 div.metabookglossform form table {
@@ -2445,7 +2440,7 @@ body._ANIMATE.mbPREVIEW div.codexpage {
     transition-property: none !important;}
 
 body._ANIMATE #CODEXPAGE div.codexpage {
-    transition-duration: 0.15s;}
+    transition-duration: 0.2s;}
 
 body._ANIMATE div.codexpage {
     transition-property: opacity,transform;}
@@ -2461,19 +2456,18 @@ div.codexpage.newpage.curpage, div.codexpage.oldpage.curpage {
 /* Sliding page turns */
 
 body._ANIMATE div.codexpage { 
-    transform: translate(0px,0px) translateZ(0); }
+    transform: translate3d(0px,0px,0); }
 body._ANIMATE div.codexpage.previewpage {
-    transform: translate(0px,0px) translateZ(0); }
+    transform: translate3d(0px,0px,0); }
 
 div.codexpage.newpage { z-index: 100; }
 
 body._ANIMATE div.codexpage.newpage.onright {
-    transform: translate(100%,0%);
-    -webkit-transform: translate(100%,0%);}
+    transform: translate3d(100%,0%,0);}
 body._ANIMATE div.codexpage.newpage.onleft {
-    transform: translate(-100%,0%);}
+    transform: translate3d(-100%,0%,0);}
 body._ANIMATE div.codexpage.newpage.onright.curpage, div.codexpage.newpage.onleft.curpage {
-    transform: translate(0%,0%);}
+    transform: translate3d(0%,0%,0);}
 
 /* Special rules for overriding properties on split (dup) passages */
 
@@ -4159,7 +4153,7 @@ div.fdjtdialog.fdjtconfirm.mbsettings div.message {
 #METABOOKHUD a img { border: transparent;}
 html._MOUSE #METABOOKHUD a:hover img { border: inherit;}
 html._MOUSE #METABOOKHUD a:hover { text-decoration: underline;}
-html._MOUSE #METABOOKHUD a.brick:hover { text-decoration: none;}
+html._MOUSE #METABOOKHUD a.mbtoc_sectbrick:hover { text-decoration: none;}
 
 /* Size rules */
 
@@ -4225,7 +4219,7 @@ html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.hudtip {
     border-bottom-right-radius: 0px;}
 
 #METABOOKFRAME._ANIMATE #METABOOKHEAD {
-    transition-property: opacity; transition-duration: 2s;}
+    transition-property: opacity; transition-duration: 0.5s;}
 #METABOOKHEAD {
     opacity: 0.0; max-height: 0px;
     display: block;}
@@ -4576,7 +4570,7 @@ body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 
 /* METABOOKPOINTGLOSSES rules */
 
-#METABOOKPOINTGLOSSES div.metabookcard { margin-left: 0px;}
+#METABOOKPOINTGLOSSES div.mbcard { margin-left: 0px;}
 #METABOOKPOINTGLOSSES.hudpanel {
     top: 100px; left: auto; right: 50px;
     max-width: 80vw; min-width: 15em; min-height: 20px; 
@@ -4647,8 +4641,7 @@ body.hudup #METABOOKHUD.addgloss .hudbutton {
     border-color: darkblue !important;
     background-color: rgba(141,168,191, 0.8) !important;}
 
-#METABOOKPOINTGLOSSES div.idhead,
-#METABOOKPOINTGLOSSES div.tochead {
+#METABOOKPOINTGLOSSES div.mbcard_tochead {
     display: none;}
 
 /* Skimmer buttons */
@@ -6052,24 +6045,24 @@ div.metabookslice textarea,
 div.metabookslice input[TYPE="TEXT"] {
     cursor: text; }
 
-div.metabookslice div.metabookcard {
+div.metabookslice div.mbcard {
     margin-left: 20px;}
-div.metabookslice div.metabookcard.skimpoint {
+div.metabookslice div.mbcard.skimpoint {
     margin-left: 10px; padding-left: 10px; padding-bottom: 1ex;
     border-left-color: darkblue;
     font-size: 110%;}
-div.metabookslice.sourced div.metabookcard { display: none;}
-div.metabookslice.sourced div.metabookcard.sourced { display: block;}
+div.metabookslice.sourced div.mbcard { display: none;}
+div.metabookslice.sourced div.mbcard.sourced { display: block;}
 
-div.metabookslice.onepassage .tocblock .tochead {display:none;}
+div.metabookslice.onepassage .tocblock mbcard_tochead {display:none;}
 
 div.metabookslice div.xrefs { display: none;}
 div.metabookslice .showxrefs div.xrefs { display: block;}
 div.metabookslice div.xrefs a { display: block;}
-div.metabookslice div.metabookcard span.tags span.other { display: none;}
+div.metabookslice divspan.mbcard_tags span.other { display: none;}
 
-div.metabookslice div.skimpoint.metabookcard {}
-div.metabookslice div.skimpoint.metabookcard .tool {
+div.metabookslice div.skimpoint.mbcard {}
+div.metabookslice div.skimpoint.mbcard .tool {
     font-size: 47%; font-weight: bold;}
 div.metabookslice .excerpt .elision,
 div.metabookslice .excerpt .delision {
@@ -6077,12 +6070,12 @@ div.metabookslice .excerpt .delision {
 div.metabookslice .excerpt .elided {
     display: inline;}
 
-div.skimpoint .metabookcard .metabookcardbody { padding-top: 0px;}
+div.skimpoint .mbcard .mbcard_body { padding-top: 0px;}
 
-div.metabookslice div.metabookcard.skimpoint + div.metabookcard > div.metabookcardbody,
-div.metabookslice div.metabookcard.skimpoint .metabookcardbody {
+div.metabookslice div.mbcard.skimpoint + div.mbcard > div.mbcard_body,
+div.metabookslice div.mbcard.skimpoint .mbcard_body {
     border-top-width: 0px;}
-div.metabookslice div.metabookcard.skimpoint .fdjtclearfloats {
+div.metabookslice div.mbcard.skimpoint .fdjtclearfloats {
     margin-bottom: 0px;}
 
 /* METABOOKSOURCES */
@@ -6103,57 +6096,40 @@ div.metabooksources div.button.source {
 
 /* Heads of various sorts */
 
-div.tochead { 
+div.mbcard_tochead { 
     position: relative; /* width: 100%; */
     border-top: solid black 2px; border-bottom: solid black 4px;
     text-align: left; vertical-align: middle;}
-div.tochead { background-color: whitesmoke; color: darkblue; }
-div.tochead span.spacer, div.idhead span.spacer {
+div.mbcard_tochead { background-color: whitesmoke; color: darkblue; }
+div.mbcard_tochead span.spacer {
     font-size: 125%; font-weight: bold; font-style: italic;}
-div.tochead .paratext {
+div.mbcard_tochead .paratext {
     color: darkblue; font-style: italic; padding-left: 5px;}
-div.tochead span.head {
+div.mbcard_tochead span.head {
     font-size: 90%; padding-left: 5px;}
-div.tochead span.headtext {
+div.mbcard_tochead span.headtext {
     white-space: nowrap; vertical-align: top;}
-div.tochead hr {
+div.mbcard_tochead hr {
     min-width: 3px;
     border: none; border-right: solid gold 1px; border-left: solid gold 1px;
     position: absolute; left: 0px; top: 0px; height: 100%; z-index: 1;
     padding: 0px; margin: 0px;}
-div.tochead span { z-index: 10; position: relative;}
-div.tochead a { z-index: 10; color: blue;} 
-html._MOUSE div.tochead a:hover { z-index: 10; color: darkblue;} 
-div.tochead hr[about] { cursor: crosshair;}
+div.mbcard_tochead span { z-index: 10; position: relative;}
+div.mbcard_tochead a { z-index: 10; color: blue;} 
+html._MOUSE div.mbcard_tochead a:hover { z-index: 10; color: darkblue;} 
+div.mbcard_tochead hr[about] { cursor: crosshair;}
 
-div.idhead { 
-    position: relative; white-space: nowrap; /* width: 100%; */
-    text-align: left; vertical-align: middle;
-    border-bottom: solid purple 2px;
-    overflow: hidden;}
-div.idhead hr {
-    border: 0px; padding: 0px; margin: 0px; min-width: 3px;
-    border-right: solid gold 1px; border-left: solid gold 1px; 
-    position: absolute; left: 0px; top: 0px; height: 100%;}
-div.idhead span {
-    z-index: 10; opacity: 0.75;}
-div.idhead div {
-    z-index: 10; opacity: 0.75;}
+div.metabookslice div.mbcard_tochead { display: none; }
 
-div.metabookslice div.metabookcard div.tochead { display: none; }
-div.metabookslice div.metabookcard div.idhead { display: none; }
-
-div.metabookslice div.metabookcard.slicenewhead div.tochead,
-div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
+div.metabookslice div.mbcard.slicenewhead div.mbcard_tochead,
+div.metabookslice div.mbcard.fdjtstartofpage div.mbcard_tochead {
     display: block; }
 
-div.metabookslice div.metabookcard.fdjtstartofpage div.tochead {
+div.metabookslice div.mbcard.fdjtstartofpage div.mbcard_tochead {
     border-top: 0px;}
 
-#METABOOKSKIMMER div.metabookcard div.metabookcardbody {
+#METABOOKSKIMMER div.mbcard div.mbcard_body {
     border-top: 0px; padding-left: 1em; padding-top: 0.25ex;}
-#METABOOKSKIMMER div.metabookcard div.idhead {
-    border-bottom: 0px;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -6185,12 +6161,12 @@ div.metabookslice .mbtoc.mblivetoc {
 div.metabookslice .mbtoc.mblivetoc.mbcurtoc {
     border-bottom-style: solid;}
 
-.mbtoc div.posbar {
+div.mbtoc_posbar {
     position: absolute; left: 0px; top: 0px;
     box-sizing: content-box; height: 100%; z-index: 50;
     border: 0px; border-right: solid red 2px;
     display: none;}
-.mbtoc.mblivetoc div.posbar {
+.mblivetoc div.mbtoc_posbar {
     display: block;}
 
 .mbtoc .context .tocpath { padding-left: 1ex; }
@@ -6208,27 +6184,27 @@ div.metabookslice .mbtoc.mblivetoc.mbcurtoc {
 #METABOOKSKIMMER .mbtoc1 .context,
 .mbtocslice .mbtoc.mbtoc1.fdjtstartofpage .context {
     display: none;}
-.mbtoc a.sectname {
+a.mbtoc_sectname {
     color: black; z-index: 50;
     display: block;}
-.mbtoc.fdjtoversize a.sectname {
+.fdjtoversize a.mbtoc_sectname {
     z-index: 50;
     white-space: normal;}
-.mbtoc div.elements {
-    transform: translate(0,0); overflow: visible;
+div.mbtoc_elements {
+    transform: translate3d(0,0,0); overflow: visible;
     margin: 0px; padding: 0px; border: 0px; height: 1.3em;
     z-index: -50; margin-left: 2em;}
-.mbtoc a.brick {
+a.mbtoc_sectbrick {
     position: absolute; display: inline-block;
     box-sizing: border-box;
     border: 0px;
     opacity: 0.8;
     height: 1.25em;}
-.mbtoc .toctext {
+.mbtoc_text {
     position: relative; height: 0px; overflow: visible;
     pointer-events: none;
     z-index: 100; }
-.mbtoc a.showsize {
+a.mbtoc_showsize {
     position: absolute; display: inline-block;
     box-sizing: border-box;
     height: 1.2em; }
@@ -6241,18 +6217,18 @@ div.metabookslice .mbtoc.mblivetoc.mbcurtoc {
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
 .mbtoc.mbtoc4.fdjtoversize { font-size: 70%;}
 
-.mbtoc a.brick { display: none; }
+.mbtoc a.mbtoc_sectbrick { display: none; }
 
 #METABOOKSKIMMER .mbtoc {
     font-weight: bold; padding-top: 2px; height: fit-content;
     border-bottom: 0px;}
 
-#METABOOKSKIMMER .mbtoc .elements .brick,
-#METABOOKSKIMMER .mbtoc .elements .showsize {
+#METABOOKSKIMMER .mbtoc_sectbrick,
+#METABOOKSKIMMER .mbtoc_showsize {
     display: none;}
-#METABOOKSKIMMER .mbtoc .toctext {
+#METABOOKSKIMMER .mbtoc_text {
     top: 2px;}
-#METABOOKSKIMMER .sectname:before {
+#METABOOKSKIMMER .mbtoc_sectname:before {
     content: "§"; font-style: italic;
     vertical-align: bottom;
     font-size: 120%;}
@@ -6489,10 +6465,10 @@ span.completion.sectname.cue {
     display: none;}
 html._TOUCH #METABOOKSKIMMER,
 html._TOUCH #METABOOKSKIMMER div.mbtoc,
-html._TOUCH #METABOOKSKIMMER div.metabookcard {
+html._TOUCH #METABOOKSKIMMER div.mbcard {
     min-height: 30px;}
 body._ANIMATE #METABOOKSKIMMER {
-    transition-property: height; transition-duration: 0.3s;}
+    transition-property: height; transition-duration: 0.2s;}
 
 #METABOOKSKIMMER.flash { background-color: silver;}
 .hudup #METABOOKSKIMMER { 
@@ -6500,26 +6476,26 @@ body._ANIMATE #METABOOKSKIMMER {
     padding: 0px;}
 .hudup #METABOOKSKIMMER {
     max-height: inherit; }
-#METABOOKSKIMMER .tochead {
+#METABOOKSKIMMER mbcard_tochead {
     background-color: steelblue; color: white;}
-#METABOOKSKIMMER .tochead {
+#METABOOKSKIMMER mbcard_tochead {
     max-height: 4ex;}
-.hudup #METABOOKSKIMMER .tochead {
+.hudup #METABOOKSKIMMER mbcard_tochead {
     max-height: inherit;
     font-weight: bold;}
 
 #METABOOKSKIMMER,
-#METABOOKSKIMMER .metabookcard,
-#METABOOKSKIMMER .metabookcardbody {
+#METABOOKSKIMMER .mbcard,
+#METABOOKSKIMMER .mbcard_body {
     border-bottom-left-radius: 1ex;
     border-bottom-right-radius: 1ex;}
-#METABOOKSKIMMER .metabookcard,
-#METABOOKSKIMMER .tochead {
+#METABOOKSKIMMER .mbcard,
+#METABOOKSKIMMER mbcard_tochead {
     border-left: 0px;}
 
 body._ANIMATE #METABOOKSKIMMER.transanimate {
     transition-property: transform; 
-    transition-duration: 0.3s;
+    transition-duration: 0.2s;
     transition-timing-function: ease-out;}
 
 #METABOOKHUD.openglossmark #METABOOKSKIMMER,
@@ -6571,26 +6547,26 @@ body.hudup #METABOOKSKIMMER #METABOOKSKIMCONTROLS .expanded {
 body.hudup #METABOOKSKIMMER #METABOOKSKIMCONTROLS .collapsed {
     display: none;}
 
-#METABOOKSKIMMER div.tochead, #METABOOKPOINTGLOSSES div.tochead {
+#METABOOKSKIMMER div.mbcard_tochead, #METABOOKPOINTGLOSSES div.mbcard_tochead {
     border-top-width: 0px; border-bottom-width: 0px;}
-#METABOOKPOINTGLOSSES div.tochead { display: none; }
+#METABOOKPOINTGLOSSES div.mbcard_tochead { display: none; }
 
-#METABOOKSKIMMER div.metabookcardbody {font-size: 75%;}
-body.hudup.mbPREVIEW #METABOOKSKIMMER div.metabookcardbody {
+#METABOOKSKIMMER div.mbcard_body {font-size: 75%;}
+body.hudup.mbPREVIEW #METABOOKSKIMMER div.mbcard_body {
     font-size: 75%;}
-body.hudup #METABOOKSKIMMER div.metabookcardbody {font-size: 100%;}
-body.hudup #METABOOKSKIMMER div.metabookcardbody img.button {
+body.hudup #METABOOKSKIMMER div.mbcard_body {font-size: 100%;}
+body.hudup #METABOOKSKIMMER div.mbcard_body img.button {
     display: inline-block;}
 
-#METABOOKSKIMMER div.metabookcard.gloss div.tochead,
-#METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody {
+#METABOOKSKIMMER div.mbcard.gloss div.mbcard_tochead,
+#METABOOKSKIMMER div.mbcard.gloss div.mbcard_body {
     margin-left: 50px;}
-#METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody {
+#METABOOKSKIMMER div.mbcard.gloss div.mbcard_body {
     padding-left: 4px;}
-#METABOOKSKIMMER div.metabookcard.gloss div.tochead {
+#METABOOKSKIMMER div.mbcard.gloss div.mbcard_tochead {
     padding-left: 0px;}
-#METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody img.glosspic,
-#METABOOKSKIMMER div.metabookcard.gloss div.metabookcardbody .sourcepic {
+#METABOOKSKIMMER div.mbcard.gloss div.mbcard_body img.glosspic,
+#METABOOKSKIMMER div.mbcard.gloss div.mbcard_body .sourcepic {
     position: absolute; top: 0px; left: 0px; margin-top: 0px;}
 
 /* Skimmer rules */
@@ -6619,33 +6595,26 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER .controller,
 body.hudup #METABOOKHUD #METABOOKSKIMMER span.whencollapsed {
     display: none;}
 
-#METABOOKSKIMMER div.tochead, #METABOOKSKIMMER div.idhead {
-    border-bottom: solid black 1px;}
-
-#METABOOKSKIMMER div.metabookcard,
-#METABOOKSKIMMER div.metabookcard div.tochead,
-#METABOOKSKIMMER div.metabookcard div.idhead {
+#METABOOKSKIMMER div.mbcard,
+#METABOOKSKIMMER div.mbcard_tochead {
     margin-left: 0px;}
-#METABOOKSKIMMER div.metabookcard {
+#METABOOKSKIMMER div.mbcard {
     min-height: 50px;}
 
-#METABOOKHUD #METABOOKSKIMMER div.idhead,
-#METABOOKPOINTGLOSSES div.idhead {
+#METABOOKHUD #METABOOKSKIMMER div.gloss div.mbcard_tochead,
+#METABOOKPOINTGLOSSES div.mbcard_tochead {
     display: none;}
-#METABOOKHUD #METABOOKSKIMMER div.gloss div.tochead,
-#METABOOKPOINTGLOSSES div.tochead {
-    display: none;}
-body.hudup #METABOOKHUD #METABOOKSKIMMER div.gloss div.tochead {
+body.hudup #METABOOKHUD #METABOOKSKIMMER div.gloss div.mbcard_tochead {
     display: block;}
 
-/* #METABOOKSKIMMER.mbfoundhighlights .metabookcard .excerpt { display: none; } */
+/* #METABOOKSKIMMER.mbfoundhighlights .mbcard .excerpt { display: none; } */
 
 body.hudup #METABOOKHUD div.hudpanel#METABOOKSKIMMER { max-height: inherit; }
 body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
 
 #METABOOKFRAME._ANIMATE #METABOOKHUD #METABOOKSKIMMER {
     transition-property: background-color; transition-duration: 0.2s; }
-#METABOOKHUD #METABOOKSKIMMER div.metabookcard span.glossinfo span.isclickable {
+#METABOOKHUD #METABOOKSKIMMER div.mbcard span.glossinfo span.isclickable {
     display: none;}
 
 /* Media rules */
@@ -6672,208 +6641,199 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
 
 @charset "UTF-8";
 
-.metabookcard { 
+.mbcard { 
     white-space: normal; clear: both;
     text-align: left; text-decoration: none;
     text-align: left;}
-
-div.metabookcard {
+div.mbcard {
     margin-left: 20px; margin-right: 0px;
     border-left: transparent solid 1px;
     box-sizing: border-box;}
-div.metabookcard > div.idhead, div.metabookcard div.tochead {
+div.mbcard_tochead {
     max-height: 3ex; white-space: nowrap;
     text-overflow: ellipsis; overflow: hidden;
     line-height: 100%;}
 
-div.metabookcard div.idhead { margin-left: -10px;}
-div.metabookcard div.tochead { margin-left: -20px; }
+div.mbcard_tochead { margin-left: -20px; }
 
-#METABOOKHUD.openglossmark div.metabookcard div.idhead { display: none;}
-#METABOOKHUD.openglossmark div.metabookcard div.tochead { display: none;}
+#METABOOKHUD.openglossmark div.mbcard_tochead { display: none;}
 
 /* Sbook notes */
 
-div.metabookcard > div { text-align: left;}
-div.metabookcard > div span.count { float: right;}
+div.mbcard span.count { float: right;}
 
-div.metabookcard div.audience, div.metabookcard div.links {
+div.mbcard_audience, div.mbcard_links {
     text-align: right;}
-div.metabookcard > div .audience span.count,
-div.metabookcard > div .links span.count {
-    float: right; padding-left: 1ex;
+div.mbcard_audience span.count,
+div.mbcard_links span.count {
+    float: right; padding-left: 1ex; padding-right: 1ex;
     font-style: italic;
     opacity: 0.70;}
 
-div.metabookcard > hr {
+div.mbcard > hr {
     min-width: 3px; height: 100%;
     border-right: solid gold 1px; border-left: solid gold 1px;
     position: absolute; left: 0px; 
     border: 0px; padding: 0px; margin: 0px;}
 
-.metabookcard a.ref {
-    display: block; font-weight: normal;}
-.metabookcard a.ref span.title {}
-.metabookcard a.ref span.uri {
-    font-family: courier,fixed;}
-.metabookcard span.user { 
+.mbcard span.user { 
     color: green; font-size: 125%; font-style: italic;}
-.metabookcard span.mbmedia {
+.mbcard span.mbmedia {
     cursor: pointer;}
-.metabookcard span.outlet { color: green;}
-.metabookcard span.overlay { 
+.mbcard span.outlet { color: green;}
+.mbcard span.overlay { 
     color: green; font-size: 125%; font-style: normal;
     font-variant: small-caps;}
-.metabookcard span.links:before { content: " //"; }
-.metabookcard span.audience:before { content: " //"; }
-.metabookcard .private {
+span.mbcard_links:before { content: " //"; }
+span.mbcard_audience:before { content: " //"; }
+.mbcard .private {
     vertical-align: top;
     padding-right: 3px; padding-left: 3px;
     font-weight: bold; font-variant: small-caps;}
-.metabookcard .links a {
+.mbcard_links a {
     color: blue; text-decoration: underline;
     white-space: nowrap;}
-.metabookcard .links img { height: 2ex; width: auto; vertical-align: baseline;}
-.metabookcard .links span.mbmedia { 
+.mbcard_links img { height: 2ex; width: auto; vertical-align: baseline;}
+.mbcard_links span.mbmedia { 
     display: inline-block; padding: 2px; border-radius: 0.5ex;}
-.metabookcard .links span.mbmedia { background-color: lightgray; }
-.metabookcard span.audience { font-weight: normal; }
-.metabookcard span.audience .outlet {
+.mbcard_links span.mbmedia { background-color: lightgray; }
+span.mbcard_audience { font-weight: normal; }
+span.mbcard_audience .outlet {
     font-size: 90%; font-style: italic; padding-right: 1ex;}
-.metabookcard span.audience .outlet { color: forestgreen; }
-.metabookcard .audience .outlet:before {
+span.mbcard_audience .outlet { color: forestgreen; }
+.mbcard_audience .outlet:before {
     content: "→ "; font-weight: bold;}
 
-.metabookcardbody {
+.mbcard_body {
     color: rgba(0,0,0,0.9); line-height: 100%;
     padding-top: 2px;}
-.metabookcardbody:before, .metabookcard .metabookcardbody:after {
+.mbcard_body:before, .mbcard .mbcard_body:after {
     content: " "; display: table;}
-.metabookcardbody:after { clear: both; }
+.mbcard_body:after { clear: both; }
 
-.metabookcard .fdjtclearfloats { margin-bottom: 3px;}
-.metabookcardbody {
+.mbcard .fdjtclearfloats { margin-bottom: 3px;}
+.mbcard_body {
     border-top: solid purple 2px;}
-.metabookcard.slicenewhead .metabookcardbody,
-.metabookcard:first-child .metabookcardbody {
+.mbcard.slicenewhead .mbcard_body,
+.mbcard:first-child .mbcard_body {
     border-top: 0px;}
 
-.metabookcard span.sample {
+.mbcard span.sample {
     display: inline-block; white-space: nowrap;
     font-size: 80%; max-width: 50%;
     overflow: hidden; text-overflow: ellipsis;}
-.metabookcard span.sample:before {
+.mbcard span.sample:before {
     content: '¶'; font-weight: bold; color: steelblue;
     font-size: 120%;}
 
-.metabookcard span.controller { cursor: pointer;}
-.metabookcard .info { 
+.mbcard span.controller { cursor: pointer;}
+.mbcard .info { 
     float: right;}
-.metabookcard div.info { 
+.mbcard div.info { 
     float: right; width: 40px;}
-.metabookcard .info span.score {
+.mbcard .info span.score {
     color: gold; display: none;}
-.metabookcard span.tags { 
+span.mbcard_tags { 
     font-size: 80%; padding-left: 1ex;}
-.metabookcard span.tags img.tagicon { 
+span.mbcard_tags img.tagicon { 
     height: 3ex; width: auto;
     display: none;}
-.metabookcard span.tags span.sectname {
+span.mbcard_tags span.sectname {
     font-style: italic; color: purple;}
-.metabookcard span.tags span.sectname.longterm {
+span.mbcard_tags span.sectname.longterm {
     font-size: 80%; letter-spacing: -0.5px;}
-.metabookcard.gloss span.tags.fdjtexpanded { display: block;}
-.metabookcard span.tags.fdjtexpanded span.controller {
+.mbcard.gloss span.mbcard_tags.fdjtexpanded { display: block;}
+span.mbcard_tags.fdjtexpanded span.controller {
     color: black; float: right;}
-.metabookcard span.head {
+.mbcard span.head {
     font-size: 75%;}
-.metabookcard span.headhead {
+.mbcard span.headhead {
     color: blue; font-weight: bold;}
-.metabookcard span.controller {
+.mbcard span.controller {
     font-weight: bold; color: silver;
     white-space: nowrap;}
-.metabookcard span.note {font-style: italic;}
-.metabookcard span.excerpt { vertical-align: baseline; }
-.metabookcardbody img.glosspic,
-.metabookcardbody img.userpic,
-.metabookcardbody img.sourcepic  {
+.mbcard span.note {font-style: italic;}
+.mbcard span.excerpt { vertical-align: baseline; }
+.mbcard_body img.glosspic,
+.mbcard_body img.userpic,
+.mbcard_body img.sourcepic  {
     float: left; clear: left; margin-right: 3px;
     width: 50px; overflow: hidden; height: auto;
-    /* This lines up with the padding on metabookcardbody */
+    /* This lines up with the padding on.mbcard_body */
     margin-top: -2px;}
-.metabookcardbody div.glosspic,
-.metabookcardbody div.userpic,
-.metabookcardbody div.sourcepic  {
+.mbcard div.glosspic,
+.mbcard div.userpic,
+mbcard div.sourcepic  {
     float: left; clear: left; margin-right: 3px;
     width: 50px; height: 50px; font-size: 40px;
     text-align: center; vertical-align: top;
     font-weight: bold; overflow: hidden;
     color: rgba(245, 245, 245, 0.56);
     text-stroke: 2px black; -webkit-text-stroke: 2px black;
-    /* This lines up with the padding on metabookcardbody */
+    /* This lines up with the padding on.mbcard_body */
     margin-top: -2px;}
-.metabookcardbody div.userpic.sbooknopic,
-.metabookcardbody div.sourcepic.sbooknopic {
+.mbcard div.userpic.sbooknopic,
+.mbcard div.sourcepic.sbooknopic {
     background-image:
     url(https://s3.amazonaws.com/beingmeta/static/g/metabook/someone50x50.png);}
-.metabookcard img.detailsbutton { border: none; }
-.metabookcard img.xrefsbutton { border: none;}
-.metabookcard .score {
+.mbcard img.detailsbutton { border: none; }
+.mbcard img.xrefsbutton { border: none;}
+.mbcard .score {
     float: right; color: darkblue;
     font-size: 80%; vertical-align: top; margin-top: -0.5ex;}
-.metabookcard .score img.inline {
+.mbcard .score img.inline {
     padding-left: 0px; padding-right: 0px;}
-.metabookcard .score .note { color: red; padding-right: 1ex;}
-.metabookcard .glossinfo {
+.mbcard .score .note { color: red; padding-right: 1ex;}
+.mbcard_glossinfo {
     float: right; clear: right; display: block;
     padding: 0px; margin: 0px;
     margin-left: 3px; padding-top: 2px;
     text-align: right;}
-.metabookcard .glossinfo img { padding-left: 4px; cursor: pointer; }
-.metabookcard .tool {
+.mbcard_glossinfo img { padding-left: 4px; cursor: pointer; }
+.mbcard .tool {
     font-weight: normal; cursor: pointer;
     font-size: 70%; text-decoration: none;}
-.metabookcard .tool > span, .metabookcard .tool > a, .metabookcard .tool > img {
+.mbcard .tool > span, .mbcard .tool > a, .mbcard .tool > img {
     float: right; }
-.metabookcard .tool span.label {
+.mbcard .tool span.label {
     font-weight: bold; color: blue;
     padding-right: 1ex; padding-left: 1ex; padding-bottom: 1ex; 
     display: none;}
-.metabookcard .tool img {
+.mbcard .tool img {
     height: 40px; width: 40px; z-index: 40; opacity: 0.5; clear: right;
     /* This makes it overlap the date, tightening things up generally */
     margin-right: 6px; margin-top: -1em;}
-html._MOUSE .metabookcard .tool img:hover {opacity: 0.8;}
-.metabookcard span.glossbody {
+html._MOUSE .mbcard .tool img:hover {opacity: 0.8;}
+.mbcard span.glossbody {
     background-color: lightblue; color: black;
     padding: 2px; margin-top: 2px;
     border: solid darkblue 2px; border-radius: 1ex;
     display: inline-block;}
-.metabookcard .age {
+.mbcard .age {
     padding-right: 0.5em; padding-left: 0.4ex; margin-top: -3px;
     vertical-align: top; 
     clear: none;}
-.metabookcard.timeless .age { display: none;}
-.metabookcard.timeless .tool img { margin-top: -3px;}
-.metabookcard a.deletebutton { 
+.mbcard.timeless .age { display: none;}
+.mbcard.timeless .tool img { margin-top: -3px;}
+.mbcard a.deletebutton { 
     color: orange; text-decoration: none;
     padding-right: 3px;}
-.metabookcard .glossinfo img.delete { 
+.mbcard_glossinfo img.delete { 
     padding-right: 3px;
     cursor: pointer;}
-.metabookcard a.headref {
+.mbcard a.headref {
     float: right; clear: right; 
     font-family: times,serif;
     font-style: italic; font-size: 80%;
     white-space: nowrap; padding: 2px; padding-top: 0px;
     color: lightblue;}
 
-.metabookcardbody span.maker {
+.mbcard span.maker {
     color: black; font-weight: bold; padding-right: 1ex;}
-.metabookcardbody span.maker:after { content: ':'; }
+.mbcard span.maker:after { content: ':'; }
 
-.metabookcardbody span.maker { display: none;}
-.metabookcard.personal span.maker { display: inline;}
+.mbcard span.maker { display: none;}
+.mbcard.personal span.maker { display: inline;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -7829,6 +7789,13 @@ body.mbPREVIEW #METABOOKHUD.searchresults #METABOOKSKIMMER {
 
 body.mbPREVIEW #METABOOKHUD {
     opacity: 0.8;}
+body.mbPREVIEW #METABOOKHEAD,
+body.mbPREVIEW.hudup #METABOOKHEAD,
+body._FULLHEIGHT.mbPREVIEW.hudup #METABOOKHEAD {
+    display: none;}
+body.mbPREVIEW #METABOOKFOOT,
+body.mbPREVIEW #METABOOKSKIMMER {
+    visibility: visible;}
 body.hudup.mbPREVIEW #METABOOKHEART {
     background-color: transparent; border-color: transparent; opacity: 0.0;}
 body.hudup.mbPREVIEW #METABOOKHUD.openheart #METABOOKHEART {
@@ -8017,10 +7984,10 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
 .hudup #METABOOKSKIMMER { 
     border: solid steelblue 4px;  border-top: 0px;
     padding: 0px;}
-#METABOOKSKIMMER .tochead {
+#METABOOKSKIMMER mbcard_tochead {
     background-color: steelblue; color: white;}
-#METABOOKSKIMMER .tochead a { color: white;}
-#METABOOKSKIMMER .tochead hr {
+#METABOOKSKIMMER mbcard_tochead a { color: white;}
+#METABOOKSKIMMER mbcard_tochead hr {
     color: rgb(33, 106, 129); 
     background-color: rgba(141,168,191, 0.9);}
 
@@ -8099,18 +8066,18 @@ div.fdjtdialog.savegloss.closing button[value="DISCARD"] {
 
 /* card.css */
 
-div.metabookcard > hr {
+div.mbcard > hr {
     color: gold; background-color: gold;}
-.metabookcard .private {
+.mbcard .private {
     background-color: red; color: white;}
-.metabookcard .links a {color: blue;}
-.metabookcard .links span.mbmedia { background-color: lightgray; }
-.metabookcard span.audience .outlet { color: #127112; }
-.metabookcardbody {
+.mbcard_links a {color: blue;}
+.mbcard_links span.mbmedia { background-color: lightgray; }
+span.mbcard_audience .outlet { color: #127112; }
+.mbcard_body {
     color: rgba(0,0,0,0.9); }
-.metabookcard span.glossbody {
+.mbcard span.glossbody {
     background-color: lightblue; color: black;}
-.metabookcard .age {color: #0A558F;}
+.mbcard .age {color: #0A558F;}
 
 /* clouds.css */
 
@@ -8186,21 +8153,18 @@ form.metabooksettings .button.exit {
 
 /* slices.css */
 
-body.hudup #METABOOKSKIMMER div.metabookcard,
+body.hudup #METABOOKSKIMMER div.mbcard,
 div.metabookslice div.skimpoint {
-    /* background-color: hsla(207,44%,90%,0.7); */
     background-color: hsla(0, 44%, 90%, 0.7);}
+div.metabookslice.mbtocslice div.skimpoint {
+    background-color: hsla(207,44%,90%,0.2);
+    border-bottom-color: blue;}
 div.metabooksources img.button.everyone.selected { background-color: silver; }
 div.metabooksources img.button.source.selected,
 div.metabooksources div.button.source.selected {
     border-color: blue;}
-div.tochead { background-color: whitesmoke; color: blue; }
-div.tochead hr { background-color: rgba(141,168,191, 0.5); color: lightblue; }
-div.idhead {
-    background-color: silver; color: black;}
-div.idhead hr {
-    border-right: solid gold 1px; border-left: solid gold 1px; 
-    color: lightblue; background-color: lightblue;}
+div.mbcard_tochead { background-color: whitesmoke; color: blue; }
+div.mbcard_tochead hr { background-color: rgba(141,168,191, 0.5); color: lightblue; }
 
 /* addlgloss.css */
 
@@ -8227,10 +8191,10 @@ div.metabookglossform div.messageoverlay {
 
 /* tocslice.css */
 
-.mbtoc a.brick {
+.mbtoc a.mbtoc_sectbrick {
     border-right: solid gray 1px;
     background-color: lightblue;}
-.mbtoc a.showsize {
+.mbtoc a.mbtoc_showsize {
     background-color: rgba(211, 211, 211, 0.7);}
 body.hudup #METABOOKHUD.statictoc #METABOOKSKIMMER {
     background-color: rgba(70, 130, 180, 0.5);}
@@ -8240,10 +8204,10 @@ div.metabookslice .mbtoc.mblivetoc {
     border-bottom-color: red;
     border-bottom-style: dotted;}
 .mbtoc .context {color: black;}
-.mbtoc a.sectname,
-.mbtoc.cohi a.sectname, .mbtoc.cohi a.sectname:visited,
-#METABOOKHEARTBODY .mbtoc.cohi a.sectname:visited,
-#METABOOKHEARTBODY .mbtoc.cohi a.sectname {
+.mbtoc a.mbtoc_sectname,
+.mbtoc.cohi a.mbtoc_sectname, .mbtoc.cohi a.mbtoc_sectname:visited,
+#METABOOKHEARTBODY .mbtoc.cohi a.mbtoc_sectname:visited,
+#METABOOKHEARTBODY .mbtoc.cohi a.mbtoc_sectname {
     color: black;}
 
 html._MOUSE .mbtocslice .mbtoc:hover {

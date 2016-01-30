@@ -829,7 +829,7 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
     "use strict";
     function fdjtAsync(fn, args) {
         function async_call(resolve, reject) {
-            function doit() {
+            function async_doit() {
                 var value;
                 try {
                     value = args ? fn.call(null, args) : fn(), resolve(value);
@@ -837,7 +837,7 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
                     reject(ex);
                 }
             }
-            setTimeout(doit, 1);
+            setTimeout(async_doit, 1);
         }
         return new Promise(async_call);
     }
@@ -845,9 +845,7 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         return new Date().getTime();
     }
     function timeslice(fcns, slice, space, stop, done, fail) {
-        var timer = !1;
-        "number" != typeof slice && (slice = 100), "number" != typeof space && (space = 100);
-        var i = 0, lim = fcns.length, slicefn = function() {
+        function slicefn() {
             for (var timelim = getnow() + slice, nextspace = !1; lim > i; ) {
                 var fcn = fcns[i++];
                 if (fcn) {
@@ -864,13 +862,22 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
                 }
             }
             !(lim > i) || stop && stop() ? (clearTimeout(timer), timer = !1, done(!1)) : timer = setTimeout(slicefn, nextspace || space);
-        };
+        }
+        var timer = !1;
+        "number" != typeof slice && (slice = 100), "number" != typeof space && (space = 100);
+        var i = 0, lim = fcns.length;
         return slicefn();
     }
+    function timeslice_method(fcns, opts) {
+        function timeslicing(success, failure) {
+            timeslice(fcns, slice, space, stop, success, failure);
+        }
+        opts || (opts = {});
+        var slice = opts.slice || 100, space = opts.space || 100, stop = opts.stop || !1;
+        return new Promise(timeslicing);
+    }
     function slowmap(fn, vec, watch, done, failed, slice, space, onerr, watch_slice) {
-        var i = 0, lim = vec.length, chunks = 0, used = 0, zerostart = getnow(), timer = !1;
-        slice || (slice = 100), space || (space = slice), watch_slice || (watch_slice = 0);
-        var stepfn = function() {
+        function slowmap_stepfn() {
             try {
                 var started = getnow(), now = started, stopat = started + slice;
                 for (watch && watch(0 === i ? "start" : "resume", i, lim, chunks, used, zerostart); lim > i && stopat > (now = getnow()); ) {
@@ -893,7 +900,7 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
                     i++;
                 }
                 if (chunks += 1, lim > i) used += now - started, watch && watch("suspend", i, lim, chunks, used, zerostart), 
-                timer = setTimeout(stepfn, space); else {
+                timer = setTimeout(slowmap_stepfn, space); else {
                     now = getnow(), used += now - started, clearTimeout(timer), timer = !1, watch && watch("finishing", i, lim, chunks, used, zerostart);
                     var donetime = done && getnow() - now;
                     now = getnow(), used += now - started, watch && watch("done", i, lim, chunks, used, zerostart, donetime), 
@@ -902,38 +909,12 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
             } catch (ex) {
                 failed && failed(ex);
             }
-        };
-        timer = setTimeout(stepfn, space);
-    }
-    function debounce(func, wait, immediate) {
-        var timeout;
-        return function() {
-            var context = this, args = arguments, later = function() {
-                timeout = null, immediate || func.apply(context, args);
-            }, callNow = immediate && !timeout;
-            clearTimeout(timeout), timeout = setTimeout(later, wait), callNow && func.apply(context, args);
-        };
-    }
-    function poll(fn, callback, errback, timeout, interval) {
-        var endTime = Number(new Date()) + (timeout || 2e3);
-        interval = interval || 100, function p() {
-            fn() ? callback() : endTime > Number(new Date()) ? setTimeout(p, interval) : errback(Error("timed out for " + fn + ": " + arguments));
-        }();
-    }
-    function once(fn, context) {
-        var result;
-        return function() {
-            return fn && (result = fn.apply(context || this, arguments), fn = null), result;
-        };
-    }
-    return fdjtAsync.timeslice = function(fcns, opts) {
-        function timeslicing(success, failure) {
-            timeslice(fcns, slice, space, stop, success, failure);
         }
-        opts || (opts = {});
-        var slice = opts.slice || 100, space = opts.space || 100, stop = opts.stop || !1;
-        return new Promise(timeslicing);
-    }, fdjtAsync.slowmap = function(fcn, vec, opts) {
+        var i = 0, lim = vec.length, chunks = 0, used = 0, zerostart = getnow(), timer = !1;
+        slice || (slice = 100), space || (space = slice), watch_slice || (watch_slice = 0), 
+        timer = setTimeout(slowmap_stepfn, space);
+    }
+    function slowmap_handler(fcn, vec, opts) {
         function slowmapping(resolve, reject) {
             if (sync) {
                 for (var i = 0, lim = vec.length; lim > i; ) {
@@ -960,8 +941,30 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         opts || (opts = {});
         var slice = opts.slice, space = opts.space, onerr = opts.onerr, watchfn = opts.watchfn, watch_slice = opts.watch, sync = opts.hasOwnProperty("sync") ? opts.sync : opts.hasOwnProperty("async") ? !opts.async : !1, donefn = opts.done;
         return 1 > watch_slice && (watch_slice = vec.length * watch_slice), new Promise(slowmapping);
-    }, fdjtAsync.debounce = debounce, fdjtAsync.poll = poll, fdjtAsync.once = once, 
-    fdjtAsync;
+    }
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments, later = function() {
+                timeout = null, immediate || func.apply(context, args);
+            }, callNow = immediate && !timeout;
+            clearTimeout(timeout), timeout = setTimeout(later, wait), callNow && func.apply(context, args);
+        };
+    }
+    function poll(fn, callback, errback, timeout, interval) {
+        var endTime = Number(new Date()) + (timeout || 2e3);
+        interval = interval || 100, function p() {
+            fn() ? callback() : endTime > Number(new Date()) ? setTimeout(p, interval) : errback(Error("timed out for " + fn + ": " + arguments));
+        }();
+    }
+    function once(fn, context) {
+        var result;
+        return function() {
+            return fn && (result = fn.apply(context || this, arguments), fn = null), result;
+        };
+    }
+    return fdjtAsync.timeslice = timeslice_method, fdjtAsync.slowmap = slowmap_handler, 
+    fdjtAsync.debounce = debounce, fdjtAsync.poll = poll, fdjtAsync.once = once, fdjtAsync;
 }(), function(self) {
     "use strict";
     function normalizeName(name) {
@@ -3197,10 +3200,27 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
             domconsole.appendChild(frag), backlog = [];
         }
     }
+    function updateLogHandler() {
+        fdjtLog.console && update_log(fdjtLog.console);
+    }
     function remote_log(msg) {
         var req = new XMLHttpRequest();
         return req.open("POST", fdjtLog.logurl, !fdjtLog.logsync), req.setRequestHeader("Content-type", "text; charset=utf-8"), 
         req.send(msg), req;
+    }
+    function fdjtLogWarn() {
+        if (!fdjtLog.console_fn && !window.console && window.console.log && window.console.log.count) {
+            var output = fdjtString.apply(null, arguments);
+            window.alert(output);
+        } else fdjtLog.apply(null, arguments);
+    }
+    function fdjtLogUhOh() {
+        fdjtLog.debugging && fdjtLog.warn.call(null, arguments);
+    }
+    function fdjtLogBkpt() {
+        var output = !1;
+        fdjtLog.doformat && fdjtString !== void 0 && (output = fdjtString.apply(null, arguments)), 
+        fdjtLog.console_fn ? output ? fdjtLog.console_fn(fdjtLog.console, output) : fdjtLog.console_fn.apply(fdjtLog.console, arguments) : window.console && window.console.log && window.console.count && (output ? window.console.log.call(window.console, output) : window.console.log.apply(window.console, arguments));
     }
     function init_use_console_log() {
         if (window.console && window.console.log) if (window.console.count) use_console_log = !0; else {
@@ -3213,20 +3233,9 @@ var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0
         } else use_console_log = !1;
     }
     var use_console_log, fdjtString = fdjt.String, backlog = [], compactString = fdjt.Time.compactString, ET = fdjt.ET;
-    return fdjtLog.console = null, fdjtLog.update = function() {
-        fdjtLog.console && update_log(fdjtLog.console);
-    }, fdjtLog.warn = function() {
-        if (!fdjtLog.console_fn && !window.console && window.console.log && window.console.log.count) {
-            var output = fdjtString.apply(null, arguments);
-            window.alert(output);
-        } else fdjtLog.apply(null, arguments);
-    }, fdjtLog.uhoh = function() {
-        fdjtLog.debugging && fdjtLog.warn.call(this, arguments);
-    }, fdjtLog.bkpt = function() {
-        var output = !1;
-        fdjtLog.doformat && fdjtString !== void 0 && (output = fdjtString.apply(null, arguments)), 
-        fdjtLog.console_fn ? output ? fdjtLog.console_fn(fdjtLog.console, output) : fdjtLog.console_fn.apply(fdjtLog.console, arguments) : window.console && window.console.log && window.console.count && (output ? window.console.log.call(window.console, output) : window.console.log.apply(window.console, arguments));
-    }, fdjtLog.useconsole = !0, fdjt.Trace = fdjt.Log, fdjtLog.getBacklog = function() {
+    return fdjtLog.console = null, fdjtLog.update = updateLogHandler, fdjtLog.warn = fdjtLogWarn, 
+    fdjtLog.uhoh = fdjtLogUhOh, fdjtLog.bkpt = fdjtLogBkpt, fdjtLog.useconsole = !0, 
+    fdjt.Trace = fdjt.Log, fdjtLog.getBacklog = function() {
         return backlog;
     }, fdjtLog;
 }(window, document), function() {
@@ -3707,7 +3716,8 @@ fdjt.DOM = function() {
                 for (var attrib in spec) "tagName" !== attrib && node.setAttribute(attrib, spec[attrib]);
             }
         }
-        return domappend(node, arguments, 1), node;
+        for (var j = 1, lim = arguments.length; lim > j; ) domappend(node, arguments[j++]);
+        return node;
     }
     function getIE() {
         if ("Microsoft Internet Explorer" === navigator.appName) {
@@ -3720,17 +3730,20 @@ fdjt.DOM = function() {
         return id && (document.getElementById(id) || "#" === id[0] && document.getElementById(id.slice(1)));
     }
     function domappend(node, content, i) {
-        if (content.nodeType) node.appendChild(content); else if ("string" == typeof content) node.appendChild(document.createTextNode(content)); else {
-            if (content.toDOM) return domappend(node, content.toDOM());
-            if (content.toHTML) return domappend(node, content.toHTML());
-            if (content.length && (!i || content.length > i)) {
-                var frag = window.DocumentFragment && node instanceof window.DocumentFragment ? node : document.createDocumentFragment(), elts = window.NodeList && content instanceof window.NodeList ? TOA(content) : content, len = elts.length;
-                for (i === void 0 && (i = 0); len > i; ) {
-                    var elt = elts[i++];
-                    "string" == typeof elt ? frag.appendChild(document.createTextNode(elt)) : "number" == typeof elt ? frag.appendChild(document.createTextNode("" + elt)) : elt && (elt.nodeType ? frag.appendChild(elt) : elt.length ? domappend(frag, elt, 0) : elt.toDOM ? domappend(frag, elt.toDOM()) : elt.toHTML ? domappend(frag, elt.toHTML()) : elt.toString ? frag.appendChild(document.createTextNode("" + elt)) : frag.appendChild(document.createTextNode("" + elt)));
-                }
-                node !== frag && node.appendChild(frag);
-            } else content.length || node.appendChild(document.createTextNode("" + content));
+        if (0 === content) node.appendChild(document.createTextNode("0")); else {
+            if (!content) return;
+            if (content.nodeType) node.appendChild(content); else if ("string" == typeof content) node.appendChild(document.createTextNode(content)); else {
+                if (content.toDOM) return domappend(node, content.toDOM());
+                if (content.toHTML) return domappend(node, content.toHTML());
+                if (content.length && (!i || content.length > i)) {
+                    var frag = window.DocumentFragment && node instanceof window.DocumentFragment ? node : document.createDocumentFragment(), elts = window.NodeList && content instanceof window.NodeList ? TOA(content) : content, len = elts.length;
+                    for (i === void 0 && (i = 0); len > i; ) {
+                        var elt = elts[i++];
+                        "string" == typeof elt ? frag.appendChild(document.createTextNode(elt)) : "number" == typeof elt ? frag.appendChild(document.createTextNode("" + elt)) : elt && (elt.nodeType ? frag.appendChild(elt) : elt.length ? domappend(frag, elt, 0) : elt.toDOM ? domappend(frag, elt.toDOM()) : elt.toHTML ? domappend(frag, elt.toHTML()) : elt.toString ? frag.appendChild(document.createTextNode("" + elt)) : frag.appendChild(document.createTextNode("" + elt)));
+                    }
+                    node !== frag && node.appendChild(frag);
+                } else content.length || node.appendChild(document.createTextNode("" + content));
+            }
         }
         return node;
     }
@@ -3754,14 +3767,14 @@ fdjt.DOM = function() {
         }
     }
     function toArray(arg) {
-        return Array.prototype.slice.call(arg);
+        return aslice.call(arg);
     }
     function extendArray(result, arg) {
         for (var i = 0, lim = arg.length; lim > i; ) result.push(arg[i]), i++;
         return result;
     }
     function TOA(arg, start) {
-        return arg.constructor === Array || arg instanceof Array ? start ? arg.slice(start) : arg : start ? Array.prototype.slice.call(arg, start || 0) : Array.prototype.slice.call(arg, start || 0);
+        return arg.constructor === Array || arg instanceof Array ? start ? arg.slice(start) : arg : start ? aslice.call(arg, start || 0) : aslice.call(arg, start || 0);
     }
     function wrapChildren(node, spec) {
         spec || (spec = "div.fdjtwrapper");
@@ -4088,6 +4101,18 @@ fdjt.DOM = function() {
     function removeChildren(node) {
         for (var children = node.childNodes, n = children.length - 1; n >= 0; ) node.removeChild(children[n--]);
     }
+    function DOMappend(node) {
+        "string" == typeof node && (node = document.getElementById(node)), domappend(node, aslice.call(arguments), 1);
+    }
+    function DOMprepend(node) {
+        "string" == typeof node && (node = document.getElementById(node)), node.firstChild ? dominsert(node.firstChild, aslice.call(arguments), 1) : domappend(node, aslice.call(arguments), 1);
+    }
+    function DOMinsertBefore(before) {
+        "string" == typeof before && (before = document.getElementById(before)), dominsert(before, aslice.call(arguments), 1);
+    }
+    function DOMinsertAfter(after) {
+        "string" == typeof after && (after = document.getElementById(after)), after.nextSibling ? dominsert(after.nextSibling, aslice.call(arguments), 1) : domappend(after.parentNode, aslice.call(arguments), 1);
+    }
     function tag_spec(spec, tag) {
         if (spec) {
             if ("string" == typeof spec) {
@@ -4146,12 +4171,8 @@ fdjt.DOM = function() {
     function getStyle(elt, prop) {
         if ("string" == typeof elt && (elt = document.getElementById(elt)), !elt) return elt;
         if (1 !== elt.nodeType) throw "Not an element";
-        try {
-            var style = window.getComputedStyle && window.getComputedStyle(elt, null) || elt.currentStyle;
-            return style ? prop ? style[prop] : style : !1;
-        } catch (ex) {
-            return fdjtLog("Unexpected style error %o", ex), !1;
-        }
+        var style = window.getComputedStyle && window.getComputedStyle(elt, null) || elt.currentStyle;
+        return style ? prop ? style[prop] : style : !1;
     }
     function styleString(elt) {
         var result, style = elt.style;
@@ -5022,7 +5043,7 @@ fdjt.DOM = function() {
     function trackPageFocus() {
         windowFocus(), addListener(window, "focus", windowFocus), addListener(window, "blur", windowBlur);
     }
-    var usenative = !0, fdjtString = fdjt.String, fdjtLog = fdjt.Log, css_selector_regex = /((^|[.#])[^.#\[\s]+)|(\[[^ \]=]+=[^\]]+\])|(\[[^ \]=]+\])/gi;
+    var usenative = !0, fdjtString = fdjt.String, fdjtLog = fdjt.Log, aslice = Array.prototype.slice, css_selector_regex = /((^|[.#])[^.#\[\s]+)|(\[[^ \]=]+=[^\]]+\])|(\[[^ \]=]+\])/gi;
     fdjtDOM.useNative = function(flag) {
         return flag === void 0 ? usenative : (usenative = flag, void 0);
     }, fdjtDOM.clone = function(node) {
@@ -5131,15 +5152,9 @@ fdjt.DOM = function() {
         var cur = existing;
         "string" == typeof existing && (cur = "#" === existing[0] ? document.getElementById(existing.slice(1)) : document.getElementById(existing)), 
         cur ? (cur.parentNode.replaceChild(replacement, cur), leaveids || cur.id && !replacement.id && (replacement.id = cur.id)) : fdjtLog.uhoh("Can't find %o to replace it with %o", existing, replacement);
-    }, fdjtDOM.remove = remove_node, fdjtDOM.removeChildren = removeChildren, fdjtDOM.append = function(node) {
-        "string" == typeof node && (node = document.getElementById(node)), domappend(node, arguments, 1);
-    }, fdjtDOM.prepend = function(node) {
-        "string" == typeof node && (node = document.getElementById(node)), node.firstChild ? dominsert(node.firstChild, arguments, 1) : domappend(node, arguments, 1);
-    }, fdjtDOM.insertBefore = function(before) {
-        "string" == typeof before && (before = document.getElementById(before)), dominsert(before, arguments, 1);
-    }, fdjtDOM.insertAfter = function(after) {
-        "string" == typeof after && (after = document.getElementById(after)), after.nextSibling ? dominsert(after.nextSibling, arguments, 1) : domappend(after.parentNode, arguments, 1);
-    }, fdjtDOM.Input = function(spec, name, value, title) {
+    }, fdjtDOM.remove = remove_node, fdjtDOM.removeChildren = removeChildren, fdjtDOM.append = DOMappend, 
+    fdjtDOM.prepend = DOMprepend, fdjtDOM.insertBefore = DOMinsertBefore, fdjtDOM.insertAfter = DOMinsertAfter, 
+    fdjtDOM.Input = function(spec, name, value, title) {
         0 !== spec.search(/\w/) && (spec = "INPUT" + spec);
         var node = fdjtDOM(spec);
         return node.name = name, value && (node.value = value), title && (node.title = title), 
@@ -5151,11 +5166,11 @@ fdjt.DOM = function() {
     }, fdjtDOM.Anchor = function(href, spec) {
         spec = tag_spec(spec, "A");
         var node = fdjtDOM(spec);
-        return node.href = href, domappend(node, arguments, 2), node;
+        return node.href = href, domappend(node, aslice.call(arguments), 2), node;
     }, fdjtDOM.Image = function(src, spec, alt, title) {
         spec = tag_spec(spec, "IMG");
         var node = fdjtDOM(spec);
-        return node.src = src, alt && (node.alt = alt), title && (node.title = title), domappend(node, arguments, 4), 
+        return node.src = src, alt && (node.alt = alt), title && (node.title = title), domappend(node, aslice.call(arguments), 4), 
         node;
     }, fdjtDOM.getInputs = getInputs, fdjtDOM.getInput = function(root, name, type) {
         var results = getInputs(root, name || !1, type || !1);
@@ -5338,7 +5353,11 @@ fdjt.DOM = function() {
     function cancelFakeAnimationFrame(id) {
         clearTimeout(id);
     }
-    for (var lastTime = 0, rAF = window.requestAnimationFrame, cAF = window.cancelAnimationFrame, vendors = [ "webkit", "moz", "ms", "o" ], x = 0; vendors.length > x && !window.requestAnimationFrame; ++x) rAF = rAF || window[vendors[x] + "RequestAnimationFrame"], 
+    for (var lastTime = 0, rAF = window.requestAnimationFrame && function(thunk) {
+        window.requestAnimationFrame(thunk);
+    }, cAF = window.cancelAnimationFrame && function(thunk) {
+        window.cancelAnimationFrame(thunk);
+    }, vendors = [ "webkit", "moz", "ms", "o" ], x = 0; vendors.length > x && !window.requestAnimationFrame; ++x) rAF = rAF || window[vendors[x] + "RequestAnimationFrame"], 
     cAF = cAF || window[vendors[x] + "CancelAnimationFrame"] || window[vendors[x] + "CancelRequestAnimationFrame"];
     rAF || (rAF = fakeAnimationFrame, cAF = cancelFakeAnimationFrame), fdjt.DOM.rAF = fdjt.DOM.requestAnimationFrame = rAF, 
     fdjt.DOM.cAF = fdjt.DOM.cancelAnimationFrame = cAF;
@@ -5748,8 +5767,11 @@ fdjt.DOM = function() {
         if (result._sortlen = 0, 0 === arguments.length) return result;
         if (1 === arguments.length) return arg ? arg instanceof Array ? arg.length && arg._sortlen !== arg.length ? "number" == typeof arg._sortlen ? setify(arg) : setify([].concat(arg)) : arg : (result = [ arg ], 
         "string" == typeof arg && (result._allstrings = !0), result._sortlen = 1, result) : result;
-        result = [];
-        for (arg in arguments) arg && (arg instanceof Array ? result = result.concat(arg) : result.push(arg));
+        var i = 0, lim = arguments.length;
+        for (result = []; lim > i; ) {
+            var each_arg = arguments[i++];
+            each_arg && (each_arg instanceof Array ? result = result.concat(each_arg) : result.push(each_arg));
+        }
         return setify(result);
     }
     function setify(array) {
@@ -8558,6 +8580,16 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         }
         return 0;
     }
+    function initSound(name, th, opts, elt) {
+        var found = th[name] || opts && opts[name] || elt.getAttribute("data-" + name) || TapHold[name];
+        return found && (th[name] = found), found;
+    }
+    function playSound(name, evt, th) {
+        var target = evt.nodeType && evt || fdjtUI.T(evt);
+        if (th.mute || TapHold.mute || hasClass(target, "fdjtmute") || hasClass(th.container, "fdjtmute")) return !1;
+        var sound = target.getAttribute("data-" + name) || th[name];
+        "string" == typeof sound && (sound = document.getElementById(sound)), sound && sound.play();
+    }
     function TapHold(elt, opts) {
         function start_holding() {
             var parents = getParents(elt, ".tapholdcontext");
@@ -8587,16 +8619,18 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
             target_y = touch_y, target_t = touch_t), th_last = th_target, th_target = t, th_target_t = fdjtET();
         }
         function tapped(target, evt, x, y) {
-            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), synthEvent(target, "tap", th, evt, x, y, !1);
+            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), playSound("tapsound", target, th), 
+            synthEvent(target, "tap", th, evt, x, y, !1);
         }
         function held(target, evt, x, y) {
             return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), no_swipe = !0, 
-            holdclass && setTimeout(start_holding, 20), synthEvent(target, "hold", th, evt, x, y, !1);
+            playSound("holdsound", target, th), holdclass && setTimeout(start_holding, 20), 
+            synthEvent(target, "hold", th, evt, x, y, !1);
         }
         function released(target, evt, x, y) {
             var target_time = th_target_t && th_last && fdjtET() - th_target_t;
-            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), holdclass && setTimeout(check_holding, 50), 
-            target_time && 200 > target_time && (trace && fdjtLog("TapHold(%s) %d=i<200ms, target=%o not %o", thid, target_time, th_last, target), 
+            return x === void 0 && (x = touch_x), y === void 0 && (y = touch_y), playSound("releasesound", target, th), 
+            holdclass && setTimeout(check_holding, 50), target_time && 200 > target_time && (trace && fdjtLog("TapHold(%s) %d=i<200ms, target=%o not %o", thid, target_time, th_last, target), 
             target = th_last), synthEvent(target, "release", th, evt, x, y, {
                 startX: start_x,
                 startY: start_y
@@ -8610,14 +8644,15 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
                 var rel = evt.relatedTarget;
                 rel !== target && (also.relatedTarget = rel);
             }
-            return holdclass && setTimeout(check_holding, 50), synthEvent(target, "slip", th, evt, touch_x, touch_y, also);
+            return playSound("slipsound", target, th), holdclass && setTimeout(check_holding, 50), 
+            synthEvent(target, "slip", th, evt, touch_x, touch_y, also);
         }
         function taptapped(target, evt) {
-            return synthEvent(target, "taptap", th, evt, touch_x, touch_y, !1, trace);
+            return playSound("taptapsound", target, th), synthEvent(target, "taptap", th, evt, touch_x, touch_y, !1, trace);
         }
         function swiped(target, evt, sx, sy, cx, cy) {
             var dx = cx - sx, dy = cy - sy;
-            return swipe_t = fdjtET(), synthEvent(target, "swipe", th, evt, cx, cy, {
+            return swipe_t = fdjtET(), playSound("swipesound", target, th), synthEvent(target, "swipe", th, evt, cx, cy, {
                 startX: sx,
                 startY: sy,
                 endX: cx,
@@ -8809,7 +8844,11 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         if (!(this instanceof TapHold)) return new TapHold(elt, opts);
         var th = this, holdclass = "tapholding", touchclass = "tapholdtarget", touched = !1, pressed = !1, pressed_at = !1, th_timer = !1, tt_timer = !1, th_target = !1, th_targets = [], tap_target = !1, th_target_t = !1, th_last = !1, fortouch = !1, noslip = !1, bubble = !1, override = !1, maxtouches = 1, touchtoo = !1, holdmsecs = !1, taptapmsecs = !1, movethresh = !1, wanderthresh = !1, min_swipe = 30, no_swipe = !1, scrolling = !1, scroll_x = 0, scroll_y = 0, start_x = !1, start_y = !1, start_t = !1, touch_x = !1, touch_y = !1, touch_t = 0, touch_n = !1, target_x = !1, target_y = !1, target_t = !1, swipe_t = !1, minmove = 2, hot_xoff = 0, hot_yoff = 0, trace = 0, serial = serial_count++, thid = opts && opts.id ? opts.id + ":" + serial : elt.id ? "#" + elt.id + ":" + serial : "" + serial;
         th.id = thid;
-        var drop_holding = [], getParents = fdjtDOM.getParents, touchable = elt.getAttribute("data-touchable");
+        var drop_holding = [], getParents = fdjtDOM.getParents;
+        initSound("tapsound", th, opts, elt), initSound("holdsound", th, opts, elt), initSound("releasesound", th, opts, elt), 
+        initSound("slipsound", th, opts, elt), initSound("taptapsound", th, opts, elt), 
+        initSound("swipesound", th, opts, elt);
+        var touchable = elt.getAttribute("data-touchable");
         touchable = opts && opts.hasOwnProperty("touchable") ? "string" == typeof opts.touchable ? fdjtDOM.Selector(opts.touchable) : opts.touchable : touchable ? fdjtDOM.Selector(touchable) : function(e) {
             return hasParent(e, elt);
         };
@@ -10158,9 +10197,8 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             function step() {
                 var block = blocks[block_i], style = styles[block_i], info = blockinfo[block_i], terminal = info.terminal || !1, next = blocks[block_i + 1], nextinfo = blockinfo[block_i + 1], tracing = !1;
                 if (block.id && (layout.lastid = block.id), trace && block && (trace > 3 || track && track.match(block)) && (logfn("Considering block %o (#%d from %o); page=%o", block, block_i, root, page), 
-                tracing = !0), trace && block && debug_match && debug_match.match(block), handle_dragging(block, terminal, info, style), 
-                block && (block = handle_standalone(block, info, style)), !block) return block_i++, 
-                void 0;
+                tracing = !0), handle_dragging(block, terminal, info, style), block && (block = handle_standalone(block, info, style)), 
+                !block) return block_i++, void 0;
                 var geom = getGeom(block, page), lh = getLineHeight(block, style), padding_bottom = parsePX(style.paddingBottom);
                 if (trace && (trace > 3 || track && track.match(block)) && logfn("Layout/geom %o %j", block, geom), 
                 geom.bottom - padding_bottom > page_height || next && geom.height > 3 * lh && (page_height - geom.bottom) / page_height > .9 && geom.bottom + getGeom(next).height > page_height && !info.avoidbreakinside && nextinfo.avoidbreakinside && nextinfo.avoidbreakinside) {
@@ -10374,7 +10412,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                     page.setAttribute("data-pagenum", pagenum), fdjtDOM(container, page), layout.prev = prev = !1, 
                     pages.push(page);
                 }
-                if (trace && (trace > 2 || track && node && track.match(node)) && (node ? logfn("Layout/%s %o at %o", newpage, page, node) : logfn("Layout/%s %o", newpage, page)), 
+                if (trace && (trace > 2 || track && node && track.match(node)) && (node ? logfn("Layout/newpage %o at %o", page, node) : logfn("Layout/newpage %o", page)), 
                 drag && drag.length) {
                     for (i = 0, lim = drag.length; lim > i; ) moveUp(drag[i++]);
                     if (node) {
@@ -10494,14 +10532,15 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 return word && words.push(word), words;
             }
             function loop() {
+                function layoutLoopDone() {
+                    donefn(layout);
+                }
                 for (var loop_start = fdjtTime(); n_blocks > block_i && (!timeslice || serialize || timeslice > fdjtTime() - loop_start); ) step();
                 if (progressfn && progressfn(layout), n_blocks > block_i) timeslice ? layout.timer = setTimeout(loop, timeskip || timeslice) : loop(); else {
                     var last_block = blocks[n_blocks - 1];
                     (forcedBreakAfter(last_block) || hasClass(last_block, /\bcodexfullpage\b/) || fullpages && testNode(last_block, fullpages)) && newPage(), 
                     layout.timer && clearTimeout(layout.timer), layout.timer = !1, layout.root = cur_root = !1, 
-                    pagesDone(newpages), newpages = [], donefn && (timeslice ? setTimeout(function() {
-                        donefn(layout);
-                    }, 10) : donefn(layout));
+                    pagesDone(newpages), newpages = [], donefn && (timeslice ? setTimeout(layoutLoopDone, 10) : donefn(layout));
                 }
             }
             var newpage = !1, newpages = page ? [ page ] : [], start = fdjtTime();
@@ -10649,13 +10688,14 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             return new Promise(setting_layout);
         }
         function setLayout(content) {
+            function restorePageNode(pagenode) {
+                restorePage(pagenode, content);
+            }
             if ("string" == typeof content) return setSimpleLayout(content);
             if (content.hasOwnProperty("npages")) {
                 container.innerHTML = content.layout;
                 var pagenodes = container.childNodes;
-                return fdjtAsync.slowmap(function(pagenode) {
-                    restorePage(pagenode, content);
-                }, pagenodes, {
+                return fdjtAsync.slowmap(restorePageNode, pagenodes, {
                     slice: layout.timeslice,
                     space: layout.timeskip
                 });
@@ -10663,9 +10703,10 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             return setSimpleLayout(content.layout);
         }
         function restorePage(pagenode, content) {
-            fetchLayout(content.layout_id, pagenode.id).then(function(pagedata) {
+            function restorePageData(pagedata) {
                 pagenode.innerHTML = pagedata.content;
-            }, pagenode.id);
+            }
+            fetchLayout(content.layout_id, pagenode.id).then(restorePageData);
         }
         function dropSelected(node, dropsel) {
             if (dropsel && 1 === node.nodeType) {
@@ -11081,6 +11122,20 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
         }
         return new Promise(fetching_layout);
     }
+    function fetchLayoutHandler(layout_id) {
+        return useIndexedDB().then(function(db) {
+            return fetchLayoutFrom(db, layout_id);
+        }).catch(function(ex) {
+            return fdjtLog("Layout DB init failed: %o", ex), fetchLayoutFrom(!1, layout_id);
+        });
+    }
+    function clearLayoutsHandler() {
+        var layouts = fdjtState.getLocal("fdjtCodex.layouts", !0), i = 0, lim = layouts && layouts.length;
+        if (layouts) {
+            for (;lim > i; ) dropLayout(layouts[i++]);
+            fdjtState.dropLocal("fdjtCodex.layouts");
+        }
+    }
     function fetchAll(callback) {
         if (!layoutDB) return !1;
         var txn = layoutDB.transaction([ "layouts" ], "read"), storage = txn.objectStore("layouts"), layout_ids = [];
@@ -11088,6 +11143,20 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             var cursor = evt.target.result;
             cursor ? (layout_ids.push(cursor.key), cursor["continue"]()) : callback(layout_ids);
         };
+    }
+    function clearAllLayouts(spec) {
+        fetchAll(function(layout_ids) {
+            var todrop = [], i = 0, lim = layout_ids.length;
+            if (!lim) return fdjtLog.warn("No layouts"), void 0;
+            if (spec) for (;lim > i; ) {
+                var id = layout_ids[i++];
+                id.search(spec) >= 0 && todrop.push(id);
+            } else todrop = layout_ids;
+            if (0 === todrop.length) return fdjtLog.warn("No layouts match %s", spec), void 0;
+            for (spec ? fdjtLog.warn("Dropping %d layouts matching %s", todrop.length, spec) : fdjtLog.warn("Dropping %d layouts", todrop.length), 
+            i = 0, lim = todrop.length; lim > i; ) fdjtLog.warn("Dropping layout %s", todrop[i]), 
+            dropLayout(todrop[i++]);
+        });
     }
     function cachedLayout(layout_id) {
         setLocal("fdjtCodex.layout(" + layout_id + ")", layout_id), pushLocal("fdjtCodex.layouts", layout_id);
@@ -11101,7 +11170,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
         root_namespace = document.body.namespaceURI;
     });
     var layoutDB, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, notspace = /[^ \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff]/g, adjustFontSize = fdjt.DOM.adjustFontSize, adjustFonts = fdjt.DOM.adjustFonts, tweakImage = fdjt.DOM.tweakImage, tmpid_count = 1, dupstate = /\bcodexdup(start|end)?\b/g, codexstate = /\bcodex(dupstart|dup|dupend|relocated)\b/g;
-    return CodexLayout.timeslice = 80, CodexLayout.timeskip = 10, CodexLayout.tracelevel = 0, 
+    return CodexLayout.timeslice = 50, CodexLayout.timeskip = 5, CodexLayout.tracelevel = 0, 
     CodexLayout.prototype.getDups = function(id) {
         if (!id) return [];
         id.nodeType && (id = id.id);
@@ -11141,32 +11210,9 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             break_blocks: this.break_blocks
         };
     }, CodexLayout.cache = 2, CodexLayout.useIndexedDB = useIndexedDB, CodexLayout.cacheLayout = cacheLayout, 
-    CodexLayout.dropLayout = dropLayout, CodexLayout.fetchLayout = function(layout_id) {
-        return useIndexedDB().then(function(db) {
-            return fetchLayoutFrom(db, layout_id);
-        }).catch(function(ex) {
-            return fdjtLog("Layout DB init failed: %o", ex), fetchLayoutFrom(!1, layout_id);
-        });
-    }, CodexLayout.clearLayouts = function() {
-        var layouts = fdjtState.getLocal("fdjtCodex.layouts", !0), i = 0, lim = layouts && layouts.length;
-        if (layouts) {
-            for (;lim > i; ) dropLayout(layouts[i++]);
-            fdjtState.dropLocal("fdjtCodex.layouts");
-        }
-    }, CodexLayout.fetchAll = fetchAll, CodexLayout.clearAll = function(spec) {
-        fetchAll(function(layout_ids) {
-            var todrop = [], i = 0, lim = layout_ids.length;
-            if (!lim) return fdjtLog.warn("No layouts"), void 0;
-            if (spec) for (;lim > i; ) {
-                var id = layout_ids[i++];
-                id.search(spec) >= 0 && todrop.push(id);
-            } else todrop = layout_ids;
-            if (0 === todrop.length) return fdjtLog.warn("No layouts match %s", spec), void 0;
-            for (spec ? fdjtLog.warn("Dropping %d layouts matching %s", todrop.length, spec) : fdjtLog.warn("Dropping %d layouts", todrop.length), 
-            i = 0, lim = todrop.length; lim > i; ) fdjtLog.warn("Dropping layout %s", todrop[i]), 
-            dropLayout(todrop[i++]);
-        });
-    }, CodexLayout.dbname = "codexlayout", CodexLayout;
+    CodexLayout.dropLayout = dropLayout, CodexLayout.fetchLayout = fetchLayoutHandler, 
+    CodexLayout.clearLayouts = clearLayoutsHandler, CodexLayout.fetchAll = fetchAll, 
+    CodexLayout.clearAll = clearAllLayouts, CodexLayout.dbname = "codexlayout", CodexLayout;
 }(), "undefined" != typeof window && window.fdjt && (window.CodexLayout = fdjt.CodexLayout);
 
 var Markdown;
@@ -12229,7 +12275,9 @@ var metaBook = {
         }
     }
     function initSettings() {
+        var started = fdjtTime();
         for (var setting in current_config) current_config.hasOwnProperty(setting) && updateSettings(setting, current_config[setting]);
+        Trace.startup > 1 && fdjtLog("Finished initSettings in %dms", fdjtTime() - started);
     }
     var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, fdjtUI = fdjt.UI, fdjtState = fdjt.State, fdjtTime = fdjt.Time, fdjtString = fdjt.String, getChildren = fdjtDOM.getChildren, getMeta = fdjtDOM.getMeta, isEmpty = fdjtString.isEmpty, getLocal = fdjtState.getLocal, getQuery = fdjtState.getQuery, mB = metaBook, Trace = metaBook.Trace, saveLocal = mB.saveLocal, config_handlers = {}, default_config = metaBook.default_config, current_config = {}, saved_config = {};
     metaBook.addConfig = addConfig, metaBook.getConfig = getConfig, metaBook.setConfig = setConfig, 
@@ -12286,7 +12334,7 @@ var metaBook = {
             Trace.toc && fdjtLog("Setting location to %o", location);
             for (var info = metaBook.Info(metaBook.head); info; ) {
                 var tocelt = document.getElementById("MBTOC4" + info.frag), hinfo = info.head, hhlen = hinfo && hinfo.ends_at - hinfo.starts_at, start = info.starts_at, end = info.ends_at, progress = 100 * (location - start) / hhlen, bar = !1, appbar = !1;
-                tocelt && (bar = fdjtDOM.getFirstChild(tocelt, ".posbar")), Trace.toc && fdjtLog("For tocbar %o/%o loc=%o start=%o end=%o progress=%o", bar, appbar, location, start, end, progress), 
+                tocelt && (bar = fdjtDOM.getFirstChild(tocelt, ".mbtoc_posbar")), Trace.toc && fdjtLog("For tocbar %o/%o loc=%o start=%o end=%o progress=%o", bar, appbar, location, start, end, progress), 
                 progress >= 0 && 100 >= progress && (bar && (bar.style.width = progress + "%"), 
                 appbar && (appbar.style.width = progress + "%")), info = info.head;
             }
@@ -12997,16 +13045,12 @@ var metaBook = {
     });
 }(), function() {
     "use strict";
-    function getBGColor(arg) {
-        var color = fdjtDOM.getStyle(arg).backgroundColor;
-        return color ? "transparent" === color ? !1 : color.search(/rgba/) >= 0 ? !1 : color : !1;
-    }
     function initBody() {
         var i, lim, body = document.body, started = fdjtTime(), init_content = $ID("CODEXCONTENT"), content = init_content || fdjtDOM("div#CODEXCONTENT");
         Trace.startup > 2 && fdjtLog("Starting initBody"), addClass(content, "metabookcontent"), 
         addClass(content, "codexroot"), body.setAttribute("tabindex", 1), body.style.fontSize = "", 
         body.style.width = "", metaBook.content = content;
-        var notesblock = $ID("SBOOKNOTES") || fdjtDOM("div.sbookbackmatter#SBOOKNOTES");
+        var notesblock = $ID("METABOOKNOTES") || fdjtDOM("div.metabookbackmatter#METABOOKNOTES");
         applyMetaClass("htmlbooknote"), applyMetaClass("htmlbooknote", "METABOOK.booknotes"), 
         addClass(fdjtDOM.$("span[data-type='footnote']"), "htmlbooknote");
         var allnotes = getChildren(content, ".htmlbooknote");
@@ -13067,19 +13111,16 @@ var metaBook = {
         metaBook.CSS.pagerule.style.height = inner_height + "px") : metaBook.CSS.pagerule = fdjtDOM.addCSSRule("div.codexpage", "width: " + inner_width + "px; " + "height: " + inner_height + "px;"), 
         metaBook.CSS.glossmark_rule ? metaBook.CSS.glossmark_rule.style.marginRight = -glossmark_offset + "px" : metaBook.CSS.glossmark_rule = fdjtDOM.addCSSRule("#CODEXPAGE .glossmark", "margin-right: " + -glossmark_offset + "px;");
         var shrinkrule = metaBook.CSS.shrinkrule;
-        shrinkrule || (shrinkrule = fdjtDOM.addCSSRule("body.mbSHRINK #CODEXPAGE,body.mbPREVIEW #CODEXPAGE, body.mbSKIMMING #CODEXPAGE", ""), 
+        shrinkrule || (shrinkrule = fdjtDOM.addCSSRule("body.mbSHRINK #CODEXPAGE,body.mbPREVIEW #CODEXPAGE,body.mbSKIMMING #CODEXPAGE", ""), 
         metaBook.CSS.shrinkrule = shrinkrule);
         var sh = view_height - 150, vs = sh / geom.height;
-        vs > 1 && (vs = 1), shrinkrule.style[fdjtDOM.transform] = "scale(" + vs + "," + vs + ")", 
+        vs > 1 && (vs = 1), shrinkrule.style[fdjtDOM.transform] = "scale(" + vs + "," + vs + ") translateZ(0)", 
         document.body.style.overflow = "", Trace.startup > 1 && fdjtLog("Content sizing took %dms", fdjtTime() - started);
     }
     function initMargins() {
         var page_right = fdjtDOM("div.mbpagecontrol#MBPAGERIGHT"), page_left = fdjtDOM("div.mbpagecontrol#MBPAGELEFT"), controls = fdjtDOM("div#METABOOKPAGECONTROLS", page_left, page_right);
+        page_left.setAttribute("data-tapsound", "METABOOKPAGEBACKWARDAUDIO"), page_right.setAttribute("data-tapsound", "METABOOKPAGEFORWARDAUDIO"), 
         fdjtDOM.prepend(document.body, controls), window.scrollTo(0, 0);
-        var bgcolor = getBGColor(document.body) || "white";
-        metaBook.backgroundColor = bgcolor, "transparent" === bgcolor && (bgcolor = fdjtDOM.getStyle(document.body).backgroundColor), 
-        bgcolor && bgcolor.search("rgba") >= 0 ? bgcolor.search(/,\s*0\s*\)/) > 0 ? bgcolor = "white" : (bgcolor = bgcolor.replace("rgba", "rgb"), 
-        bgcolor = bgcolor.replace(/,\s*((\d+)|(\d+.\d+))\s*\)/, ")")) : "transparent" === bgcolor && (bgcolor = "white");
     }
     var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, $ID = fdjt.ID, fdjtTime = fdjt.Time, fdjtString = fdjt.String, dropClass = fdjtDOM.dropClass, addClass = fdjtDOM.addClass, getGeometry = fdjtDOM.getGeometry, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, toArray = fdjtDOM.toArray, isEmpty = fdjtString.isEmpty, mB = metaBook, Trace = metaBook.Trace, applyMetaClass = mB.applyMetaClass, note_counter = 1, fixStaticRefs = metaBook.fixStaticRefs;
     metaBook.initBody = initBody, metaBook.sizeContent = sizeContent;
@@ -13861,7 +13902,7 @@ var metaBook = {
     metaBook.gotMyCopyId = gotMyCopyId;
     var getting_mycopyid = !1;
     metaBook.getMyCopyId = getMyCopyId;
-}(), metaBook.Startup = function() {
+}(), metaBook.Startup = function doStartup() {
     "use strict";
     function startupMessage() {
         Trace.startup && "number" == typeof Trace.startup && Trace.startup > 1 && fdjtLog.apply(null, arguments);
@@ -13893,10 +13934,9 @@ var metaBook = {
         metaBook.userSetup()), metaBook.initState(), metaBook.syncState();
         var mycopyid = mB.readLocal("mB(" + mB.docid + ").mycopyid") || fdjtState.getQuery("MYCOPYID");
         mB.gotMyCopyId(mycopyid), metaBook.user || window._sbook_loadinfo || metaBook.userinfo || window._userinfo || getLocal("mB.user") || (Trace.startup && fdjtLog("No local user info, requesting from bookhub server %s", mB.server), 
-        metaBook.updateInfo()), fdjt.Init(), metaBook.updateSizeClasses(), setupBook(), 
-        setupDevice(), setupApp(), metaBook._ui_setup = fdjtTime(), showMessage(), metaBook._user_setup && metaBook.setupUI4User(), 
-        setupContent(), metaBook.setupGestures(), metaBook.setConfig(metaBook.getConfig()), 
-        Trace.startup > 1 && fdjtLog("Initializing markup converter");
+        metaBook.updateInfo()), fdjt.Init(), setupBook(), setupDevice(), setupApp(), metaBook._ui_setup = fdjtTime(), 
+        showMessage(), metaBook._user_setup && metaBook.setupUI4User(), metaBook.initBody(), 
+        metaBook.setupGestures(), metaBook.setConfig(metaBook.getConfig()), Trace.startup > 1 && fdjtLog("Initializing markup converter");
         var markdown_converter = new Markdown.Converter();
         if (metaBook.markdown_converter = markdown_converter, metaBook.md2HTML = function(mdstring) {
             return markdown_converter.makeHtml(mdstring);
@@ -13959,7 +13999,7 @@ var metaBook = {
                 metaBook.updateSettings(name, value);
             });
         }), imageSetup(), body.style["pointer-events"] !== void 0 && (metaBook.demo || fdjtState.getLocal("mB.demo") || fdjtState.getCookie("crosshair") || getQuery("crosshair")) && fdjtUI.Reticle.setup(), 
-        Trace.startup && fdjtLog("App setup took %dms", fdjtTime() - started), fdjtLog("Body: %s", document.body.className);
+        Trace.startup && (fdjtLog("App setup took %dms", fdjtTime() - started), fdjtLog("Body: %s", document.body.className));
     }
     function imageSetup() {
         var i, lim, started = fdjtTime(), uri = "string" == typeof metaBook.coverimage && metaBook.coverimage || "string" == typeof metaBook.bookimage && metaBook.bookimage || "string" == typeof metaBook.bookcover && metaBook.bookcover || "string" == typeof metaBook.coverpage && metaBook.coverpage;
@@ -13978,10 +14018,6 @@ var metaBook = {
             for (i = 0, lim = iconimages.length; lim > i; ) iconimages[i].src ? i++ : iconimages[i++].src = icon_uri;
         }
         Trace.startup > 1 && fdjtLog("Image setup took %dms", fdjtTime() - started);
-    }
-    function setupContent() {
-        var started = fdjtTime();
-        metaBook.initBody(), metaBook.sizeContent(), Trace.gestures && fdjtLog("Content setup in %dms", fdjtTime() - started);
     }
     function useTraceSettings(tracing) {
         for (var i = 0, lim = tracing.length; lim > i; ) {
@@ -14006,6 +14042,8 @@ var metaBook = {
             }), fdjtAsync.timeslice([ function() {
                 applyTOCRules(), metadata = scanDOM(), metaBook.setupTOC(metadata[metaBook.content.id]);
             }, function() {
+                fdjtAsync(startLayout);
+            }, function() {
                 var hasText = fdjtDOM.hasText, rules = fdjtDOM.getMeta("METABOOK.index", !0).concat(fdjtDOM.getMeta("PUBTOOL.index", !0)).concat(fdjtDOM.getMeta("INDEX.include", !0)).concat(fdjtDOM.getMeta("textindex", !0)), content = $ID("CODEXCONTENT");
                 rules.push("p,li,ul,blockquote,div"), rules.push("h1,h2,h3,h4,h5,h6,h7,hgroup,.sbookindex");
                 for (var nodes = fdjtDOM.getChildren(content, rules.join(",")), index = metaBook.textindex = new fdjt.TextIndex(), i = 0, lim = nodes.length; lim > i; ) {
@@ -14022,8 +14060,6 @@ var metaBook = {
                     var id = allids[n++], doc = docinfo[id];
                     doc && (doc.strings = toSet(idterms[id]));
                 }
-            }, function() {
-                metaBook.bypage ? metaBook.Paginate("initial") : addClass(document.body, "_SCROLL");
             }, function() {
                 Trace.startup > 1 && fdjtLog("Loading sourcedb"), metaBook.sourcedb.load(!0);
             }, Knodule && Knodule.HTML && Knodule.HTML.Setup && metaBook.knodule && function() {
@@ -14044,6 +14080,9 @@ var metaBook = {
                 space: 25
             });
         }
+    }
+    function startLayout() {
+        metaBook.sizeContent(), metaBook.bypage ? metaBook.Paginate("initial") : addClass(document.body, "_SCROLL");
     }
     function addTOCLevel(specs, level) {
         for (var j = 0, nspecs = specs.length; nspecs > j; ) for (var nodes = fdjtDOM.$(specs[j++]), i = 0, lim = nodes.length; lim > i; ) nodes[i++].setAttribute("data-toclevel", level);
@@ -14272,7 +14311,7 @@ var metaBook = {
         nofocus.length && (metaBook.nofocus = new fdjtDOM.Selector(nofocus));
     }
     function setupBookInfo() {
-        for (var elt, info = fdjt.DOM.$(".metabookrefinfo"), i = 0, lim = info.length; lim > i; ) elt = info[i++], 
+        for (var elt, info = fdjt.DOM.$(".metabookrefinfo"), started = fdjtTime(), i = 0, lim = info.length; lim > i; ) elt = info[i++], 
         elt.innerHTML = "<strong>Ref:</strong> ", fdjtDOM.append(elt, fdjtDOM("span.refuri", metaBook.refuri), " ", fdjtDOM("span.oidref", metaBook.docref));
         for (info = fdjt.DOM.$(".metabooksourceinfo"), i = 0, lim = info.length; lim > i; ) elt = info[i++], 
         elt.innerHTML = "<strong>Source:</strong> ", metaBook.sourcetime && elt.appendChild(timeDOM(metaBook.sourcetime)), 
@@ -14283,6 +14322,7 @@ var metaBook = {
         for (info = fdjt.DOM.$(".metabookappinfo"), i = 0, lim = info.length; lim > i; ) elt = info[i++], 
         elt.innerHTML = "", fdjtDOM(elt, fdjtDOM("strong", "App:"), " ", "metaBook version ", metaBook.version, " built on ", fdjtDOM("span.host", metaBook.buildhost), metaBook.buildtime && " at ", timeDOM(metaBook.buildtime), " loaded from ", fdjtDOM("span.host", metaBook.appsource));
         for (info = fdjt.DOM.$(".metabookcopyrightinfo"), i = 0, lim = info.length; lim > i; ) info[i++].innerHTML = "Program and Interface <span class='inlinesymbol'>©</span> beingmeta, inc 2008-2015";
+        Trace.startup > 1 && fdjtLog("Book info setup done in %dms", fdjtTime() - started);
     }
     function timeDOM(x) {
         var elt;
@@ -14295,12 +14335,12 @@ var metaBook = {
         }
     }
     function setupZoom() {
-        var zoom = metaBook.Zoom = fdjtDOM("div#METABOOKZOOM.metabookzoom.metabookcontent", fdjtDOM("div#METABOOKZOOMBOX", fdjtDOM("div#METABOOKZOOMTARGET")), fdjtDOM("div#METABOOKZOOMCONTROLS", fdjtDOM("div#METABOOKZOOMCLOSE"), fdjtDOM("div#METABOOKUNZOOM"), fdjtDOM("div#METABOOKZOOMIN"), fdjtDOM("div#METABOOKZOOMOUT"), fdjtDOM("div#METABOOKZOOMHELP"), fdjtDOM("div#METABOOKZOOMHELPTEXT", "Drag to pan, use two fingers to zoom")));
-        zoom.metabookui = !0, document.body.appendChild(zoom);
+        var started = fdjtTime(), zoom = metaBook.Zoom = fdjtDOM("div#METABOOKZOOM.metabookzoom.metabookcontent", fdjtDOM("div#METABOOKZOOMBOX", fdjtDOM("div#METABOOKZOOMTARGET")), fdjtDOM("div#METABOOKZOOMCONTROLS", fdjtDOM("div#METABOOKZOOMCLOSE"), fdjtDOM("div#METABOOKUNZOOM"), fdjtDOM("div#METABOOKZOOMIN"), fdjtDOM("div#METABOOKZOOMOUT"), fdjtDOM("div#METABOOKZOOMHELP"), fdjtDOM("div#METABOOKZOOMHELPTEXT", "Drag to pan, use two fingers to zoom")));
+        zoom.metabookui = !0, document.body.appendChild(zoom), Trace.startup > 1 && fdjtLog("Zoom setup done in %dms", fdjtTime() - started);
     }
     function setupMedia() {
-        var media = metaBook.Media = fdjtDOM("div#METABOOKMEDIA.metabookmedia.metabookcontent", fdjtDOM("div#METABOOKMEDIATARGET"), fdjtDOM("div#METABOOKCLOSEMEDIA"));
-        media.metabookui = !0, document.body.appendChild(media);
+        var started = fdjtTime(), media = metaBook.Media = fdjtDOM("div#METABOOKMEDIA.metabookmedia.metabookcontent", fdjtDOM("div#METABOOKMEDIATARGET"), fdjtDOM("div#METABOOKCLOSEMEDIA"));
+        media.metabookui = !0, document.body.appendChild(media), Trace.startup > 1 && fdjtLog("Zoom setup done in %dms", fdjtTime() - started);
     }
     function enableOpenSans() {
         var frame = $ID("METABOOKFRAME");
@@ -14357,7 +14397,7 @@ var metaBook = {
         if (!target_info) return !1;
         var head_info = target_info.level ? target_info : target_info.head, head = head_info && mbID(head_info.frag), score = query && query.scores.get(info), excerpt_len = info.excerpt ? info.excerpt.length : 0, note = info.note && info.note.trim(), note_len = note && note.length, overlay = getoverlay(info), shared = info.shared || [], sample = query && !standalone && !info.maker && sampletext(mbID(target_id));
         "string" == typeof shared && (shared = [ shared ]), overlay && (shared = RefDB.remove(shared, overlay._qid || overlay._id));
-        var body = fdjtDOM("div.metabookcardbody", score && showscore(info, score, query), info.maker || info.tstamp ? showglossinfo(info) : showdocinfo(info), sample, note_len > 0 && info.maker && showmaker(info), note_len > 0 && shownote(info), " ", info.detail && fdjtDOM("span.showdetail", "More"), " ", (info.alltags || info.tags) && showtags(info, query), " ", info.links && showlinks(info.links), " ", info.attachments && showlinks(info.attachments, "span.attachments"), " ", shared && shared.length > 0 && showaudience(shared), excerpt_len > 0 && showexcerpts(info.excerpt), " "), card = fdjtDOM(info.maker ? "div.metabookcard.gloss" : "div.metabookcard.passage", head && makeTOCHead(head, info.level && info), standalone && makelocbar(target_info), body, fdjtDOM("div.fdjtclearfloats"));
+        var body = fdjtDOM("div.mbcard_body", score && showscore(info, score, query), info.maker || info.tstamp ? showglossinfo(info) : showdocinfo(info), sample, note_len > 0 && info.maker && showmaker(info), note_len > 0 && shownote(info), " ", info.detail && fdjtDOM("span.showdetail", "More"), " ", (info.alltags || info.tags) && showtags(info, query), " ", info.links && showlinks(info.links), " ", info.attachments && showlinks(info.attachments, "span.attachments"), " ", shared && shared.length > 0 && showaudience(shared), excerpt_len > 0 && showexcerpts(info.excerpt), " "), card = fdjtDOM(info.maker ? "div.mbcard.gloss" : "div.mbcard.passage", head && makeTOCHead(head, info.level && info), standalone && makelocbar(target_info), body, fdjtDOM("div.fdjtclearfloats"));
         return info.maker && info.maker.load().then(function(makerinfo) {
             var tstamp = info.tstamp || info.modified || info.created;
             makerinfo._live && ":PERSON" === makerinfo.kind && (body.title = tstamp ? "gloss from " + (makerinfo.name || "someone") + " at " + fdjtTime.shortString(tstamp) : "gloss from " + (makerinfo.name || "someone"), 
@@ -14413,7 +14453,7 @@ var metaBook = {
                 }
             }
         }
-        return ntags ? fdjtDOM("span.tags", tagicon, matches, toptags, othertags, sectags) : !1;
+        return ntags ? fdjtDOM("span.mbcard_tags.tags", tagicon, matches, toptags, othertags, sectags) : !1;
     }
     function tag_matchp(tag, query) {
         for (var qtags = query.tags, i = 0, lim = qtags.length; lim > i; ) {
@@ -14430,7 +14470,7 @@ var metaBook = {
     }
     function showaudience(outlets, spec) {
         if (outlets instanceof Array || (outlets = [ outlets ]), 0 === outlets.length) return !1;
-        for (var span = fdjtDOM(spec || (outlets.length > 1 ? "div.audience" : "span.audience"), outlets.length > 1 && fdjtDOM("span.count", outlets.length, " outlets"), " "), i = 0, lim = outlets.length; lim > i; ) {
+        for (var span = fdjtDOM(spec || (outlets.length > 1 ? "div.mbcard_audience" : "span.mbcard_audience"), outlets.length > 1 && fdjtDOM("span.count", outlets.length, " outlets"), " "), i = 0, lim = outlets.length; lim > i; ) {
             var outlet = outlets[i], info = metaBook.sourcedb.ref(outlet), outlet_span = fdjtDOM("span.outlet");
             info._live ? (fdjtDOM(outlet_span, info.name), outlet_span.title = info.about ? "Shared with “" + info.name + "” — " + info.about : "Shared with “" + info.name + "”") : (outlet_span.setAttribute("NAME", "OUTLETSPAN" + info._id), 
             info.load().then(fill_outlet_spans)), fdjtDOM.append(span, " ", outlet_span), i++;
@@ -14450,7 +14490,7 @@ var metaBook = {
             count++;
         }
         if (0 === count) return !1;
-        var span = fdjtDOM(spec || (count > 4 ? "div.links" : "span.links"), count > 1 && fdjtDOM("span.count", count, " links"), " ");
+        var span = fdjtDOM(spec || (count > 4 ? "div.mbcard_links" : "span.mbcard_links"), count > 1 && fdjtDOM("span.count", count, " links"), " ");
         for (url in refs) if ("_" !== url[0]) {
             var title, urlinfo = refs[url], elt = !1, openinbook = 0 === url.search("https://glossdata.bookhub.io/") || 0 === url.search("https://glossdata.sbooks.net/") || 0 === url.search("resources/"), icon = !1, type = !1, useclass = !1;
             if (!openinbook) for (var inbookurls = metaBook.inbookurls, i = 0, lim = inbookurls; lim > i; ) {
@@ -14594,7 +14634,7 @@ var metaBook = {
                 }
             }
         }
-        var tochead = fdjtDOM("div.tochead", makelocrule(info, !1), basespan);
+        var tochead = fdjtDOM("div.mbcard_tochead", makelocrule(info, !1), basespan);
         return tochead.title = makelocstring(info, !1), tochead;
     }
     function selectSources(slice, sources) {
@@ -14645,7 +14685,7 @@ var metaBook = {
         slice.refresh_timer = !1, slice.needupdate = !1, slice.update(), slice.needupdate && slice.refresh();
     }
     function getCard(target) {
-        return hasClass(target, "metabookcard") || hasClass(target, "mbtoc") ? target : getParent(target, ".metabookcard,.mbtoc") || getChild(target, ".metabookcard,.mbtoc");
+        return hasClass(target, "mbcard") || hasClass(target, "mbtoc") ? target : getParent(target, ".mbcard,.mbtoc") || getChild(target, ".mbcard,.mbtoc");
     }
     function slice_tapped(evt) {
         var target = fdjtUI.T(evt);
@@ -14764,7 +14804,7 @@ var metaBook = {
     }, MetaBookSlice.prototype.sortfn = function(x, y) {
         return x.hasOwnProperty("location") ? y.hasOwnProperty("location") ? x.location === y.location ? x.timestamp ? y.timestamp ? x.timestamp - y.timestamp : -1 : 1 : x.location - y.location : -1 : 1;
     }, MetaBookSlice.prototype.getCard = function getCard(ref) {
-        if (1 === ref.nodeType && (hasClass(ref, "metabookcard") || hasClass(ref, "mbtoc"))) {
+        if (1 === ref.nodeType && (hasClass(ref, "mbcard") || hasClass(ref, "mbtoc"))) {
             var id = ref.getAttribute("data-gloss") || ref.getAttribute("data-passage");
             return this.byid.get(id);
         }
@@ -14803,7 +14843,7 @@ var metaBook = {
             scores || (scores = this.scores || !1), metaBook.Trace.slices && fdjtLog("Adding %d cards to slice %o with scores %o", adds.length, this.container, scores);
             for (var byid = this.byid, cards = this.cards, i = 0, lim = adds.length; lim > i; ) {
                 var card, id, add = adds[i++], info = !1, about = !1, push = !0, replace = !1;
-                if (add.about && add.dom && (info = add, card = add.dom), add.nodeType && 1 === add.nodeType && hasClass(add, "metabookcard")) {
+                if (add.about && add.dom && (info = add, card = add.dom), add.nodeType && 1 === add.nodeType && hasClass(add, "mbcard")) {
                     if (card = add, id = add.name || add.getAttribute("name"), !id) continue;
                     (info = byid[id]) ? (info.dom !== add && (replace = byid[id].dom), card = add, info.dom = add) : card = add;
                 } else add instanceof Ref && (id = add._qid || add.getQID(), about = add, byid[id] ? (info = byid[id], 
@@ -15255,19 +15295,19 @@ var metaBook = {
         }
     }
     function tocBar(headinfo, context) {
-        var title = fdjtDOM("a.sectname", headinfo.title), elements = fdjtDOM("div.elements"), tocbar = fdjtDOM("div.mbtoc", fdjtDOM("div.toctext", context && context.cloneNode(!0), title), elements), start = headinfo.starts_at, end = headinfo.ends_at, sectlen = end - start;
+        var title = fdjtDOM("a.mbtoc_sectname", headinfo.title), elements = fdjtDOM("div.mbtoc_elements"), tocbar = fdjtDOM("div.mbtoc", fdjtDOM("div.mbtoc_text", context && context.cloneNode(!0), title), elements), start = headinfo.starts_at, end = headinfo.ends_at, sectlen = end - start;
         if (headinfo.sub && headinfo.sub.length) {
             var sub = headinfo.sub, s = 0, smax = sub.length;
             for (addClass(tocbar, "mbtocbranch"); smax > s; ) {
-                var subsect = sub[s++], brick = fdjtDOM("a.brick"), left = subsect.starts_at, size = subsect.ends_at - left;
+                var subsect = sub[s++], brick = fdjtDOM("a.mbtoc_sectbrick"), left = subsect.starts_at, size = subsect.ends_at - left;
                 brick.name = "MBTOC4" + subsect.frag, brick.style.left = 100 * ((left - start) / sectlen) + "%", 
                 brick.style.width = 100 * (size / sectlen) + "%", subsect.title && (brick.title = subsect.title), 
                 elements.appendChild(brick);
             }
         }
-        var parent = headinfo.head, rel_start = headinfo.starts_at - parent.starts_at, outer_length = parent.ends_at - parent.starts_at, inner_length = headinfo.ends_at - headinfo.starts_at, showsize = fdjtDOM("a.showsize");
+        var parent = headinfo.head, rel_start = headinfo.starts_at - parent.starts_at, outer_length = parent.ends_at - parent.starts_at, inner_length = headinfo.ends_at - headinfo.starts_at, showsize = fdjtDOM("a.mbtoc_showsize");
         return addClass(tocbar, "mbtocleaf"), showsize.style.width = 100 * (inner_length / outer_length) + "%", 
-        showsize.style.left = 100 * (rel_start / outer_length) + "%", elements.appendChild(fdjtDOM("div.posbar")), 
+        showsize.style.left = 100 * (rel_start / outer_length) + "%", elements.appendChild(fdjtDOM("div.mbtoc_posbar")), 
         elements.appendChild(showsize), tocbar.id = "MBTOC4" + headinfo.frag, tocbar.setAttribute("name", "MBTOC4" + headinfo.frag), 
         tocbar.setAttribute("data-passage", headinfo.frag), tocbar.setAttribute("data-location", headinfo.starts_at), 
         tocbar.setAttribute("data-level", headinfo.toclevel), addClass(tocbar, "mbtoc" + headinfo.toclevel), 
@@ -16674,7 +16714,7 @@ var metaBook = {
         metaBook.setHUD(!1, !1));
         for (var json = JSON.parse(req.responseText), ref = metaBook.glossdb.Import(json, !1, RefDB.REFINDEX | RefDB.REFSTRINGS | RefDB.REFLOAD), reps = document.getElementsByName(ref._id), i = 0, lim = reps.length; lim > i; ) {
             var rep = reps[i++];
-            if (hasClass(rep, "metabookcard")) {
+            if (hasClass(rep, "mbcard")) {
                 var new_card = metaBook.renderCard(ref);
                 new_card && fdjtDOM.replace(rep, new_card);
             }
@@ -17034,7 +17074,7 @@ var metaBook = {
             var renderings = fdjtDOM.Array(document.getElementsByName(glossid)), i = 0, lim = renderings.length;
             if (renderings) for (;lim > i; ) {
                 var rendering = renderings[i++];
-                "METABOOKSKIM" === rendering.id ? fdjtDOM.replace(rendering, fdjtDOM("div.metabookcard.deletedgloss")) : fdjtDOM.remove(rendering);
+                "METABOOKSKIM" === rendering.id ? fdjtDOM.replace(rendering, fdjtDOM("div.mbcard.deletedgloss")) : fdjtDOM.remove(rendering);
             }
             var glossmarks = document.getElementsByName("METABOOK_GLOSSMARK_" + frag);
             for (glossmarks = fdjtDOM.Array(glossmarks), i = 0, lim = glossmarks.length; lim > i; ) {
@@ -18171,7 +18211,7 @@ var metaBook = {
                 if (hasClass(link, "imagelink") ? (metaBook.showMedia(src, type), cancelling = !0) : (hasClass(link, "audiolink") || hasClass(link, "musiclink")) && (metaBook.showMedia(src, type), 
                 cancelling = !0), cancelling) return cancel(evt), void 0;
             }
-            if (getParent(target, ".tochead")) {
+            if (getParent(target, "mbcard_tochead")) {
                 var anchor = getParent(target, ".tocref"), href = anchor && anchor.getAttribute("data-tocref");
                 return href ? metaBook.GoTOC(href) : toggleClass("METABOOKSKIMMER", "expanded"), 
                 void 0;
@@ -19011,12 +19051,12 @@ var metaBook = {
                 var touch2 = touches[1], x2 = touch2.clientX, y2 = touch2.clientY, ncg_x = (x1 + x2) / 2, ncg_y = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1, d = Math.sqrt(dx * dx + dy * dy), scale = d / d_start * zoomscale;
                 off_x += ncg_x * zoomscale - ncg_x * scale, off_y += ncg_y * zoomscale - ncg_y * scale, 
                 (Trace.zoom || Trace.gestures > 1) && fdjtLog("zoom_touchmove(2) %o: d=%o->%o@[%o,%o] [%o,%o] [%o,%o]", evt, d_last, d, ncg_x, ncg_y, x1, y1, x2, y2), 
-                zbs[transform] = "translate(" + off_x + "px," + off_y + "px) " + "scale(" + scale + ")", 
+                zbs[transform] = "translate3d(" + off_x + "px," + off_y + "px) " + "scale(" + scale + ",0)", 
                 Trace.zoom && fdjtLog("%s %o: %s", transform, zb, zbs[transform]), cg_x = ncg_x, 
                 cg_y = ncg_y, d_last = d, cancel(evt);
             } else 1 === evt.touches.length && "number" == typeof panstart_x && (pan_dx = x1 - panstart_x, 
             pan_dy = y1 - panstart_y, off_x += pan_dx, off_y += pan_dy, (Trace.zoom || Trace.gestures > 1) && fdjtLog("zoom_touchmove(1) %o: [%o,%o]=[%o,%o]+([%o,%o]=[%o,%o]-[%o,%o])", evt, off_x, off_y, mB.zoomX, mB.zoomY, pan_dx, pan_dy, x1, y1, panstart_x, panstart_y), 
-            zbs[transform] = "translate(" + off_x + "px," + off_y + "px) " + "scale(" + zoomscale + ")", 
+            zbs[transform] = "translate3d(" + off_x + "px," + off_y + "px) " + "scale(" + zoomscale + ",0)", 
             Trace.zoom && fdjtLog("%s %o: %s", transform, zb, zbs[transform]), cancel(evt));
         }
     }
@@ -19161,7 +19201,7 @@ var metaBook = {
             var started = layout.started;
             $ID("CODEXPAGE").style.visibility = "", $ID("CODEXCONTENT").style.visibility = "", 
             dropClass(document.body, "mbLAYOUT"), metaBook.layout = layout, metaBook.pagecount = layout.pages.length, 
-            Trace.startup && fdjtLog("Restored %d-page layout %s in %ds, adding glosses", layout.pages.length, layout_id, (fdjtTime() - started) / 1e3);
+            fdjtLog("Restored %d-page layout %s in %ds, adding glosses", layout.pages.length, layout_id, (fdjtTime() - started) / 1e3);
             for (var lostids = layout.lostids, moved_ids = lostids._all_ids, i = 0, lim = moved_ids.length; lim > i; ) {
                 var addGlossmark = metaBook.UI.addGlossmark, id = moved_ids[i++], glosses = metaBook.glossdb.find("frag", id);
                 if (glosses && glosses.length) for (var j = 0, jlim = glosses.length; jlim > j; ) {
@@ -19672,20 +19712,20 @@ var metaBook = {
     metaBook.displaySync = displaySync, Paginate;
 }(), metaBook.HTML.searchbox = '<div class=\'query\'>\n  <input id="METABOOKSEARCHINPUT"\n         type="TEXT" class="autoprompt searchinput"\n         name="QTEXT" value="" isempty="yes" autocomplete="off"\n         onfocus="metaBook.UI.handlers.search_focus(event);"\n         onblur="metaBook.UI.handlers.search_blur(event);"\n         onkeydown="metaBook.UI.handlers.search_keydown(event);"\n         onkeyup="metaBook.UI.handlers.search_keyup(event);"\n         onkeypress="metaBook.UI.handlers.search_keypress(event);"\n         completeopts="anywhere cloud" enterchars=";" maxcomplete="45"\n         placeholder="type or tap tags or terms"\n         completions="METABOOKSEARCHCLOUD"\n         results="METABOOKSEARCHRESULTS"\n         info="METABOOKSEARCHINFO"/>\n  <img class="metabookclearsearch" alt="X" title="clear search"\n       src="{{bmg}}metabook/redx.svgz"\n       onerror="this.src=\'{{bmg}}metabook/redx64x64.png"/\'>\n</div>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n\n', 
 metaBook.HTML.addgloss = '<form action="https://glosses.bookhub.io/glosses"\n      ajaxaction="https://glosses.bookhub.io/glosses"\n      method="POST" target="addgloss"\n      accept-charset="utf-8">\n  <div class="messageoverlay">\n    <div class="saving">Saving...</div>\n    <div class="saved">Saved</div>\n  </div>\n  <div class="hidden">\n    <input type="HIDDEN" name="FRAG"/>\n    <input type="HIDDEN" name="WSNID"/>\n    <input type="HIDDEN" name="REFURI"/>\n    <input type="HIDDEN" name="DOCURI"/>\n    <input type="HIDDEN" name="SYNC"/>\n    <input type="HIDDEN" name="UUID"/>\n    <input type="HIDDEN" name="TAGLINE"/>\n    <input type="HIDDEN" name="LOCATION"/>\n    <input type="HIDDEN" name="LOCLEN"/>\n    <input type="HIDDEN" name="DOCTITLE"/>\n    <input type="HIDDEN" name="MYCOPYID"/>\n    <input type="HIDDEN" name="MAKER"/>\n    <input type="HIDDEN" name="RE"/>\n    <input type="HIDDEN" name="THREAD"/>\n    <input TYPE="HIDDEN" NAME="DETAIL" VALUE=""/>\n    <input TYPE="HIDDEN" NAME="EXCERPT" VALUE=""/>\n    <input TYPE="HIDDEN" NAME="EXOFF" VALUE=""/>\n    <!-- Force IE to send the form in UTF-8 -->\n    <input type="HIDDEN" name="IEHACK" VALUE="&#9760;"/>\n  </div>\n  <div class="response">\n    Responding to <span class="respmaker"></span>\n    <span class="respdate"></span> <span class="respnote"></span> \n    <span class="resptags"></span> <span class="resplinks"></span>\n  </div>\n  <div class="metabookglossformbody">\n    <div class="addglossmenu" data-touchable="img">\n      <img src="{{bmg}}metabook/upmenu.svgz"\n           onerror="this.src=\'{{bmg}}metabook/upmenu64x64.png\'"\n           class="button menutop" alt="upmenu"/>\n      <img src="{{bmg}}metabook/downmenu.svgz"\n           onerror="this.src=\'{{bmg}}metabook/downmenu64x64.png\'"\n           class="button menutop" alt="downmenu"/>\n      <img src="{{bmg}}metabook/holdmenu.svgz"\n           onerror="this.src=\'{{bmg}}metabook/holdmenu64x64.png\'"\n           class="button menutop" alt="holdmenu"/>\n      <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_save_titled64x64.png\'"\n           title="save this gloss" class="button" alt="glosspush"\n           tabindex="2"/>\n      <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_save_titled64x64.png\'"\n           title="update this gloss" class="button" alt="glossupdate"\n           tabindex="2"/>\n      <img src="{{bmg}}metabook/gloss_tag_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_tag_titled64x64.png\'"\n           title="add tags" class="button" alt="addtag"\n           tabindex="3"/>\n      <img src="{{bmg}}metabook/gloss_attach_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_attach_titled64x64.png\'"\n           title="attach files" class="button" alt="attach"\n           tabindex="4"/>\n      <img src="{{bmg}}metabook/gloss_share_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_share_titled64x64.png\'"\n           title="add outlets/share this gloss" class="button" alt="addoutlet"\n           tabindex="6"/>\n      <img src="{{bmg}}metabook/gloss_respond_toptitle.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_respond_toptitle64x64.png\'"\n           title="respond to this gloss" class="button" alt="glossrespond"\n           tabindex="7"/>\n      <img src="{{bmg}}metabook/gloss_delete_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_delete_titled64x64.png\'"\n           title="delete gloss" class="button" alt="glossdelete"\n           tabindex="9"/>\n      <img src="{{bmg}}metabook/gloss_cancel_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_cancel_titled64x64.png\'"\n           title=" cancel gloss" class="button" alt="glosscancel"\n           tabindex="8"/>\n    </div>\n    <div class="textbox">\n      <textarea\n         name="NOTE"\n         placeholder="Use #tag or @share or to add tags or shares.  Markdown to format, Enter to save, Escape to cancel."\n         title="Add text (using markdown), using @share and #tag to add outlets and tags."\n         class="markdowninput"\n         wrap="virtual"\n         tabindex="0"></textarea>\n    </div>\n    <div class="glossetc">\n      <span class="glossexposure">\n        <span class="checkspan private" tabindex="5">\n          <input type="CHECKBOX" name="PRIVATE" value="yes"\n                 onchange="metaBook.UI.changeGlossPrivacy(event);"/>\n          <span class="checked"\n                title="this gloss won\'t be shared with my associated networks">\n            Private</span>\n          <span class="unchecked"\n                title="this gloss will be shared with my associated networks">\n            Shared</span>\n        </span>\n      </span>\n      <span class="glossdate"></span>\n      <span class="tags empty"></span>    \n      <span class="links empty"></span>\n      <span class="outlets empty"></span>\n      <span class="excerpt"></span>\n    </div>\n  </div>\n</form>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-metaBook.HTML.hud = '<div id="METABOOKHEAD">\n  <div id="METABOOKTOC" class="hudpanel"></div>\n  <div id="METABOOKSEARCH" class="searchbox hudpanel notags">\n    <!-- This content comes from searchbox.html -->\n  </div>\n  <div id="METABOOKNOTETEXT" class="hudpanel"\n       title="tap/click to jump to the note">\n    <!-- This displays the text for a "note" -->\n  </div>\n  <div id="METABOOKGLOSS" class="hudpanel">\n    <div class="editbar">\n      <span class="deletebutton">Delete</span>\n      <span class="deletebutton">Edit</span>\n      <span class="deletebutton">Reply</span>\n    </div>\n    <div id="METABOOKTARGETGLOSS">\n      <!-- This is generated on demand -->\n    </div>\n  </div>\n  <div id="METABOOKSOURCES" class="hudpanel metabooksources">\n    <img src="{{bmg}}metabook/sbookspeople.svgz"\n         onerror="this.src=\'{{bmg}}metabook/sbookspeople50x50.png\'"\n         class="button everyone selected"\n         alt="show all" title="show all glosses"/>\n  </div>\n  <div id="METABOOKADDGLOSS" class="metabookaddgloss hudpanel">\n  </div>\n  <div class="metabookglossform" id="METABOOKADDGLOSSPROTOTYPE">\n    <!-- This content comes from addgloss.html -->\n  </div>\n</div>\n<div id="METABOOKSKIMMER">\n  <div id="METABOOKSKIM"></div>\n</div>\n<div id="METABOOKTOPHELPCONTENT">\n  <div id="METABOOKSLICEHELP" class="hudpanel">\n    Press to see the context, tap to start skimming\n  </div>\n  <div id="METABOOKSEETHRUHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span> to\n      <span class="result">return</span>.\n      <span class="notouch action">Press any key</span>\n      <span class="fortouch action">Tap anywhere else</span>\n      to <span class="result">settle</span> here.</p>\n  </div>\n  <div id="METABOOKPAGEBARHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span>\n      <span class="fortouch action">or tap the text</span>\n      to <span class="result">settle</span> here.\n      <span class="action notouch">Press any key</span>\n      <span class="notouch">or</span>\n      <span class="notouch action">move the pointer away</span>\n      <span class="action fortouch">Move your finger away</span>\n      to <span class="result">return</span> to where you were.</p>\n  </div>\n  <div id="METABOOKPREVIEWHELP" class="helpbox">\n    <p>You\'re <em>previewing</em> a reference. <strong>Let go</strong>\n      to <em>go back</em> to the\n      reference, <strong class="fortouch">tap anywhere\n        else</strong> <strong class="notouch">tap any key</strong>\n      to <em>settle here</em>.</p>\n  </div>\n</div>\n</div>\n<div id="METABOOKHEART">\n  <div id="METABOOKRIBBON">\n    <div class="inputbox" ID="METABOOKADDTAGHOLDER">\n      <input TYPE="TEXT" NAME="TAG" VALUE=""\n             placeholder="Type or define a tag, with completion"\n             autocomplete="off"\n             ID="METABOOKADDTAGINPUT"/>\n    </div>\n    <div class="inputbox" ID="METABOOKADDSHAREHOLDER">\n      <input TYPE="TEXT" NAME="OUTLET" VALUE=""\n             placeholder="Type a group or individual name"\n             autocomplete="off"\n             ID="METABOOKADDSHAREINPUT"/>\n    </div>\n    <div class="resultinfo notags noresults" id="METABOOKSEARCHINFO">\n      <span class="noresults">No results</span>\n      <span class="noquery">\n        <span class="fortouch">Tap</span> <span class="notouch">Click</span>\n        tags or start typing to begin a search</span>\n      <span class="stats">\n        <span class="resultcount metabookshowsearch"></span>\n        <span class="refinecount metabookrefinesearch"></span>\n        <span class="showalltags metabookexpandsearch">all<br/>tags</span>\n      </span>\n      <span id="METABOOKSEARCHTAGS" class="qtags"></span>\n    </div>\n  </div>\n  <div id="METABOOKHEARTBODY"></div>\n</div>\n<div id="METABOOKHELPCONTENT">\n  <div id="METABOOKHELP" class="metabookhelp">\n    <!-- This is the help text for reading the book as a whole (it get\'s\n         displayed for help when there isn\'t an active reader mode) -->\n    <div id="METABOOKAPPHELP"></div>\n  </div>\n  <div id="METABOOKHUDHELP" class="helpbox"></div>\n  <div id="METABOOKKEYBOARDHELPBOX" class="closed">\n    <span class="keep" onclick="metaBook.keyboardHelp(true);">keep</span>\n    <span class="close" onclick="metaBook.keyboardHelp(false);">close</span>\n    <div id="METABOOKKEYBOARDHELP"></div>\n    <div class="checkspan">\n      <input TYPE="CHECKBOX" NAME="METABOOKKEYBOARDHELP" VALUE="yes"\n             CHECKED>\n      Show keyboard help\n    </div>\n  </div>\n  <div class="hudtip topcenter">\n    <span class="fortouch">Tap</span><span class="notouch">Click</span>\n    at the top of the page to see the &metaBook; <em>tools</em>\n  </div>\n  <div class="hudtip topleft" data-hudmode="toc">\n    <span class="nobreak"><span class="arrow">&#x2190;</span>navigate</span><br/>\n    <span class="nobreak">outline</span></div>\n  <div class="hudtip topright" data-hudmode="search">\n    <span class="nobreak"><span class="arrow">&#x2192;</span>search</span><br/>\n    for&nbsp;tags\n  </div>\n  <div class="hudtip leftmiddle">\n    back page\n  </div>\n  <div class="hudtip rightmiddle">\n    next page\n  </div>\n</div>\n<div id="METABOOKFOOT" data-xtouchable="span.metabookpagespan,span.metabookpageno,span.metabookloc,img.hudbutton">\n  <div id="METABOOKSHOWTEXT">\n    <span>\n      <span class="justreading">close tools</span>\n      <span class="stopskimming">stop skimming</span>\n      <span class="cancelgloss">cancel gloss</span>\n      <span class="cancelchanges">discard changes</span>\n    </span>\n  </div>\n  <div class="hudtip botcenter">\n    <span style="font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;" class="arrow">\n      &#x2193;</span>\n    this bar shows where you are in the book;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    to jump, press to skim, and <span class="fortouch">tap</span>\n      <span class="notouch">click</span> numeric indicators to change\n      them.\n  </div>\n  <div id="METABOOKPAGEBAR">\n    <div class="textfoot">\n      <div id="METABOOKLAYOUTADJUST">Updating layout</div>\n      <span id="METABOOKPAGEREFTEXT" class="metabookpageno"></span>\n      <span id="METABOOKPAGENOTEXT" class="metabookpageno">p/n</span>\n      <span class="metabookloc" id="METABOOKLOCPCT">??.??%</span>\n      <div id="METABOOKGOTOLOC" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOLOC" value="" placeholder="loc"\n                 title="Enter a percent (<= 100) or an immediate location (> 100)"\n                 id="METABOOKLOCINPUT"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>%</span>\n      </div>\n      <div id="METABOOKGOTOPAGE" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOPAGE" value=""\n                 id="METABOOKPAGEINPUT" placeholder="page#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEMAX"></span></span>\n      </div>\n      <div id="METABOOKGOTOREF" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOREF" value=""\n                 id="METABOOKREFINPUT" placeholder="pg ref#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEREFMAX"></span></span>\n      </div>\n    </div>\n    <hr class="metabooklayoutindicator" id="METABOOKLAYOUTINDICATOR"/>\n    <div class="metabookpageprogress" id="METABOOKPAGEPROGRESS"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER1"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER2"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER3"></div>\n    <div class="metabookpagespans" id="METABOOKPAGESPANS">\n    </div>\n  </div>\n  <img src="{{bmg}}metabook/allglosses.svgz"\n       onerror="this.src=\'{{bmg}}metabook/allglosses50x50.png\'"\n       alt="allglosses" title="show all glosses"\n       class="hudbutton hudmodebutton botright"\n       id="METABOOKALLGLOSSESBUTTON"\n       hudmode="allglosses"/>\n  <img src="{{bmg}}metabook/tagsearch.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n       alt="searchresults" title="show searchresults"\n       class="hudbutton hudmodebutton botright"\n       hudmode="searchresults"/>\n  <img src="{{bmg}}metabook/tocicon.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n       alt="statictoc" title="show TOC"\n       class="hudbutton hudmodebutton botright"\n       hudmode="statictoc"/>\n  <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n       onerror="this.src=\'{{bmg}}metabook/gloss_save_titled50x50.png\'"\n       alt="save gloss" title="save gloss"\n       class="hudbutton botright"/>\n  <img src="{{bmg}}metabook/help.svgz"\n       onerror="this.src=\'{{bmg}}metabook/help50x50.png\'"\n       alt="help" title="show contextual help"\n       class="hudbutton hudmodebutton botleft"\n       id="METABOOKHELPBUTTON"\n       hudmode="help"/>\n  <div class="hudtip botright" data-hudmode="toc">\n    <span class="nobreak">browse</span><br/>\n    <span class="nobreak">glosses<span class="arrow">&#x2192;</span></span></div>\n  <div class="hudtip botleft">\n    <span class="nobreak">toggle</span><br/>\n    <span class="nobreak"><span class="arrow">&#x2190;</span>help</span></div>\n</div>\n<div id="METABOOKAUDIO">\n  <audio id="METABOOKPAGEFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pageforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pageforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKPAGEBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pagebackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pagebackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimbackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimbackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMSTOPAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimstop.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimstop.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKTEXTSELECTAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/selecting.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/selecting.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKRAISEHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/raisehud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/raisehud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKDROPHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/drophud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/drophud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKGLOSSEDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/glossed.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/glossed.ogg" type="audio/ogg"/>\n  </audio>\n</div>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  --\n    >\n', 
+metaBook.HTML.hud = '<div id="METABOOKHEAD">\n  <div id="METABOOKTOC" class="hudpanel"></div>\n  <div id="METABOOKSEARCH" class="searchbox hudpanel notags">\n    <!-- This content comes from searchbox.html -->\n  </div>\n  <div id="METABOOKNOTETEXT" class="hudpanel"\n       title="tap/click to jump to the note">\n    <!-- This displays the text for a "note" -->\n  </div>\n  <div id="METABOOKGLOSS" class="hudpanel">\n    <div class="editbar">\n      <span class="deletebutton">Delete</span>\n      <span class="deletebutton">Edit</span>\n      <span class="deletebutton">Reply</span>\n    </div>\n    <div id="METABOOKTARGETGLOSS">\n      <!-- This is generated on demand -->\n    </div>\n  </div>\n  <div id="METABOOKSOURCES" class="hudpanel metabooksources">\n    <img src="{{bmg}}metabook/sbookspeople.svgz"\n         onerror="this.src=\'{{bmg}}metabook/sbookspeople50x50.png\'"\n         class="button everyone selected"\n         alt="show all" title="show all glosses"/>\n  </div>\n  <div id="METABOOKADDGLOSS" class="metabookaddgloss hudpanel">\n  </div>\n  <div class="metabookglossform" id="METABOOKADDGLOSSPROTOTYPE">\n    <!-- This content comes from addgloss.html -->\n  </div>\n</div>\n<div id="METABOOKSKIMMER">\n  <div id="METABOOKSKIM"></div>\n</div>\n<div id="METABOOKTOPHELPCONTENT">\n  <div id="METABOOKSLICEHELP" class="hudpanel">\n    Press to see the context, tap to start skimming\n  </div>\n  <div id="METABOOKSEETHRUHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span> to\n      <span class="result">return</span>.\n      <span class="notouch action">Press any key</span>\n      <span class="fortouch action">Tap anywhere else</span>\n      to <span class="result">settle</span> here.</p>\n  </div>\n  <div id="METABOOKPAGEBARHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span>\n      <span class="fortouch action">or tap the text</span>\n      to <span class="result">settle</span> here.\n      <span class="action notouch">Press any key</span>\n      <span class="notouch">or</span>\n      <span class="notouch action">move the pointer away</span>\n      <span class="action fortouch">Move your finger away</span>\n      to <span class="result">return</span> to where you were.</p>\n  </div>\n  <div id="METABOOKPREVIEWHELP" class="helpbox">\n    <p>You\'re <em>previewing</em> a reference. <strong>Let go</strong>\n      to <em>go back</em> to the\n      reference, <strong class="fortouch">tap anywhere\n        else</strong> <strong class="notouch">tap any key</strong>\n      to <em>settle here</em>.</p>\n  </div>\n</div>\n</div>\n<div id="METABOOKHEART">\n  <div id="METABOOKRIBBON">\n    <div class="inputbox" ID="METABOOKADDTAGHOLDER">\n      <input TYPE="TEXT" NAME="TAG" VALUE=""\n             placeholder="Type or define a tag, with completion"\n             autocomplete="off"\n             ID="METABOOKADDTAGINPUT"/>\n    </div>\n    <div class="inputbox" ID="METABOOKADDSHAREHOLDER">\n      <input TYPE="TEXT" NAME="OUTLET" VALUE=""\n             placeholder="Type a group or individual name"\n             autocomplete="off"\n             ID="METABOOKADDSHAREINPUT"/>\n    </div>\n    <div class="resultinfo notags noresults" id="METABOOKSEARCHINFO">\n      <span class="noresults">No results</span>\n      <span class="noquery">\n        <span class="fortouch">Tap</span> <span class="notouch">Click</span>\n        tags or start typing to begin a search</span>\n      <span class="stats">\n        <span class="resultcount metabookshowsearch"></span>\n        <span class="refinecount metabookrefinesearch"></span>\n        <span class="showalltags metabookexpandsearch">all<br/>tags</span>\n      </span>\n      <span id="METABOOKSEARCHTAGS" class="qtags"></span>\n    </div>\n  </div>\n  <div id="METABOOKHEARTBODY"></div>\n</div>\n<div id="METABOOKHELPCONTENT">\n  <div id="METABOOKHELP" class="metabookhelp">\n    <!-- This is the help text for reading the book as a whole (it get\'s\n         displayed for help when there isn\'t an active reader mode) -->\n    <div id="METABOOKAPPHELP"></div>\n  </div>\n  <div id="METABOOKHUDHELP" class="helpbox"></div>\n  <div id="METABOOKKEYBOARDHELPBOX" class="closed">\n    <span class="keep" onclick="metaBook.keyboardHelp(true);">keep</span>\n    <span class="close" onclick="metaBook.keyboardHelp(false);">close</span>\n    <div id="METABOOKKEYBOARDHELP"></div>\n    <div class="checkspan">\n      <input TYPE="CHECKBOX" NAME="METABOOKKEYBOARDHELP" VALUE="yes"\n             CHECKED>\n      Show keyboard help\n    </div>\n  </div>\n  <div class="hudtip topcenter">\n    <span class="fortouch">Tap</span><span class="notouch">Click</span>\n    at the top of the page to see the &metaBook; <em>tools</em>\n  </div>\n  <div class="hudtip topleft" data-hudmode="toc">\n    <span class="nobreak"><span class="arrow">&#x2190;</span>navigate</span><br/>\n    <span class="nobreak">outline</span></div>\n  <div class="hudtip topright" data-hudmode="search">\n    <span class="nobreak"><span class="arrow">&#x2192;</span>search</span><br/>\n    for&nbsp;tags\n  </div>\n  <div class="hudtip leftmiddle">\n    back page\n  </div>\n  <div class="hudtip rightmiddle">\n    next page\n  </div>\n</div>\n<div id="METABOOKFOOT" data-xtouchable="span.metabookpagespan,span.metabookpageno,span.metabookloc,img.hudbutton">\n  <div id="METABOOKSHOWTEXT">\n    <span>\n      <span class="justreading">close tools</span>\n      <span class="stopskimming">stop skimming</span>\n      <span class="cancelgloss">cancel gloss</span>\n      <span class="cancelchanges">discard changes</span>\n    </span>\n  </div>\n  <div class="hudtip botcenter">\n    <span style="font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;" class="arrow">\n      &#x2193;</span>\n    this bar shows where you are in the book;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    to jump, press to skim, and <span class="fortouch">tap</span>\n      <span class="notouch">click</span> numeric indicators to change\n      them.\n  </div>\n  <div id="METABOOKPAGEBAR">\n    <div class="textfoot">\n      <div id="METABOOKLAYOUTADJUST">Updating layout</div>\n      <span id="METABOOKPAGEREFTEXT" class="metabookpageno"></span>\n      <span id="METABOOKPAGENOTEXT" class="metabookpageno">p/n</span>\n      <span class="metabookloc" id="METABOOKLOCPCT">??.??%</span>\n      <div id="METABOOKGOTOLOC" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOLOC" value="" placeholder="loc"\n                 title="Enter a percent (<= 100) or an immediate location (> 100)"\n                 id="METABOOKLOCINPUT"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>%</span>\n      </div>\n      <div id="METABOOKGOTOPAGE" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOPAGE" value=""\n                 id="METABOOKPAGEINPUT" placeholder="page#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEMAX"></span></span>\n      </div>\n      <div id="METABOOKGOTOREF" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOREF" value=""\n                 id="METABOOKREFINPUT" placeholder="pg ref#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEREFMAX"></span></span>\n      </div>\n    </div>\n    <hr class="metabooklayoutindicator" id="METABOOKLAYOUTINDICATOR"/>\n    <div class="metabookpageprogress" id="METABOOKPAGEPROGRESS"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER1"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER2"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER3"></div>\n    <div class="metabookpagespans" id="METABOOKPAGESPANS">\n    </div>\n  </div>\n  <img src="{{bmg}}metabook/allglosses.svgz"\n       onerror="this.src=\'{{bmg}}metabook/allglosses50x50.png\'"\n       alt="allglosses" title="show all glosses"\n       class="hudbutton hudmodebutton botright"\n       id="METABOOKALLGLOSSESBUTTON"\n       hudmode="allglosses"/>\n  <img src="{{bmg}}metabook/tagsearch.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n       alt="searchresults" title="show searchresults"\n       class="hudbutton hudmodebutton botright"\n       hudmode="searchresults"/>\n  <img src="{{bmg}}metabook/tocicon.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n       alt="statictoc" title="show TOC"\n       class="hudbutton hudmodebutton botright"\n       hudmode="statictoc"/>\n  <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n       onerror="this.src=\'{{bmg}}metabook/gloss_save_titled50x50.png\'"\n       alt="save gloss" title="save gloss"\n       class="hudbutton botright"/>\n  <img src="{{bmg}}metabook/help.svgz"\n       onerror="this.src=\'{{bmg}}metabook/help50x50.png\'"\n       alt="help" title="show contextual help"\n       class="hudbutton hudmodebutton botleft"\n       id="METABOOKHELPBUTTON"\n       hudmode="help"/>\n  <div class="hudtip botright" data-hudmode="toc">\n    <span class="nobreak">browse</span><br/>\n    <span class="nobreak">glosses<span class="arrow">&#x2192;</span></span></div>\n  <div class="hudtip botleft">\n    <span class="nobreak">toggle</span><br/>\n    <span class="nobreak"><span class="arrow">&#x2190;</span>help</span></div>\n</div>\n<div id="METABOOKAUDIO">\n  <audio id="METABOOKPAGEFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pageforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pageforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKPAGEBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pagebackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pagebackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimbackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimbackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMSTOPAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimstop.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimstop.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKTEXTSELECTAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/selecting.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/selecting.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKRAISEHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/raisehud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/raisehud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKDROPHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/drophud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/drophud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKGLOSSEDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/glossed.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/glossed.ogg" type="audio/ogg"/>\n  </audio>\n</div>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n -->\n', 
 metaBook.HTML.heart = '<div id="METABOOKALLGLOSSES" class="metabookslice mbsyncslice hudpanel">\n  <!-- This is filled in on startup -->\n</div>\n<div id="METABOOKGLOSSDETAIL" class="hudpanel">\n  <!-- This displays detail text for a gloss -->\n</div>\n<div id="METABOOKASIDE" class="hudpanel">\n  <!-- This displays the text for an aside -->\n</div>\n<div id="METABOOKGLOSSEDITDETAIL" class="hudpanel">\n  <!-- This is for editing the detail text for a gloss -->\n  <textarea NAME="METABOOKDETAILTEXT" class="markdowninput"\n            ID="METABOOKDETAILTEXT">\n  </textarea>\n</div>\n<div id="METABOOKGLOSSATTACH" class="hudpanel"></div>\n<div id="METABOOKSEARCHCLOUD" class="completions cloud searchcloud"></div>\n<div id="METABOOKALLTAGS" class="completions searchcloud cloud noinput">\n</div>\n<div id="METABOOKSEARCHRESULTS" class="metabookslice mbsyncslice hudpanel"></div>\n<div id="METABOOKSHARECLOUD" class="hudpanel completions cloud showall"></div>\n<div id="METABOOKGLOSSCLOUD" class="hudpanel completions cloud showall">\n  <div class="nomatchmsg">(no matches)</div>\n</div>\n<div class="tabcontent flyleaftab hudpanel" id="METABOOKSTATICTOC"\n     data-touchable=".mbtoc"></div>\n<iframe name="METABOOKGLOSSCOMM" id="METABOOKGLOSSCOMM"\n        frameborder="0" scrolling="auto"\n        class="hudpanel tabcontent"></iframe>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.attach = '<form id="METABOOKATTACHFORM" target="METABOOKGLOSSCOMM"\n      method="POST" enctype="multipart/form-data" accept-charset="utf-8"\n      action="https://glossdata.bookhub.io/1/attach"\n      class="link">\n  <table class="fdjtform"\n         onclick="fdjt.UI.CheckSpan.onclick(event);">\n    <input TYPE="HIDDEN" NAME="GLOSSID" VALUE="" id="METABOOKUPLOADGLOSSID"/>\n    <input TYPE="HIDDEN" NAME="ITEMID" VALUE="" id="METABOOKUPLOADITEMID"/>\n    <tr class="attachtype">\n      <th class="headcell">\n        Attach<img src="{{bmg}}metabook/gloss_attach.svgz"/></th>\n      <td>\n        <button id="METABOOKATTACHDELETE" NAME="ATTACH" VALUE="DELETE">\n          Delete</button>\n        <span class="checkspan ischecked mbaddlink"\n              title="Attach a link to this gloss">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="link"\n                 onchange="metaBook.UI.changeAttachment(event);"\n                 CHECKED/>\n          Link</span>\n        <span class="checkspan mbupload"\n              title="Upload a file and attach it to this gloss">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="upload"\n                 onchange="metaBook.UI.changeAttachment(event);"/>\n          File</span>\n        <span class="checkspan mbeditbody"\n              title="Create or edit a \'body\' for this gloss">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="body"\n                 onchange="metaBook.UI.changeAttachment(event);"/>\n          Body</span>\n        <span class="checkspan mbcapture"\n              title="Attach audio or video recorded on this device">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="capture"\n                 onchange="metaBook.UI.changeAttachment(event);"/>\n          Capture</span>\n      </td>\n      <th class="button">\n        <button id="METABOOKATTACHLINK" NAME="ATTACH" VALUE="LINK">\n          Link</button>\n        <button id="METABOOKUPLOADOK" NAME="ATTACH" VALUE="UPLOAD">\n          Save</button>\n        <button id="METABOOKUPLOADOK" NAME="ATTACH" VALUE="SAVE">\n          Save</button>\n        <button id="METABOOKATTACHLINK" NAME="ATTACH" VALUE="BODY">\n          Save</button>\n        <button id="METABOOKATTACHLINK" NAME="ATTACH" VALUE="DONE">\n          Done</button>\n        <button id="METABOOKATTACHCANCEL" VALUE="CANCEL">\n          Cancel</button></th>\n    </tr>\n    <tr class="title">\n      <th>Label</th>\n      <td colspan="2">\n        <INPUT TYPE="TEXT" NAME="TITLE" VALUE="" ID="METABOOKATTACHTITLE"\n               placeholder="a descriptive label"/></tr>\n    <tr class="checkspan uploadrights"\n        id="METABOOKUPLOADRIGHTS">\n      <th><input TYPE="CHECKBOX" NAME="FILEOKAY" VALUE="yes"/></th>\n      <td colspan="2">\n        I affirm that I have the right to use and share this\n        content according to the bookhub.io\n        <a href="https://www.bookhub.io/legalia/TOS/" target="_blank">\n          Terms of Service</a>.</td>\n    </tr>\n    <tr class="url">\n      <th>URL</th>\n      <td colspan="2">\n        <input TYPE="TEXT" NAME="URL" VALUE=""\n               ID="METABOOKATTACHURL" class="fdjturlinput"\n               placeholder="a URL to attach"/>\n      </td>\n    </tr>\n    <tr class="capturefile">\n      <th>Capture</th>\n      <td id="METABOOKCAPTUREFILE" class="nofile" colspan="2">\n	<button NAME="CAPTURE" VALUE="AUDIO">Audio</button>\n	<button NAME="CAPTURE" VALUE="VIDEO">Video</button>\n	<button NAME="CAPTURE" VALUE="IMAGE">Photo</button>\n    </td></tr>\n    <tr class="uploadfile">\n      <th>Upload<input TYPE="FILE" NAME="UPLOAD" ID="METABOOKFILEINPUT"/></th>\n      <td id="METABOOKATTACHFILE" class="nofile" colspan="2">\n        <span class="mbdragmessage">Drag a file here or click to browse</span>\n        <span class="mbmessage">Tap to find files or media</span>\n        <span class="mbfilename" id="METABOOKATTACHFILENAME"></span>\n    </td></tr>\n    <tbody class="glossbody" id="METABOOKGLOSSBODY">\n      <tr>\n        <td colspan="3"><textarea NAME="BODYTEXT" ID="METABOOKGLOSSBODYTEXT"></textarea></td>\n      </tr>\n    </tbody>\n  </table>\n</form>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.help = '<h1><span class="metabooktogglehelp">Ok</span>Using &metaBook;</h1>\n\n<p><img src="{{bmg}}metabook/browser_edges.svgz"\n        onerror="this.src=\'{{bmg}}metabook/browser_edges32x32.png\'"\n        alt="top of browser" class="floatright"/>\n  <strong>Move by pages</strong>\n  <span class="fortouch">by swiping left or right</span>\n  <span class="notouch">using the Space or Backspace keys</span> or\n  <span class="fortouch">tapping</span> <span class="notouch">clicking</span>\n  on the left or right regions of the page.</p>\n<!--\n<p><img src="{{bmg}}metabook/browser_corners.svgz" \n        onerror="this.src=\'{{bmg}}metabook/browser_corners32x32.png\'"\n        alt="top of browser" class="floatright"/>\n  <strong>Open the <dfn>book tools</dfn></strong> by\n  <span class="fortouch">tapping</span>\n  <span class="notouch">clicking</span> at the top of the\n  page.  <strong>Navigate, search, or skim</strong> using the icons\n  in the corners of the page.</p>\n<p><strong>Show this and other help</strong> by\n  <span class="fortouch">tapping</span><span class="notouch">clicking</span>\n  the <img src="{{bmg}}metabook/help.svgz" alt="top of browser"\n  onerror="this.src=\'{{bmg}}metabook/help50x50.png\'" class="inline"/>\n  icon in the lower left corner of the page.</p>\n-->\n<p class="glossexample">\n  <strong style="color: blue;">Blue <dfn>gloss bars</dfn></strong> in\n  the right margin indicate glosses already overlaid on your\n  book.  <strong><span class="fortouch">Tap or drag\n  left</span> <span class="notouch">Click to the left</span></strong>\n  of the blue bar to see associated notes, tags, links, etc.</p>\n\n<p><strong>Add your own glosses</strong> by\ndouble <span class="fortouch">tapping</span>\n  <span class="notouch">clicking</span> on the content or pressing and\n  holding to select text.  <strong>Enter notes, tags, links,\n  etc</strong> in the <dfn>gloss box</dfn> appearing at the top of the\n  page. <strong>Drag <span class="fortouch">your finger</span>\n  <span class="notouch">the pointer</span></strong> to select adjust\n  the <span class="fdjtselected"><span class="fdjtselectstart">beginning</span>\n  and <span class="fdjtselectend">end</span></span> of highlighted\n  text.</p>\n\n<p class="helphelp">\n  <strong>Show this and other help</strong> by\n  <span class="fortouch">tapping</span><span class="notouch">clicking</span>\n  the <img src="{{bmg}}metabook/help.svgz" alt="top of browser"\n           onerror="this.src=\'{{bmg}}metabook/help50x50.png\'" class="inline"/>\n  icon in the lower left of the page.</p>\n\n<!--\n<p class="tightbottom">\n  <img src="{{bmg}}metabook/docs/pagebar_zoom.png" class="floatright"/>\n  <strong>Browse the book</strong> using the <dfn>pagebar</dfn> along\n  the bottom.  The dark blue line show the current location with\n  lighter regions around for the current section and its parent.\n  <img src="{{bmg}}metabook/docs/pagebar_wide.png" class="wideimage"/>\n  <img src="{{bmg}}metabook/docs/pagebar_wide.png"\n  class="narrowimage"/><br/>\n  <span class="subpara">\n    <span class="fortouch">Tap</span><span class="notouch">Click</span>\n    the page number (in the middle) or percentage (on the right) to move\n    precisely.  Press and hold the pagebar to see a particular page,\n    moving <span class="fortouch">your\n      finger</span> <span class="notouch">the pointer</span> to skim\n    through pages.  <span class="notouch">Release</span>\n    <span class="fortouch">Lift your finger</span> to settle where you\n    are or <span class="fortouch">move\n      it</span> <span class="notouch">drag the mouse</span> out of the\n    pagebar to return to where you were.</span></p>\n-->\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.hudhelp = '<div id="METABOOKADDGLOSSHELP" class="helpbox">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Add your own gloss to a passage</h2>\n  <p><strong class="fortouch">Tap</strong>\n    <strong class="notouch">Click</strong>\n    or <strong><span class="fortouch">touch</span> \n      <span class="notouch">press</span> and drag</strong> the menu\n    button <img src="{{bmg}}metabook/downmenu.svgz"\n    onerror="this.src=\'{{bmg}}metabook/downmenu64x64.png"\n    class="inline" style="border: solid black 1px; padding: 0px;"/>\n    for more options (<strong>release</strong> to select).</p>\n  <p><img src="{{bmg}}metabook/remark.svgz"\n          onerror="this.src=\'{{bmg}}metabook/remark64x64.png" class="screengrab"\n          alt="the balloon icon"/> Type your comments in the input\n          box, ending with <kbd>Enter</kbd> and using\n    <kbd>Shift-Enter</kbd> to insert a newline.  Specify **bold** or\n    *italics* and other formatting using\n    <a href="http://daringfireball.net/projects/markdown/syntax"\n       target="_blank">\n      Markdown syntax</a>.</p>\n  <p><img src="{{bmg}}metabook/tagicon.svgz"\n          onerror="this.src=\'{{bmg}}metabook/tagicon64x64.png\'"\n          class="screengrab" alt="the tag icon"/>\n    <strong>Add simple tags</strong> as <tt>#tag</tt> or even\n    &ldquo;<tt>#compound tag</tt>,&rdquo; pressing <kbd>Enter</kbd>\n    when done.</p>\n  <p><strong><span class="fortouch">Tap</span> \n      <span class="notouch">Click</span> the passage</strong> to\n    show or hide the gloss form; press and drag the \n    <span class="fdjtselected"><span class="fdjtselectstart">ends</span>\n      of the <span class="fdjtselectend">highlight</span></span> to change\n    it.  <strong><span class="fortouch">Tap</span>\n      <span class="notouch">Click</span> anywhere else</strong> to close\n    the gloss (and save or discard your changes).</p>\n</div>\n<div id="METABOOKGLOSSATTACHHELP" class="helpbox">\n  <p><img src="{{bmg}}metabook/diaglink.svgz"\n          onerror="this.src=\'{{bmg}}metabook/diaglink64x64.png\'"\n          class="inline" alt="the link icon"/>\n    <strong>Add links</strong>\n    as <strong>[@</strong><em><tt>uri</tt></em>\n    <em>title</em><strong>]</strong>,\n    e.g. <strong>[@</strong><tt>http://www.whitehouse.gov/</tt>\n    The White House<strong>]</strong>.</p>\n</div>\n<div id="METABOOKGLOSSTAGHELP" class="helpbox">\n  <p><img src="{{bmg}}metabook/tagicon.svgz"\n          onerror="this.src=\'{{bmg}}metabook/tagicon64x64.png\'"\n          class="inline" alt="the tag icon"/>\n    Specify <strong>synonyms</strong> for your tags (e.g.\n    <span class="tagsample"><strong>[</strong>airplane|plane|aircraft<strong>]</strong></span>)\n    or describe <strong>relations</strong>\n    (e.g. <span class="tagsample">\n      <strong>[</strong>sloop|^sailboat|^boat<strong>]</strong></span>)\n    to make your tags <strong>more useful</strong> for browsing\n    and search by yourself or others.</p>\n</div>\n<div id="METABOOKSKIMTOCHELP" class="helpbox fdjtadjustfont">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Skimming by sections</h2>\n  <p>You\'re <span>skimming</span> through your book based on the\n    chapters, sections, and subsections in the table of contents.</p>\n  <p class="fortouch">\n    <span>Swipe left or right with two fingers</span> to move forward\n    and backward by sections or use the\n    <img src="{{bmg}}metabook/skim_left.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_left100x100.png"\n    class="inline"/\'> and <img src="{{bmg}}metabook/skim_right.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_right100x100.png"\n    class="inline"/\'> arrows on the sides of the page. These also\n    indicate the number of sections in each direction.</p>\n  <p class="notouch">\n    Use the <span>arrow keys</span> to move forward and backward by\n    sections or use the <img src="{{bmg}}metabook/skim_left.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_left100x100.png"\n    class="inline"/> and <img src="{{bmg}}metabook/skim_right.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_right100x100.png"\n    class="inline"/> arrows on the sides of the page.  These also\n    indicate the number of sections in each direction.</p>\n  <p><span class="fortouch">Tap</span><span class="notouch">Click</span>\n    the book text to minimize the interface;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    again to stop skimming altogether.</p>\n  <p>The <img src="{{bmg}}metabook/tocicon.svgz"\n              onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png"\n              class="inline"> in\n              the lower right corner returns to the table of contents.\n              The <strong>overleaf</strong> at the top of the page\n              shows the current point in the table of\n              contents; <span class="fortouch">tap</span>\n    <span class="notouch">click</span> once to expand it and again to\n    return to the TOC.</p>\n</div>\n<div id="METABOOKSKIMSEARCHHELP" class="helpbox fdjtadjustfont">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Skimming your search</h2>\n  <p>You\'re currently <span>skimming</span> through the results of\n    your search.  The current search result is shown in\n    the <strong>overleaf</strong> at the top of the page and the\n    matching text is highlighted in the body.</p>\n  <p class="fortouch">\n    <span>Swipe left or right with two fingers</span> to move to the\n    next (or previous) result or use the\n    <img src="{{bmg}}metabook/skim_left.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_left100x100.png"\n    class="inline"/\'> and <img src="{{bmg}}metabook/skim_right.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_right100x100.png"\n    class="inline"/\'> arrows on the sides of the page.  These also\n    indicate the number of search results in each direction.</p>\n  <p class="notouch">\n    Use the <span>arrow keys</span> to to the next or previous search\n    result or use the <img src="{{bmg}}metabook/skim_left.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_left100x100.png"\n    class="inline"/> and <img src="{{bmg}}metabook/skim_right.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_right100x100.png"\n    class="inline"/> arrows on the sides of the page.  These also\n    indicate the number of search results in each direction.</p>\n  <p><span class="fortouch">Tap</span><span class="notouch">Click</span>\n    the book text to minimize the interface;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    again to stop skimming altogether.</p>\n  <p>The <img src="{{bmg}}metabook/tagsearch.svgz"\n              onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png"\n              class="inline">\n    icon in the lower right corner returns to the search results.\n    The <strong>overleaf</strong> at the top of the page\n    shows the result being\n    displayed; <span class="fortouch">tap</span>\n    <span class="notouch">click</span> it once to expand it and again\n    to return to the list of results.</p>\n</div>\n<div id="METABOOKSKIMGLOSSESHELP" class="helpbox fdjtadjustfont">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Skimming Glosses</h2>\n  <p>You\'re <span>skimming</span> through your book based on the\n    glosses (highlights, notes, etc) which you or others have added.\n    The <strong>overleaf</strong> at the top of the page shows the\n    current gloss and the text itself shows any highlights.</p>\n  <p class="fortouch">\n    <span>Swipe left or right with two fingers</span> to move to the\n    next (or previous) gloss or use the\n    <img src="{{bmg}}metabook/skim_left.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_left100x100.png"\n    class="inline"/\'> and <img src="{{bmg}}metabook/skim_right.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_right100x100.png"\n    class="inline"/\'> arrows on the sides of the page.  These also\n    indicate the number of glosses in each direction.</p>\n  <p class="notouch">\n    Use the <span>arrow keys</span> to to the next or previous gloss\n    or use the <img src="{{bmg}}metabook/skim_left.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_left100x100.png"\n    class="inline"/> and <img src="{{bmg}}metabook/skim_right.svgz"\n    onerror="this.src=\'{{bmg}}metabook/skim_right100x100.png"\n    class="inline"/> arrows on the sides of the page.  These also\n    indicate the number of glosses in each direction.\n  </p>\n  <p><span class="fortouch">Tap</span><span class="notouch">Click</span>\n    the book text to minimize the interface;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    again to stop skimming\n    altogether.</p>\n  <p>The <img src="{{bmg}}metabook/allglosses.svgz"\n              onerror="this.src=\'{{bmg}}metabook/allglosses50x50.png"\n              class="inline">\n              button in the lower right corner returns to the list of\n              glosses.  The <strong>overleaf</strong> at the top of\n              the page shows the gloss you\'re\n              seeing; <span class="fortouch">tap</span>\n    <span class="notouch">click</span> it once to expand it and again\n    to return to the list of results.</p>\n</div>\n<div id="METABOOKGOTOPAGEHELP" class="helpbox">\n  <p>Enter a page number at the top of the page to jump directly to that\n    page.<br/> Use the escape key or <span class="fortouch">tap</span>\n    <span class="notouch">click</span> at the bottom of the page to\n    cancel.</p>\n</div>\n<div id="METABOOKGOTOREFHELP" class="helpbox">\n  <p>Enter a reference page number (from the reference version of the\n    book) at the top of the page to jump to that part of the book.<br/>\n    Use the escape key or <span class="fortouch">tap</span>\n    <span class="notouch">click</span> at the bottom of the page to\n    cancel.</p>\n</div>\n<div id="METABOOKGOTOLOCHELP" class="helpbox">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Got to a specific location</h2>\n  <p>Enter a numeric percentage (in the field at the top of the page)\n    to jump directly to that point within the book.<br/>  These\n    percentages will remain stable even as page layout or font size\n    changes.  Use the escape key or <span class="fortouch">tap</span>\n    <span class="notouch">click</span> at the bottom of the page to\n    cancel and return to the text.</p>\n</div>\n<div id="METABOOKSEARCHINPUTHELP" class="helpbox">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Searching tags and text</h2>\n  <p>You are searching for passages or glosses within your book, using\n    either semantic <span class="dterm">tags</span> or\n    literal <span class="rawterm">terms</span>.  As you type or edit\n    the text in the search box, the cloud of tags and phrases will\n    grow or shrink to display matching phrases, tags, or tag\n    synonyms.</p>\n  <p><span class="fortouch">Tapping</span>\n    <span class="notouch">Clicking</span>\n    <span>a term or tag</span> adds it to the current search,\n    generating both new results and an updated cloud of associated\n    terms and tags.  Tags may be related to other tags (for\n    example, <span class="dterm">dachshund</span>\n    to <span class="dterm">dog</span>) and those relationships are\n    used in your search.</p>\n</div>\n<div id="METABOOKSEARCHRESULTSHELP" class="helpbox">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    Browsing search results</h2>\n  <p>The results of your search are ordered by relevance and position\n    within the book.  Refine or change your search by selecting one of\n    the tabs (\'co-tags\' or \'all tags\') above the\n    results<img src="/static/g/metabook/searchtabs.png"\n    class="screengrab"/> or by simply entering more text.  Co-tags are\n    tags which occur among the current search results; all tags are\n    all tags used throughout the book.</p>\n  <p class="notouch">Use <strong>the space and backspace keys</strong>\n    to move through the list of results page-by-page; <strong>combine\n    with the shift key</strong> or use the <strong>arrow keys</strong>\n    to move in larger increments. Use the <strong>percentage\n    indicator</strong> <img src="{{bmg}}/metabook/pagecontrol.png"\n    class="inlineright"/> to move page-by-page or to enter a specific\n    percentage (just click on the number).</p>\n  <p class="fortouch"><strong>Swipe left or right</strong> to move\n    page-by-page through the search results; <strong>swipe with two\n    fingers</strong> to move in larger increments.  Use\n    the <strong>percentage indicator</strong>\n    <img src="{{bmg}}/metabook/pagecontrol.png" class="inlineright"/>\n    to move page-by-page or to enter a specific percentage (just tap\n    on the number).</p>\n  <p><strong><span class="fortouch">Tap</span>\n    <span class="notouch">Click</span> a search result</strong> to\n    jump to that part of the book and begin <span>skimming</span>\n    through the search results starting at that point.</p>\n  <p><strong><span class="notouch">Hold the mouse button down\n      on</span><span class="fortouch">Press and hold</span> a\n      result</strong> to preview the result in in its context;\n      <strong>release</strong> to return to the list of results.</p>\n</div>\n<div id="METABOOKALLGLOSSESHELP" class="helpbox">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    All glosses</h2>\n  <p>These are <span>all of the glosses</span> applied to your\n    copy of this book.</p>\n  <p>The <strong>row of icons</strong> at the top of the screen show\n    the <span>creators or layers</span> where different glosses\n    originate. <span class="fortouch">Tap</span>\n    <span class="notouch">Click</span> the icons to just see glosses\n    from a single source or double <span class="fortouch">tap</span>\n    <span class="notouch">click</span> to add glosses from other\n    sources.</p>\n  <p class="notouch">The <strong>space and backspace keys</strong>\n    move through the list of glosses page-by-page; combine them with\n    the shift key or use the <strong>arrow keys</strong> to move in\n    larger increments. Use the <strong>percentage indicator</strong>\n    <img src="{{bmg}}/metabook/pagecontrol.png" class="inlineright"/>\n    to move page-by-page or to enter a specific percentage (just click\n    on the number).</p>\n  <p class="fortouch"><strong>Swipe left or right</strong> to move\n    page-by-page through the glosses; <strong>swipe with two\n    fingers</strong> to move in larger increments.  Use\n    the <strong>percentage indicator</strong>\n    <img src="{{bmg}}/metabook/pagecontrol.png" class="inlineright"/>\n    to move page-by-page or to enter a specific percentage (just tap\n    on the number).</p>\n  <p><span class="fortouch">Tap</span>\n    <span class="notouch">Click</span> a particular gloss to jump to\n    that part of the book and begin <span>skimming</span> through the\n    displayed glosses starting at that point.</p>\n  <p><span class="notouch">Hold the mouse button down\n      on</span><span class="fortouch">Press and hold</span> a a gloss\n      to see it in in context; <strong>release</strong> to return to the list of\n      glosses.</p>\n</div>\n<div id="METABOOKSTATICTOCHELP" class="helpbox">\n  <h2><span class="metabooktogglehelp">Ok</span>\n    The Table of Contents</h2>\n  <p>The <strong>table of contents</strong> (TOC) displays a\n    hierarchical map of your book created by the author or publisher.\n    Red lines indicate your current reading location; the\n    light-colored bars indicate the subsection\'s size and position\n    within its parent.</p>\n  <p class="notouch">Use <strong>the space and backspace keys</strong>\n    to move through the TOC page-by-page; <strong>combine with the\n    shift key</strong> or use the <strong>arrow keys</strong> to move\n    in larger increments. You can also use the <strong>percentage\n    indicator</strong> <img src="{{bmg}}/metabook/pagecontrol.png"\n    class="inlineright"/> to move page-by-page or enter a specific\n    percentage (just click on the number).</p>\n  <p class="fortouch"><strong>Swipe left or right</strong> to move\n    page-by-page through the TOC; <strong>swipe with two\n    fingers</strong> to move in larger increments.  You can also use\n    the <strong>percentage indicator</strong>\n    <img src="{{bmg}}/metabook/pagecontrol.png" class="inlineright"/>\n    to move forward or backward or to enter a specific percentage\n    (just tap on the number).</p>\n  <p><strong><span class="fortouch">Tap</span>\n    <span class="notouch">Click</span> a line</strong> in the TOC to\n    jump to that section.  You\'ll start <em>skimming</em> through the\n    table of contents while seeing the content of the book.</p>\n  <p><strong>\n      <span class="notouch">Hold the mouse button down\n        on</span><span class="fortouch">Press and hold</span> a TOC\n        line</strong> to preview the section without leaving the table\n        of contents.  <strong>Release</strong> to return to the TOC\n        listing.</p>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-metaBook.HTML.menu = '<img src="{{bmg}}metabook/tocicon.svgz"\n     onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n     alt="toc" title="navigate sections"\n     class="hudbutton hudmodebutton topleft"\n     id="METABOOKTOCBUTTON"\n     hudmode="statictoc"/>\n<div id="METABOOKBREVET"\n     title="Open the meta layer for navigation, search, etc.">\n  &nbsp;</div>\n<div id="METABOOKCOVERTAB">\n  <img src="{{bmg}}metabook/mbsettings.svgz"\n       onerror="this.src=\'{{bmg}}metabook/mbsettings50x50.png\'"\n       alt="toc" title="book settings"\n       class="hudbutton hudmodebutton left"\n       id="METABOOKSETTINGSBUTTON"\n       hudmode="settings"/>\n  <div class="hudbutton" id="METABOOKSHOWCOVER">Cover</div>\n  <img src="{{bmg}}metabook/overlay.svgz"\n       onerror="this.src=\'{{bmg}}metabook/overlay50x50.png\'"\n       alt="toc" title="see book layers"\n       class="hudbutton hudmodebutton right"\n       id="METABOOKLAYERSBUTTON"\n       hudmode="layers"/>\n</div>\n<img src="{{bmg}}metabook/tagsearch.svgz"\n     onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n     alt="search" title="search tags"\n     class="hudbutton hudmodebutton topright"\n     hudmode="search"/>\n\n', 
+metaBook.HTML.menu = '<img src="{{bmg}}metabook/tocicon.svgz"\n     onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n     alt="toc" title="navigate sections"\n     class="hudbutton hudmodebutton topleft"\n     id="METABOOKTOCBUTTON"\n     hudmode="statictoc"/>\n<div id="METABOOKBREVET"\n     title="Open the meta layer for navigation, search, etc.">\n  &nbsp;</div>\n<div id="METABOOKCOVERTAB">\n  <img src="{{bmg}}metabook/mbsettings.svgz"\n       onerror="this.src=\'{{bmg}}metabook/mbsettings50x50.png\'"\n       alt="toc" title="book settings"\n       class="hudbutton hudmodebutton left"\n       id="METABOOKSETTINGSBUTTON"\n       hudmode="settings"/>\n  <div class="hudbutton" id="METABOOKSHOWCOVER">Cover</div>\n  <img src="{{bmg}}metabook/overlay.svgz"\n       onerror="this.src=\'{{bmg}}metabook/overlay50x50.png\'"\n       alt="toc" title="see book layers"\n       class="hudbutton hudmodebutton right"\n       id="METABOOKLAYERSBUTTON"\n       hudmode="layers"/>\n</div>\n<img src="{{bmg}}metabook/tagsearch.svgz"\n     onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n     alt="search" title="search tags"\n     class="hudbutton hudmodebutton topright"\n     hudmode="search"/>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n -->\n', 
 metaBook.HTML.console = '<h1>metaBook Console</h1>\n<div class=\'message\' id=\'METABOOKCONSOLEMESSAGE\'></div>\n<div id="METABOOKCONSOLELOG" class=\'sbookmessagelog\'></div>\n<div id="METABOOKCONSOLEINPUT">\n  <span class="button" id="METABOOKCONSOLEBUTTON">run</span>\n  <textarea id="METABOOKCONSOLETEXTINPUT">\n  </textarea>\n</div>\n\n<!--\n/* Emacs local variables\n;;;  Local variables: ***\n;;;  compile-command: "cd ../..; make" ***\n;;;  indent-tabs-mode: nil ***\n;;;  End: ***\n*/\n-->\n\n', 
 metaBook.HTML.messages = '<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPSCAN">\n  <div class="indicator"></div>\n  <div class="message">\n    Scanning the book content for structure and metadata.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTOC">\n  <div class="indicator"></div>\n  <div class="message">\n    Setting up tables of content for book navigation.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPKNO">\n  <div class="indicator"></div>\n  <div class="message">\n    Processing embedded or referenced knowledge bases.\n    <div id="METABOOKSTARTUPKNODETAILS"></div>\n  </div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTAGGING">\n  <div class="indicator"></div>\n  <div class="message">Indexing with published tags.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPCLOUDS">\n  <div class="indicator"></div>\n  <div class="message">Setting up tag clouds for search and glossing.</div>\n</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKNEWGLOSSES">\n  <div class="indicator"></div>\n  <div class="message">Applying your glosses to your book.</div>\n</div>\n<!--\n     /* Emacs local variables\n     ;;;  Local variables: ***\n     ;;;  compile-command: "cd ../..; make" ***\n     ;;;  End: ***\n     */\n  -->\n\n', 
 metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" class="adjustfonts" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <a href="https://www.bookhub.io/" target="_blank"\n       class="bookplate__bookref metabookref"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      This book</a>\n    <span class="bookplate__text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/"\n       class="bookplate__username metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="checktext">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="checktext">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="checktext">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="checktext">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="checktext">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="checktext">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1542-g1070681", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Mon Jan 4 11:54:26 EST 2016", 
-fdjt.builduuid = "82c2a768-413a-4442-95e7-31708d6fa93c", fdjt.CodexLayout.sourcehash = "FA25E64DB598CADF9B16D3D943504EA6E2BEFAF2", 
-Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-235-gf1cc351", metaBook.buildid = "efea517d-29a6-47af-b03b-b531d3797b5a", 
-metaBook.buildtime = "Mon Jan  4 12:41:08 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
+fdjt.revision = "1.5-1555-gb8d876a", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Thu Jan 28 06:22:21 EST 2016", 
+fdjt.builduuid = "b3fcfc78-f374-4983-b5b7-1fbc0244365b", fdjt.CodexLayout.sourcehash = "09B186221A389F5822B9ECD8CBD5921B33A74B2F", 
+Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-244-g612d02c", metaBook.buildid = "3ab9ce0f-2735-4233-9148-f530f81f6933", 
+metaBook.buildtime = "Thu Jan 28 06:22:33 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });
