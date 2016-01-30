@@ -6609,7 +6609,7 @@ fdjt.DOM=
         function hasContent(node,recur,test,limit){
             if (node===limit) return false;
             else if (node.nodeType===3)
-                return (child.nodeValue.search(/\w/g)>=0);
+                return (node.nodeValue.search(/\w/g)>=0);
             else if (node.nodeType!==1) return false;
             else if ((test)&&(test.match)&&(test.match(node)))
                 return true;
@@ -9077,7 +9077,7 @@ fdjt.RefDB=(function(){
     RefDB.prototype.drop=function DBdrop(refset){
         var count=0;
         var refs=this.refs; var altrefs=this.altrefs;
-        if (!(id instanceof Array)) refset=[refset];
+        if (!(refset instanceof Array)) refset=[refset];
         var i=0, nrefs=refset.length; while (i<nrefs) {
             var ref=refset[i++]; var id;
             if (ref instanceof Ref) id=ref._id;
@@ -10091,7 +10091,7 @@ fdjt.RefDB=(function(){
             var elt1=array[0];
             array._sortlen=1;
             array._allstrings=(typeof elt1 === 'string');
-            if (typeof elt === "object") {
+            if (typeof elt1 === "object") {
                 if ((elt1._qid)||(elt1._fdjtid)) {}
                 else if (elt1.getQID) elt1._qid=elt1.getQID();
                 else elt1._fdjtid=++id_counter;}
@@ -16702,7 +16702,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 // FDJT build information
 fdjt.revision='1.5-1555-gb8d876a';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Jan 28 06:22:21 EST 2016';
-fdjt.builduuid='b3fcfc78-f374-4983-b5b7-1fbc0244365b';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sat Jan 30 14:48:27 EST 2016';
+fdjt.builduuid='3E4EDE04-C955-4F99-940F-D0D735D643A8';
 

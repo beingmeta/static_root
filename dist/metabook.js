@@ -7776,7 +7776,7 @@ fdjt.DOM=
         function hasContent(node,recur,test,limit){
             if (node===limit) return false;
             else if (node.nodeType===3)
-                return (child.nodeValue.search(/\w/g)>=0);
+                return (node.nodeValue.search(/\w/g)>=0);
             else if (node.nodeType!==1) return false;
             else if ((test)&&(test.match)&&(test.match(node)))
                 return true;
@@ -10244,7 +10244,7 @@ fdjt.RefDB=(function(){
     RefDB.prototype.drop=function DBdrop(refset){
         var count=0;
         var refs=this.refs; var altrefs=this.altrefs;
-        if (!(id instanceof Array)) refset=[refset];
+        if (!(refset instanceof Array)) refset=[refset];
         var i=0, nrefs=refset.length; while (i<nrefs) {
             var ref=refset[i++]; var id;
             if (ref instanceof Ref) id=ref._id;
@@ -11258,7 +11258,7 @@ fdjt.RefDB=(function(){
             var elt1=array[0];
             array._sortlen=1;
             array._allstrings=(typeof elt1 === 'string');
-            if (typeof elt === "object") {
+            if (typeof elt1 === "object") {
                 if ((elt1._qid)||(elt1._fdjtid)) {}
                 else if (elt1.getQID) elt1._qid=elt1.getQID();
                 else elt1._fdjtid=++id_counter;}
@@ -25202,8 +25202,8 @@ metaBook.DOMScan=(function(){
                     newid=xid;}
                 fdjtLog.warn("Duplicate ID=%o newid=%o",id,newid);
                 id=child.id=newid;
-                headinfo=docinfo[newid]||
-                    (docinfo[newid]=new ScanInfo(newid,scanstate));
+                if (!(docinfo[newid])) {
+                    docinfo[newid]=new ScanInfo(newid,scanstate);}
                 idmap[newid]=child;}
             else idmap[id]=child;
 
@@ -36079,7 +36079,7 @@ metaBook.setMode=
                     gesture_start=false;
                     clicked=fdjtTime();
                     return true;}
-                else if ((fn=metaBook.xtargets[idref])) {
+                else if ((metaBook.xtargets[idref])) {
                     var fn=metaBook.xtargets[idref];
                     gesture_start=false;
                     clicked=fdjtTime();
@@ -38414,8 +38414,7 @@ metaBook.Paginate=
             var howlong=secs2short((now-started)/1000);
             var indicator=$ID("METABOOKLAYOUTINDICATOR");
             if (info.done) {
-                if (indicator)
-                    indicator.style.width=Math.floor(pct)+"%";
+                if (indicator) indicator.style.width="100%";
                 fdjtDOM.replace(
                     "METABOOKPAGENOTEXT",
                     fdjtDOM("div.metabookpageno#METABOOKPAGENOTEXT",
@@ -41007,9 +41006,9 @@ metaBook.HTML.settings=
     "";
 // FDJT build information
 fdjt.revision='1.5-1555-gb8d876a';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Jan 28 06:22:21 EST 2016';
-fdjt.builduuid='b3fcfc78-f374-4983-b5b7-1fbc0244365b';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sat Jan 30 14:48:27 EST 2016';
+fdjt.builduuid='3E4EDE04-C955-4F99-940F-D0D735D643A8';
 
 fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
 
@@ -41017,9 +41016,9 @@ fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
 Knodule.version='v0.8-156-ga7eef6e';
 // sBooks metaBook build information
 metaBook.version='v0.8-244-g612d02c';
-metaBook.buildid='3ab9ce0f-2735-4233-9148-f530f81f6933';
-metaBook.buildtime='Thu Jan 28 06:22:33 EST 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.buildid='993839E3-D022-4AE3-B633-63EB707C9D58';
+metaBook.buildtime='Sat Jan 30 14:50:34 EST 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
