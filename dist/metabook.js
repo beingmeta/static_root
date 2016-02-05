@@ -7746,8 +7746,12 @@ fdjt.DOM=
                          ((typeof node.className === "string")&&
                           (node.className.search(/\bfdjtskiptext/)>=0)))
                     return 0;
+                else if (node.getAttribute('data-locwidth')) {
+                    return parseInt(node.getAttribute('data-locwidth'));}
                 else if (node.childNodes) {
                     var children=node.childNodes;
+                    var padding=((display==='inline')?(0):
+                                 (/^(li|td|dt|dd|label|input)$/i.exec(node.tagName))?(1):(2));
                     var i=0; var lim=children.length; var width=0;
                     while (i<lim) {
                         var child=children[i++];
@@ -7756,7 +7760,7 @@ fdjt.DOM=
                         else if (child.nodeType===1)
                             width=width+textwidth(child);
                         else {}}
-                    return width;}
+                    return width+padding*2;}
                 else if (node.alt) return node.alt.length+2;
                 else return 3;}}
         fdjtDOM.textWidth=textwidth;
@@ -25208,7 +25212,7 @@ metaBook.DOMScan=(function(){
             else idmap[id]=child;
 
             var i=0, lim;
-            // Get the location in the TOC for this out of context node
+            // Get the position in the TOC for this out of context node
             //  These get generated, for example, when the content of an
             //  authorial footnote is moved elsewhere in the document.
             var tocloc=(child.metabooktocloc)||
@@ -31278,6 +31282,8 @@ metaBook.setMode=
             if ($ID("METABOOKFRAME")) frame=$ID("METABOOKFRAME");
             else {
                 frame=fdjtDOM("div#METABOOKFRAME");
+                if ((!(mB.dontanimate))&&(mB.getConfig("animatehud")))
+                    addClass(frame,"_ANIMATE");
                 fdjtDOM.prepend(document.body,frame);}
             addClass(frame,"metabookframe");
             addClass(frame,"tapholdcontext");
@@ -32039,7 +32045,7 @@ metaBook.setMode=
         metaBook.addConfig("animatecontent",function(name,value){
             if (mB.dontanimate) {}
             else if (value) addClass(document.body,"_ANIMATE");
-            else dropClass(mB.page,"_ANIMATE");
+            else dropClass(document.body,"_ANIMATE");
             fdjt.Async(function(){
                 mB.updateSettings(name,value);});});
         metaBook.addConfig("animatehud",function(name,value){
@@ -39328,12 +39334,16 @@ metaBook.Paginate=
                     if (curpages.length)
                         dropClass(toArray(curpages),"curpage");
                     addClass(page,"curpage");}
+                else if ((mB.dontanimate)||
+                         (!(hasClass(document.body,"_ANIMATE")))) {
+                    dropClass(curpage,"curpage");
+                    addClass(page,"curpage");}
                 else {
                     var curpagestring=curpage.getAttribute("data-pagenum");
                     var curnum=parseInt(curpagestring,10);
                     // This does the page flip animation;
-                    dropClass(curpage,/(oldpage|newpage|onleft|onright)/g);
-                    dropClass(page,/(oldpage|newpage|onleft|onright)/g);
+                    dropClass(curpage,/\b(oldpage|newpage|onleft|onright)\b/g);
+                    dropClass(page,/\b(oldpage|newpage|onleft|onright)\b/g);
                     if (pagenum<curnum) dirclass="onleft";
                     else dirclass="onright";
                     if (dirclass) addClass(page,dirclass);
@@ -39349,7 +39359,7 @@ metaBook.Paginate=
                         dropClass(lastpage,"curpage");
                         addClass(page,"curpage");
                         dropClass(page,"newpage");
-                        dropClass(page,"onright");},
+                        dropClass(page,/\bon(right|left)\b/);},
                                50);
                     setTimeout(function(){
                         dropClass(lastpage,"oldpage");},
@@ -41005,20 +41015,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1555-gb8d876a';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sat Jan 30 14:48:27 EST 2016';
-fdjt.builduuid='3E4EDE04-C955-4F99-940F-D0D735D643A8';
+fdjt.revision='1.5-1557-gec8d8e9';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Wed Feb 3 08:14:33 EST 2016';
+fdjt.builduuid='3c2409b4-321f-48f0-a271-e223954e1e55';
 
 fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
 
 
 Knodule.version='v0.8-156-ga7eef6e';
 // sBooks metaBook build information
-metaBook.version='v0.8-244-g612d02c';
-metaBook.buildid='993839E3-D022-4AE3-B633-63EB707C9D58';
-metaBook.buildtime='Sat Jan 30 14:50:34 EST 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-246-gd1bce08';
+metaBook.buildid='480125d2-ba6a-4401-bc2d-8b5d0fca9d86';
+metaBook.buildtime='Fri Feb  5 11:18:38 EST 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
