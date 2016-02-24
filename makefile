@@ -576,7 +576,7 @@ publish:
 	make
 	make release
 release:
-	fdexec ./s3distribute
+	fdexec ./s3distribute DOTLOAD=yes
 
 publish-bundle:
 	bash ./publish-bundle.bash
