@@ -40,7 +40,7 @@
 (define forcewrite #f)
 (varconfig! force forcewrite config:boolean)
 
-(define (push-graphics dir (opts #[]))
+(define (push-graphics dir (opts `#[forcewrite ,forcewrite]))
   (let ((updated
 	 (choice (s3/push! dir (s3/mkpath root dir)
 			   #{".png" ".gif" ".svg" ".jpg" ".jpeg" ".wav" ".ogg"}
