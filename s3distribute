@@ -20,7 +20,7 @@
    "fonts/OmnibusType/Rosario" "fonts/OmnibusType/Unna"
    "fonts/open_dyslexic/" "fonts/open_sans/"})
 
-(load-config (get-component "aws_creds.cfg"))
+(load-config (get-component "pushstatic.cfg"))
 
 (defambda (push-target val cur)
   (if (fail? cur) (list val)
@@ -141,8 +141,8 @@
   (let ((frompath (if (string? root) root (s3loc->string root)))
 	(topath (if (string? to) to (s3loc->string to))))
   (message "START sync " topath " from " frompath)
-  (spawn (begin (system "aws s3 sync --quiet "
-			frompath " " topath)
+  (spawn (begin (system "AWS_CONFIG_FILE=./pushstatic.profile "
+			"aws s3 sync --quiet " frompath " " topath)
 	   (message "FINISHED sync " topath " from " frompath)))))
 
 (define (main)
