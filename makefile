@@ -134,6 +134,11 @@ SBOOKSTYLES=sbooks/sbookstyles.css
 %.gz: %
 	@gzip $< -c > $@
 
+%: %.gpg
+	gpg --output $@ --decrypt $<
+%.gpg: %
+	gpg --output $@ -r ops@beingmeta.com --encrypt $<
+
 fdjt/%.hint: fdjt/%.js
 	@echo Checking $@
 	@JSHINT=`which jshint`; \
