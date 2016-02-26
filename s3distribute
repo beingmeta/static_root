@@ -9,7 +9,7 @@
 (define root (->s3loc "s3://static.beingmeta.com/"))
 (define pubheaders '("x-amz-acl: public-read"))
 (define gzheaders '("x-amz-acl: public-read"
-		    "Content-encoding\: gzip"))
+		    "content-encoding\: gzip"))
 (define graphics
   {"g/metabook/" "g/metabook/docs/" "g/fdjt/" "g/bookhub/" "g/beingmeta/"})
 (define fonts
@@ -19,6 +19,8 @@
    "fonts/OmnibusType/Archivo_Black" "fonts/OmnibusType/Archivo_Narrow"
    "fonts/OmnibusType/Rosario" "fonts/OmnibusType/Unna"
    "fonts/open_dyslexic/" "fonts/open_sans/"})
+
+(load-config (get-component "aws_creds.cfg"))
 
 (defambda (push-target val cur)
   (if (fail? cur) (list val)
@@ -86,7 +88,7 @@
 	(css (filedata "dist/metabook.clean.css.gz")))
     (s3/put (s3/mkpath root apps.js) js "text/javascript"
 	    '("x-amz-acl: public-read"
-	      "Content-encoding\: gzip"
+	      "content-encoding\: gzip"
 	      "X-SourceMap\: metabook.uglify.map")
 	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.uglify.map")
@@ -94,7 +96,7 @@
 	    "application/json" pubheaders #t)
     (s3/put (s3/mkpath root apps.css) css "text/css"
 	    '("x-amz-acl: public-read"
-	      "Content-encoding\: gzip"
+	      "content-encoding\: gzip"
 	      "X-SourceMap\: metabook.clean.css.map")
 	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.clean.css.map")
@@ -116,7 +118,7 @@
 	(css (filedata "dist/metabook.clean.css.gz")))
     (s3/put (s3/mkpath root apps.js) js "text/javascript"
 	    '("x-amz-acl: public-read"
-	      "Content-encoding\: gzip"
+	      "content-encoding\: gzip"
 	      "X-SourceMap\: metabook.uglify.map")
 	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.uglify.map")
@@ -125,7 +127,7 @@
 	    #[errs #t])
     (s3/put (s3/mkpath root apps.css) css "text/css"
 	    '("x-amz-acl: public-read"
-	      "Content-encoding\: gzip"
+	      "content-encoding\: gzip"
 	      "X-SourceMap\: metabook.clean.css.map")
 	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.clean.css.map")
