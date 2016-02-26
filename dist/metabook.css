@@ -5012,51 +5012,40 @@ body.mbLAYOUT #METABOOKPAGENOTEXT { display: none; }
 body.mbLAYOUT hr#METABOOKLAYOUTINDICATOR {
     display: block; opacity: 0.8;}
 
-#METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans {
-    position: absolute; bottom: 0px;
-    width: 100%; height: 100%; z-index: 10;}
-#METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans span {
+#METABOOKFOOT #METABOOKPAGEBAR .metabookpagespan {
     opacity: 0.0; overflow: hidden; z-index: 20; height: 100%;
     position: absolute; bottom: 0px; /* display: inline-block; */
     box-sizing: border-box; vertical-align: top;}
-body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans span {
+body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespan {
     height: 100%;}
-#METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans span.current {
-    visibility: visible; opacity: 1.0; z-index: 100;
-    overflow: visible; z-index: 50;}
-#METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans span.current {
+#METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
+    visibility: visible; opacity: 1.0; overflow: visible;}
+#METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
     background-color: lightblue; color: transparent; }
-body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans {
-    top: 0px; bottom: auto;}
-body #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespans span.current {
+body #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
     vertical-align: bottom; height: 28px;}
-body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
-   .metabookpagespans span.current {
+body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
     height: 100%;}
-body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
-   .metabookpagespans span.current {
-    overflow: visible; visibility: visible; z-index: 60; color: black;
+body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
+    overflow: visible; visibility: visible; color: black;
     opacity: 1.0;}
-body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
-  .metabookpagespans span.preview {
+body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKPRVPAGESPAN.metabookpagespan {
     overflow: visible;
-    visibility: visible; opacity: 1.0; z-index: 100;
+    visibility: visible; opacity: 1.0;
     font-size: 200%; height: 150%; width: 1.5em;
     pointer-events: none;}
-body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
-  .metabookpagespans span.preview {
+body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKPRVPAGESPAN.metabookpagespan {
     background-color: gold;}
-body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
-  .metabookpagespans span.current {
+body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
     font-size: 200%; height: 100%;}
 
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKPAGEPROGRESS {
     box-sizing: content-box;
     position: absolute; bottom: 0px; left: 0px;
-    width: 33%; height: 100%; z-index: 15;
+    width: 33%; height: 100%; z-index: 50;
     pointer-events: none;
     transition-property: width; 
-    transition-duration: 1s;}
+    transition-duration: 0.5s;}
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKPAGEPROGRESS {
     border-right: solid darkblue 2px;
     background-color: transparent;}
@@ -5070,9 +5059,9 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER1.metabooksectmarker {
     height: 85%;}
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER2.metabooksectmarker {
-    height: 70%; }
-#METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER3.metabooksectmarker {
     height: 55%; }
+#METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER3.metabooksectmarker {
+    height: 35%; }
 
 html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
     height: 100px;}

@@ -149,6 +149,936 @@ var _checkOpenSans=
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
+/* -*- Mode: Javascript; -*- */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file was created from several component files and is
+   part of the FDJT web toolkit (www.fdjt.org)
+
+   Portions of this code are available under the following license:
+   * iScroll v4.2.5 ~ Copyright (c) 2012 Matteo Spinelli, http://cubiq.org
+   * Released under MIT license, http://cubiq.org/license
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   The copyright notice of the individual files are all prefixed by
+   a copyright notice of the form "Copyright (C) ...".
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or
+   any later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+*/
+
+var fdjt=((typeof fdjt === "undefined")?({}):(fdjt));
+var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
+		   ((fdjt_versions)||[]));
+(function(){
+    "use strict";
+    fdjt_versions.decl=function(name,num){
+        if ((!(fdjt_versions[name]))||(fdjt_versions[name]<num))
+            fdjt_versions[name]=num;};
+
+    // Some augmentations
+    if (!(Array.prototype.indexOf))
+        Array.prototype.indexOf=function(elt,i){
+            if (!(i)) i=0; var len=this.length;
+            while (i<len) if (this[i]===elt) return i; else i++;
+            return -1;};
+    // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
+    if (!Object.keys) {
+        Object.keys = function(o){
+            if (o !== Object(o))
+                throw new TypeError('Object.keys called on non-object');
+            var ret=[], p;
+            for (p in o) if (Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
+            return ret;};}
+
+    if (!String.prototype.trim) {
+        String.prototype.trim = (function () {
+            var trimLeft  = /^\s+/, trimRight = /\s+$/;
+            
+            return function () {
+                return this.replace(trimLeft, "").replace(trimRight, "");};});}
+})();
+(function() {
+    "use strict";
+    /* For jshint */
+    /* global global: false, window: false, 
+              module: false, setTimeout: false */
+    var root;
+
+    if (typeof window === 'object' && window) {
+        root = window;
+    } else {
+        root = global;
+    }
+
+    // Use polyfill for setImmediate for performance gains
+    var asap = ((root.Promise)&&(root.Promise.immediateFn)) ||
+        root.setImmediate ||
+        function(fn) { setTimeout(fn, 1); };
+
+    // Polyfill for Function.prototype.bind
+    function bind(fn, thisArg) {
+        return function() {
+            fn.apply(thisArg, arguments);
+        };
+    }
+
+    var isArray = Array.isArray || function(value) {
+        return Object.prototype.toString.call(value) ===
+            "[object Array]"; };
+
+    function PromiseFillIn(fn) {
+        if (typeof this !== 'object')
+            throw new TypeError('Use "new" to make Promises');
+        if (typeof fn !== 'function')
+            throw new TypeError('not a function');
+        this._state = null;
+        this._value = null;
+        this._deferreds = [];
+
+        doResolve(fn, bind(resolve, this), bind(reject, this));
+    }
+
+    function handle(deferred) {
+	// jshint validthis: true
+        var me = this;
+        if (this._state === null) {
+            this._deferreds.push(deferred);
+            return;
+        }
+        asap(function() {
+            var cb = me._state ? deferred.onFulfilled : deferred.onRejected;
+            if (cb === null) {
+                (me._state ? deferred.resolve : deferred.reject)(me._value);
+                return;
+            }
+            var ret;
+            try {
+                ret = cb(me._value);
+            }
+            catch (e) {
+                deferred.reject(e);
+                return;
+            }
+            deferred.resolve(ret);
+        });
+    }
+
+    function resolve(newValue) {
+	// jshint validthis: true
+        try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+            if (newValue === this)
+                throw new TypeError(
+                    'A promise cannot be resolved with itself.');
+            if (newValue &&
+                (typeof newValue === 'object' ||
+                 typeof newValue === 'function')) {
+                var then = newValue.then;
+                if (typeof then === 'function') {
+                    doResolve(bind(then, newValue),
+                              bind(resolve, this),
+                              bind(reject, this));
+                    return;
+                }
+            }
+            this._state = true;
+            this._value = newValue;
+            finale.call(this);
+        } catch (e) { reject.call(this, e); }
+    }
+
+    function reject(newValue) {
+	// jshint validthis: true
+        this._state = false;
+        this._value = newValue;
+        finale.call(this);
+    }
+
+    function finale() {
+	// jshint validthis: true
+        for (var i = 0, len = this._deferreds.length;
+             i < len;
+             i++) {
+            handle.call(this, this._deferreds[i]);
+        }
+        this._deferreds = null;
+    }
+    
+    function Handler(onFulfilled, onRejected, resolve, reject){
+        this.onFulfilled =
+            typeof onFulfilled === 'function' ? onFulfilled : null;
+        this.onRejected =
+            typeof onRejected === 'function' ? onRejected : null;
+        this.resolve = resolve;
+        this.reject = reject;
+    }
+
+    /**
+     * Take a potentially misbehaving resolver function and make sure
+     * onFulfilled and onRejected are only called once.
+     *
+     * Makes no guarantees about asynchrony.
+     */
+    function doResolve(fn, onFulfilled, onRejected) {
+        var done = false;
+        try {
+            fn(function (value) {
+                if (done) return;
+                done = true;
+                onFulfilled(value);
+            }, function (reason) {
+                if (done) return;
+                done = true;
+                onRejected(reason);
+            });
+        } catch (ex) {
+            if (done) return;
+            done = true;
+            onRejected(ex);
+        }
+    }
+
+    PromiseFillIn.prototype['catch'] = function (onRejected) {
+        return this.then(null, onRejected);
+    };
+
+    PromiseFillIn.prototype.then =
+        function(onFulfilled, onRejected) {
+            var me = this;
+            return new PromiseFillIn(function(resolve, reject) {
+                handle.call(
+                    me,new Handler(onFulfilled, onRejected,
+                                   resolve, reject));
+            });
+        };
+    
+    PromiseFillIn.all = function () {
+        var args = Array.prototype.slice.call(
+            arguments.length === 1 && isArray(arguments[0]) ?
+                arguments[0] : arguments);
+
+        return new PromiseFillIn(function (resolve, reject) {
+            if (args.length === 0) return resolve([]);
+            var remaining = args.length;
+            function res(i, val) {
+                try {
+                    if (val &&
+                        (typeof val === 'object' ||
+                         typeof val === 'function')) {
+                        var then = val.then;
+                        if (typeof then === 'function') {
+                            then.call(val, function (val) {
+                                res(i, val); }, reject);
+                            return;
+                        }
+                    }
+                    args[i] = val;
+                    if (--remaining === 0) {
+                        resolve(args);
+                    }
+                } catch (ex) {
+                    reject(ex);
+                }
+            }
+            for (var i = 0; i < args.length; i++) {
+                res(i, args[i]);
+            }
+        });
+    };
+
+    PromiseFillIn.resolve = function (value) {
+        if (value && typeof value === 'object' &&
+            value.constructor === PromiseFillIn) {
+            return value;
+        }
+
+        return new PromiseFillIn(function (resolve) {
+            resolve(value);
+        });
+    };
+
+    PromiseFillIn.reject = function (value) {
+        return new PromiseFillIn(function (resolve, reject) {
+            reject(value);
+        });
+    };
+
+    PromiseFillIn.race = function (values) {
+        return new PromiseFillIn(function (resolve, reject) {
+            for(var i = 0, len = values.length; i < len; i++) {
+                values[i].then(resolve, reject);
+            }
+        });
+    };
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = PromiseFillIn;
+    } else if (!root.Promise) {
+        root.Promise = PromiseFillIn;
+    }
+})();
+/* -*- Mode: Javascript; -*- */
+
+/* ######################### fdjt/async.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+    of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+    Use, modification, and redistribution of this program is permitted
+    under either the GNU General Public License (GPL) Version 2 (or
+    any later version) or under the GNU Lesser General Public License
+    (version 3 or later).
+
+    These licenses may be found at www.gnu.org, particularly:
+      http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+      http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+*/
+
+/* Time functions */
+
+// var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
+
+fdjt.Async=fdjt.ASync=fdjt.async=
+    (function (){
+        "use strict";
+        /* global
+           setTimeout: false, clearTimeout: false,
+           Promise: false */
+
+        function fdjtAsync(fn,args){
+            function async_call(resolve,reject){
+                function async_doit(){
+                    var value;
+                    try {
+                        if (args) value=fn.call(null,args);
+                        else value=fn();
+                        resolve(value);}
+                    catch (ex) {reject(ex);}}
+                setTimeout(async_doit,1);}
+            return new Promise(async_call);}
+
+        function getnow() {return (new Date()).getTime();}
+        
+        function timeslice(fcns,slice,space,stop,done,fail){
+            var timer=false;
+            function slicefn(){
+                var timelim=getnow()+slice;
+                var nextspace=false;
+                while (i<lim) {
+                    var fcn=fcns[i++];
+                    if (!(fcn)) continue;
+                    else if (typeof fcn === 'number') {
+                        nextspace=fcn; break;}
+                    else {
+                        try {fcn();} catch (ex) {fail(ex);}}
+                    if (getnow()>timelim) break;}
+                if ((i<lim)&&((!(stop))||(!(stop()))))
+                    timer=setTimeout(slicefn,nextspace||space);
+                else {
+                    clearTimeout(timer); 
+                    timer=false;
+                    done(false);}}
+            if (typeof slice !== 'number') slice=100;
+            if (typeof space !== 'number') space=100;
+            var i=0; var lim=fcns.length;
+            return slicefn();}
+        function timeslice_method(fcns,opts){
+            if (!(opts)) opts={};
+            var slice=opts.slice||100, space=opts.space||100;
+            var stop=opts.stop||false;
+            function timeslicing(success,failure){
+                timeslice(fcns,slice,space,stop,success,failure);}
+            return new Promise(timeslicing);}
+        fdjtAsync.timeslice=timeslice_method;
+
+        function slowmap(fn,vec,watch,done,failed,slice,space,onerr,watch_slice){
+            var i=0; var lim=vec.length; var chunks=0;
+            var used=0; var zerostart=getnow();
+            var timer=false;
+            if (!(slice)) slice=100;
+            if (!(space)) space=slice;
+            if (!(watch_slice)) watch_slice=0;
+            function slowmap_stepfn(){
+                try {
+                    var started=getnow(); var now=started;
+                    var stopat=started+slice;
+                    if (watch)
+                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
+                              zerostart);
+                    while ((i<lim)&&((now=getnow())<stopat)) {
+                        var elt=vec[i];
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('element',i,lim,elt,used,now-zerostart);
+                        try {fn(elt);}
+                        catch (ex) {
+                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
+                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
+                            if (failed) return failed(ex);
+                            else throw ex;}
+                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
+                                      (i+1===lim)))
+                            watch('after',i,lim,elt,used+(getnow()-started),
+                                  zerostart,getnow()-now);
+                        i++;}
+                    chunks=chunks+1;
+                    if (i<lim) {
+                        used=used+(now-started);
+                        if (watch) watch('suspend',i,lim,chunks,used,
+                                         zerostart);
+                        timer=setTimeout(slowmap_stepfn,space);}
+                    else {
+                        now=getnow(); used=used+(now-started);
+                        clearTimeout(timer); timer=false;
+                        if (watch)
+                            watch('finishing',i,lim,chunks,used,zerostart);
+                        var donetime=((done)&&(getnow()-now));
+                        now=getnow(); used=used+(now-started);
+                        if (watch)
+                            watch('done',i,lim,chunks,used,zerostart,donetime);
+                        if ((done)&&(done.call)) 
+                            done(vec,now-zerostart,used);}}
+                catch (ex) {if (failed) failed(ex);}}
+            timer=setTimeout(slowmap_stepfn,space);}
+        function slowmap_handler(fcn,vec,opts){
+            if (!(opts)) opts={};
+            var slice=opts.slice, space=opts.space, onerr=opts.onerr;
+            var watchfn=opts.watchfn, watch_slice=opts.watch;
+            var sync=((opts.hasOwnProperty("sync"))?(opts.sync):
+                      ((opts.hasOwnProperty("async"))?(!(opts.async)):
+                       (false)));
+            var donefn=opts.done;
+            function slowmapping(resolve,reject){
+                if (sync) {
+                    var i=0, lim=vec.length; while (i<lim) {
+                        var elt=vec[i++];
+                        try { fcn(vec[elt]); }
+                        catch (ex) {
+                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
+                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
+                            if (reject) return reject(ex);
+                            else throw ex;}}
+                    if (resolve) resolve(vec);}
+                else slowmap(fcn,vec,watchfn,
+                             ((donefn)?(function(){
+                                 donefn(); if (resolve) resolve(vec);}):
+                              (resolve)),
+                             reject,
+                             slice,space,onerr,watch_slice);}
+            if (watch_slice<1) watch_slice=vec.length*watch_slice;
+            return new Promise(slowmapping);}
+        fdjtAsync.slowmap=slowmap_handler;
+        
+        // Returns a function, that, as long as it continues to be
+        // invoked, will not be triggered. The function will be called
+        // after it stops being called for N milliseconds. If
+        // `immediate` is passed, trigger the function on the leading
+        // edge, instead of the trailing.
+        function debounce(func, wait, immediate) {
+            var timeout;
+            return function debounced() {
+                var context = this, args = arguments;
+                var later = function debounce_later() {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        }
+        fdjtAsync.debounce=debounce;
+
+        function poll(fn, callback, errback, timeout, interval) {
+            var endTime = Number(new Date()) + (timeout || 2000);
+            interval = interval || 100;
+
+            (function p() {
+                // If the condition is met, we're done! 
+                if(fn()) {
+                    callback();
+                }
+                // If the condition isn't met but the timeout hasn't elapsed, go again
+                else if (Number(new Date()) < endTime) {
+                    setTimeout(p, interval);
+                }
+                // Didn't match and too much time, reject!
+                else {
+                    errback(new Error('timed out for ' + fn + ': ' + arguments));
+                }
+            })();
+        }
+        fdjtAsync.poll=poll;
+
+        function once(fn, context) { 
+            var result;
+
+            return function justonce() { 
+                if(fn) {
+                    result = fn.apply(context || this, arguments);
+                    fn = null;
+                }
+
+                return result;
+            };
+        }
+        fdjtAsync.once=once;
+
+        return fdjtAsync;})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; -*- */
+
+/* ######################### fdjt/dom.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file is a part of the FDJT web toolkit (www.fdjt.org)
+   This file provides extended Javascript utility functions
+   of various kinds.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification, and redistribution of this program is permitted
+   under either the GNU General Public License (GPL) Version 2 (or
+   any later version) or under the GNU Lesser General Public License
+   (version 3 or later).
+
+   These licenses may be found at www.gnu.org, particularly:
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+
+*/
+/* jshint browser: true */
+/* globals Promise, self */
+
+(function(self) {
+    'use strict';
+    /*
+      Copyright (c) 2014-2015 GitHub, Inc.
+
+      Permission is hereby granted, free of charge, to any person obtaining
+      a copy of this software and associated documentation files (the
+      "Software"), to deal in the Software without restriction, including
+      without limitation the rights to use, copy, modify, merge, publish,
+      distribute, sublicense, and/or sell copies of the Software, and to
+      permit persons to whom the Software is furnished to do so, subject to
+      the following conditions:
+
+      The above copyright notice and this permission notice shall be
+      included in all copies or substantial portions of the Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+      NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+      LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+      OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+      WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    */
+
+    if (self.fetch) {
+	return;
+    }
+
+    function normalizeName(name) {
+	if (typeof name !== 'string') {
+	    name = String(name);
+	}
+	if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+	    throw new TypeError('Invalid character in header field name');
+	}
+	return name.toLowerCase();
+    }
+
+    function normalizeValue(value) {
+	if (typeof value !== 'string') {
+	    value = String(value);
+	}
+	return value;
+    }
+
+    function Headers(headers) {
+	this.map = {};
+
+	if (headers instanceof Headers) {
+	    headers.forEach(function(value, name) {
+		this.append(name, value);
+	    }, this);
+
+	} else if (headers) {
+	    Object.getOwnPropertyNames(headers).forEach(function(name) {
+		this.append(name, headers[name]);
+	    }, this);
+	}
+    }
+
+    Headers.prototype.append = function(name, value) {
+	name = normalizeName(name);
+	value = normalizeValue(value);
+	var list = this.map[name];
+	if (!list) {
+	    list = [];
+	    this.map[name] = list;
+	}
+	list.push(value);
+    };
+
+    Headers.prototype['delete'] = function(name) {
+	delete this.map[normalizeName(name)];
+    };
+
+    Headers.prototype.get = function(name) {
+	var values = this.map[normalizeName(name)];
+	return values ? values[0] : null;
+    };
+
+    Headers.prototype.getAll = function(name) {
+	return this.map[normalizeName(name)] || [];
+    };
+
+    Headers.prototype.has = function(name) {
+	return this.map.hasOwnProperty(normalizeName(name));
+    };
+
+    Headers.prototype.set = function(name, value) {
+	this.map[normalizeName(name)] = [normalizeValue(value)];
+    };
+
+    Headers.prototype.forEach = function(callback, thisArg) {
+	Object.getOwnPropertyNames(this.map).forEach(function(name) {
+	    this.map[name].forEach(function(value) {
+		callback.call(thisArg, value, name, this);
+	    }, this);
+	}, this);
+    };
+
+    function consumed(body) {
+	if (body.bodyUsed) {
+	    return Promise.reject(new TypeError('Already read'));
+	}
+	body.bodyUsed = true;
+    }
+
+    function fileReaderReady(reader) {
+	return new Promise(function(resolve, reject) {
+	    reader.onload = function() {
+		resolve(reader.result);
+	    };
+	    reader.onerror = function() {
+		reject(reader.error);
+	    };
+	});
+    }
+
+    function readBlobAsArrayBuffer(blob) {
+	var reader = new FileReader();
+	reader.readAsArrayBuffer(blob);
+	return fileReaderReady(reader);
+    }
+
+    function readBlobAsText(blob) {
+	var reader = new FileReader();
+	reader.readAsText(blob);
+	return fileReaderReady(reader);
+    }
+
+    var support = {
+	blob: 'FileReader' in self && 'Blob' in self && (function() {
+	    try {
+		new Blob();
+		return true;
+	    } catch(e) {
+		return false;
+	    }
+	})(),
+	formData: 'FormData' in self,
+	arrayBuffer: 'ArrayBuffer' in self
+    };
+
+    function Body() {
+	this.bodyUsed = false;
+
+
+	this._initBody = function(body) {
+	    this._bodyInit = body;
+	    if (typeof body === 'string') {
+		this._bodyText = body;
+	    } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+		this._bodyBlob = body;
+	    } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+		this._bodyFormData = body;
+	    } else if (!body) {
+		this._bodyText = '';
+	    } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
+		// Only support ArrayBuffers for POST method.
+		// Receiving ArrayBuffers happens via Blobs, instead.
+	    } else {
+		throw new Error('unsupported BodyInit type');
+	    }
+	};
+
+	if (support.blob) {
+	    this.blob = function() {
+		var rejected = consumed(this);
+		if (rejected) {
+		    return rejected;
+		}
+
+		if (this._bodyBlob) {
+		    return Promise.resolve(this._bodyBlob);
+		} else if (this._bodyFormData) {
+		    throw new Error('could not read FormData body as blob');
+		} else {
+		    return Promise.resolve(new Blob([this._bodyText]));
+		}
+	    };
+
+	    this.arrayBuffer = function() {
+		return this.blob().then(readBlobAsArrayBuffer);
+	    };
+
+	    this.text = function() {
+		var rejected = consumed(this);
+		if (rejected) {
+		    return rejected;
+		}
+
+		if (this._bodyBlob) {
+		    return readBlobAsText(this._bodyBlob);
+		} else if (this._bodyFormData) {
+		    throw new Error('could not read FormData body as text');
+		} else {
+		    return Promise.resolve(this._bodyText);
+		}
+	    };
+	} else {
+	    this.text = function() {
+		var rejected = consumed(this);
+		return rejected ? rejected : Promise.resolve(this._bodyText);
+	    };
+	}
+
+	if (support.formData) {
+	    this.formData = function() {
+		return this.text().then(decode);
+	    };
+	}
+
+	this.json = function() {
+	    return this.text().then(JSON.parse);
+	};
+
+	return this;
+    }
+
+    // HTTP methods whose capitalization should be normalized
+    var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
+
+    function normalizeMethod(method) {
+	var upcased = method.toUpperCase();
+	return (methods.indexOf(upcased) > -1) ? upcased : method;
+    }
+
+    function Request(input, options) {
+	options = options || {};
+	var body = options.body;
+	if (Request.prototype.isPrototypeOf(input)) {
+	    if (input.bodyUsed) {
+		throw new TypeError('Already read');
+	    }
+	    this.url = input.url;
+	    this.credentials = input.credentials;
+	    if (!options.headers) {
+		this.headers = new Headers(input.headers);
+	    }
+	    this.method = input.method;
+	    this.mode = input.mode;
+	    if (!body) {
+		body = input._bodyInit;
+		input.bodyUsed = true;
+	    }
+	} else {
+	    this.url = input;
+	}
+
+	this.credentials = options.credentials || this.credentials || 'omit';
+	if (options.headers || !this.headers) {
+	    this.headers = new Headers(options.headers);
+	}
+	this.method = normalizeMethod(options.method || this.method || 'GET');
+	this.mode = options.mode || this.mode || null;
+	this.referrer = null;
+
+	if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+	    throw new TypeError('Body not allowed for GET or HEAD requests');
+	}
+	this._initBody(body);
+    }
+
+    Request.prototype.clone = function() {
+	return new Request(this);
+    };
+
+    function decode(body) {
+	var form = new FormData();
+	body.trim().split('&').forEach(function(bytes) {
+	    if (bytes) {
+		var split = bytes.split('=');
+		var name = split.shift().replace(/\+/g, ' ');
+		var value = split.join('=').replace(/\+/g, ' ');
+		form.append(decodeURIComponent(name), decodeURIComponent(value));
+	    }
+	});
+	return form;
+    }
+
+    function headers(xhr) {
+	var head = new Headers();
+	var pairs = xhr.getAllResponseHeaders().trim().split('\n');
+	pairs.forEach(function(header) {
+	    var split = header.trim().split(':');
+	    var key = split.shift().trim();
+	    var value = split.join(':').trim();
+	    head.append(key, value);
+	});
+	return head;
+    }
+
+    Body.call(Request.prototype);
+
+    function Response(bodyInit, options) {
+	if (!options) {
+	    options = {};
+	}
+
+	this._initBody(bodyInit);
+	this.type = 'default';
+	this.status = options.status;
+	this.ok = this.status >= 200 && this.status < 300;
+	this.statusText = options.statusText;
+	this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers);
+	this.url = options.url || '';
+    }
+
+    Body.call(Response.prototype);
+
+    Response.prototype.clone = function() {
+	return new Response(this._bodyInit, {
+	    status: this.status,
+	    statusText: this.statusText,
+	    headers: new Headers(this.headers),
+	    url: this.url
+	});
+    };
+
+    Response.error = function() {
+	var response = new Response(null, {status: 0, statusText: ''});
+	response.type = 'error';
+	return response;
+    };
+
+    var redirectStatuses = [301, 302, 303, 307, 308];
+
+    Response.redirect = function(url, status) {
+	if (redirectStatuses.indexOf(status) === -1) {
+	    throw new RangeError('Invalid status code');
+	}
+
+	return new Response(null, {status: status, headers: {location: url}});
+    };
+
+    self.Headers = Headers;
+    self.Request = Request;
+    self.Response = Response;
+
+    self.fetch = function(input, init) {
+	return new Promise(function(resolve, reject) {
+	    var request;
+	    if (Request.prototype.isPrototypeOf(input) && !init) {
+		request = input;
+	    } else {
+		request = new Request(input, init);
+	    }
+
+	    var xhr = new XMLHttpRequest();
+
+	    function responseURL() {
+		if ('responseURL' in xhr) {
+		    return xhr.responseURL;
+		}
+
+		// Avoid security warnings on getResponseHeader when not allowed by CORS
+		if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
+		    return xhr.getResponseHeader('X-Request-URL');
+		}
+
+		return;
+	    }
+
+	    xhr.onload = function() {
+		var status = (xhr.status === 1223) ? 204 : xhr.status;
+		if (status < 100 || status > 599) {
+		    reject(new TypeError('Network request failed'));
+		    return;
+		}
+		var options = {
+		    status: status,
+		    statusText: xhr.statusText,
+		    headers: headers(xhr),
+		    url: responseURL()
+		};
+		var body = 'response' in xhr ? xhr.response : xhr.responseText;
+		resolve(new Response(body, options));
+	    };
+
+	    xhr.onerror = function() {
+		reject(new TypeError('Network request failed'));
+	    };
+
+	    xhr.open(request.method, request.url, true);
+
+	    if (request.credentials === 'include') {
+		xhr.withCredentials = true;
+	    }
+
+	    if ('responseType' in xhr && support.blob) {
+		xhr.responseType = 'blob';
+	    }
+
+	    request.headers.forEach(function(value, name) {
+		xhr.setRequestHeader(name, value);
+	    }).
+
+	    xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
+	});
+    };
+    self.fetch.polyfill = true;
+})(self||window||this);
 /* From https://github.com/axemclion/IndexedDBShim, BSD License */
 /* jshint strict: false, evil: true, expr: true, browser: true */
 /* globals console: false, DOMException: false */
@@ -1165,936 +2095,6 @@ var idbModules = {};
 }(window, idbModules));
 
 
-/* -*- Mode: Javascript; -*- */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file was created from several component files and is
-   part of the FDJT web toolkit (www.fdjt.org)
-
-   Portions of this code are available under the following license:
-   * iScroll v4.2.5 ~ Copyright (c) 2012 Matteo Spinelli, http://cubiq.org
-   * Released under MIT license, http://cubiq.org/license
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   The copyright notice of the individual files are all prefixed by
-   a copyright notice of the form "Copyright (C) ...".
-
-   Use, modification, and redistribution of this program is permitted
-   under either the GNU General Public License (GPL) Version 2 (or
-   any later version) or under the GNU Lesser General Public License
-   (version 3 or later).
-
-   These licenses may be found at www.gnu.org, particularly:
-   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
-
-*/
-
-var fdjt=((typeof fdjt === "undefined")?({}):(fdjt));
-var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
-		   ((fdjt_versions)||[]));
-(function(){
-    "use strict";
-    fdjt_versions.decl=function(name,num){
-        if ((!(fdjt_versions[name]))||(fdjt_versions[name]<num))
-            fdjt_versions[name]=num;};
-
-    // Some augmentations
-    if (!(Array.prototype.indexOf))
-        Array.prototype.indexOf=function(elt,i){
-            if (!(i)) i=0; var len=this.length;
-            while (i<len) if (this[i]===elt) return i; else i++;
-            return -1;};
-    // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
-    if (!Object.keys) {
-        Object.keys = function(o){
-            if (o !== Object(o))
-                throw new TypeError('Object.keys called on non-object');
-            var ret=[], p;
-            for (p in o) if (Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
-            return ret;};}
-
-    if (!String.prototype.trim) {
-        String.prototype.trim = (function () {
-            var trimLeft  = /^\s+/, trimRight = /\s+$/;
-            
-            return function () {
-                return this.replace(trimLeft, "").replace(trimRight, "");};});}
-})();
-(function() {
-    "use strict";
-    /* For jshint */
-    /* global global: false, window: false, 
-              module: false, setTimeout: false */
-    var root;
-
-    if (typeof window === 'object' && window) {
-        root = window;
-    } else {
-        root = global;
-    }
-
-    // Use polyfill for setImmediate for performance gains
-    var asap = ((root.Promise)&&(root.Promise.immediateFn)) ||
-        root.setImmediate ||
-        function(fn) { setTimeout(fn, 1); };
-
-    // Polyfill for Function.prototype.bind
-    function bind(fn, thisArg) {
-        return function() {
-            fn.apply(thisArg, arguments);
-        };
-    }
-
-    var isArray = Array.isArray || function(value) {
-        return Object.prototype.toString.call(value) ===
-            "[object Array]"; };
-
-    function PromiseFillIn(fn) {
-        if (typeof this !== 'object')
-            throw new TypeError('Use "new" to make Promises');
-        if (typeof fn !== 'function')
-            throw new TypeError('not a function');
-        this._state = null;
-        this._value = null;
-        this._deferreds = [];
-
-        doResolve(fn, bind(resolve, this), bind(reject, this));
-    }
-
-    function handle(deferred) {
-	// jshint validthis: true
-        var me = this;
-        if (this._state === null) {
-            this._deferreds.push(deferred);
-            return;
-        }
-        asap(function() {
-            var cb = me._state ? deferred.onFulfilled : deferred.onRejected;
-            if (cb === null) {
-                (me._state ? deferred.resolve : deferred.reject)(me._value);
-                return;
-            }
-            var ret;
-            try {
-                ret = cb(me._value);
-            }
-            catch (e) {
-                deferred.reject(e);
-                return;
-            }
-            deferred.resolve(ret);
-        });
-    }
-
-    function resolve(newValue) {
-	// jshint validthis: true
-        try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
-            if (newValue === this)
-                throw new TypeError(
-                    'A promise cannot be resolved with itself.');
-            if (newValue &&
-                (typeof newValue === 'object' ||
-                 typeof newValue === 'function')) {
-                var then = newValue.then;
-                if (typeof then === 'function') {
-                    doResolve(bind(then, newValue),
-                              bind(resolve, this),
-                              bind(reject, this));
-                    return;
-                }
-            }
-            this._state = true;
-            this._value = newValue;
-            finale.call(this);
-        } catch (e) { reject.call(this, e); }
-    }
-
-    function reject(newValue) {
-	// jshint validthis: true
-        this._state = false;
-        this._value = newValue;
-        finale.call(this);
-    }
-
-    function finale() {
-	// jshint validthis: true
-        for (var i = 0, len = this._deferreds.length;
-             i < len;
-             i++) {
-            handle.call(this, this._deferreds[i]);
-        }
-        this._deferreds = null;
-    }
-    
-    function Handler(onFulfilled, onRejected, resolve, reject){
-        this.onFulfilled =
-            typeof onFulfilled === 'function' ? onFulfilled : null;
-        this.onRejected =
-            typeof onRejected === 'function' ? onRejected : null;
-        this.resolve = resolve;
-        this.reject = reject;
-    }
-
-    /**
-     * Take a potentially misbehaving resolver function and make sure
-     * onFulfilled and onRejected are only called once.
-     *
-     * Makes no guarantees about asynchrony.
-     */
-    function doResolve(fn, onFulfilled, onRejected) {
-        var done = false;
-        try {
-            fn(function (value) {
-                if (done) return;
-                done = true;
-                onFulfilled(value);
-            }, function (reason) {
-                if (done) return;
-                done = true;
-                onRejected(reason);
-            });
-        } catch (ex) {
-            if (done) return;
-            done = true;
-            onRejected(ex);
-        }
-    }
-
-    PromiseFillIn.prototype['catch'] = function (onRejected) {
-        return this.then(null, onRejected);
-    };
-
-    PromiseFillIn.prototype.then =
-        function(onFulfilled, onRejected) {
-            var me = this;
-            return new PromiseFillIn(function(resolve, reject) {
-                handle.call(
-                    me,new Handler(onFulfilled, onRejected,
-                                   resolve, reject));
-            });
-        };
-    
-    PromiseFillIn.all = function () {
-        var args = Array.prototype.slice.call(
-            arguments.length === 1 && isArray(arguments[0]) ?
-                arguments[0] : arguments);
-
-        return new PromiseFillIn(function (resolve, reject) {
-            if (args.length === 0) return resolve([]);
-            var remaining = args.length;
-            function res(i, val) {
-                try {
-                    if (val &&
-                        (typeof val === 'object' ||
-                         typeof val === 'function')) {
-                        var then = val.then;
-                        if (typeof then === 'function') {
-                            then.call(val, function (val) {
-                                res(i, val); }, reject);
-                            return;
-                        }
-                    }
-                    args[i] = val;
-                    if (--remaining === 0) {
-                        resolve(args);
-                    }
-                } catch (ex) {
-                    reject(ex);
-                }
-            }
-            for (var i = 0; i < args.length; i++) {
-                res(i, args[i]);
-            }
-        });
-    };
-
-    PromiseFillIn.resolve = function (value) {
-        if (value && typeof value === 'object' &&
-            value.constructor === PromiseFillIn) {
-            return value;
-        }
-
-        return new PromiseFillIn(function (resolve) {
-            resolve(value);
-        });
-    };
-
-    PromiseFillIn.reject = function (value) {
-        return new PromiseFillIn(function (resolve, reject) {
-            reject(value);
-        });
-    };
-
-    PromiseFillIn.race = function (values) {
-        return new PromiseFillIn(function (resolve, reject) {
-            for(var i = 0, len = values.length; i < len; i++) {
-                values[i].then(resolve, reject);
-            }
-        });
-    };
-
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = PromiseFillIn;
-    } else if (!root.Promise) {
-        root.Promise = PromiseFillIn;
-    }
-})();
-/* -*- Mode: Javascript; -*- */
-
-/* ######################### fdjt/async.js ###################### */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file is a part of the FDJT web toolkit (www.fdjt.org)
-   This file provides extended Javascript utility functions
-    of various kinds.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-    Use, modification, and redistribution of this program is permitted
-    under either the GNU General Public License (GPL) Version 2 (or
-    any later version) or under the GNU Lesser General Public License
-    (version 3 or later).
-
-    These licenses may be found at www.gnu.org, particularly:
-      http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-      http://www.gnu.org/licenses/lgpl-3.0-standalone.html
-
-*/
-
-/* Time functions */
-
-// var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
-
-fdjt.Async=fdjt.ASync=fdjt.async=
-    (function (){
-        "use strict";
-        /* global
-           setTimeout: false, clearTimeout: false,
-           Promise: false */
-
-        function fdjtAsync(fn,args){
-            function async_call(resolve,reject){
-                function async_doit(){
-                    var value;
-                    try {
-                        if (args) value=fn.call(null,args);
-                        else value=fn();
-                        resolve(value);}
-                    catch (ex) {reject(ex);}}
-                setTimeout(async_doit,1);}
-            return new Promise(async_call);}
-
-        function getnow() {return (new Date()).getTime();}
-        
-        function timeslice(fcns,slice,space,stop,done,fail){
-            var timer=false;
-            function slicefn(){
-                var timelim=getnow()+slice;
-                var nextspace=false;
-                while (i<lim) {
-                    var fcn=fcns[i++];
-                    if (!(fcn)) continue;
-                    else if (typeof fcn === 'number') {
-                        nextspace=fcn; break;}
-                    else {
-                        try {fcn();} catch (ex) {fail(ex);}}
-                    if (getnow()>timelim) break;}
-                if ((i<lim)&&((!(stop))||(!(stop()))))
-                    timer=setTimeout(slicefn,nextspace||space);
-                else {
-                    clearTimeout(timer); 
-                    timer=false;
-                    done(false);}}
-            if (typeof slice !== 'number') slice=100;
-            if (typeof space !== 'number') space=100;
-            var i=0; var lim=fcns.length;
-            return slicefn();}
-        function timeslice_method(fcns,opts){
-            if (!(opts)) opts={};
-            var slice=opts.slice||100, space=opts.space||100;
-            var stop=opts.stop||false;
-            function timeslicing(success,failure){
-                timeslice(fcns,slice,space,stop,success,failure);}
-            return new Promise(timeslicing);}
-        fdjtAsync.timeslice=timeslice_method;
-
-        function slowmap(fn,vec,watch,done,failed,slice,space,onerr,watch_slice){
-            var i=0; var lim=vec.length; var chunks=0;
-            var used=0; var zerostart=getnow();
-            var timer=false;
-            if (!(slice)) slice=100;
-            if (!(space)) space=slice;
-            if (!(watch_slice)) watch_slice=0;
-            function slowmap_stepfn(){
-                try {
-                    var started=getnow(); var now=started;
-                    var stopat=started+slice;
-                    if (watch)
-                        watch(((i===0)?'start':'resume'),i,lim,chunks,used,
-                              zerostart);
-                    while ((i<lim)&&((now=getnow())<stopat)) {
-                        var elt=vec[i];
-                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
-                                      (i+1===lim)))
-                            watch('element',i,lim,elt,used,now-zerostart);
-                        try {fn(elt);}
-                        catch (ex) {
-                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
-                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
-                            if (failed) return failed(ex);
-                            else throw ex;}
-                        if ((watch)&&(((watch_slice)&&((i%watch_slice)===0))||
-                                      (i+1===lim)))
-                            watch('after',i,lim,elt,used+(getnow()-started),
-                                  zerostart,getnow()-now);
-                        i++;}
-                    chunks=chunks+1;
-                    if (i<lim) {
-                        used=used+(now-started);
-                        if (watch) watch('suspend',i,lim,chunks,used,
-                                         zerostart);
-                        timer=setTimeout(slowmap_stepfn,space);}
-                    else {
-                        now=getnow(); used=used+(now-started);
-                        clearTimeout(timer); timer=false;
-                        if (watch)
-                            watch('finishing',i,lim,chunks,used,zerostart);
-                        var donetime=((done)&&(getnow()-now));
-                        now=getnow(); used=used+(now-started);
-                        if (watch)
-                            watch('done',i,lim,chunks,used,zerostart,donetime);
-                        if ((done)&&(done.call)) 
-                            done(vec,now-zerostart,used);}}
-                catch (ex) {if (failed) failed(ex);}}
-            timer=setTimeout(slowmap_stepfn,space);}
-        function slowmap_handler(fcn,vec,opts){
-            if (!(opts)) opts={};
-            var slice=opts.slice, space=opts.space, onerr=opts.onerr;
-            var watchfn=opts.watchfn, watch_slice=opts.watch;
-            var sync=((opts.hasOwnProperty("sync"))?(opts.sync):
-                      ((opts.hasOwnProperty("async"))?(!(opts.async)):
-                       (false)));
-            var donefn=opts.done;
-            function slowmapping(resolve,reject){
-                if (sync) {
-                    var i=0, lim=vec.length; while (i<lim) {
-                        var elt=vec[i++];
-                        try { fcn(vec[elt]); }
-                        catch (ex) {
-                            var exdata={elt: elt,i: i,lim: lim,vec: vec};
-                            if ((onerr)&&(onerr(ex,elt,exdata))) continue;
-                            if (reject) return reject(ex);
-                            else throw ex;}}
-                    if (resolve) resolve(vec);}
-                else slowmap(fcn,vec,watchfn,
-                             ((donefn)?(function(){
-                                 donefn(); if (resolve) resolve(vec);}):
-                              (resolve)),
-                             reject,
-                             slice,space,onerr,watch_slice);}
-            if (watch_slice<1) watch_slice=vec.length*watch_slice;
-            return new Promise(slowmapping);}
-        fdjtAsync.slowmap=slowmap_handler;
-        
-        // Returns a function, that, as long as it continues to be
-        // invoked, will not be triggered. The function will be called
-        // after it stops being called for N milliseconds. If
-        // `immediate` is passed, trigger the function on the leading
-        // edge, instead of the trailing.
-        function debounce(func, wait, immediate) {
-            var timeout;
-            return function debounced() {
-                var context = this, args = arguments;
-                var later = function debounce_later() {
-                    timeout = null;
-                    if (!immediate) func.apply(context, args);
-                };
-                var callNow = immediate && !timeout;
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-                if (callNow) func.apply(context, args);
-            };
-        }
-        fdjtAsync.debounce=debounce;
-
-        function poll(fn, callback, errback, timeout, interval) {
-            var endTime = Number(new Date()) + (timeout || 2000);
-            interval = interval || 100;
-
-            (function p() {
-                // If the condition is met, we're done! 
-                if(fn()) {
-                    callback();
-                }
-                // If the condition isn't met but the timeout hasn't elapsed, go again
-                else if (Number(new Date()) < endTime) {
-                    setTimeout(p, interval);
-                }
-                // Didn't match and too much time, reject!
-                else {
-                    errback(new Error('timed out for ' + fn + ': ' + arguments));
-                }
-            })();
-        }
-        fdjtAsync.poll=poll;
-
-        function once(fn, context) { 
-            var result;
-
-            return function justonce() { 
-                if(fn) {
-                    result = fn.apply(context || this, arguments);
-                    fn = null;
-                }
-
-                return result;
-            };
-        }
-        fdjtAsync.once=once;
-
-        return fdjtAsync;})();
-
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-*/
-/* -*- Mode: Javascript; -*- */
-
-/* ######################### fdjt/dom.js ###################### */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file is a part of the FDJT web toolkit (www.fdjt.org)
-   This file provides extended Javascript utility functions
-   of various kinds.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   Use, modification, and redistribution of this program is permitted
-   under either the GNU General Public License (GPL) Version 2 (or
-   any later version) or under the GNU Lesser General Public License
-   (version 3 or later).
-
-   These licenses may be found at www.gnu.org, particularly:
-   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-   http://www.gnu.org/licenses/lgpl-3.0-standalone.html
-
-*/
-/* jshint browser: true */
-/* globals Promise, self */
-
-(function(self) {
-    'use strict';
-    /*
-      Copyright (c) 2014-2015 GitHub, Inc.
-
-      Permission is hereby granted, free of charge, to any person obtaining
-      a copy of this software and associated documentation files (the
-      "Software"), to deal in the Software without restriction, including
-      without limitation the rights to use, copy, modify, merge, publish,
-      distribute, sublicense, and/or sell copies of the Software, and to
-      permit persons to whom the Software is furnished to do so, subject to
-      the following conditions:
-
-      The above copyright notice and this permission notice shall be
-      included in all copies or substantial portions of the Software.
-
-      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-      NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-      LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-      OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-      WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    */
-
-    if (self.fetch) {
-	return;
-    }
-
-    function normalizeName(name) {
-	if (typeof name !== 'string') {
-	    name = String(name);
-	}
-	if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
-	    throw new TypeError('Invalid character in header field name');
-	}
-	return name.toLowerCase();
-    }
-
-    function normalizeValue(value) {
-	if (typeof value !== 'string') {
-	    value = String(value);
-	}
-	return value;
-    }
-
-    function Headers(headers) {
-	this.map = {};
-
-	if (headers instanceof Headers) {
-	    headers.forEach(function(value, name) {
-		this.append(name, value);
-	    }, this);
-
-	} else if (headers) {
-	    Object.getOwnPropertyNames(headers).forEach(function(name) {
-		this.append(name, headers[name]);
-	    }, this);
-	}
-    }
-
-    Headers.prototype.append = function(name, value) {
-	name = normalizeName(name);
-	value = normalizeValue(value);
-	var list = this.map[name];
-	if (!list) {
-	    list = [];
-	    this.map[name] = list;
-	}
-	list.push(value);
-    };
-
-    Headers.prototype['delete'] = function(name) {
-	delete this.map[normalizeName(name)];
-    };
-
-    Headers.prototype.get = function(name) {
-	var values = this.map[normalizeName(name)];
-	return values ? values[0] : null;
-    };
-
-    Headers.prototype.getAll = function(name) {
-	return this.map[normalizeName(name)] || [];
-    };
-
-    Headers.prototype.has = function(name) {
-	return this.map.hasOwnProperty(normalizeName(name));
-    };
-
-    Headers.prototype.set = function(name, value) {
-	this.map[normalizeName(name)] = [normalizeValue(value)];
-    };
-
-    Headers.prototype.forEach = function(callback, thisArg) {
-	Object.getOwnPropertyNames(this.map).forEach(function(name) {
-	    this.map[name].forEach(function(value) {
-		callback.call(thisArg, value, name, this);
-	    }, this);
-	}, this);
-    };
-
-    function consumed(body) {
-	if (body.bodyUsed) {
-	    return Promise.reject(new TypeError('Already read'));
-	}
-	body.bodyUsed = true;
-    }
-
-    function fileReaderReady(reader) {
-	return new Promise(function(resolve, reject) {
-	    reader.onload = function() {
-		resolve(reader.result);
-	    };
-	    reader.onerror = function() {
-		reject(reader.error);
-	    };
-	});
-    }
-
-    function readBlobAsArrayBuffer(blob) {
-	var reader = new FileReader();
-	reader.readAsArrayBuffer(blob);
-	return fileReaderReady(reader);
-    }
-
-    function readBlobAsText(blob) {
-	var reader = new FileReader();
-	reader.readAsText(blob);
-	return fileReaderReady(reader);
-    }
-
-    var support = {
-	blob: 'FileReader' in self && 'Blob' in self && (function() {
-	    try {
-		new Blob();
-		return true;
-	    } catch(e) {
-		return false;
-	    }
-	})(),
-	formData: 'FormData' in self,
-	arrayBuffer: 'ArrayBuffer' in self
-    };
-
-    function Body() {
-	this.bodyUsed = false;
-
-
-	this._initBody = function(body) {
-	    this._bodyInit = body;
-	    if (typeof body === 'string') {
-		this._bodyText = body;
-	    } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
-		this._bodyBlob = body;
-	    } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
-		this._bodyFormData = body;
-	    } else if (!body) {
-		this._bodyText = '';
-	    } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
-		// Only support ArrayBuffers for POST method.
-		// Receiving ArrayBuffers happens via Blobs, instead.
-	    } else {
-		throw new Error('unsupported BodyInit type');
-	    }
-	};
-
-	if (support.blob) {
-	    this.blob = function() {
-		var rejected = consumed(this);
-		if (rejected) {
-		    return rejected;
-		}
-
-		if (this._bodyBlob) {
-		    return Promise.resolve(this._bodyBlob);
-		} else if (this._bodyFormData) {
-		    throw new Error('could not read FormData body as blob');
-		} else {
-		    return Promise.resolve(new Blob([this._bodyText]));
-		}
-	    };
-
-	    this.arrayBuffer = function() {
-		return this.blob().then(readBlobAsArrayBuffer);
-	    };
-
-	    this.text = function() {
-		var rejected = consumed(this);
-		if (rejected) {
-		    return rejected;
-		}
-
-		if (this._bodyBlob) {
-		    return readBlobAsText(this._bodyBlob);
-		} else if (this._bodyFormData) {
-		    throw new Error('could not read FormData body as text');
-		} else {
-		    return Promise.resolve(this._bodyText);
-		}
-	    };
-	} else {
-	    this.text = function() {
-		var rejected = consumed(this);
-		return rejected ? rejected : Promise.resolve(this._bodyText);
-	    };
-	}
-
-	if (support.formData) {
-	    this.formData = function() {
-		return this.text().then(decode);
-	    };
-	}
-
-	this.json = function() {
-	    return this.text().then(JSON.parse);
-	};
-
-	return this;
-    }
-
-    // HTTP methods whose capitalization should be normalized
-    var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
-
-    function normalizeMethod(method) {
-	var upcased = method.toUpperCase();
-	return (methods.indexOf(upcased) > -1) ? upcased : method;
-    }
-
-    function Request(input, options) {
-	options = options || {};
-	var body = options.body;
-	if (Request.prototype.isPrototypeOf(input)) {
-	    if (input.bodyUsed) {
-		throw new TypeError('Already read');
-	    }
-	    this.url = input.url;
-	    this.credentials = input.credentials;
-	    if (!options.headers) {
-		this.headers = new Headers(input.headers);
-	    }
-	    this.method = input.method;
-	    this.mode = input.mode;
-	    if (!body) {
-		body = input._bodyInit;
-		input.bodyUsed = true;
-	    }
-	} else {
-	    this.url = input;
-	}
-
-	this.credentials = options.credentials || this.credentials || 'omit';
-	if (options.headers || !this.headers) {
-	    this.headers = new Headers(options.headers);
-	}
-	this.method = normalizeMethod(options.method || this.method || 'GET');
-	this.mode = options.mode || this.mode || null;
-	this.referrer = null;
-
-	if ((this.method === 'GET' || this.method === 'HEAD') && body) {
-	    throw new TypeError('Body not allowed for GET or HEAD requests');
-	}
-	this._initBody(body);
-    }
-
-    Request.prototype.clone = function() {
-	return new Request(this);
-    };
-
-    function decode(body) {
-	var form = new FormData();
-	body.trim().split('&').forEach(function(bytes) {
-	    if (bytes) {
-		var split = bytes.split('=');
-		var name = split.shift().replace(/\+/g, ' ');
-		var value = split.join('=').replace(/\+/g, ' ');
-		form.append(decodeURIComponent(name), decodeURIComponent(value));
-	    }
-	});
-	return form;
-    }
-
-    function headers(xhr) {
-	var head = new Headers();
-	var pairs = xhr.getAllResponseHeaders().trim().split('\n');
-	pairs.forEach(function(header) {
-	    var split = header.trim().split(':');
-	    var key = split.shift().trim();
-	    var value = split.join(':').trim();
-	    head.append(key, value);
-	});
-	return head;
-    }
-
-    Body.call(Request.prototype);
-
-    function Response(bodyInit, options) {
-	if (!options) {
-	    options = {};
-	}
-
-	this._initBody(bodyInit);
-	this.type = 'default';
-	this.status = options.status;
-	this.ok = this.status >= 200 && this.status < 300;
-	this.statusText = options.statusText;
-	this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers);
-	this.url = options.url || '';
-    }
-
-    Body.call(Response.prototype);
-
-    Response.prototype.clone = function() {
-	return new Response(this._bodyInit, {
-	    status: this.status,
-	    statusText: this.statusText,
-	    headers: new Headers(this.headers),
-	    url: this.url
-	});
-    };
-
-    Response.error = function() {
-	var response = new Response(null, {status: 0, statusText: ''});
-	response.type = 'error';
-	return response;
-    };
-
-    var redirectStatuses = [301, 302, 303, 307, 308];
-
-    Response.redirect = function(url, status) {
-	if (redirectStatuses.indexOf(status) === -1) {
-	    throw new RangeError('Invalid status code');
-	}
-
-	return new Response(null, {status: status, headers: {location: url}});
-    };
-
-    self.Headers = Headers;
-    self.Request = Request;
-    self.Response = Response;
-
-    self.fetch = function(input, init) {
-	return new Promise(function(resolve, reject) {
-	    var request;
-	    if (Request.prototype.isPrototypeOf(input) && !init) {
-		request = input;
-	    } else {
-		request = new Request(input, init);
-	    }
-
-	    var xhr = new XMLHttpRequest();
-
-	    function responseURL() {
-		if ('responseURL' in xhr) {
-		    return xhr.responseURL;
-		}
-
-		// Avoid security warnings on getResponseHeader when not allowed by CORS
-		if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
-		    return xhr.getResponseHeader('X-Request-URL');
-		}
-
-		return;
-	    }
-
-	    xhr.onload = function() {
-		var status = (xhr.status === 1223) ? 204 : xhr.status;
-		if (status < 100 || status > 599) {
-		    reject(new TypeError('Network request failed'));
-		    return;
-		}
-		var options = {
-		    status: status,
-		    statusText: xhr.statusText,
-		    headers: headers(xhr),
-		    url: responseURL()
-		};
-		var body = 'response' in xhr ? xhr.response : xhr.responseText;
-		resolve(new Response(body, options));
-	    };
-
-	    xhr.onerror = function() {
-		reject(new TypeError('Network request failed'));
-	    };
-
-	    xhr.open(request.method, request.url, true);
-
-	    if (request.credentials === 'include') {
-		xhr.withCredentials = true;
-	    }
-
-	    if ('responseType' in xhr && support.blob) {
-		xhr.responseType = 'blob';
-	    }
-
-	    request.headers.forEach(function(value, name) {
-		xhr.setRequestHeader(name, value);
-	    }).
-
-	    xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
-	});
-    };
-    self.fetch.polyfill = true;
-})(self||window||this);
 /* -*- Mode: Javascript; -*- */
 
 /* ######################### fdjt/string.js ###################### */
@@ -41014,10 +41014,10 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1559-g042725c';
-fdjt.buildhost='dev-52-4-39-174';
-fdjt.buildtime='Wed Feb 24 15:38:24 UTC 2016';
-fdjt.builduuid='4adb6ce0-cd4a-408f-a2e4-e4e234993799';
+fdjt.revision='1.5-1557-gec8d8e9';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sun Feb 21 14:30:57 EST 2016';
+fdjt.builduuid='1b772202-bf4c-4e0d-9868-f9b4ed33bbd4';
 
 fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
 
@@ -41025,9 +41025,9 @@ fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
 Knodule.version='v0.8-156-ga7eef6e';
 // sBooks metaBook build information
 metaBook.version='v0.8-251-g97aca5b';
-metaBook.buildid='e6ca13bc-6136-4944-89b7-cd23177a9f60';
-metaBook.buildtime='Wed Feb 24 16:53:52 UTC 2016';
-metaBook.buildhost='dev-52-4-39-174';
+metaBook.buildid='199735ed-7173-4c03-b7bc-cab1645b961c';
+metaBook.buildtime='Fri Feb 26 10:09:34 EST 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

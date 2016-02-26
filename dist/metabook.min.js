@@ -29,7 +29,475 @@ var _checkOpenSans = function() {
     var itimer, timeout, tries = 0;
     return checking() && (itimer = setInterval(checking, check_interval), timeout = setTimeout(giveup, timeout_after)), 
     checking;
-}(), idbModules = {};
+}(), fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0 ? [] : fdjt_versions || [];
+
+(function() {
+    "use strict";
+    fdjt_versions.decl = function(name, num) {
+        (!fdjt_versions[name] || num > fdjt_versions[name]) && (fdjt_versions[name] = num);
+    }, Array.prototype.indexOf || (Array.prototype.indexOf = function(elt, i) {
+        i || (i = 0);
+        for (var len = this.length; len > i; ) {
+            if (this[i] === elt) return i;
+            i++;
+        }
+        return -1;
+    }), Object.keys || (Object.keys = function(o) {
+        if (o !== Object(o)) throw new TypeError("Object.keys called on non-object");
+        var p, ret = [];
+        for (p in o) Object.prototype.hasOwnProperty.call(o, p) && ret.push(p);
+        return ret;
+    }), String.prototype.trim || (String.prototype.trim = function() {
+        var trimLeft = /^\s+/, trimRight = /\s+$/;
+        return function() {
+            return this.replace(trimLeft, "").replace(trimRight, "");
+        };
+    });
+})(), function() {
+    "use strict";
+    function bind(fn, thisArg) {
+        return function() {
+            fn.apply(thisArg, arguments);
+        };
+    }
+    function PromiseFillIn(fn) {
+        if ("object" != typeof this) throw new TypeError('Use "new" to make Promises');
+        if ("function" != typeof fn) throw new TypeError("not a function");
+        this._state = null, this._value = null, this._deferreds = [], doResolve(fn, bind(resolve, this), bind(reject, this));
+    }
+    function handle(deferred) {
+        var me = this;
+        return null === this._state ? (this._deferreds.push(deferred), void 0) : (asap(function() {
+            var cb = me._state ? deferred.onFulfilled : deferred.onRejected;
+            if (null === cb) return (me._state ? deferred.resolve : deferred.reject)(me._value), 
+            void 0;
+            var ret;
+            try {
+                ret = cb(me._value);
+            } catch (e) {
+                return deferred.reject(e), void 0;
+            }
+            deferred.resolve(ret);
+        }), void 0);
+    }
+    function resolve(newValue) {
+        try {
+            if (newValue === this) throw new TypeError("A promise cannot be resolved with itself.");
+            if (newValue && ("object" == typeof newValue || "function" == typeof newValue)) {
+                var then = newValue.then;
+                if ("function" == typeof then) return doResolve(bind(then, newValue), bind(resolve, this), bind(reject, this)), 
+                void 0;
+            }
+            this._state = !0, this._value = newValue, finale.call(this);
+        } catch (e) {
+            reject.call(this, e);
+        }
+    }
+    function reject(newValue) {
+        this._state = !1, this._value = newValue, finale.call(this);
+    }
+    function finale() {
+        for (var i = 0, len = this._deferreds.length; len > i; i++) handle.call(this, this._deferreds[i]);
+        this._deferreds = null;
+    }
+    function Handler(onFulfilled, onRejected, resolve, reject) {
+        this.onFulfilled = "function" == typeof onFulfilled ? onFulfilled : null, this.onRejected = "function" == typeof onRejected ? onRejected : null, 
+        this.resolve = resolve, this.reject = reject;
+    }
+    function doResolve(fn, onFulfilled, onRejected) {
+        var done = !1;
+        try {
+            fn(function(value) {
+                done || (done = !0, onFulfilled(value));
+            }, function(reason) {
+                done || (done = !0, onRejected(reason));
+            });
+        } catch (ex) {
+            if (done) return;
+            done = !0, onRejected(ex);
+        }
+    }
+    var root;
+    root = "object" == typeof window && window ? window : global;
+    var asap = root.Promise && root.Promise.immediateFn || root.setImmediate || function(fn) {
+        setTimeout(fn, 1);
+    }, isArray = Array.isArray || function(value) {
+        return "[object Array]" === Object.prototype.toString.call(value);
+    };
+    PromiseFillIn.prototype["catch"] = function(onRejected) {
+        return this.then(null, onRejected);
+    }, PromiseFillIn.prototype.then = function(onFulfilled, onRejected) {
+        var me = this;
+        return new PromiseFillIn(function(resolve, reject) {
+            handle.call(me, new Handler(onFulfilled, onRejected, resolve, reject));
+        });
+    }, PromiseFillIn.all = function() {
+        var args = Array.prototype.slice.call(1 === arguments.length && isArray(arguments[0]) ? arguments[0] : arguments);
+        return new PromiseFillIn(function(resolve, reject) {
+            function res(i, val) {
+                try {
+                    if (val && ("object" == typeof val || "function" == typeof val)) {
+                        var then = val.then;
+                        if ("function" == typeof then) return then.call(val, function(val) {
+                            res(i, val);
+                        }, reject), void 0;
+                    }
+                    args[i] = val, 0 === --remaining && resolve(args);
+                } catch (ex) {
+                    reject(ex);
+                }
+            }
+            if (0 === args.length) return resolve([]);
+            for (var remaining = args.length, i = 0; args.length > i; i++) res(i, args[i]);
+        });
+    }, PromiseFillIn.resolve = function(value) {
+        return value && "object" == typeof value && value.constructor === PromiseFillIn ? value : new PromiseFillIn(function(resolve) {
+            resolve(value);
+        });
+    }, PromiseFillIn.reject = function(value) {
+        return new PromiseFillIn(function(resolve, reject) {
+            reject(value);
+        });
+    }, PromiseFillIn.race = function(values) {
+        return new PromiseFillIn(function(resolve, reject) {
+            for (var i = 0, len = values.length; len > i; i++) values[i].then(resolve, reject);
+        });
+    }, "undefined" != typeof module && module.exports ? module.exports = PromiseFillIn : root.Promise || (root.Promise = PromiseFillIn);
+}(), fdjt.Async = fdjt.ASync = fdjt.async = function() {
+    "use strict";
+    function fdjtAsync(fn, args) {
+        function async_call(resolve, reject) {
+            function async_doit() {
+                var value;
+                try {
+                    value = args ? fn.call(null, args) : fn(), resolve(value);
+                } catch (ex) {
+                    reject(ex);
+                }
+            }
+            setTimeout(async_doit, 1);
+        }
+        return new Promise(async_call);
+    }
+    function getnow() {
+        return new Date().getTime();
+    }
+    function timeslice(fcns, slice, space, stop, done, fail) {
+        function slicefn() {
+            for (var timelim = getnow() + slice, nextspace = !1; lim > i; ) {
+                var fcn = fcns[i++];
+                if (fcn) {
+                    if ("number" == typeof fcn) {
+                        nextspace = fcn;
+                        break;
+                    }
+                    try {
+                        fcn();
+                    } catch (ex) {
+                        fail(ex);
+                    }
+                    if (getnow() > timelim) break;
+                }
+            }
+            !(lim > i) || stop && stop() ? (clearTimeout(timer), timer = !1, done(!1)) : timer = setTimeout(slicefn, nextspace || space);
+        }
+        var timer = !1;
+        "number" != typeof slice && (slice = 100), "number" != typeof space && (space = 100);
+        var i = 0, lim = fcns.length;
+        return slicefn();
+    }
+    function timeslice_method(fcns, opts) {
+        function timeslicing(success, failure) {
+            timeslice(fcns, slice, space, stop, success, failure);
+        }
+        opts || (opts = {});
+        var slice = opts.slice || 100, space = opts.space || 100, stop = opts.stop || !1;
+        return new Promise(timeslicing);
+    }
+    function slowmap(fn, vec, watch, done, failed, slice, space, onerr, watch_slice) {
+        function slowmap_stepfn() {
+            try {
+                var started = getnow(), now = started, stopat = started + slice;
+                for (watch && watch(0 === i ? "start" : "resume", i, lim, chunks, used, zerostart); lim > i && stopat > (now = getnow()); ) {
+                    var elt = vec[i];
+                    watch && (watch_slice && 0 === i % watch_slice || i + 1 === lim) && watch("element", i, lim, elt, used, now - zerostart);
+                    try {
+                        fn(elt);
+                    } catch (ex) {
+                        var exdata = {
+                            elt: elt,
+                            i: i,
+                            lim: lim,
+                            vec: vec
+                        };
+                        if (onerr && onerr(ex, elt, exdata)) continue;
+                        if (failed) return failed(ex);
+                        throw ex;
+                    }
+                    watch && (watch_slice && 0 === i % watch_slice || i + 1 === lim) && watch("after", i, lim, elt, used + (getnow() - started), zerostart, getnow() - now), 
+                    i++;
+                }
+                if (chunks += 1, lim > i) used += now - started, watch && watch("suspend", i, lim, chunks, used, zerostart), 
+                timer = setTimeout(slowmap_stepfn, space); else {
+                    now = getnow(), used += now - started, clearTimeout(timer), timer = !1, watch && watch("finishing", i, lim, chunks, used, zerostart);
+                    var donetime = done && getnow() - now;
+                    now = getnow(), used += now - started, watch && watch("done", i, lim, chunks, used, zerostart, donetime), 
+                    done && done.call && done(vec, now - zerostart, used);
+                }
+            } catch (ex) {
+                failed && failed(ex);
+            }
+        }
+        var i = 0, lim = vec.length, chunks = 0, used = 0, zerostart = getnow(), timer = !1;
+        slice || (slice = 100), space || (space = slice), watch_slice || (watch_slice = 0), 
+        timer = setTimeout(slowmap_stepfn, space);
+    }
+    function slowmap_handler(fcn, vec, opts) {
+        function slowmapping(resolve, reject) {
+            if (sync) {
+                for (var i = 0, lim = vec.length; lim > i; ) {
+                    var elt = vec[i++];
+                    try {
+                        fcn(vec[elt]);
+                    } catch (ex) {
+                        var exdata = {
+                            elt: elt,
+                            i: i,
+                            lim: lim,
+                            vec: vec
+                        };
+                        if (onerr && onerr(ex, elt, exdata)) continue;
+                        if (reject) return reject(ex);
+                        throw ex;
+                    }
+                }
+                resolve && resolve(vec);
+            } else slowmap(fcn, vec, watchfn, donefn ? function() {
+                donefn(), resolve && resolve(vec);
+            } : resolve, reject, slice, space, onerr, watch_slice);
+        }
+        opts || (opts = {});
+        var slice = opts.slice, space = opts.space, onerr = opts.onerr, watchfn = opts.watchfn, watch_slice = opts.watch, sync = opts.hasOwnProperty("sync") ? opts.sync : opts.hasOwnProperty("async") ? !opts.async : !1, donefn = opts.done;
+        return 1 > watch_slice && (watch_slice = vec.length * watch_slice), new Promise(slowmapping);
+    }
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments, later = function() {
+                timeout = null, immediate || func.apply(context, args);
+            }, callNow = immediate && !timeout;
+            clearTimeout(timeout), timeout = setTimeout(later, wait), callNow && func.apply(context, args);
+        };
+    }
+    function poll(fn, callback, errback, timeout, interval) {
+        var endTime = Number(new Date()) + (timeout || 2e3);
+        interval = interval || 100, function p() {
+            fn() ? callback() : endTime > Number(new Date()) ? setTimeout(p, interval) : errback(Error("timed out for " + fn + ": " + arguments));
+        }();
+    }
+    function once(fn, context) {
+        var result;
+        return function() {
+            return fn && (result = fn.apply(context || this, arguments), fn = null), result;
+        };
+    }
+    return fdjtAsync.timeslice = timeslice_method, fdjtAsync.slowmap = slowmap_handler, 
+    fdjtAsync.debounce = debounce, fdjtAsync.poll = poll, fdjtAsync.once = once, fdjtAsync;
+}(), function(self) {
+    "use strict";
+    function normalizeName(name) {
+        if ("string" != typeof name && (name += ""), /[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) throw new TypeError("Invalid character in header field name");
+        return name.toLowerCase();
+    }
+    function normalizeValue(value) {
+        return "string" != typeof value && (value += ""), value;
+    }
+    function Headers(headers) {
+        this.map = {}, headers instanceof Headers ? headers.forEach(function(value, name) {
+            this.append(name, value);
+        }, this) : headers && Object.getOwnPropertyNames(headers).forEach(function(name) {
+            this.append(name, headers[name]);
+        }, this);
+    }
+    function consumed(body) {
+        return body.bodyUsed ? Promise.reject(new TypeError("Already read")) : (body.bodyUsed = !0, 
+        void 0);
+    }
+    function fileReaderReady(reader) {
+        return new Promise(function(resolve, reject) {
+            reader.onload = function() {
+                resolve(reader.result);
+            }, reader.onerror = function() {
+                reject(reader.error);
+            };
+        });
+    }
+    function readBlobAsArrayBuffer(blob) {
+        var reader = new FileReader();
+        return reader.readAsArrayBuffer(blob), fileReaderReady(reader);
+    }
+    function readBlobAsText(blob) {
+        var reader = new FileReader();
+        return reader.readAsText(blob), fileReaderReady(reader);
+    }
+    function Body() {
+        return this.bodyUsed = !1, this._initBody = function(body) {
+            if (this._bodyInit = body, "string" == typeof body) this._bodyText = body; else if (support.blob && Blob.prototype.isPrototypeOf(body)) this._bodyBlob = body; else if (support.formData && FormData.prototype.isPrototypeOf(body)) this._bodyFormData = body; else if (body) {
+                if (!support.arrayBuffer || !ArrayBuffer.prototype.isPrototypeOf(body)) throw Error("unsupported BodyInit type");
+            } else this._bodyText = "";
+        }, support.blob ? (this.blob = function() {
+            var rejected = consumed(this);
+            if (rejected) return rejected;
+            if (this._bodyBlob) return Promise.resolve(this._bodyBlob);
+            if (this._bodyFormData) throw Error("could not read FormData body as blob");
+            return Promise.resolve(new Blob([ this._bodyText ]));
+        }, this.arrayBuffer = function() {
+            return this.blob().then(readBlobAsArrayBuffer);
+        }, this.text = function() {
+            var rejected = consumed(this);
+            if (rejected) return rejected;
+            if (this._bodyBlob) return readBlobAsText(this._bodyBlob);
+            if (this._bodyFormData) throw Error("could not read FormData body as text");
+            return Promise.resolve(this._bodyText);
+        }) : this.text = function() {
+            var rejected = consumed(this);
+            return rejected ? rejected : Promise.resolve(this._bodyText);
+        }, support.formData && (this.formData = function() {
+            return this.text().then(decode);
+        }), this.json = function() {
+            return this.text().then(JSON.parse);
+        }, this;
+    }
+    function normalizeMethod(method) {
+        var upcased = method.toUpperCase();
+        return methods.indexOf(upcased) > -1 ? upcased : method;
+    }
+    function Request(input, options) {
+        options = options || {};
+        var body = options.body;
+        if (Request.prototype.isPrototypeOf(input)) {
+            if (input.bodyUsed) throw new TypeError("Already read");
+            this.url = input.url, this.credentials = input.credentials, options.headers || (this.headers = new Headers(input.headers)), 
+            this.method = input.method, this.mode = input.mode, body || (body = input._bodyInit, 
+            input.bodyUsed = !0);
+        } else this.url = input;
+        if (this.credentials = options.credentials || this.credentials || "omit", (options.headers || !this.headers) && (this.headers = new Headers(options.headers)), 
+        this.method = normalizeMethod(options.method || this.method || "GET"), this.mode = options.mode || this.mode || null, 
+        this.referrer = null, ("GET" === this.method || "HEAD" === this.method) && body) throw new TypeError("Body not allowed for GET or HEAD requests");
+        this._initBody(body);
+    }
+    function decode(body) {
+        var form = new FormData();
+        return body.trim().split("&").forEach(function(bytes) {
+            if (bytes) {
+                var split = bytes.split("="), name = split.shift().replace(/\+/g, " "), value = split.join("=").replace(/\+/g, " ");
+                form.append(decodeURIComponent(name), decodeURIComponent(value));
+            }
+        }), form;
+    }
+    function headers(xhr) {
+        var head = new Headers(), pairs = xhr.getAllResponseHeaders().trim().split("\n");
+        return pairs.forEach(function(header) {
+            var split = header.trim().split(":"), key = split.shift().trim(), value = split.join(":").trim();
+            head.append(key, value);
+        }), head;
+    }
+    function Response(bodyInit, options) {
+        options || (options = {}), this._initBody(bodyInit), this.type = "default", this.status = options.status, 
+        this.ok = this.status >= 200 && 300 > this.status, this.statusText = options.statusText, 
+        this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers), 
+        this.url = options.url || "";
+    }
+    if (!self.fetch) {
+        Headers.prototype.append = function(name, value) {
+            name = normalizeName(name), value = normalizeValue(value);
+            var list = this.map[name];
+            list || (list = [], this.map[name] = list), list.push(value);
+        }, Headers.prototype["delete"] = function(name) {
+            delete this.map[normalizeName(name)];
+        }, Headers.prototype.get = function(name) {
+            var values = this.map[normalizeName(name)];
+            return values ? values[0] : null;
+        }, Headers.prototype.getAll = function(name) {
+            return this.map[normalizeName(name)] || [];
+        }, Headers.prototype.has = function(name) {
+            return this.map.hasOwnProperty(normalizeName(name));
+        }, Headers.prototype.set = function(name, value) {
+            this.map[normalizeName(name)] = [ normalizeValue(value) ];
+        }, Headers.prototype.forEach = function(callback, thisArg) {
+            Object.getOwnPropertyNames(this.map).forEach(function(name) {
+                this.map[name].forEach(function(value) {
+                    callback.call(thisArg, value, name, this);
+                }, this);
+            }, this);
+        };
+        var support = {
+            blob: "FileReader" in self && "Blob" in self && function() {
+                try {
+                    return new Blob(), !0;
+                } catch (e) {
+                    return !1;
+                }
+            }(),
+            formData: "FormData" in self,
+            arrayBuffer: "ArrayBuffer" in self
+        }, methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT" ];
+        Request.prototype.clone = function() {
+            return new Request(this);
+        }, Body.call(Request.prototype), Body.call(Response.prototype), Response.prototype.clone = function() {
+            return new Response(this._bodyInit, {
+                status: this.status,
+                statusText: this.statusText,
+                headers: new Headers(this.headers),
+                url: this.url
+            });
+        }, Response.error = function() {
+            var response = new Response(null, {
+                status: 0,
+                statusText: ""
+            });
+            return response.type = "error", response;
+        };
+        var redirectStatuses = [ 301, 302, 303, 307, 308 ];
+        Response.redirect = function(url, status) {
+            if (-1 === redirectStatuses.indexOf(status)) throw new RangeError("Invalid status code");
+            return new Response(null, {
+                status: status,
+                headers: {
+                    location: url
+                }
+            });
+        }, self.Headers = Headers, self.Request = Request, self.Response = Response, self.fetch = function(input, init) {
+            return new Promise(function(resolve, reject) {
+                function responseURL() {
+                    return "responseURL" in xhr ? xhr.responseURL : /^X-Request-URL:/m.test(xhr.getAllResponseHeaders()) ? xhr.getResponseHeader("X-Request-URL") : void 0;
+                }
+                var request;
+                request = Request.prototype.isPrototypeOf(input) && !init ? input : new Request(input, init);
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function() {
+                    var status = 1223 === xhr.status ? 204 : xhr.status;
+                    if (100 > status || status > 599) return reject(new TypeError("Network request failed")), 
+                    void 0;
+                    var options = {
+                        status: status,
+                        statusText: xhr.statusText,
+                        headers: headers(xhr),
+                        url: responseURL()
+                    }, body = "response" in xhr ? xhr.response : xhr.responseText;
+                    resolve(new Response(body, options));
+                }, xhr.onerror = function() {
+                    reject(new TypeError("Network request failed"));
+                }, xhr.open(request.method, request.url, !0), "include" === request.credentials && (xhr.withCredentials = !0), 
+                "responseType" in xhr && support.blob && (xhr.responseType = "blob"), request.headers.forEach(function(value, name) {
+                    xhr.setRequestHeader(name, value);
+                }).xhr.send(request._bodyInit === void 0 ? null : request._bodyInit);
+            });
+        }, self.fetch.polyfill = !0;
+    }
+}(self || window || this);
+
+var idbModules = {};
 
 (function(idbModules) {
     function callback(fn, context, event, func) {
@@ -689,475 +1157,7 @@ var _checkOpenSans = function() {
     window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction, window.IDBCursor = window.IDBCursor || window.webkitIDBCursor, 
     window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange, window.IDBTransaction.READ_ONLY = window.IDBTransaction.READ_ONLY || "readonly", 
     window.IDBTransaction.READ_WRITE = window.IDBTransaction.READ_WRITE || "readwrite");
-}(window, idbModules);
-
-var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0 ? [] : fdjt_versions || [];
-
-(function() {
-    "use strict";
-    fdjt_versions.decl = function(name, num) {
-        (!fdjt_versions[name] || num > fdjt_versions[name]) && (fdjt_versions[name] = num);
-    }, Array.prototype.indexOf || (Array.prototype.indexOf = function(elt, i) {
-        i || (i = 0);
-        for (var len = this.length; len > i; ) {
-            if (this[i] === elt) return i;
-            i++;
-        }
-        return -1;
-    }), Object.keys || (Object.keys = function(o) {
-        if (o !== Object(o)) throw new TypeError("Object.keys called on non-object");
-        var p, ret = [];
-        for (p in o) Object.prototype.hasOwnProperty.call(o, p) && ret.push(p);
-        return ret;
-    }), String.prototype.trim || (String.prototype.trim = function() {
-        var trimLeft = /^\s+/, trimRight = /\s+$/;
-        return function() {
-            return this.replace(trimLeft, "").replace(trimRight, "");
-        };
-    });
-})(), function() {
-    "use strict";
-    function bind(fn, thisArg) {
-        return function() {
-            fn.apply(thisArg, arguments);
-        };
-    }
-    function PromiseFillIn(fn) {
-        if ("object" != typeof this) throw new TypeError('Use "new" to make Promises');
-        if ("function" != typeof fn) throw new TypeError("not a function");
-        this._state = null, this._value = null, this._deferreds = [], doResolve(fn, bind(resolve, this), bind(reject, this));
-    }
-    function handle(deferred) {
-        var me = this;
-        return null === this._state ? (this._deferreds.push(deferred), void 0) : (asap(function() {
-            var cb = me._state ? deferred.onFulfilled : deferred.onRejected;
-            if (null === cb) return (me._state ? deferred.resolve : deferred.reject)(me._value), 
-            void 0;
-            var ret;
-            try {
-                ret = cb(me._value);
-            } catch (e) {
-                return deferred.reject(e), void 0;
-            }
-            deferred.resolve(ret);
-        }), void 0);
-    }
-    function resolve(newValue) {
-        try {
-            if (newValue === this) throw new TypeError("A promise cannot be resolved with itself.");
-            if (newValue && ("object" == typeof newValue || "function" == typeof newValue)) {
-                var then = newValue.then;
-                if ("function" == typeof then) return doResolve(bind(then, newValue), bind(resolve, this), bind(reject, this)), 
-                void 0;
-            }
-            this._state = !0, this._value = newValue, finale.call(this);
-        } catch (e) {
-            reject.call(this, e);
-        }
-    }
-    function reject(newValue) {
-        this._state = !1, this._value = newValue, finale.call(this);
-    }
-    function finale() {
-        for (var i = 0, len = this._deferreds.length; len > i; i++) handle.call(this, this._deferreds[i]);
-        this._deferreds = null;
-    }
-    function Handler(onFulfilled, onRejected, resolve, reject) {
-        this.onFulfilled = "function" == typeof onFulfilled ? onFulfilled : null, this.onRejected = "function" == typeof onRejected ? onRejected : null, 
-        this.resolve = resolve, this.reject = reject;
-    }
-    function doResolve(fn, onFulfilled, onRejected) {
-        var done = !1;
-        try {
-            fn(function(value) {
-                done || (done = !0, onFulfilled(value));
-            }, function(reason) {
-                done || (done = !0, onRejected(reason));
-            });
-        } catch (ex) {
-            if (done) return;
-            done = !0, onRejected(ex);
-        }
-    }
-    var root;
-    root = "object" == typeof window && window ? window : global;
-    var asap = root.Promise && root.Promise.immediateFn || root.setImmediate || function(fn) {
-        setTimeout(fn, 1);
-    }, isArray = Array.isArray || function(value) {
-        return "[object Array]" === Object.prototype.toString.call(value);
-    };
-    PromiseFillIn.prototype["catch"] = function(onRejected) {
-        return this.then(null, onRejected);
-    }, PromiseFillIn.prototype.then = function(onFulfilled, onRejected) {
-        var me = this;
-        return new PromiseFillIn(function(resolve, reject) {
-            handle.call(me, new Handler(onFulfilled, onRejected, resolve, reject));
-        });
-    }, PromiseFillIn.all = function() {
-        var args = Array.prototype.slice.call(1 === arguments.length && isArray(arguments[0]) ? arguments[0] : arguments);
-        return new PromiseFillIn(function(resolve, reject) {
-            function res(i, val) {
-                try {
-                    if (val && ("object" == typeof val || "function" == typeof val)) {
-                        var then = val.then;
-                        if ("function" == typeof then) return then.call(val, function(val) {
-                            res(i, val);
-                        }, reject), void 0;
-                    }
-                    args[i] = val, 0 === --remaining && resolve(args);
-                } catch (ex) {
-                    reject(ex);
-                }
-            }
-            if (0 === args.length) return resolve([]);
-            for (var remaining = args.length, i = 0; args.length > i; i++) res(i, args[i]);
-        });
-    }, PromiseFillIn.resolve = function(value) {
-        return value && "object" == typeof value && value.constructor === PromiseFillIn ? value : new PromiseFillIn(function(resolve) {
-            resolve(value);
-        });
-    }, PromiseFillIn.reject = function(value) {
-        return new PromiseFillIn(function(resolve, reject) {
-            reject(value);
-        });
-    }, PromiseFillIn.race = function(values) {
-        return new PromiseFillIn(function(resolve, reject) {
-            for (var i = 0, len = values.length; len > i; i++) values[i].then(resolve, reject);
-        });
-    }, "undefined" != typeof module && module.exports ? module.exports = PromiseFillIn : root.Promise || (root.Promise = PromiseFillIn);
-}(), fdjt.Async = fdjt.ASync = fdjt.async = function() {
-    "use strict";
-    function fdjtAsync(fn, args) {
-        function async_call(resolve, reject) {
-            function async_doit() {
-                var value;
-                try {
-                    value = args ? fn.call(null, args) : fn(), resolve(value);
-                } catch (ex) {
-                    reject(ex);
-                }
-            }
-            setTimeout(async_doit, 1);
-        }
-        return new Promise(async_call);
-    }
-    function getnow() {
-        return new Date().getTime();
-    }
-    function timeslice(fcns, slice, space, stop, done, fail) {
-        function slicefn() {
-            for (var timelim = getnow() + slice, nextspace = !1; lim > i; ) {
-                var fcn = fcns[i++];
-                if (fcn) {
-                    if ("number" == typeof fcn) {
-                        nextspace = fcn;
-                        break;
-                    }
-                    try {
-                        fcn();
-                    } catch (ex) {
-                        fail(ex);
-                    }
-                    if (getnow() > timelim) break;
-                }
-            }
-            !(lim > i) || stop && stop() ? (clearTimeout(timer), timer = !1, done(!1)) : timer = setTimeout(slicefn, nextspace || space);
-        }
-        var timer = !1;
-        "number" != typeof slice && (slice = 100), "number" != typeof space && (space = 100);
-        var i = 0, lim = fcns.length;
-        return slicefn();
-    }
-    function timeslice_method(fcns, opts) {
-        function timeslicing(success, failure) {
-            timeslice(fcns, slice, space, stop, success, failure);
-        }
-        opts || (opts = {});
-        var slice = opts.slice || 100, space = opts.space || 100, stop = opts.stop || !1;
-        return new Promise(timeslicing);
-    }
-    function slowmap(fn, vec, watch, done, failed, slice, space, onerr, watch_slice) {
-        function slowmap_stepfn() {
-            try {
-                var started = getnow(), now = started, stopat = started + slice;
-                for (watch && watch(0 === i ? "start" : "resume", i, lim, chunks, used, zerostart); lim > i && stopat > (now = getnow()); ) {
-                    var elt = vec[i];
-                    watch && (watch_slice && 0 === i % watch_slice || i + 1 === lim) && watch("element", i, lim, elt, used, now - zerostart);
-                    try {
-                        fn(elt);
-                    } catch (ex) {
-                        var exdata = {
-                            elt: elt,
-                            i: i,
-                            lim: lim,
-                            vec: vec
-                        };
-                        if (onerr && onerr(ex, elt, exdata)) continue;
-                        if (failed) return failed(ex);
-                        throw ex;
-                    }
-                    watch && (watch_slice && 0 === i % watch_slice || i + 1 === lim) && watch("after", i, lim, elt, used + (getnow() - started), zerostart, getnow() - now), 
-                    i++;
-                }
-                if (chunks += 1, lim > i) used += now - started, watch && watch("suspend", i, lim, chunks, used, zerostart), 
-                timer = setTimeout(slowmap_stepfn, space); else {
-                    now = getnow(), used += now - started, clearTimeout(timer), timer = !1, watch && watch("finishing", i, lim, chunks, used, zerostart);
-                    var donetime = done && getnow() - now;
-                    now = getnow(), used += now - started, watch && watch("done", i, lim, chunks, used, zerostart, donetime), 
-                    done && done.call && done(vec, now - zerostart, used);
-                }
-            } catch (ex) {
-                failed && failed(ex);
-            }
-        }
-        var i = 0, lim = vec.length, chunks = 0, used = 0, zerostart = getnow(), timer = !1;
-        slice || (slice = 100), space || (space = slice), watch_slice || (watch_slice = 0), 
-        timer = setTimeout(slowmap_stepfn, space);
-    }
-    function slowmap_handler(fcn, vec, opts) {
-        function slowmapping(resolve, reject) {
-            if (sync) {
-                for (var i = 0, lim = vec.length; lim > i; ) {
-                    var elt = vec[i++];
-                    try {
-                        fcn(vec[elt]);
-                    } catch (ex) {
-                        var exdata = {
-                            elt: elt,
-                            i: i,
-                            lim: lim,
-                            vec: vec
-                        };
-                        if (onerr && onerr(ex, elt, exdata)) continue;
-                        if (reject) return reject(ex);
-                        throw ex;
-                    }
-                }
-                resolve && resolve(vec);
-            } else slowmap(fcn, vec, watchfn, donefn ? function() {
-                donefn(), resolve && resolve(vec);
-            } : resolve, reject, slice, space, onerr, watch_slice);
-        }
-        opts || (opts = {});
-        var slice = opts.slice, space = opts.space, onerr = opts.onerr, watchfn = opts.watchfn, watch_slice = opts.watch, sync = opts.hasOwnProperty("sync") ? opts.sync : opts.hasOwnProperty("async") ? !opts.async : !1, donefn = opts.done;
-        return 1 > watch_slice && (watch_slice = vec.length * watch_slice), new Promise(slowmapping);
-    }
-    function debounce(func, wait, immediate) {
-        var timeout;
-        return function() {
-            var context = this, args = arguments, later = function() {
-                timeout = null, immediate || func.apply(context, args);
-            }, callNow = immediate && !timeout;
-            clearTimeout(timeout), timeout = setTimeout(later, wait), callNow && func.apply(context, args);
-        };
-    }
-    function poll(fn, callback, errback, timeout, interval) {
-        var endTime = Number(new Date()) + (timeout || 2e3);
-        interval = interval || 100, function p() {
-            fn() ? callback() : endTime > Number(new Date()) ? setTimeout(p, interval) : errback(Error("timed out for " + fn + ": " + arguments));
-        }();
-    }
-    function once(fn, context) {
-        var result;
-        return function() {
-            return fn && (result = fn.apply(context || this, arguments), fn = null), result;
-        };
-    }
-    return fdjtAsync.timeslice = timeslice_method, fdjtAsync.slowmap = slowmap_handler, 
-    fdjtAsync.debounce = debounce, fdjtAsync.poll = poll, fdjtAsync.once = once, fdjtAsync;
-}(), function(self) {
-    "use strict";
-    function normalizeName(name) {
-        if ("string" != typeof name && (name += ""), /[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) throw new TypeError("Invalid character in header field name");
-        return name.toLowerCase();
-    }
-    function normalizeValue(value) {
-        return "string" != typeof value && (value += ""), value;
-    }
-    function Headers(headers) {
-        this.map = {}, headers instanceof Headers ? headers.forEach(function(value, name) {
-            this.append(name, value);
-        }, this) : headers && Object.getOwnPropertyNames(headers).forEach(function(name) {
-            this.append(name, headers[name]);
-        }, this);
-    }
-    function consumed(body) {
-        return body.bodyUsed ? Promise.reject(new TypeError("Already read")) : (body.bodyUsed = !0, 
-        void 0);
-    }
-    function fileReaderReady(reader) {
-        return new Promise(function(resolve, reject) {
-            reader.onload = function() {
-                resolve(reader.result);
-            }, reader.onerror = function() {
-                reject(reader.error);
-            };
-        });
-    }
-    function readBlobAsArrayBuffer(blob) {
-        var reader = new FileReader();
-        return reader.readAsArrayBuffer(blob), fileReaderReady(reader);
-    }
-    function readBlobAsText(blob) {
-        var reader = new FileReader();
-        return reader.readAsText(blob), fileReaderReady(reader);
-    }
-    function Body() {
-        return this.bodyUsed = !1, this._initBody = function(body) {
-            if (this._bodyInit = body, "string" == typeof body) this._bodyText = body; else if (support.blob && Blob.prototype.isPrototypeOf(body)) this._bodyBlob = body; else if (support.formData && FormData.prototype.isPrototypeOf(body)) this._bodyFormData = body; else if (body) {
-                if (!support.arrayBuffer || !ArrayBuffer.prototype.isPrototypeOf(body)) throw Error("unsupported BodyInit type");
-            } else this._bodyText = "";
-        }, support.blob ? (this.blob = function() {
-            var rejected = consumed(this);
-            if (rejected) return rejected;
-            if (this._bodyBlob) return Promise.resolve(this._bodyBlob);
-            if (this._bodyFormData) throw Error("could not read FormData body as blob");
-            return Promise.resolve(new Blob([ this._bodyText ]));
-        }, this.arrayBuffer = function() {
-            return this.blob().then(readBlobAsArrayBuffer);
-        }, this.text = function() {
-            var rejected = consumed(this);
-            if (rejected) return rejected;
-            if (this._bodyBlob) return readBlobAsText(this._bodyBlob);
-            if (this._bodyFormData) throw Error("could not read FormData body as text");
-            return Promise.resolve(this._bodyText);
-        }) : this.text = function() {
-            var rejected = consumed(this);
-            return rejected ? rejected : Promise.resolve(this._bodyText);
-        }, support.formData && (this.formData = function() {
-            return this.text().then(decode);
-        }), this.json = function() {
-            return this.text().then(JSON.parse);
-        }, this;
-    }
-    function normalizeMethod(method) {
-        var upcased = method.toUpperCase();
-        return methods.indexOf(upcased) > -1 ? upcased : method;
-    }
-    function Request(input, options) {
-        options = options || {};
-        var body = options.body;
-        if (Request.prototype.isPrototypeOf(input)) {
-            if (input.bodyUsed) throw new TypeError("Already read");
-            this.url = input.url, this.credentials = input.credentials, options.headers || (this.headers = new Headers(input.headers)), 
-            this.method = input.method, this.mode = input.mode, body || (body = input._bodyInit, 
-            input.bodyUsed = !0);
-        } else this.url = input;
-        if (this.credentials = options.credentials || this.credentials || "omit", (options.headers || !this.headers) && (this.headers = new Headers(options.headers)), 
-        this.method = normalizeMethod(options.method || this.method || "GET"), this.mode = options.mode || this.mode || null, 
-        this.referrer = null, ("GET" === this.method || "HEAD" === this.method) && body) throw new TypeError("Body not allowed for GET or HEAD requests");
-        this._initBody(body);
-    }
-    function decode(body) {
-        var form = new FormData();
-        return body.trim().split("&").forEach(function(bytes) {
-            if (bytes) {
-                var split = bytes.split("="), name = split.shift().replace(/\+/g, " "), value = split.join("=").replace(/\+/g, " ");
-                form.append(decodeURIComponent(name), decodeURIComponent(value));
-            }
-        }), form;
-    }
-    function headers(xhr) {
-        var head = new Headers(), pairs = xhr.getAllResponseHeaders().trim().split("\n");
-        return pairs.forEach(function(header) {
-            var split = header.trim().split(":"), key = split.shift().trim(), value = split.join(":").trim();
-            head.append(key, value);
-        }), head;
-    }
-    function Response(bodyInit, options) {
-        options || (options = {}), this._initBody(bodyInit), this.type = "default", this.status = options.status, 
-        this.ok = this.status >= 200 && 300 > this.status, this.statusText = options.statusText, 
-        this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers), 
-        this.url = options.url || "";
-    }
-    if (!self.fetch) {
-        Headers.prototype.append = function(name, value) {
-            name = normalizeName(name), value = normalizeValue(value);
-            var list = this.map[name];
-            list || (list = [], this.map[name] = list), list.push(value);
-        }, Headers.prototype["delete"] = function(name) {
-            delete this.map[normalizeName(name)];
-        }, Headers.prototype.get = function(name) {
-            var values = this.map[normalizeName(name)];
-            return values ? values[0] : null;
-        }, Headers.prototype.getAll = function(name) {
-            return this.map[normalizeName(name)] || [];
-        }, Headers.prototype.has = function(name) {
-            return this.map.hasOwnProperty(normalizeName(name));
-        }, Headers.prototype.set = function(name, value) {
-            this.map[normalizeName(name)] = [ normalizeValue(value) ];
-        }, Headers.prototype.forEach = function(callback, thisArg) {
-            Object.getOwnPropertyNames(this.map).forEach(function(name) {
-                this.map[name].forEach(function(value) {
-                    callback.call(thisArg, value, name, this);
-                }, this);
-            }, this);
-        };
-        var support = {
-            blob: "FileReader" in self && "Blob" in self && function() {
-                try {
-                    return new Blob(), !0;
-                } catch (e) {
-                    return !1;
-                }
-            }(),
-            formData: "FormData" in self,
-            arrayBuffer: "ArrayBuffer" in self
-        }, methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT" ];
-        Request.prototype.clone = function() {
-            return new Request(this);
-        }, Body.call(Request.prototype), Body.call(Response.prototype), Response.prototype.clone = function() {
-            return new Response(this._bodyInit, {
-                status: this.status,
-                statusText: this.statusText,
-                headers: new Headers(this.headers),
-                url: this.url
-            });
-        }, Response.error = function() {
-            var response = new Response(null, {
-                status: 0,
-                statusText: ""
-            });
-            return response.type = "error", response;
-        };
-        var redirectStatuses = [ 301, 302, 303, 307, 308 ];
-        Response.redirect = function(url, status) {
-            if (-1 === redirectStatuses.indexOf(status)) throw new RangeError("Invalid status code");
-            return new Response(null, {
-                status: status,
-                headers: {
-                    location: url
-                }
-            });
-        }, self.Headers = Headers, self.Request = Request, self.Response = Response, self.fetch = function(input, init) {
-            return new Promise(function(resolve, reject) {
-                function responseURL() {
-                    return "responseURL" in xhr ? xhr.responseURL : /^X-Request-URL:/m.test(xhr.getAllResponseHeaders()) ? xhr.getResponseHeader("X-Request-URL") : void 0;
-                }
-                var request;
-                request = Request.prototype.isPrototypeOf(input) && !init ? input : new Request(input, init);
-                var xhr = new XMLHttpRequest();
-                xhr.onload = function() {
-                    var status = 1223 === xhr.status ? 204 : xhr.status;
-                    if (100 > status || status > 599) return reject(new TypeError("Network request failed")), 
-                    void 0;
-                    var options = {
-                        status: status,
-                        statusText: xhr.statusText,
-                        headers: headers(xhr),
-                        url: responseURL()
-                    }, body = "response" in xhr ? xhr.response : xhr.responseText;
-                    resolve(new Response(body, options));
-                }, xhr.onerror = function() {
-                    reject(new TypeError("Network request failed"));
-                }, xhr.open(request.method, request.url, !0), "include" === request.credentials && (xhr.withCredentials = !0), 
-                "responseType" in xhr && support.blob && (xhr.responseType = "blob"), request.headers.forEach(function(value, name) {
-                    xhr.setRequestHeader(name, value);
-                }).xhr.send(request._bodyInit === void 0 ? null : request._bodyInit);
-            });
-        }, self.fetch.polyfill = !0;
-    }
-}(self || window || this), fdjt.charnames = {
+}(window, idbModules), fdjt.charnames = {
     AElig: "Æ",
     Aacgr: "Ά",
     Aacute: "Á",
@@ -5035,6 +5035,18 @@ fdjt.DOM = function() {
         device.ios && addClass(html, prefix + "IOS"), device.touch && addClass(html, prefix + "TOUCH"), 
         device.mouse && addClass(html, prefix + "MOUSE"), device.android && addClass(html, prefix + "Android");
     }
+    function focusElt(id) {
+        var elt = document.getElementById(id);
+        elt && setTimeout(function() {
+            elt.focus();
+        }, 10);
+    }
+    function blurElt(id) {
+        var elt = document.getElementById(id);
+        elt && setTimeout(function() {
+            elt.blur();
+        }, 10);
+    }
     function windowFocus(evt) {
         evt = evt || window.event, addClass(document.body, "_FOCUS");
     }
@@ -5342,7 +5354,8 @@ fdjt.DOM = function() {
     fdjtDOM.playAudio = playAudio, fdjtDOM.tweakImage = tweakImage, fdjtString.makeBlob = makeBlob, 
     fdjtDOM.data2URL = data2URL, fdjtDOM.addUXClasses = addUXClasses, fdjtDOM.addUSClasses = addUXClasses, 
     fdjtDOM.addCXClasses = addUXClasses, fdjt.addInit(addUXClasses, "AddUXClasses"), 
-    fdjt.addInit(trackPageFocus), fdjtDOM.trace_adjust = !1, fdjtDOM;
+    fdjtDOM.focus = focusElt, fdjtDOM.blur = blurElt, fdjt.addInit(trackPageFocus), 
+    fdjtDOM.trace_adjust = !1, fdjtDOM;
 }(), function() {
     "use strict";
     function fakeAnimationFrame(callback) {
@@ -7746,7 +7759,10 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         if (evt = evt || window.event, "string" == typeof input && (input = document.getElementById(input)), 
         input) {
             var target = fdjtUI.T(evt);
-            input.type = visible ? target.checked ? "PASSWORD" : "TEXT" : target.checked ? "TEXT" : "PASSWORD";
+            input.type = visible ? target.checked ? "PASSWORD" : "TEXT" : target.checked ? "TEXT" : "PASSWORD", 
+            setTimeout(function() {
+                input.focus();
+            }, 1e3);
         }
     }
     function uploadSelected(evt) {
@@ -18916,19 +18932,21 @@ var metaBook = {
     fdjt.DOM.defListeners(metaBook.UI.handlers.mouse, vis_listeners);
 }(), function() {
     "use strict";
-    function getGoPage(target) {
-        return parseInt(target.innerHTML, 10);
+    function getGoPage(target, evt) {
+        var pagebar = $ID("METABOOKPAGEBAR"), w = pagebar.offsetWidth, npages = mB.pagecount, evt_x = evt.clientX || evt.touches && evt.touches.length && evt.touches[0].clientX, off = pagebar.offsetLeft, relx = evt_x - off, gopage = npages * (relx / w);
+        return (Trace.gestures > 1 || hasClass(pagebar, "metabooktrace")) && fdjtLog("pagebar_GoPage %o: %o-%o=%o/%o=%o => %o/%o", evt, evt_x, off, relx, w, relx / w, gopage, npages), 
+        Math.round(gopage + 1);
     }
     function pagebar_hold(evt, target) {
-        evt = evt || window.event, target || (target = fdjtUI.T(evt));
-        var pagebar = $ID("METABOOKPAGEBAR");
-        if (previewTimeout(!1), (mB.hudup || mB.mode) && !mB.fullheight) return fdjtUI.cancel(evt), 
-        metaBook.setMode(!1), void 0;
-        if (3 === target.nodeType && (target = target.parentNode), !hasParent(target, pagebar) || "SPAN" === target.tagName) {
+        if (evt = evt || window.event, target || (target = fdjtUI.T(evt)), "mousemove" !== evt.type || evt.buttons) {
+            var pagebar = $ID("METABOOKPAGEBAR");
+            if (previewTimeout(!1), (mB.hudup || mB.mode) && !mB.fullheight) return fdjtUI.cancel(evt), 
+            metaBook.setMode(!1), void 0;
+            3 === target.nodeType && (target = target.parentNode);
             var gopage = getGoPage(target, evt);
-            (Trace.gestures || hasClass(pagebar, "metabooktrace")) && fdjtLog("pagebar_span_hold %o t=%o gopage: %o=>%o/%o, start=%o", evt, target, previewing_page, gopage, mB.pagecount, preview_start_page), 
+            (Trace.gestures || hasClass(pagebar, "metabooktrace")) && fdjtLog("pagebar_hold %o t=%o gopage: %o=>%o/%o, start=%o", evt, target, previewing_page, gopage, mB.pagecount, preview_start_page), 
             preview_start_page || (preview_start_page = gopage), previewing_page !== gopage && gopage && (pagebar.title = previewing_page ? fdjtString("Release to go to this page (%d), move away to return to page %d", gopage, mB.curpage) : fdjtString(mB.touch ? "Release to return to page %d, tap the content or margin to settle here (page %d)" : "Release to return to page %d, tap a key to settle here (page %d)", metaBook.curpage, gopage), 
-            previewing_page = gopage, metaBook.startPreview("CODEXPAGE" + previewing_page, "pagebar_span_hold/timeout"));
+            previewing_page = gopage, metaBook.startPreview("CODEXPAGE" + previewing_page, "pagebar_hold/timeout"));
         }
     }
     function pagebar_tap(evt, target) {
@@ -18939,10 +18957,9 @@ var metaBook = {
         void 0;
         if (mB.hudup || mB.mode || mB.cxthelp) return Trace.gestures && fdjtLog("clearHUD %s %s %s", mB.mode, mB.hudup ? "hudup" : "", mB.cxthelp ? "hudup" : ""), 
         fdjtUI.cancel(evt), metaBook.setMode(!1), void 0;
-        if (3 === target.nodeType && (target = target.parentNode), !hasParent(target, pagebar) || "SPAN" === target.tagName) {
-            var gopage = getGoPage(target, evt);
-            previewing_page !== gopage && (metaBook.GoToPage(gopage, "pagebar_tap", !0), metaBook.setMode(!1));
-        }
+        3 === target.nodeType && (target = target.parentNode);
+        var gopage = getGoPage(target, evt);
+        previewing_page !== gopage && (metaBook.GoToPage(gopage, "pagebar_tap", !0), metaBook.setMode(!1));
     }
     function pagebar_release(evt, target) {
         evt = evt || window.event, target || (target = fdjtUI.T(evt));
@@ -18974,6 +18991,7 @@ var metaBook = {
         "#METABOOKPAGEBAR": {
             tap: pagebar_tap,
             hold: pagebar_hold,
+            mousemove: pagebar_hold,
             release: pagebar_release,
             slip: pagebar_slip,
             click: cancel
@@ -18982,6 +19000,7 @@ var metaBook = {
         "#METABOOKPAGEBAR": {
             tap: pagebar_tap,
             hold: pagebar_hold,
+            touchmove: pagebar_hold,
             release: pagebar_release,
             slip: pagebar_slip,
             touchtoo: pagebar_touchtoo,
@@ -19481,18 +19500,16 @@ var metaBook = {
             addClass(document.body, "_SCALEDLAYOUT");
         }
     }
-    function updatePageDisplay(pagenum, staticref, location, classname) {
-        var update_progress = !classname;
-        classname || (classname = "current");
-        var npages = metaBook.pagecount, staticmax = metaBook.layout.laststaticref, page_elt = $ID("METABOOKPAGESPAN" + pagenum), cur = getChildren("METABOOKPAGEBAR", "." + classname);
-        Trace.flips && fdjtLog("updatePageDisplay/%s %d %d/%d", classname, location, pagenum, npages), 
-        cur[0] !== page_elt && (dropClass(cur, classname), addClass(page_elt, classname));
-        var locoff;
+    function updatePageDisplay(pagenum, staticref, location, eltid) {
+        var update_progress = !eltid;
+        eltid || (eltid = "METABOOKCURPAGESPAN");
+        var locoff, npages = metaBook.pagecount, staticmax = metaBook.layout.laststaticref, showpage_elt = $ID(eltid);
         if ("number" == typeof location) {
             var max_loc = metaBook.ends_at, pct = 100 * location / max_loc, prec = Math.round(Math.log(max_loc / 40) / Math.log(10)) - 2;
             0 > prec && (prec = 0), locoff = fdjtDOM("span.metabookloc#METABOOKLOCPCT", (0 === prec ? Math.floor(pct) : fdjtString.precString(pct, prec)) + "%"), 
             locoff.title = location + "/" + max_loc;
         } else locoff = fdjtDOM("span.metabookloc#METABOOKLOCPCT");
+        showpage_elt && (showpage_elt.innerHTML = pagenum, showpage_elt.style.left = 100 * (pagenum - 1) / npages + "%");
         var pageno_text = fdjtDOM("span#METABOOKPAGENOTEXT.metabookpageno", pagenum, "/", npages);
         pageno_text.title = "select to change page number", fdjtDOM.replace("METABOOKPAGENOTEXT", pageno_text);
         var pageref_text = staticref && staticmax && fdjtDOM("span#METABOOKPAGEREFTEXT.metabookpageno", staticref + "(" + staticmax + ")");
@@ -19506,26 +19523,26 @@ var metaBook = {
         if (update_progress) {
             var page = $ID("CODEXPAGE" + pagenum), topid = page && page.getAttribute("data-topid"), info = topid && metaBook.docinfo[topid];
             if (info) {
-                for (var head1 = info.level ? info : info.head, head2 = head1 && head1.head, head3 = head2 && head2.head, span1 = head1 && getPageSpan(head1), span2 = head2 && getPageSpan(head2), span3 = head3 && getPageSpan(head3); span3 && span2 && 1 >= span1.width; ) {
-                    var nextspan = head3.head && getPageSpan(head3.head);
+                for (var head1 = info.level ? info : info.head, head2 = head1 && head1.head, head3 = head2 && head2.head, range1 = getpagerange(head1), range2 = getpagerange(head2), range3 = getpagerange(head3); range3 && range2 && 1 >= range1.width; ) {
+                    var nextspan = head3.head && getpagerange(head3.head);
                     if (!nextspan) break;
-                    head1 = head2, head2 = head3, head3 = head3.head, span1 = span2, span2 = span3, 
-                    span3 = nextspan;
+                    head1 = head2, head2 = head3, head3 = head3.head, range1 = range2, range2 = range3, 
+                    range3 = nextspan;
                 }
                 var marker1 = $ID("METABOOKSECTMARKER1"), marker2 = $ID("METABOOKSECTMARKER2"), marker3 = $ID("METABOOKSECTMARKER3");
-                span1 && span1.width ? (marker1.style.left = 100 * ((span1.start - 1) / npages) + "%", 
-                marker1.style.width = 100 * (span1.width / npages) + "%", marker1.style.display = "block") : marker1.style.display = "none", 
-                span2 && span2.width ? (marker2.style.left = 100 * ((span2.start - 1) / npages) + "%", 
-                marker2.style.width = 100 * (span2.width / npages) + "%", marker2.style.display = "block") : marker2.style.display = "none", 
-                span3 && span3.width ? (marker3.style.left = 100 * ((span3.start - 1) / npages) + "%", 
-                marker3.style.width = 100 * (span3.width / npages) + "%", marker3.style.display = "block") : marker3.style.display = "none";
+                range1 && range1.width ? (marker1.style.left = 100 * ((range1.start - 1) / npages) + "%", 
+                marker1.style.width = 100 * (range1.width / npages) + "%", marker1.style.display = "block") : marker1.style.display = "none", 
+                range2 && range2.width ? (marker2.style.left = 100 * ((range2.start - 1) / npages) + "%", 
+                marker2.style.width = 100 * (range2.width / npages) + "%", marker2.style.display = "block") : marker2.style.display = "none", 
+                range3 && range3.width ? (marker3.style.left = 100 * ((range3.start - 1) / npages) + "%", 
+                marker3.style.width = 100 * (range3.width / npages) + "%", marker3.style.display = "block") : marker3.style.display = "none";
             }
         }
         var handlers = metaBook.UI.handlers[metaBook.ui];
         fdjtDOM.addListeners(locoff, handlers["#METABOOKLOCPCT"]), fdjtDOM.addListeners(pageno_text, handlers["#METABOOKPAGENOTEXT"]), 
         pageref_text && fdjtDOM.addListeners(pageref_text, handlers["#METABOOKPAGEREFTEXT"]);
     }
-    function getPageSpan(headinfo) {
+    function getpagerange(headinfo) {
         for (var nextinfo, scan = headinfo, result = {}; scan; ) {
             if (scan.next) {
                 nextinfo = scan.next;
@@ -19543,13 +19560,11 @@ var metaBook = {
         result;
     }
     function setupPagebar() {
-        var layout = metaBook.layout, pages = layout.pages, i = 0, n = pages.length, html = [], pagemax = $ID("METABOOKGOTOPAGEMAX");
+        var layout = metaBook.layout, pages = layout.pages, i = 0, n = pages.length, pagemax = $ID("METABOOKGOTOPAGEMAX");
         pagemax && (pagemax.innerHTML = "" + n);
         var spanwidth = $ID("METABOOKPAGEBAR").offsetWidth / n;
-        for (1 > spanwidth && (spanwidth = 1), metaBook.CSS.pagespanrule ? metaBook.CSS.pagespanrule.style.width = spanwidth + "px" : metaBook.CSS.pagespanrule = fdjtDOM.addCSSRule("div.metabookpagespans > span", "width: " + spanwidth + "px;"); n > i; ) {
-            var page = pages[i], topid = page && page.getAttribute("data-topid"), topinfo = topid && metaBook.docinfo[topid], zstyle = topinfo && topinfo.level ? "; z-index: 50;" : "";
-            html.push("<span id='METABOOKPAGESPAN" + (i + 1) + "' " + "class='metabookpagespan' " + "title='p" + (i + 1) + ". Hold to glimpse, tap to jump' " + "style='left: " + 100 * (i / n) + "%" + zstyle + "'" + ">" + (i + 1) + "</span>");
-            var pageref = page.getAttribute("data-staticpageref");
+        for (1 > spanwidth && (spanwidth = 1), metaBook.CSS.pagespanrule ? metaBook.CSS.pagespanrule.style.width = spanwidth + "px" : metaBook.CSS.pagespanrule = fdjtDOM.addCSSRule("div.metabookpagespan", "width: " + spanwidth + "px;"); n > i; ) {
+            var page = pages[i], pageref = page.getAttribute("data-staticpageref");
             if (pageref) {
                 var pagemap = layout.pagemap, pagerefmax = $ID("METABOOKGOTOPAGEREFMAX");
                 pagerefmax && (pagerefmax.innerHTML = "" + pageref), pagemap || (layout.pagemap = pagemap = {}), 
@@ -19558,10 +19573,6 @@ var metaBook = {
             i++;
         }
         layout.laststaticref ? addClass(document.body, "mbPAGEREFS") : dropClass(document.body, "mbPAGEREFS");
-        var spans = $ID("METABOOKPAGESPANS");
-        spans.innerHTML = html.join("");
-        var outer_width = getGeometry(spans), inner_width = fdjt.DOM.getInsideBounds(spans), tweak = outer_width / inner_width;
-        spans.style[fdjt.DOM.transform] = "scale(" + tweak + ",1)";
     }
     function getDups(id) {
         if (id) {
@@ -19633,7 +19644,7 @@ var metaBook = {
                 curpage && addClass(curpage, "hidepage"), addClass(page, "previewpage"), metaBook.previewing = previewing = page, 
                 addClass(document.body, "mbPREVIEW");
                 var staticref = page.getAttribute("data-staticpageref");
-                updatePageDisplay(pagenum, staticref, pageloc, "preview");
+                updatePageDisplay(pagenum, staticref, pageloc, "METABOOKPRVPAGESPAN");
             }
         }
     }
@@ -19649,8 +19660,8 @@ var metaBook = {
             metaBook.previewing = previewing = !1, dropClass(document.body, "mbPREVIEW"), dropClass(document.body, "mbPAGEPREVIEW"), 
             newpage) {
                 var newnum = parseInt(newpage.getAttribute("data-pagenum"), 10), newloc = metaBook.getLocInfo(target);
-                updatePageDisplay(newnum, newpage.getAttribute("data-staticpageref"), newloc && newloc.starts_at, "current");
-            } else updatePageDisplay(pagenum, curpage.getAttribute("data-staticpageref"), metaBook.location, "current");
+                updatePageDisplay(newnum, newpage.getAttribute("data-staticpageref"), newloc && newloc.starts_at);
+            } else updatePageDisplay(pagenum, curpage.getAttribute("data-staticpageref"), metaBook.location);
             "number" == typeof newpage && metaBook.GoToPage(newpage);
         }
     }
@@ -19715,7 +19726,7 @@ var metaBook = {
     metaBook.displaySync = displaySync, Paginate;
 }(), metaBook.HTML.searchbox = '<div class=\'query\'>\n  <input id="METABOOKSEARCHINPUT"\n         type="TEXT" class="autoprompt searchinput"\n         name="QTEXT" value="" isempty="yes" autocomplete="off"\n         onfocus="metaBook.UI.handlers.search_focus(event);"\n         onblur="metaBook.UI.handlers.search_blur(event);"\n         onkeydown="metaBook.UI.handlers.search_keydown(event);"\n         onkeyup="metaBook.UI.handlers.search_keyup(event);"\n         onkeypress="metaBook.UI.handlers.search_keypress(event);"\n         completeopts="anywhere cloud" enterchars=";" maxcomplete="45"\n         placeholder="type or tap tags or terms"\n         completions="METABOOKSEARCHCLOUD"\n         results="METABOOKSEARCHRESULTS"\n         info="METABOOKSEARCHINFO"/>\n  <img class="metabookclearsearch" alt="X" title="clear search"\n       src="{{bmg}}metabook/redx.svgz"\n       onerror="this.src=\'{{bmg}}metabook/redx64x64.png"/\'>\n</div>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n\n', 
 metaBook.HTML.addgloss = '<form action="https://glosses.bookhub.io/glosses"\n      ajaxaction="https://glosses.bookhub.io/glosses"\n      method="POST" target="addgloss"\n      accept-charset="utf-8">\n  <div class="messageoverlay">\n    <div class="saving">Saving...</div>\n    <div class="saved">Saved</div>\n  </div>\n  <div class="hidden">\n    <input type="HIDDEN" name="FRAG"/>\n    <input type="HIDDEN" name="WSNID"/>\n    <input type="HIDDEN" name="REFURI"/>\n    <input type="HIDDEN" name="DOCURI"/>\n    <input type="HIDDEN" name="SYNC"/>\n    <input type="HIDDEN" name="UUID"/>\n    <input type="HIDDEN" name="TAGLINE"/>\n    <input type="HIDDEN" name="LOCATION"/>\n    <input type="HIDDEN" name="LOCLEN"/>\n    <input type="HIDDEN" name="DOCTITLE"/>\n    <input type="HIDDEN" name="MYCOPYID"/>\n    <input type="HIDDEN" name="MAKER"/>\n    <input type="HIDDEN" name="RE"/>\n    <input type="HIDDEN" name="THREAD"/>\n    <input TYPE="HIDDEN" NAME="DETAIL" VALUE=""/>\n    <input TYPE="HIDDEN" NAME="EXCERPT" VALUE=""/>\n    <input TYPE="HIDDEN" NAME="EXOFF" VALUE=""/>\n    <!-- Force IE to send the form in UTF-8 -->\n    <input type="HIDDEN" name="IEHACK" VALUE="&#9760;"/>\n  </div>\n  <div class="response">\n    Responding to <span class="respmaker"></span>\n    <span class="respdate"></span> <span class="respnote"></span> \n    <span class="resptags"></span> <span class="resplinks"></span>\n  </div>\n  <div class="metabookglossformbody">\n    <div class="addglossmenu" data-touchable="img">\n      <img src="{{bmg}}metabook/upmenu.svgz"\n           onerror="this.src=\'{{bmg}}metabook/upmenu64x64.png\'"\n           class="button menutop" alt="upmenu"/>\n      <img src="{{bmg}}metabook/downmenu.svgz"\n           onerror="this.src=\'{{bmg}}metabook/downmenu64x64.png\'"\n           class="button menutop" alt="downmenu"/>\n      <img src="{{bmg}}metabook/holdmenu.svgz"\n           onerror="this.src=\'{{bmg}}metabook/holdmenu64x64.png\'"\n           class="button menutop" alt="holdmenu"/>\n      <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_save_titled64x64.png\'"\n           title="save this gloss" class="button" alt="glosspush"\n           tabindex="2"/>\n      <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_save_titled64x64.png\'"\n           title="update this gloss" class="button" alt="glossupdate"\n           tabindex="2"/>\n      <img src="{{bmg}}metabook/gloss_tag_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_tag_titled64x64.png\'"\n           title="add tags" class="button" alt="addtag"\n           tabindex="3"/>\n      <img src="{{bmg}}metabook/gloss_attach_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_attach_titled64x64.png\'"\n           title="attach files" class="button" alt="attach"\n           tabindex="4"/>\n      <img src="{{bmg}}metabook/gloss_share_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_share_titled64x64.png\'"\n           title="add outlets/share this gloss" class="button" alt="addoutlet"\n           tabindex="6"/>\n      <img src="{{bmg}}metabook/gloss_respond_toptitle.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_respond_toptitle64x64.png\'"\n           title="respond to this gloss" class="button" alt="glossrespond"\n           tabindex="7"/>\n      <img src="{{bmg}}metabook/gloss_delete_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_delete_titled64x64.png\'"\n           title="delete gloss" class="button" alt="glossdelete"\n           tabindex="9"/>\n      <img src="{{bmg}}metabook/gloss_cancel_titled.svgz"\n           onerror="this.src=\'{{bmg}}metabook/gloss_cancel_titled64x64.png\'"\n           title=" cancel gloss" class="button" alt="glosscancel"\n           tabindex="8"/>\n    </div>\n    <div class="textbox">\n      <textarea\n         name="NOTE"\n         placeholder="Use #tag or @share or to add tags or shares.  Markdown to format, Enter to save, Escape to cancel."\n         title="Add text (using markdown), using @share and #tag to add outlets and tags."\n         class="markdowninput"\n         wrap="virtual"\n         tabindex="0"></textarea>\n    </div>\n    <div class="glossetc">\n      <span class="glossexposure">\n        <span class="checkspan private" tabindex="5">\n          <input type="CHECKBOX" name="PRIVATE" value="yes"\n                 onchange="metaBook.UI.changeGlossPrivacy(event);"/>\n          <span class="checked"\n                title="this gloss won\'t be shared with my associated networks">\n            Private</span>\n          <span class="unchecked"\n                title="this gloss will be shared with my associated networks">\n            Shared</span>\n        </span>\n      </span>\n      <span class="glossdate"></span>\n      <span class="tags empty"></span>    \n      <span class="links empty"></span>\n      <span class="outlets empty"></span>\n      <span class="excerpt"></span>\n    </div>\n  </div>\n</form>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-metaBook.HTML.hud = '<div id="METABOOKHEAD">\n  <div id="METABOOKTOC" class="hudpanel"></div>\n  <div id="METABOOKSEARCH" class="searchbox hudpanel notags">\n    <!-- This content comes from searchbox.html -->\n  </div>\n  <div id="METABOOKNOTETEXT" class="hudpanel"\n       title="tap/click to jump to the note">\n    <!-- This displays the text for a "note" -->\n  </div>\n  <div id="METABOOKGLOSS" class="hudpanel">\n    <div class="editbar">\n      <span class="deletebutton">Delete</span>\n      <span class="deletebutton">Edit</span>\n      <span class="deletebutton">Reply</span>\n    </div>\n    <div id="METABOOKTARGETGLOSS">\n      <!-- This is generated on demand -->\n    </div>\n  </div>\n  <div id="METABOOKSOURCES" class="hudpanel metabooksources">\n    <img src="{{bmg}}metabook/sbookspeople.svgz"\n         onerror="this.src=\'{{bmg}}metabook/sbookspeople50x50.png\'"\n         class="button everyone selected"\n         alt="show all" title="show all glosses"/>\n  </div>\n  <div id="METABOOKADDGLOSS" class="metabookaddgloss hudpanel">\n  </div>\n  <div class="metabookglossform" id="METABOOKADDGLOSSPROTOTYPE">\n    <!-- This content comes from addgloss.html -->\n  </div>\n</div>\n<div id="METABOOKSKIMMER">\n  <div id="METABOOKSKIM"></div>\n</div>\n<div id="METABOOKTOPHELPCONTENT">\n  <div id="METABOOKSLICEHELP" class="hudpanel">\n    Press to see the context, tap to start skimming\n  </div>\n  <div id="METABOOKSEETHRUHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span> to\n      <span class="result">return</span>.\n      <span class="notouch action">Press any key</span>\n      <span class="fortouch action">Tap anywhere else</span>\n      to <span class="result">settle</span> here.</p>\n  </div>\n  <div id="METABOOKPAGEBARHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span>\n      <span class="fortouch action">or tap the text</span>\n      to <span class="result">settle</span> here.\n      <span class="action notouch">Press any key</span>\n      <span class="notouch">or</span>\n      <span class="notouch action">move the pointer away</span>\n      <span class="action fortouch">Move your finger away</span>\n      to <span class="result">return</span> to where you were.</p>\n  </div>\n  <div id="METABOOKPREVIEWHELP" class="helpbox">\n    <p>You\'re <em>previewing</em> a reference. <strong>Let go</strong>\n      to <em>go back</em> to the\n      reference, <strong class="fortouch">tap anywhere\n        else</strong> <strong class="notouch">tap any key</strong>\n      to <em>settle here</em>.</p>\n  </div>\n</div>\n</div>\n<div id="METABOOKHEART">\n  <div id="METABOOKRIBBON">\n    <div class="inputbox" ID="METABOOKADDTAGHOLDER">\n      <input TYPE="TEXT" NAME="TAG" VALUE=""\n             placeholder="Type or define a tag, with completion"\n             autocomplete="off"\n             ID="METABOOKADDTAGINPUT"/>\n    </div>\n    <div class="inputbox" ID="METABOOKADDSHAREHOLDER">\n      <input TYPE="TEXT" NAME="OUTLET" VALUE=""\n             placeholder="Type a group or individual name"\n             autocomplete="off"\n             ID="METABOOKADDSHAREINPUT"/>\n    </div>\n    <div class="resultinfo notags noresults" id="METABOOKSEARCHINFO">\n      <span class="noresults">No results</span>\n      <span class="noquery">\n        <span class="fortouch">Tap</span> <span class="notouch">Click</span>\n        tags or start typing to begin a search</span>\n      <span class="stats">\n        <span class="resultcount metabookshowsearch"></span>\n        <span class="refinecount metabookrefinesearch"></span>\n        <span class="showalltags metabookexpandsearch">all<br/>tags</span>\n      </span>\n      <span id="METABOOKSEARCHTAGS" class="qtags"></span>\n    </div>\n  </div>\n  <div id="METABOOKHEARTBODY"></div>\n</div>\n<div id="METABOOKHELPCONTENT">\n  <div id="METABOOKHELP" class="metabookhelp">\n    <!-- This is the help text for reading the book as a whole (it get\'s\n         displayed for help when there isn\'t an active reader mode) -->\n    <div id="METABOOKAPPHELP"></div>\n  </div>\n  <div id="METABOOKHUDHELP" class="helpbox"></div>\n  <div id="METABOOKKEYBOARDHELPBOX" class="closed">\n    <span class="keep" onclick="metaBook.keyboardHelp(true);">keep</span>\n    <span class="close" onclick="metaBook.keyboardHelp(false);">close</span>\n    <div id="METABOOKKEYBOARDHELP"></div>\n    <div class="checkspan">\n      <input TYPE="CHECKBOX" NAME="METABOOKKEYBOARDHELP" VALUE="yes"\n             CHECKED>\n      Show keyboard help\n    </div>\n  </div>\n  <div class="hudtip topcenter">\n    <span class="fortouch">Tap</span><span class="notouch">Click</span>\n    at the top of the page to see the &metaBook; <em>tools</em>\n  </div>\n  <div class="hudtip topleft" data-hudmode="toc">\n    <span class="nobreak"><span class="arrow">&#x2190;</span>navigate</span><br/>\n    <span class="nobreak">outline</span></div>\n  <div class="hudtip topright" data-hudmode="search">\n    <span class="nobreak"><span class="arrow">&#x2192;</span>search</span><br/>\n    for&nbsp;tags\n  </div>\n  <div class="hudtip leftmiddle">\n    back page\n  </div>\n  <div class="hudtip rightmiddle">\n    next page\n  </div>\n</div>\n<div id="METABOOKFOOT" data-xtouchable="span.metabookpagespan,span.metabookpageno,span.metabookloc,img.hudbutton">\n  <div id="METABOOKSHOWTEXT">\n    <span>\n      <span class="justreading">close tools</span>\n      <span class="stopskimming">stop skimming</span>\n      <span class="cancelgloss">cancel gloss</span>\n      <span class="cancelchanges">discard changes</span>\n    </span>\n  </div>\n  <div class="hudtip botcenter">\n    <span style="font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;" class="arrow">\n      &#x2193;</span>\n    this bar shows where you are in the book;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    to jump, press to skim, and <span class="fortouch">tap</span>\n      <span class="notouch">click</span> numeric indicators to change\n      them.\n  </div>\n  <div id="METABOOKPAGEBAR">\n    <div class="textfoot">\n      <div id="METABOOKLAYOUTADJUST">Updating layout</div>\n      <span id="METABOOKPAGEREFTEXT" class="metabookpageno"></span>\n      <span id="METABOOKPAGENOTEXT" class="metabookpageno">p/n</span>\n      <span class="metabookloc" id="METABOOKLOCPCT">??.??%</span>\n      <div id="METABOOKGOTOLOC" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOLOC" value="" placeholder="loc"\n                 title="Enter a percent (<= 100) or an immediate location (> 100)"\n                 id="METABOOKLOCINPUT"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>%</span>\n      </div>\n      <div id="METABOOKGOTOPAGE" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOPAGE" value=""\n                 id="METABOOKPAGEINPUT" placeholder="page#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEMAX"></span></span>\n      </div>\n      <div id="METABOOKGOTOREF" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOREF" value=""\n                 id="METABOOKREFINPUT" placeholder="pg ref#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEREFMAX"></span></span>\n      </div>\n    </div>\n    <hr class="metabooklayoutindicator" id="METABOOKLAYOUTINDICATOR"/>\n    <div class="metabookpageprogress" id="METABOOKPAGEPROGRESS"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER1"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER2"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER3"></div>\n    <div class="metabookpagespans" id="METABOOKPAGESPANS">\n    </div>\n  </div>\n  <img src="{{bmg}}metabook/allglosses.svgz"\n       onerror="this.src=\'{{bmg}}metabook/allglosses50x50.png\'"\n       alt="allglosses" title="show all glosses"\n       class="hudbutton hudmodebutton botright"\n       id="METABOOKALLGLOSSESBUTTON"\n       hudmode="allglosses"/>\n  <img src="{{bmg}}metabook/tagsearch.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n       alt="searchresults" title="show searchresults"\n       class="hudbutton hudmodebutton botright"\n       hudmode="searchresults"/>\n  <img src="{{bmg}}metabook/tocicon.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n       alt="statictoc" title="show TOC"\n       class="hudbutton hudmodebutton botright"\n       hudmode="statictoc"/>\n  <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n       onerror="this.src=\'{{bmg}}metabook/gloss_save_titled50x50.png\'"\n       alt="save gloss" title="save gloss"\n       class="hudbutton botright"/>\n  <img src="{{bmg}}metabook/help.svgz"\n       onerror="this.src=\'{{bmg}}metabook/help50x50.png\'"\n       alt="help" title="show contextual help"\n       class="hudbutton hudmodebutton botleft"\n       id="METABOOKHELPBUTTON"\n       hudmode="help"/>\n  <div class="hudtip botright" data-hudmode="toc">\n    <span class="nobreak">browse</span><br/>\n    <span class="nobreak">glosses<span class="arrow">&#x2192;</span></span></div>\n  <div class="hudtip botleft">\n    <span class="nobreak">toggle</span><br/>\n    <span class="nobreak"><span class="arrow">&#x2190;</span>help</span></div>\n</div>\n<div id="METABOOKAUDIO">\n  <audio id="METABOOKPAGEFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pageforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pageforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKPAGEBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pagebackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pagebackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimbackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimbackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMSTOPAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimstop.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimstop.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKTEXTSELECTAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/selecting.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/selecting.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKRAISEHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/raisehud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/raisehud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKDROPHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/drophud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/drophud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKGLOSSEDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/glossed.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/glossed.ogg" type="audio/ogg"/>\n  </audio>\n</div>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n -->\n', 
+metaBook.HTML.hud = '<div id="METABOOKHEAD">\n  <div id="METABOOKTOC" class="hudpanel"></div>\n  <div id="METABOOKSEARCH" class="searchbox hudpanel notags">\n    <!-- This content comes from searchbox.html -->\n  </div>\n  <div id="METABOOKNOTETEXT" class="hudpanel"\n       title="tap/click to jump to the note">\n    <!-- This displays the text for a "note" -->\n  </div>\n  <div id="METABOOKGLOSS" class="hudpanel">\n    <div class="editbar">\n      <span class="deletebutton">Delete</span>\n      <span class="deletebutton">Edit</span>\n      <span class="deletebutton">Reply</span>\n    </div>\n    <div id="METABOOKTARGETGLOSS">\n      <!-- This is generated on demand -->\n    </div>\n  </div>\n  <div id="METABOOKSOURCES" class="hudpanel metabooksources">\n    <img src="{{bmg}}metabook/sbookspeople.svgz"\n         onerror="this.src=\'{{bmg}}metabook/sbookspeople50x50.png\'"\n         class="button everyone selected"\n         alt="show all" title="show all glosses"/>\n  </div>\n  <div id="METABOOKADDGLOSS" class="metabookaddgloss hudpanel">\n  </div>\n  <div class="metabookglossform" id="METABOOKADDGLOSSPROTOTYPE">\n    <!-- This content comes from addgloss.html -->\n  </div>\n</div>\n<div id="METABOOKSKIMMER">\n  <div id="METABOOKSKIM"></div>\n</div>\n<div id="METABOOKTOPHELPCONTENT">\n  <div id="METABOOKSLICEHELP" class="hudpanel">\n    Press to see the context, tap to start skimming\n  </div>\n  <div id="METABOOKSEETHRUHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span> to\n      <span class="result">return</span>.\n      <span class="notouch action">Press any key</span>\n      <span class="fortouch action">Tap anywhere else</span>\n      to <span class="result">settle</span> here.</p>\n  </div>\n  <div id="METABOOKPAGEBARHELP" class="metabookhelp helpbox">\n    <p><span class="action">Release</span>\n      <span class="fortouch action">or tap the text</span>\n      to <span class="result">settle</span> here.\n      <span class="action notouch">Press any key</span>\n      <span class="notouch">or</span>\n      <span class="notouch action">move the pointer away</span>\n      <span class="action fortouch">Move your finger away</span>\n      to <span class="result">return</span> to where you were.</p>\n  </div>\n  <div id="METABOOKPREVIEWHELP" class="helpbox">\n    <p>You\'re <em>previewing</em> a reference. <strong>Let go</strong>\n      to <em>go back</em> to the\n      reference, <strong class="fortouch">tap anywhere\n        else</strong> <strong class="notouch">tap any key</strong>\n      to <em>settle here</em>.</p>\n  </div>\n</div>\n</div>\n<div id="METABOOKHEART">\n  <div id="METABOOKRIBBON">\n    <div class="inputbox" ID="METABOOKADDTAGHOLDER">\n      <input TYPE="TEXT" NAME="TAG" VALUE=""\n             placeholder="Type or define a tag, with completion"\n             autocomplete="off"\n             ID="METABOOKADDTAGINPUT"/>\n    </div>\n    <div class="inputbox" ID="METABOOKADDSHAREHOLDER">\n      <input TYPE="TEXT" NAME="OUTLET" VALUE=""\n             placeholder="Type a group or individual name"\n             autocomplete="off"\n             ID="METABOOKADDSHAREINPUT"/>\n    </div>\n    <div class="resultinfo notags noresults" id="METABOOKSEARCHINFO">\n      <span class="noresults">No results</span>\n      <span class="noquery">\n        <span class="fortouch">Tap</span> <span class="notouch">Click</span>\n        tags or start typing to begin a search</span>\n      <span class="stats">\n        <span class="resultcount metabookshowsearch"></span>\n        <span class="refinecount metabookrefinesearch"></span>\n        <span class="showalltags metabookexpandsearch">all<br/>tags</span>\n      </span>\n      <span id="METABOOKSEARCHTAGS" class="qtags"></span>\n    </div>\n  </div>\n  <div id="METABOOKHEARTBODY"></div>\n</div>\n<div id="METABOOKHELPCONTENT">\n  <div id="METABOOKHELP" class="metabookhelp">\n    <!-- This is the help text for reading the book as a whole (it get\'s\n         displayed for help when there isn\'t an active reader mode) -->\n    <div id="METABOOKAPPHELP"></div>\n  </div>\n  <div id="METABOOKHUDHELP" class="helpbox"></div>\n  <div id="METABOOKKEYBOARDHELPBOX" class="closed">\n    <span class="keep" onclick="metaBook.keyboardHelp(true);">keep</span>\n    <span class="close" onclick="metaBook.keyboardHelp(false);">close</span>\n    <div id="METABOOKKEYBOARDHELP"></div>\n    <div class="checkspan">\n      <input TYPE="CHECKBOX" NAME="METABOOKKEYBOARDHELP" VALUE="yes"\n             CHECKED>\n      Show keyboard help\n    </div>\n  </div>\n  <div class="hudtip topcenter">\n    <span class="fortouch">Tap</span><span class="notouch">Click</span>\n    at the top of the page to see the &metaBook; <em>tools</em>\n  </div>\n  <div class="hudtip topleft" data-hudmode="toc">\n    <span class="nobreak"><span class="arrow">&#x2190;</span>navigate</span><br/>\n    <span class="nobreak">outline</span></div>\n  <div class="hudtip topright" data-hudmode="search">\n    <span class="nobreak"><span class="arrow">&#x2192;</span>search</span><br/>\n    for&nbsp;tags\n  </div>\n  <div class="hudtip leftmiddle">\n    back page\n  </div>\n  <div class="hudtip rightmiddle">\n    next page\n  </div>\n</div>\n<div id="METABOOKFOOT" data-xtouchable="span.metabookpagespan,span.metabookpageno,span.metabookloc,img.hudbutton">\n  <div id="METABOOKSHOWTEXT">\n    <span>\n      <span class="justreading">close tools</span>\n      <span class="stopskimming">stop skimming</span>\n      <span class="cancelgloss">cancel gloss</span>\n      <span class="cancelchanges">discard changes</span>\n    </span>\n  </div>\n  <div class="hudtip botcenter">\n    <span style="font-size: 200%; font-weight: bold; position: absolute; left: 2px; bottom: 2px;" class="arrow">\n      &#x2193;</span>\n    this bar shows where you are in the book;\n    <span class="fortouch">tap</span><span class="notouch">click</span>\n    to jump, press to skim, and <span class="fortouch">tap</span>\n      <span class="notouch">click</span> numeric indicators to change\n      them.\n  </div>\n  <div id="METABOOKPAGEBAR">\n    <div class="textfoot">\n      <div id="METABOOKLAYOUTADJUST">Updating layout</div>\n      <span id="METABOOKPAGEREFTEXT" class="metabookpageno"></span>\n      <span id="METABOOKPAGENOTEXT" class="metabookpageno">p/n</span>\n      <span class="metabookloc" id="METABOOKLOCPCT">??.??%</span>\n      <div id="METABOOKGOTOLOC" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOLOC" value="" placeholder="loc"\n                 title="Enter a percent (<= 100) or an immediate location (> 100)"\n                 id="METABOOKLOCINPUT"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>%</span>\n      </div>\n      <div id="METABOOKGOTOPAGE" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOPAGE" value=""\n                 id="METABOOKPAGEINPUT" placeholder="page#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEMAX"></span></span>\n      </div>\n      <div id="METABOOKGOTOREF" class="metabookgoto">\n        <span class="gototext">\n          <input type="text" name="GOTOREF" value=""\n                 id="METABOOKREFINPUT" placeholder="pg ref#"\n                 onkeypress="metaBook.UI.goto_keypress(event);"/>/\n          <span id="METABOOKGOTOPAGEREFMAX"></span></span>\n      </div>\n    </div>\n    <hr class="metabooklayoutindicator" id="METABOOKLAYOUTINDICATOR"/>\n    <div class="metabookpageprogress" id="METABOOKPAGEPROGRESS"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER1"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER2"></div>\n    <div class="metabooksectmarker" id="METABOOKSECTMARKER3"></div>\n    <div class="metabookpagespan" id="METABOOKCURPAGESPAN"></div>\n    <div class="metabookpagespan" id="METABOOKPRVPAGESPAN"></div>\n  </div>\n  <img src="{{bmg}}metabook/allglosses.svgz"\n       onerror="this.src=\'{{bmg}}metabook/allglosses50x50.png\'"\n       alt="allglosses" title="show all glosses"\n       class="hudbutton hudmodebutton botright"\n       id="METABOOKALLGLOSSESBUTTON"\n       hudmode="allglosses"/>\n  <img src="{{bmg}}metabook/tagsearch.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tagsearch50x50.png\'"\n       alt="searchresults" title="show searchresults"\n       class="hudbutton hudmodebutton botright"\n       hudmode="searchresults"/>\n  <img src="{{bmg}}metabook/tocicon.svgz"\n       onerror="this.src=\'{{bmg}}metabook/tocicon50x50.png\'"\n       alt="statictoc" title="show TOC"\n       class="hudbutton hudmodebutton botright"\n       hudmode="statictoc"/>\n  <img src="{{bmg}}metabook/gloss_save_titled.svgz"\n       onerror="this.src=\'{{bmg}}metabook/gloss_save_titled50x50.png\'"\n       alt="save gloss" title="save gloss"\n       class="hudbutton botright"/>\n  <img src="{{bmg}}metabook/help.svgz"\n       onerror="this.src=\'{{bmg}}metabook/help50x50.png\'"\n       alt="help" title="show contextual help"\n       class="hudbutton hudmodebutton botleft"\n       id="METABOOKHELPBUTTON"\n       hudmode="help"/>\n  <div class="hudtip botright" data-hudmode="toc">\n    <span class="nobreak">browse</span><br/>\n    <span class="nobreak">glosses<span class="arrow">&#x2192;</span></span></div>\n  <div class="hudtip botleft">\n    <span class="nobreak">toggle</span><br/>\n    <span class="nobreak"><span class="arrow">&#x2190;</span>help</span></div>\n</div>\n<div id="METABOOKAUDIO">\n  <audio id="METABOOKPAGEFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pageforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pageforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKPAGEBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/pagebackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/pagebackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMFORWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimforward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimforward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMBACKWARDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimbackward.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimbackward.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKSKIMSTOPAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/skimstop.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/skimstop.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKTEXTSELECTAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/selecting.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/selecting.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKRAISEHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/raisehud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/raisehud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKDROPHUDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/drophud.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/drophud.ogg" type="audio/ogg"/>\n  </audio>\n  <audio id="METABOOKGLOSSEDAUDIO" volume="0.5" preload="auto">\n    <source src="{{bmg}}metabook/glossed.wav" type="audio/wave"/>\n    <source src="{{bmg}}metabook/glossed.ogg" type="audio/ogg"/>\n  </audio>\n</div>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n -->\n', 
 metaBook.HTML.heart = '<div id="METABOOKALLGLOSSES" class="metabookslice mbsyncslice hudpanel">\n  <!-- This is filled in on startup -->\n</div>\n<div id="METABOOKGLOSSDETAIL" class="hudpanel">\n  <!-- This displays detail text for a gloss -->\n</div>\n<div id="METABOOKASIDE" class="hudpanel">\n  <!-- This displays the text for an aside -->\n</div>\n<div id="METABOOKGLOSSEDITDETAIL" class="hudpanel">\n  <!-- This is for editing the detail text for a gloss -->\n  <textarea NAME="METABOOKDETAILTEXT" class="markdowninput"\n            ID="METABOOKDETAILTEXT">\n  </textarea>\n</div>\n<div id="METABOOKGLOSSATTACH" class="hudpanel"></div>\n<div id="METABOOKSEARCHCLOUD" class="completions cloud searchcloud"></div>\n<div id="METABOOKALLTAGS" class="completions searchcloud cloud noinput">\n</div>\n<div id="METABOOKSEARCHRESULTS" class="metabookslice mbsyncslice hudpanel"></div>\n<div id="METABOOKSHARECLOUD" class="hudpanel completions cloud showall"></div>\n<div id="METABOOKGLOSSCLOUD" class="hudpanel completions cloud showall">\n  <div class="nomatchmsg">(no matches)</div>\n</div>\n<div class="tabcontent flyleaftab hudpanel" id="METABOOKSTATICTOC"\n     data-touchable=".mbtoc"></div>\n<iframe name="METABOOKGLOSSCOMM" id="METABOOKGLOSSCOMM"\n        frameborder="0" scrolling="auto"\n        class="hudpanel tabcontent"></iframe>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.attach = '<form id="METABOOKATTACHFORM" target="METABOOKGLOSSCOMM"\n      method="POST" enctype="multipart/form-data" accept-charset="utf-8"\n      action="https://glossdata.bookhub.io/1/attach"\n      class="link">\n  <table class="fdjtform"\n         onclick="fdjt.UI.CheckSpan.onclick(event);">\n    <input TYPE="HIDDEN" NAME="GLOSSID" VALUE="" id="METABOOKUPLOADGLOSSID"/>\n    <input TYPE="HIDDEN" NAME="ITEMID" VALUE="" id="METABOOKUPLOADITEMID"/>\n    <tr class="attachtype">\n      <th class="headcell">\n        Attach<img src="{{bmg}}metabook/gloss_attach.svgz"/></th>\n      <td>\n        <button id="METABOOKATTACHDELETE" NAME="ATTACH" VALUE="DELETE">\n          Delete</button>\n        <span class="checkspan ischecked mbaddlink"\n              title="Attach a link to this gloss">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="link"\n                 onchange="metaBook.UI.changeAttachment(event);"\n                 CHECKED/>\n          Link</span>\n        <span class="checkspan mbupload"\n              title="Upload a file and attach it to this gloss">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="upload"\n                 onchange="metaBook.UI.changeAttachment(event);"/>\n          File</span>\n        <span class="checkspan mbeditbody"\n              title="Create or edit a \'body\' for this gloss">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="body"\n                 onchange="metaBook.UI.changeAttachment(event);"/>\n          Body</span>\n        <span class="checkspan mbcapture"\n              title="Attach audio or video recorded on this device">\n          <input type="RADIO" NAME="ATTACHTYPE" VALUE="capture"\n                 onchange="metaBook.UI.changeAttachment(event);"/>\n          Capture</span>\n      </td>\n      <th class="button">\n        <button id="METABOOKATTACHLINK" NAME="ATTACH" VALUE="LINK">\n          Link</button>\n        <button id="METABOOKUPLOADOK" NAME="ATTACH" VALUE="UPLOAD">\n          Save</button>\n        <button id="METABOOKUPLOADOK" NAME="ATTACH" VALUE="SAVE">\n          Save</button>\n        <button id="METABOOKATTACHLINK" NAME="ATTACH" VALUE="BODY">\n          Save</button>\n        <button id="METABOOKATTACHLINK" NAME="ATTACH" VALUE="DONE">\n          Done</button>\n        <button id="METABOOKATTACHCANCEL" VALUE="CANCEL">\n          Cancel</button></th>\n    </tr>\n    <tr class="title">\n      <th>Label</th>\n      <td colspan="2">\n        <INPUT TYPE="TEXT" NAME="TITLE" VALUE="" ID="METABOOKATTACHTITLE"\n               placeholder="a descriptive label"/></tr>\n    <tr class="checkspan uploadrights"\n        id="METABOOKUPLOADRIGHTS">\n      <th><input TYPE="CHECKBOX" NAME="FILEOKAY" VALUE="yes"/></th>\n      <td colspan="2">\n        I affirm that I have the right to use and share this\n        content according to the bookhub.io\n        <a href="https://www.bookhub.io/legalia/TOS/" target="_blank">\n          Terms of Service</a>.</td>\n    </tr>\n    <tr class="url">\n      <th>URL</th>\n      <td colspan="2">\n        <input TYPE="TEXT" NAME="URL" VALUE=""\n               ID="METABOOKATTACHURL" class="fdjturlinput"\n               placeholder="a URL to attach"/>\n      </td>\n    </tr>\n    <tr class="capturefile">\n      <th>Capture</th>\n      <td id="METABOOKCAPTUREFILE" class="nofile" colspan="2">\n	<button NAME="CAPTURE" VALUE="AUDIO">Audio</button>\n	<button NAME="CAPTURE" VALUE="VIDEO">Video</button>\n	<button NAME="CAPTURE" VALUE="IMAGE">Photo</button>\n    </td></tr>\n    <tr class="uploadfile">\n      <th>Upload<input TYPE="FILE" NAME="UPLOAD" ID="METABOOKFILEINPUT"/></th>\n      <td id="METABOOKATTACHFILE" class="nofile" colspan="2">\n        <span class="mbdragmessage">Drag a file here or click to browse</span>\n        <span class="mbmessage">Tap to find files or media</span>\n        <span class="mbfilename" id="METABOOKATTACHFILENAME"></span>\n    </td></tr>\n    <tbody class="glossbody" id="METABOOKGLOSSBODY">\n      <tr>\n        <td colspan="3"><textarea NAME="BODYTEXT" ID="METABOOKGLOSSBODYTEXT"></textarea></td>\n      </tr>\n    </tbody>\n  </table>\n</form>\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.help = '<h1><span class="metabooktogglehelp">Ok</span>Using &metaBook;</h1>\n\n<p><img src="{{bmg}}metabook/browser_edges.svgz"\n        onerror="this.src=\'{{bmg}}metabook/browser_edges32x32.png\'"\n        alt="top of browser" class="floatright"/>\n  <strong>Move by pages</strong>\n  <span class="fortouch">by swiping left or right</span>\n  <span class="notouch">using the Space or Backspace keys</span> or\n  <span class="fortouch">tapping</span> <span class="notouch">clicking</span>\n  on the left or right regions of the page.</p>\n<!--\n<p><img src="{{bmg}}metabook/browser_corners.svgz" \n        onerror="this.src=\'{{bmg}}metabook/browser_corners32x32.png\'"\n        alt="top of browser" class="floatright"/>\n  <strong>Open the <dfn>book tools</dfn></strong> by\n  <span class="fortouch">tapping</span>\n  <span class="notouch">clicking</span> at the top of the\n  page.  <strong>Navigate, search, or skim</strong> using the icons\n  in the corners of the page.</p>\n<p><strong>Show this and other help</strong> by\n  <span class="fortouch">tapping</span><span class="notouch">clicking</span>\n  the <img src="{{bmg}}metabook/help.svgz" alt="top of browser"\n  onerror="this.src=\'{{bmg}}metabook/help50x50.png\'" class="inline"/>\n  icon in the lower left corner of the page.</p>\n-->\n<p class="glossexample">\n  <strong style="color: blue;">Blue <dfn>gloss bars</dfn></strong> in\n  the right margin indicate glosses already overlaid on your\n  book.  <strong><span class="fortouch">Tap or drag\n  left</span> <span class="notouch">Click to the left</span></strong>\n  of the blue bar to see associated notes, tags, links, etc.</p>\n\n<p><strong>Add your own glosses</strong> by\ndouble <span class="fortouch">tapping</span>\n  <span class="notouch">clicking</span> on the content or pressing and\n  holding to select text.  <strong>Enter notes, tags, links,\n  etc</strong> in the <dfn>gloss box</dfn> appearing at the top of the\n  page. <strong>Drag <span class="fortouch">your finger</span>\n  <span class="notouch">the pointer</span></strong> to select adjust\n  the <span class="fdjtselected"><span class="fdjtselectstart">beginning</span>\n  and <span class="fdjtselectend">end</span></span> of highlighted\n  text.</p>\n\n<p class="helphelp">\n  <strong>Show this and other help</strong> by\n  <span class="fortouch">tapping</span><span class="notouch">clicking</span>\n  the <img src="{{bmg}}metabook/help.svgz" alt="top of browser"\n           onerror="this.src=\'{{bmg}}metabook/help50x50.png\'" class="inline"/>\n  icon in the lower left of the page.</p>\n\n<!--\n<p class="tightbottom">\n  <img src="{{bmg}}metabook/docs/pagebar_zoom.png" class="floatright"/>\n  <strong>Browse the book</strong> using the <dfn>pagebar</dfn> along\n  the bottom.  The dark blue line show the current location with\n  lighter regions around for the current section and its parent.\n  <img src="{{bmg}}metabook/docs/pagebar_wide.png" class="wideimage"/>\n  <img src="{{bmg}}metabook/docs/pagebar_wide.png"\n  class="narrowimage"/><br/>\n  <span class="subpara">\n    <span class="fortouch">Tap</span><span class="notouch">Click</span>\n    the page number (in the middle) or percentage (on the right) to move\n    precisely.  Press and hold the pagebar to see a particular page,\n    moving <span class="fortouch">your\n      finger</span> <span class="notouch">the pointer</span> to skim\n    through pages.  <span class="notouch">Release</span>\n    <span class="fortouch">Lift your finger</span> to settle where you\n    are or <span class="fortouch">move\n      it</span> <span class="notouch">drag the mouse</span> out of the\n    pagebar to return to where you were.</span></p>\n-->\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
@@ -19725,10 +19736,10 @@ metaBook.HTML.console = '<h1>metaBook Console</h1>\n<div class=\'message\' id=\'
 metaBook.HTML.messages = '<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPSCAN">\n  <div class="indicator"></div>\n  <div class="message">\n    Scanning the book content for structure and metadata.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTOC">\n  <div class="indicator"></div>\n  <div class="message">\n    Setting up tables of content for book navigation.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPKNO">\n  <div class="indicator"></div>\n  <div class="message">\n    Processing embedded or referenced knowledge bases.\n    <div id="METABOOKSTARTUPKNODETAILS"></div>\n  </div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTAGGING">\n  <div class="indicator"></div>\n  <div class="message">Indexing with published tags.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPCLOUDS">\n  <div class="indicator"></div>\n  <div class="message">Setting up tag clouds for search and glossing.</div>\n</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKNEWGLOSSES">\n  <div class="indicator"></div>\n  <div class="message">Applying your glosses to your book.</div>\n</div>\n<!--\n     /* Emacs local variables\n     ;;;  Local variables: ***\n     ;;;  compile-command: "cd ../..; make" ***\n     ;;;  End: ***\n     */\n  -->\n\n', 
 metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" class="adjustfonts" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <a href="https://www.bookhub.io/" target="_blank"\n       class="bookplate__bookref metabookref"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      This book</a>\n    <span class="bookplate__text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/"\n       class="bookplate__username metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="checktext">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="checktext">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="checktext">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="checktext">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="checktext">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="checktext">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1557-gec8d8e9", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Wed Feb 3 08:14:33 EST 2016", 
-fdjt.builduuid = "3c2409b4-321f-48f0-a271-e223954e1e55", fdjt.CodexLayout.sourcehash = "09B186221A389F5822B9ECD8CBD5921B33A74B2F", 
-Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-246-gd1bce08", metaBook.buildid = "480125d2-ba6a-4401-bc2d-8b5d0fca9d86", 
-metaBook.buildtime = "Fri Feb  5 11:18:38 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
+fdjt.revision = "1.5-1557-gec8d8e9", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Sun Feb 21 14:30:57 EST 2016", 
+fdjt.builduuid = "1b772202-bf4c-4e0d-9868-f9b4ed33bbd4", fdjt.CodexLayout.sourcehash = "09B186221A389F5822B9ECD8CBD5921B33A74B2F", 
+Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-251-g97aca5b", metaBook.buildid = "199735ed-7173-4c03-b7bc-cab1645b961c", 
+metaBook.buildtime = "Fri Feb 26 10:09:34 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });
