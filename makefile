@@ -89,9 +89,10 @@ METABOOK_HTML_FILES=\
 	metabook/html/console.html metabook/html/messages.html \
 	metabook/html/cover.html metabook/html/settings.html
 
+# fonts/open_sans.css 
 METABOOK_CSS=\
 	metabook/css/app.css metabook/css/framing.css metabook/css/menu.css \
-	fonts/open_sans.css fonts/open_dyslexic.css metabook/css/fonts.css \
+	fonts/open_dyslexic.css metabook/css/fonts.css \
 	metabook/css/cover.css metabook/css/settings.css metabook/css/hud.css \
 	metabook/css/foot.css metabook/css/body.css metabook/css/help.css \
 	metabook/css/slices.css metabook/css/tocslice.css metabook/css/clouds.css \
@@ -106,8 +107,8 @@ SBOOKS_FILES=sbooks/sbooks.css \
 	metabook/amalgam.js
 LOGIN_CSS=sbooks/login.css
 
-METABOOK_JS_BUNDLE=metabook/fontcheck.js \
-	${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
+# metabook/fontcheck.js
+METABOOK_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
 	${PAGEDOWN_FILES} ${METABOOK_FILES} ${METABOOK_DERIVED_FILES}
 # removed sbooks/reset.css 
 METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
