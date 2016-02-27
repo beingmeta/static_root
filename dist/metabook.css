@@ -2049,8 +2049,7 @@ body._ANIMATE body.metabookfixed div.codexpage {
 
 /* The content */
 
-span.excerpt {
-    font-family: times,serif; line-height: 1.0;}
+span.excerpt {line-height: 1.0;}
 span.excerpt span.content { font-size: 80%; display: none;}
 .showexcerpt span.excerpt span.content { display: inline;}
 .showexcerpt span.excerpt span.ellipsis { display: none;}
@@ -3182,115 +3181,6 @@ media only screen and /* (min-width: 320px) and */
 @charset "UTF-8";
 
 @font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Open Sans'), local('OpenSans'),
-       url('/static/fonts/open_sans/OpenSans-Regular.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 200;
-  src: local('Open Sans Light'), local('OpenSans-Light'),
-       url('/static/fonts/open_sans/OpenSans-Light.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 500;
-  src: local('Open Sans Semibold'), local('OpenSans-Semibold'),
-       url('/static/fonts/open_sans/OpenSans-Semibold.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 600;
-  src: local('Open Sans Semibold'), local('OpenSans-Semibold'),
-       url('/static/fonts/open_sans/OpenSans-Semibold.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 700;
-  src: local('Open Sans Bold'), local('OpenSans-Bold'),
-       url('/static/fonts/open_sans/OpenSans-Bold.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: italic;
-  font-weight: 400;
-  src: local('Open Sans Italic'), local('OpenSans-Italic'),
-       url('/static/fonts/open_sans/OpenSans-Italic.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 200;
-  src: local('Open Sans Light Italic'), local('OpenSans-LightItalic'),
-       url('/static/fonts/open_sans/OpenSans-LightItalic.ttf');}
-@font-face {
-  font-family: 'Open Sans';
-  font-style: italic;
-  font-weight: 600;
-  src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'),
-       url('/static/fonts/open_sans/OpenSans-SemiboldItalic.ttf');}
-@font-face {
-  font-family: 'Open Sans Condensed';
-  font-style: normal;
-  font-weight: 300;
-  src: local('Open Sans Condensed'), local('OpenSans-Condensed'),
-       url('/static/fonts/open_sans/OpenSans-CondLight.ttf');}
-@font-face {
-  font-family: 'Open Sans Condensed';
-  font-style: italic;
-  font-weight: 300;
-  src: local('Open Sans CondensedItalic'), local('OpenSans-CondensedItalic'),
-       url('/static/fonts/open_sans/OpenSans-CondLightItalic.ttf');}
-@font-face {
-  font-family: 'Open Sans Condensed';
-  font-style: normal;
-  font-weight: 600;
-  src: local('Open Sans Condensed Bold'), local('OpenSans-CondensedBold'),
-       url('/static/fonts/open_sans/OpenSans-CondBold.ttf');}
-
-
-/* Emacs local variables
-;;;  Local variables: ***
-;;;  compile-command: "cd ../..; make" ***
-;;;  indent-tabs-mode: nil ***
-;;;  End: ***
-*/
-
-
-/* -*- Mode: CSS; character-encoding: utf-8; -*- */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
-
-   For more information on sbooks, visit www.sbooks.net
-   For more information on knodules, visit www.knodules.net
-   For more information about beingmeta, visit www.beingmeta.com
-
-   This library uses the FDJT (www.fdjt.org) toolkit.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-    Use and redistribution (especially embedding in other
-      CC licensed content) is permitted under the terms of the
-      Creative Commons "Attribution-NonCommercial" license:
-
-          http://creativecommons.org/licenses/by-nc/3.0/ 
-
-    Other uses may be allowed based on prior agreement with
-      beingmeta, inc.  Inquiries can be addressed to:
-
-       licensing@biz.beingmeta.com
-
-   Enjoy!
-
-*/
-
-@charset "UTF-8";
-
-@font-face {
     font-family: 'Open Dyslexic';
     src: url('/static/fonts/open_dyslexic/OpenDyslexic-Regular.otf');
     font-weight: normal;
@@ -3357,11 +3247,13 @@ media only screen and /* (min-width: 320px) and */
 
 @charset "UTF-8";
 
+.wf-inactive #METABOOKFRAME,
+.wf-inactive #METABOOKPAGECONTROLS,
 #METABOOKPAGECONTROLS, #METABOOKFRAME {
-    /* font-family: 'Open Sans', Arial, Helvetica, sans-serif, sans; */
-    font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif, sans;}
-html._HAVEOPENSANS #METABOOKFRAME, html._HAVEOPENSANS #METABOOKPAGECONTROLS {
-    font-family: 'Open Sans', Verdana, Tahoma, Arial, Helvetica, sans-serif;}
+    font-family: -apple-system, BlinkMacSystemFont, 
+    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", 
+    "Fira Sans", "Droid Sans", "Lucida Sans Unicode", "Lucida Grande",
+    sans-serif;}
 html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog,
 html._DYSLEXICAL #METABOOKPAGECONTROLS {
     font-family: 'Open Dyslexic', serif;}
@@ -3369,9 +3261,8 @@ html._DYSLEXICAL #METABOOKPAGECONTROLS {
     font-family: Arial, Helvetica, sans-serif, sans;}
 
 #METABOOKBODY, #METABOOKFRAME #METABOOKABOUT, span.excerpt {
-    font-family: Utopia, 'Palatino Linotype', Palatino,
-                 Georgia, Charter, Garamond,
-                 'Times New Roman', Times;}
+    font-family: Utopia, 'Palatino Linotype', 'Book Antiqua', Palatino,
+    Georgia, Charter, Garamond, 'Times New Roman', Times, serif;}
 
 html._DYSLEXICAL #METABOOKBODY, .dyslexical {
     font-family: 'Open Dyslexic', serif;}
@@ -3381,7 +3272,7 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
     line-height: 1.5;}
 
 #METABOOKFRAME #METABOOKCONSOLE, span.uri {
-  font-family: 'Courier New', 'Lucia Console', Courier, fixed;}
+  font-family: 'Courier New', 'Lucida Console', Courier, fixed;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -5311,7 +5202,6 @@ p { line-height: 1.2;}
 
 .sbooktitlepage {
   padding: 1em; margin: 0px;
-  font-family: helvetica,sans,sans-serif;
   text-align: center;
   page-break-inside: avoid;
   page-break-before: always;

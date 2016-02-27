@@ -1,35 +1,6 @@
 window._metabook_amalgam = document && document.currentScript && document.currentScript.src;
 
-var _checkOpenSans = function() {
-    function cleanup() {
-        itimer && clearInterval(itimer), timeout && clearTimeout(timeout), div1.parentNode && div1.parentNode.removeChild(div1), 
-        div2.parentNode && div2.parentNode.removeChild(div2), setup = !1;
-    }
-    function checking() {
-        setup || (body.appendChild(div1), body.appendChild(div2), setup = !0);
-        var w1 = div1.offsetWidth, w2 = div2.offsetWidth, now = new Date().getTime();
-        return tries++, w1 !== w2 ? (console.log && console.log("[" + (now - start) / 1e3 + "s] Open Sans loaded, " + "divs at @ " + w1 + "!=" + w2), 
-        html.className = html.className ? html.className + " _HAVEOPENSANS" : "_HAVEOPENSANS", 
-        cleanup(), !1) : (console.log && 0 === tries % 20 && console.log("[" + (now - start) / 1e3 + "s] unloaded, " + "divs still equal @ " + w1 + "!=" + w2), 
-        !0);
-    }
-    function giveup() {
-        var w1 = div1.offsetWidth, w2 = div2.offsetWidth, now = new Date().getTime();
-        console.log && console.log("Giving up on loading Open Sans after " + (now - start) / 1e3 + "s, " + w1 + "==" + w2), 
-        cleanup();
-    }
-    var start = new Date().getTime(), timeout_after = 6e4, check_interval = 100, setup = !1, sample_text = "QW@HhsXJ.,+", html = document.documentElement, body = document.body, div1 = document.createElement("DIV"), div2 = document.createElement("DIV"), text1 = document.createTextNode(sample_text), text2 = document.createTextNode(sample_text), style1 = div1.style, style2 = div2.style;
-    style1.position = style2.position = "absolute", style1.top = style2.top = "-5000px", 
-    style1.left = style2.left = "-5000px", style1.pointerEvents = style2.pointerEvents = "none", 
-    style1.zIndex = style2.zIndex = "500", style1.opacity = style2.opacity = 0, style1.fontSize = style2.fontSize = "250px", 
-    style1.fontFamily = "'Open Sans','Comic Sans MS','Comic Sans',Serif", style2.fontFamily = "'Comic Sans MS','Comic Sans',Serif", 
-    div1.id = "METABOOK_FONTCHECK1", div2.id = "METABOOK_FONTCHECK2", div1.className = div2.className = "_ignoreme", 
-    div1.appendChild(text1), div2.appendChild(text2), body.appendChild(div1), body.appendChild(div2), 
-    setup = !0;
-    var itimer, timeout, tries = 0;
-    return checking() && (itimer = setInterval(checking, check_interval), timeout = setTimeout(giveup, timeout_after)), 
-    checking;
-}(), fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0 ? [] : fdjt_versions || [];
+var fdjt = fdjt === void 0 ? {} : fdjt, fdjt_versions = fdjt_versions === void 0 ? [] : fdjt_versions || [];
 
 (function() {
     "use strict";
@@ -13408,8 +13379,11 @@ var metaBook = {
                 syncState(force);
             }, metaBook.sync_min), void 0;
             if (sync_wait && (clearTimeout(sync_wait), sync_wait = !1), (force || metaBook.locsync) && navigator.onLine) {
-                var uri = metaBook.docuri, traced = Trace.state || Trace.network, state = metaBook.state, refuri = metaBook.target && metaBook.getRefURI(metaBook.target) || metaBook.refuri, sync_uri = "https://sync.bookhub.io/v1/sync?REFURI=" + encodeURIComponent(refuri) + "&DOCURI=" + encodeURIComponent(metaBook.docuri) + "&NOW=" + fdjtTime.tick();
-                metaBook.last_sync = last_sync = fdjtTime.tick(), syncing = state, metaBook.user && (sync_uri = sync_uri + "&SYNCUSER=" + encodeURIComponent(metaBook.user._id)), 
+                var uri = metaBook.docuri, traced = Trace.state || Trace.network, state = metaBook.state, refuri = metaBook.target && metaBook.getRefURI(metaBook.target) || metaBook.refuri, sync_uri = "https://sync.bookhub.io/v1/sync?";
+                sync_uri = mB.docref ? sync_uri + "DOC=" + encodeURIComponent(mB.docref) : sync_uri + "REFURI=" + encodeURIComponent(refuri), 
+                mB.docuri !== refuri && (sync_uri = sync_uri + "&DOCURI=" + encodeURIComponent(metaBook.docuri)), 
+                sync_uri = sync_uri + "&NOW=" + fdjtTime.tick(), metaBook.last_sync = last_sync = fdjtTime.tick(), 
+                syncing = state, metaBook.user && (sync_uri = sync_uri + "&SYNCUSER=" + encodeURIComponent(metaBook.user._id)), 
                 metaBook.mycopyid && (sync_uri = sync_uri + "&MYCOPYID=" + encodeURIComponent(metaBook.mycopyid)), 
                 metaBook.deviceName && (sync_uri = sync_uri + "&DEVICE=" + encodeURIComponent(metaBook.deviceName)), 
                 metaBook.ends_at && (sync_uri = sync_uri + "&LOCLEN=" + encodeURIComponent(metaBook.ends_at)), 
@@ -13762,14 +13736,15 @@ var metaBook = {
                 setTimeout(updateInfo, metaBook.update_pause);
             }
         }
-        var user = metaBook.user, start = fdjtTime(), uri = "https://" + metaBook.server + "/v1/loadinfo.js?REFURI=" + encodeURIComponent(metaBook.refuri), ajax_headers = metaBook.sync ? {} : !1;
-        if (metaBook.sync && (ajax_headers["If-Modified-Since"] = "" + new Date(1e3 * metaBook.sync)), 
+        var user = metaBook.user, start = fdjtTime(), uri = "https://" + metaBook.server + "/v1/loadinfo.js?", ajax_headers = metaBook.sync ? {} : !1;
+        if (uri = mB.docref ? uri + "DOC=" + encodeURIComponent(mB.docref) : uri + "REFURI=" + encodeURIComponent(mB.refuri), 
+        mB.sync && (ajax_headers["If-Modified-Since"] = "" + new Date(1e3 * metaBook.sync)), 
         !updating && navigator.onLine) {
             updating = !0;
             var lim, i = 0, glosses = getQuery("GLOSS", !0);
             for (i = 0, lim = glosses.length; lim > i; ) uri = uri + "&GLOSS=" + glosses[i++];
             for (glosses = getHash("GLOSS"), i = 0, lim = glosses.length; lim > i; ) uri = uri + "&GLOSS=" + glosses[i++];
-            if (metaBook.mycopyid && (uri = uri + "&MCOPYID=" + encodeURIComponent(metaBook.mycopyid)), 
+            if (metaBook.mycopyid && (uri = uri + "&MYCOPYID=" + encodeURIComponent(metaBook.mycopyid)), 
             metaBook.sync && (uri = uri + "&SYNC=" + (metaBook.sync + 1)), user && (uri = uri + "&SYNCUSER=" + user._id), 
             !user && Trace.startup && fdjtLog("Requesting initial user info with %s using %s", noajax ? "JSONP" : "Ajax", uri), 
             noajax) return updateInfoJSONP(uri + (user ? "" : "&JUSTUSER=yes"), jsonp), void 0;
@@ -18345,6 +18320,14 @@ var metaBook = {
             }
         }
     }
+    function dombody_touched(evt) {
+        if (!mB.hudup && !mB.closed) {
+            var touches = evt.touches && evt.touches.length && evt.touches || evt.changedTouches && evt.changedTouches.length && evt.changedTouches, x = evt.clientX || touches && touches[0].clientX, y = evt.clientY || touches && touches[0].clientY, elt = (x || y) && document.elementFromPoint(x, y);
+            if (mB.Trace.gestures > 1 && fdjtLog("dombody_touched %o: %o @ <%o,%o>", evt, elt, x, y), 
+            elt === document.body && !(50 > y || 50 > elt.offsetHeight - y)) return mB.Trace.gestures && fdjtLog("dombody_touched(atedge) %o: %o @ <%o,%o>", evt, elt, x, y), 
+            10 > x ? mB.pageBackward() : 10 > elt.offsetWidth - x ? mB.pageForward() : void 0;
+        }
+    }
     function showcover_tapped(evt) {
         if (evt = evt || window.event, !mB.touch || mB.hudup) {
             if (!(evt.shiftKey || evt.touches && evt.touches.length >= 2)) {
@@ -18476,7 +18459,7 @@ var metaBook = {
     metaBook.pageBackward = pageBackward, metaBook.skimForward = skimForward, metaBook.skimBackward = skimBackward, 
     metaBook.setFocus = setFocus, metaBook.clearFocus = clearFocus, metaBook.UI.focus = mb_onfocus, 
     metaBook.UI.blur = mb_onblur, metaBook.setHelp = setHelp, metaBook.toggleHelp = toggleHelp, 
-    metaBook.raiseHUD = raiseHUD, metaBook.lowerHUD = lowerHUD;
+    metaBook.dombody_touched = dombody_touched, metaBook.raiseHUD = raiseHUD, metaBook.lowerHUD = lowerHUD;
     var devmode_click = !1;
     fdjt.DOM.defListeners(metaBook.UI.handlers.mouse, {
         window: {
@@ -18727,6 +18710,9 @@ var metaBook = {
             release: toc_released,
             touchtoo: toc_touchtoo,
             touchmove: preview_touchmove_nodefault
+        },
+        body: {
+            touchstart: dombody_touched
         },
         glossmark: {
             touchstart: glossmark_tapped,
@@ -19738,8 +19724,8 @@ metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="checktext">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="checktext">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="checktext">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="checktext">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="checktext">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="checktext">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 fdjt.revision = "1.5-1557-gec8d8e9", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Sun Feb 21 14:30:57 EST 2016", 
 fdjt.builduuid = "1b772202-bf4c-4e0d-9868-f9b4ed33bbd4", fdjt.CodexLayout.sourcehash = "09B186221A389F5822B9ECD8CBD5921B33A74B2F", 
-Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-251-g97aca5b", metaBook.buildid = "199735ed-7173-4c03-b7bc-cab1645b961c", 
-metaBook.buildtime = "Fri Feb 26 10:09:34 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
+Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-256-g8964f1b", metaBook.buildid = "684a2bf1-ebcb-4f44-990f-197bd887c08d", 
+metaBook.buildtime = "Sat Feb 27 15:36:02 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });
