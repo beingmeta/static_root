@@ -26115,9 +26115,8 @@ metaBook.DOMScan=(function(){
         var notelinks=getChildren(
             content,"a[rel='sbooknote'],a[rel='footnote'],a[rel='endnote']");
         i=0; lim=notelinks.length; while (i<lim) {
-            var ref=notelinks[i++];
-            var nref=ref.href;
-            if (!(fdjtDOM.hasText(nref))) nref.innerHTML="Note";
+            var ref=notelinks[i++], nref=ref.href;
+            if (!(fdjtDOM.hasText(ref))) ref.innerHTML="Note";
             if ((nref)&&(nref[0]==="#")) {
                 addClass($ID(nref.slice(1)),"sbooknote");}}
         
@@ -40974,20 +40973,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1562-geb59d45';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sat Mar 5 14:31:20 EST 2016';
-fdjt.builduuid='fcba98bb-5c19-476c-9270-ff9fe921cf0c';
+fdjt.revision='1.5-1563-gcbc506a';
+fdjt.buildhost='Venus';
+fdjt.buildtime='Sat Mar 5 17:38:26 EST 2016';
+fdjt.builduuid='d5786ae2-b6d7-457a-9e22-fcf873c907cb';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
-Knodule.version='v0.8-156-ga7eef6e';
+Knodule.version='v0.8-157-g9b1ef81';
 // sBooks metaBook build information
-metaBook.version='v0.8-258-gc703949';
-metaBook.buildid='1976fa60-5f10-48b5-8691-926fce8e5b36';
-metaBook.buildtime='Sat Mar  5 14:57:20 EST 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-260-gc023e3f';
+metaBook.buildid='b852cf3b-52d1-4d9f-968c-74e4787c0e56';
+metaBook.buildtime='Sat Mar  5 17:38:37 EST 2016';
+metaBook.buildhost='Venus';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
