@@ -7455,29 +7455,61 @@ fdjt.DOM=
 
         /* Geometry functions */
 
-        function getGeometry(elt,root,extra,withstack){
-            if (!(withstack)) withstack=false;
-            if (typeof elt === 'string')
+        function Geometry(elt,root){
+            if (!(elt)) return this;
+            else if (typeof elt === 'string')
+                elt=document.getElementById(elt);
+            if (!(elt)) return;
+            var top = elt.offsetTop;
+            var left = elt.offsetLeft;
+            var width=elt.offsetWidth;
+            var height=elt.offsetHeight;
+            var rootp=((root)&&(root.offsetParent));
+            this.elt=elt; this.root=root;
+            if (elt===root) {
+                left=0; top=0; bottom=height; right=width;}
+            else {
+                elt=elt.offsetParent;
+                while (elt) {
+                    if ((root)&&((elt===root)||(elt===rootp))) break;
+                    top += elt.offsetTop;
+                    left += elt.offsetLeft;
+                    elt=elt.offsetParent;}}
+            var bottom=top+height, right=left+width;
+            this.left=left; this.top=top;
+            this.width=width; this.height=height;
+            this.right=right; this.bottom=bottom;
+            return this;}
+        Geometry.prototype.width=Geometry.prototype.height=
+            Geometry.prototype.left=Geometry.prototype.right=
+            Geometry.prototype.top=Geometry.prototype.bottom=0;
+
+        function XGeometry(elt,root,withstack){
+            if (withstack) withstack=[]; else withstack=false;
+            if (!(elt)) return this;
+            else if (typeof elt === 'string')
                 elt=document.getElementById(elt);
             var top = elt.offsetTop;
             var left = elt.offsetLeft;
             var width=elt.offsetWidth;
             var height=elt.offsetHeight;
             var rootp=((root)&&(root.offsetParent));
-            var style=((extra)&&(getStyle(elt)));
-            if (withstack) withstack=[]; else withstack=false;
-            
-            if (elt===root) 
-                return {left: 0,top: 0,width:width,height: height,
-                        bottom: height,right: width};
-            elt=elt.offsetParent;
-            while (elt) {
-                if ((root)&&((elt===root)||(elt===rootp))) break;
-                if (withstack) withstack.push(elt);
-                top += elt.offsetTop;
-                left += elt.offsetLeft;
-                elt=elt.offsetParent;}
-            
+            var style=getStyle(elt);
+            this.elt=elt; this.root=root;
+            if (elt===root) {
+                left=0; top=0; bottom=height; right=width;}
+            else {
+                elt=elt.offsetParent;
+                while (elt) {
+                    if ((root)&&((elt===root)||(elt===rootp))) break;
+                    if (withstack) withstack.push(elt);
+                    top += elt.offsetTop;
+                    left += elt.offsetLeft;
+                    elt=elt.offsetParent;}}
+            var bottom=top+height, right=left+width;
+            this.left=left; this.top=top;
+            this.width=width; this.height=height;
+            this.right=right; this.bottom=bottom;
             if (style) {
                 var t_margin=parsePX(style.marginTop);
                 var r_margin=parsePX(style.marginRight);
@@ -7501,22 +7533,44 @@ fdjt.DOM=
                 else if (lh.search(/%$/)>0) 
                     lhpx=(parseFloat(lh.slice(0,-1))/100)*(parsePX(fs));
                 else lhpx=parsePX(fs);
-                return {left: left, top: top, width: width,height: height,
-                        right:left+width,bottom:top+height,
-                        top_margin: t_margin, bottom_margin: b_margin,
-                        left_margin: l_margin, right_margin: r_margin,
-                        top_border: t_border, bottom_border: b_border,
-                        left_border: l_border, right_border: r_border,
-                        top_padding: t_padding, bottom_padding: b_padding,
-                        left_padding: l_padding, right_padding: r_padding,
-                        outer_height: outer_height,outer_width: outer_width,
-                        inner_height: inner_height,inner_width: inner_width,
-                        line_height: lhpx,stack:withstack};}
-            else return {left: left, top: top, width: width,height: height,
-                         right:left+width,bottom:top+height,
-                         stack:withstack};}
-        fdjtDOM.getGeometry=getGeometry;
+                this.top_margin=t_margin;
+                this.bottom_margin=b_margin;
+                this.left_margin=l_margin;
+                this.right_margin=r_margin;
+                this.top_border=t_border;
+                this.bottom_border=b_border;
+                this.left_border=l_border;
+                this.right_border=r_border;
+                this.top_padding=t_padding;
+                this.bottom_padding=b_padding;
+                this.left_padding=l_padding;
+                this.right_padding=r_padding;
+                this.outer_height=outer_height;
+                this.outer_width=outer_width;
+                this.inner_height=inner_height;
+                this.inner_width=inner_width;
+                this.line_height=lhpx;}
+            if (withstack) this.stack=withstack;
+            return this;}
+        XGeometry.prototype=new Geometry();
+        XGeometry.top_margin=XGeometry.bottom_margin=
+            XGeometry.left_margin=XGeometry.right_margin=
+            XGeometry.top_border=XGeometry.bottom_border=
+            XGeometry.left_border=XGeometry.right_border=
+            XGeometry.top_padding=XGeometry.bottom_padding=
+            XGeometry.left_padding=XGeometry.right_padding=
+            XGeometry.outer_height=XGeometry.outer_width=
+            XGeometry.inner_height=XGeometry.inner_width=
+            XGeometry.line_height=0;
 
+        function getGeometry(elt,root,extra){
+            if (extra) 
+                return new XGeometry(elt,root);
+            else return new Geometry(elt,root);}
+        fdjtDOM.getGeometry=getGeometry;
+        fdjtDOM.XGeometry=XGeometry;
+        fdjtDOM.Geometry=Geometry;
+        
         function geomString(geom){
             return +((typeof geom.width === 'number')?(geom.width):"?")+
                 "x"+((typeof geom.height === 'number')?(geom.height):"?")+
@@ -10079,6 +10133,14 @@ fdjt.RefDB=(function(){
                     index.fordb=db;}}}
         
         return db;}
+    RefDB.prototype.name=RefDB.prototype.aliases=
+        RefDB.prototype.refs=RefDB.prototype.altrefs=
+        RefDB.prototype.allrefs=RefDB.prototype.loaded=
+        RefDB.prototype.changes=RefDB.prototype.changed=
+        RefDB.prototype.storage=RefDB.prototype.absrefs=
+        RefDB.prototype.oidrefs=RefDB.prototype.onload=
+        RefDB.prototype.onadd=RefDB.prototype.indices=
+        RefDB.prototype.complete=false;
 
     var REFINDEX=RefDB.REFINDEX=2;
     var REFLOAD=RefDB.REFLOAD=4;
@@ -10317,7 +10379,9 @@ fdjt.RefDB=(function(){
             db.allrefs.push(this);
             return this;}}
     fdjt.Ref=RefDB.Ref=Ref;
-
+    Ref.prototype._db=Ref.prototype._domain=
+        Ref.prototype._qid=Ref.prototype._id=false;
+    
     Ref.prototype.toString=function(){
         if (this._qid) return this._qid;
         else if (this._domain)
@@ -16645,6 +16709,13 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                     thid,elt,th,opts||false,trace,traceall);
         
         return this;}
+    TapHold.prototype.id=TapHold.prototype.elt=
+        TapHold.prototype.opts=TapHold.prototype.handlers=false;
+    TapHold.prototype.serial=0;
+    TapHold.prototype.istouched=TapHold.prototype.ispressed=
+        TapHold.prototype.fakepress=TapHold.prototype.clear=
+        TapHold.prototype.getState=TapHold.prototype.trace=
+        TapHold.prototype.abort=TapHold.prototype.debug=false;
 
     TapHold.clear=function(){
         if (traceall) fdjtLog("TapHold.clear()");
@@ -16829,8 +16900,17 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                         return;}}};
 
             return this;}
-
-        
+        TextSelect.prototype.serial=TextSelect.prototype.traced=
+            TextSelect.prototype.adjust=TextSelect.prototype.n_words=
+            TextSelect.prototype.start=TextSelect.prototype.end=
+            TextSelect.prototype.min=TextSelect.prototype.max=0;
+        TextSelect.prototype.prefix=TextSelect.prototype.traced=0;
+        TextSelect.prototype.nodes=TextSelect.prototype.orig=
+            TextSelect.prototype.wrapped=TextSelect.prototype.wrappers=
+            TextSelect.prototype.words=TextSelect.prototype.tapholds=
+            TextSelect.prototype.loupe=[];
+        TextSelect.prototype.onchange=TextSelect.prototype.wordnum=
+            TextSelect.prototype.startEvent=false;
 
         TextSelect.prototype.toString=function(){
             var wrappers=this.wrappers; 
@@ -17629,7 +17709,15 @@ var Knodule=(function(){
         knodule.drules={};
         return knodule;}
     Knodule.prototype=new RefDB();
-
+    Knodule.prototype.language=
+        Knodule.prototype.dterms=Knodule.prototype.alldterms=
+        Knodule.prototype.prime=Knodule.prototype.primescores=
+        Knodule.prototype.validate=Knodule.prototype.strict=
+        Knodule.prototype.finished=Knodule.prototype.assumed_dterms=
+        Knodule.prototype.xdterms=Knodule.prototype.allxdterms=
+        Knodule.prototype.allwaysIndex=Knodule.prototype.oidmap=
+        Knodule.prototype.drules=false;
+    
     Knodule.prototype.toString=function(){
         return "Knodule("+this.name+")";};
 
@@ -17682,6 +17770,7 @@ var Knodule=(function(){
         if ((lang)&&(lang!==knodule.language)) knode.language=lang;
         return knode;}
     KNode.prototype=new RefDB.Ref();
+    KNode.prototype.dterms=false;
     Knodule.refclass=Knodule.prototype.refclass=KNode;
 
     Knodule.KNode=KNode;
@@ -18596,58 +18685,10 @@ fdjt.CodexLayout=
                 else frag.appendChild(child);}
             node.appendChild(frag);}
 
-        function getGeom(elt,root,extra){
-            var top = elt.offsetTop;
-            var left = elt.offsetLeft;
-            var width=elt.offsetWidth;
-            var height=elt.offsetHeight;
-            var rootp=((root)&&(root.offsetParent));
-            var style=((extra)&&(getStyle(elt)));
-
-            if (elt===root) 
-                return {left: 0,top: 0,width:width,height: height};
-            elt=elt.offsetParent;
-            while (elt) {
-                if ((root)&&((elt===root)||(elt===rootp))) break;
-                top += elt.offsetTop;
-                left += elt.offsetLeft;
-                elt=elt.offsetParent;}
-            
-            if (extra) {
-                var t_margin=parsePX(style.marginTop);
-                var r_margin=parsePX(style.marginRight);
-                var b_margin=parsePX(style.marginBottom);
-                var l_margin=parsePX(style.marginLeft);
-                var t_padding=parsePX(style.paddingTop);
-                var r_padding=parsePX(style.paddingRight);
-                var b_padding=parsePX(style.paddingBottom);
-                var l_padding=parsePX(style.paddingLeft);
-                var t_border=parsePX(style.borderTopWidth);
-                var r_border=parsePX(style.borderRightWidth);
-                var b_border=parsePX(style.borderBottomWidth);
-                var l_border=parsePX(style.borderLeftWidth);
-                var outer_width=width+l_margin+r_margin;
-                var outer_height=height+t_margin+b_margin;
-                var inner_width=width-(l_border+l_padding+r_border+r_padding);
-                var inner_height=height-(t_border+t_padding+b_border+b_padding);
-                var lh=style.lineHeight, fs=style.fontSize, lhpx=false;
-                if (lh==="normal") lhpx=parsePX(fs);
-                else if (lh.search(/px$/)>0) lhpx=parsePX(lh);
-                else if (lh.search(/%$/)>0) 
-                    lhpx=(parseFloat(lh.slice(0,-1))/100)*(parsePX(fs));
-                else lhpx=parsePX(fs);
-                return {left: left, top: top, width: width,height: height,
-                        right:left+width,bottom:top+height,
-                        top_margin: t_margin, bottom_margin: b_margin,
-                        left_margin: l_margin, right_margin: r_margin,
-                        outer_height: outer_height,outer_width: outer_width,
-                        inner_height: inner_height,inner_width: inner_width,
-                        line_height: lhpx};}
-            else return {left: left, top: top, width: width,height: height,
-                         right:left+width,bottom:top+height};}
-
         var getChildren=fdjtDOM.getChildren;
         var getChild=fdjtDOM.getChild;
+        var Geometry=fdjtDOM.Geometry;
+        var XGeometry=fdjtDOM.XGeometry;
 
         /* Node testing */
 
@@ -19374,13 +19415,13 @@ fdjt.CodexLayout=
                     // Start a new page and update the loop state
                     newPage(); prev=layout.prev=root;
                     prevstyle=layout.prevstyle=getStyle(root);
-                    previnfo=layout.previnfo=getBlockInfo(root,prevstyle);
+                    previnfo=layout.previnfo=new BlockInfo(root,prevstyle);
                     pagesDone(newpages); newpages=[];
                     drag=[];
                     if (donefn) donefn(layout);
                     return;}
                 else {
-                    var geom=getGeom(root,page); var done=false;
+                    var geom=new Geometry(root,page); var done=false;
                     if (mustBreakInside(root)) {}
                     else if (geom.bottom<=page_height) {
                         if (cantBreakBefore(root)) drag.push(root);
@@ -19390,7 +19431,7 @@ fdjt.CodexLayout=
                     else if (((atomic)&&(atomic.match(root)))||
                              (avoidBreakInside(root))) {
                         if (!(newpage)) {
-                            newPage(root); geom=getGeom(root,page);}
+                            newPage(root); geom=new Geometry(root,page);}
                         if (geom.bottom<=page_height) {
                             if (cantBreakAfter(root)) drag=[root];
                             else drag=[];
@@ -19399,7 +19440,7 @@ fdjt.CodexLayout=
                     if (done) {
                         prev=layout.prev=root; 
                         prevstyle=layout.prevstyle=getStyle(root);
-                        previnfo=layout.previnfo=getBlockInfo(root,prevstyle);
+                        previnfo=layout.previnfo=new BlockInfo(root,prevstyle);
                         pagesDone(newpages); newpages=[];
                         if (donefn) donefn(layout);
                         return;}}
@@ -19463,7 +19504,7 @@ fdjt.CodexLayout=
                     // tweaked Note that we may process an element [i]
                     // more than once if we split the node and part of
                     // the split landed back in [i].
-                    var geom=getGeom(block,page), lh=getLineHeight(block,style);
+                    var geom=new Geometry(block,page), lh=getLineHeight(block,style);
                     var padding_bottom=parsePX(style.paddingBottom);
                     if ((trace)&&((trace>3)||((track)&&(track.match(block)))))
                         logfn("Layout/geom %o %j",block,geom);
@@ -19476,7 +19517,7 @@ fdjt.CodexLayout=
                         // short page.
                         ((next)&&(geom.height>3*lh)&&
                          (((page_height-geom.bottom)/page_height)>0.9)&&
-                         ((geom.bottom+(getGeom(next).height))>page_height)&&
+                         ((geom.bottom+(new Geometry(next).height))>page_height)&&
                          (!(info.avoidbreakinside))&&
                          (nextinfo.avoidbreakinside)&&
                          (nextinfo.avoidbreakinside))) {
@@ -19528,11 +19569,11 @@ fdjt.CodexLayout=
                                 layout.previnfo=previnfo=info;
                                 blocks[block_i]=split;
                                 styles[block_i]=style=getStyle(split);
-                                blockinfo[block_i]=getBlockInfo(split,style);
+                                blockinfo[block_i]=new BlockInfo(split,style);
                                 blockinfo[block_i].terminal=terminal;
                                 return;}
                             else {
-                                geom=getGeom(block,page);
+                                geom=new Geometry(block,page);
                                 if (geom.bottom>page_height) {
                                     addClass(page,"codexoversize");
                                     layout.drag=drag=[];
@@ -19578,7 +19619,7 @@ fdjt.CodexLayout=
                         if ((node.offsetHeight===0)||
                             ((node.offsetHeight)&&
                              (node.offsetHeight<(page_height*1.5)))) {
-                            nodeinfo=getBlockInfo(node,style);
+                            nodeinfo=new BlockInfo(node,style);
                             addClass(node,"codexblock");
                             info.push(nodeinfo);
                             blocks.push(node); styles.push(style);
@@ -19600,7 +19641,7 @@ fdjt.CodexLayout=
                         (disp!=='inline')&&
                         (disp!=='table-cell')) {
                         addClass(node,"codexblock");
-                        nodeinfo=getBlockInfo(node,style);
+                        nodeinfo=new BlockInfo(node,style);
                         blocks.push(node);
                         styles.push(style);
                         info.push(nodeinfo);
@@ -19631,21 +19672,30 @@ fdjt.CodexLayout=
                         moveUp(node);}
                     else {}}
 
-                function getBlockInfo(node,style){
-                    return {
-                        avoidbreakinside: avoidBreakInside(node,style),
-                        forcebreakbefore: forcedBreakBefore(node,style),
-                        forcebreakafter: forcedBreakAfter(node,style),
-                        avoidbreakbefore: avoidBreakBefore(node,style),
-                        avoidbreakafter: avoidBreakAfter(node,style),
-                        fullpage: ((hasClass(node,/\bcodexfullpage\b/))||
-                                   ((fullpages)&&(testNode(node,fullpages)))),
-                        singlepage: checkSinglePage(node,style),
-                        atomic: ((atomic)&&(atomic.match(node))),
-                        floatpage: ((hasClass(node,/\bcodexfloatpage\b/))||
-                                    ((floatpages)&&(testNode(node,floatpages)))),
-                        floating: ((hasClass(node,"codexfloat"))||
-                                   ((floatblocks)&&(floatblocks.match(node))))};}
+                function BlockInfo(node,style){
+                    this.avoidbreakinside=avoidBreakInside(node,style);
+                    this.forcebreakbefore=forcedBreakBefore(node,style);
+                    this.forcebreakafter=forcedBreakAfter(node,style);
+                    this.avoidbreakbefore=avoidBreakBefore(node,style);
+                    this.avoidbreakafter=avoidBreakAfter(node,style);
+                    this.fullpage=((hasClass(node,/\bcodexfullpage\b/))||
+                                   ((fullpages)&&(testNode(node,fullpages))));
+                    this.singlepage=checkSinglePage(node,style);
+                    this.atomic=((atomic)&&(atomic.match(node)));
+                    this.floatpage=((floatpages)&&(testNode(node,floatpages)));
+                    this.floating=((hasClass(node,"codexfloat"))||
+                                   ((floatblocks)&&(floatblocks.match(node))));
+                    return this;}
+                BlockInfo.prototype.avoidbreakinside=
+                    BlockInfo.prototype.forcebreakbefore=
+                    BlockInfo.prototype.forcebreakafter=
+                    BlockInfo.prototype.avoidbreakbefore=
+                    BlockInfo.prototype.avoidbreakafter=
+                    BlockInfo.prototype.fullpage=
+                    BlockInfo.prototype.singlepage=
+                    BlockInfo.prototype.floatpage=
+                    BlockInfo.prototype.floating=
+                    BlockInfo.prototype.atomic=false;
 
                 function handle_dragging(block,terminal,info,style,tracing){
                     // If this block is terminal and we don't want to
@@ -19722,7 +19772,7 @@ fdjt.CodexLayout=
                             newblock=newPage(block,info);
                             if (page===curpage)
                                 return false; // probably "codexoversize"
-                            else if (block!==newblock) info=getBlockInfo(newblock);
+                            else if (block!==newblock) info=new BlockInfo(newblock);
                             if (((!(break_blocks))||
                                  (info.atomic)||(info.avoidbreakinside)||
                                  (hasClass(newblock,"codexcantsplit")))) {
@@ -19732,10 +19782,10 @@ fdjt.CodexLayout=
                     else {
                         // We just make a new page for the block
                         newblock=newPage(block,info);
-                        if (block!==newblock) info=getBlockInfo(newblock);
+                        if (block!==newblock) info=new BlockInfo(newblock);
                         if (page===curpage)
                             return false; // probably "codexoversize"
-                        else if (block!==newblock) info=getBlockInfo(newblock);
+                        else if (block!==newblock) info=new BlockInfo(newblock);
                         if (((!(break_blocks))||
                              (info.atomic)||(info.avoidbreakinside)||
                              (hasClass(newblock,"codexcantsplit")))) {
@@ -19871,7 +19921,7 @@ fdjt.CodexLayout=
                     else if ((page.firstChild===node)||(firstGChild(page,node)))
                         return false;
                     else if ((node.nodeType===1)&&
-                             (getGeom(node,page).top===0)&&
+                             (new Geometry(node,page).top===0)&&
                              (node.tagName!=="BR"))
                         return false;
                     else return true;}
@@ -19920,13 +19970,13 @@ fdjt.CodexLayout=
                                 closed_page=page;
                                 forcepage=true;}
                             else if (closed_page===page) {
-                                newPage(floater); fg=getGeom(floater,page);
+                                newPage(floater); fg=new Geometry(floater,page);
                                 if (fg.bottom>page_height) {
                                     addClass(page,"codexoversize");
                                     closed_page=page;}}
                             else {                                
                                 moveNodeToPage(floater,page);
-                                fg=getGeom(floater,newpage);
+                                fg=new Geometry(floater,newpage);
                                 if (fg.bottom>=page_height) newPage(floater);}}}
 
                     if ((!(node))||(forcepage)||(needNewPage(node))) {
@@ -20015,7 +20065,7 @@ fdjt.CodexLayout=
                     // and then add back just enough to reach the
                     // edge, potentially splitting some children to
                     // make this work.
-                    var init_geom=getGeom(node,page,true);
+                    var init_geom=new XGeometry(node,page,true);
                     var line_height=init_geom.line_height||12;
                     if ((use_height===page_height)&&
                         ((init_geom.top+init_geom.top_margin+
@@ -20037,7 +20087,7 @@ fdjt.CodexLayout=
                     var children=nodeChildren(node);
                     // and remove all of them at once
                     node.innerHTML="";
-                    var geom=getGeom(node,page);
+                    var geom=new Geometry(node,page);
                     if (geom.bottom>use_height) {
                         // If the version without any children is
                         // already over the edge, just start a new
@@ -20144,7 +20194,7 @@ fdjt.CodexLayout=
                     //  break point in splitChildren, so we know that
                     //  node by itself is on the page while node with
                     //  it's children is over the page.
-                    var geom=init_geom||getGeom(node,page);
+                    var geom=init_geom||new Geometry(node,page);
                     if (children.length===1) {
                         page_break=children[0]; breakpos=0;
                         breaktype=page_break.nodeType;
@@ -20160,7 +20210,7 @@ fdjt.CodexLayout=
                             //appendChildren(node,children,0,i);
                             node.appendChild(child);
                             // Add the child back and get the geometry
-                            geom=getGeom(node,page);
+                            geom=new Geometry(node,page);
                             if (geom.bottom>use_page_height) {
                                 page_break=child; breaktype=child.nodeType;
                                 breakpos=i-1;
@@ -20220,7 +20270,7 @@ fdjt.CodexLayout=
                         // we push the whole node over
                         var wprobe=document.createTextNode(words[0]);
                         text_parent.replaceChild(wprobe,probenode);
-                        probenode=wprobe; geom=getGeom(node,page);
+                        probenode=wprobe; geom=new Geometry(node,page);
                         if (geom.bottom>use_page_height) {
                             text_parent.replaceChild(original,probenode);
                             if (breakpos===0) return node;
@@ -20323,7 +20373,7 @@ fdjt.CodexLayout=
                             words.slice(0,wmid).join(""));
                         // Add all the words up to foundbreak
                         text_parent.replaceChild(newprobe,probenode);
-                        probenode=newprobe; geom=getGeom(node,page);
+                        probenode=newprobe; geom=new Geometry(node,page);
                         if (geom.bottom>use_page_height)
                             wtop=wmid-1;
                         else {
@@ -20332,7 +20382,7 @@ fdjt.CodexLayout=
                                break the page.*/
                             var nextw=document.createTextNode(words[wmid]);
                             text_parent.appendChild(nextw);
-                            var ngeom=getGeom(node,page);
+                            var ngeom=new Geometry(node,page);
                             text_parent.removeChild(nextw);
                             if (ngeom.bottom>use_page_height) {
                                 foundbreak=wmid; break;}
@@ -24802,6 +24852,7 @@ metaBook.DOMScan=(function(){
     var mB=metaBook;
     var Trace=mB.Trace;
     var fdjtString=fdjt.String;
+    var fdjtAsync=fdjt.Async;
     var fdjtTime=fdjt.Time;
     var fdjtLog=fdjt.Log;
     var fdjtDOM=fdjt.DOM;
@@ -24818,6 +24869,7 @@ metaBook.DOMScan=(function(){
         var baseid=mB.baseid;
         
         var idmap={};
+        var need_ids=[];
         
         if (typeof root === 'undefined') return this;
         if (!(docinfo)) {
@@ -24862,6 +24914,13 @@ metaBook.DOMScan=(function(){
             scanstate.locinfo.push(scanstate.location);
             return this;}
         ScanInfo.prototype=new Ref();
+        ScanInfo.prototype._id=ScanInfo.prototype._domain=
+            ScanInfo.prototype._db=ScanInfo.prototype.frag=
+            ScanInfo.prototype._live=ScanInfo.prototype._changed=
+            ScanInfo.prototype.starts_at=ScanInfo.prototype.ends_at=
+            ScanInfo.prototype.head=ScanInfo.prototype.headstart=
+            ScanInfo.prototype.elt=ScanInfo.prototype.title=
+            ScanInfo.prototype.bookhead=false;
         
         docdb.refclass=ScanInfo;
         docinfo._docdb=docdb;
@@ -25080,7 +25139,7 @@ metaBook.DOMScan=(function(){
             if ((!(id))&&(!(baseid))) {
                 // If there isn't a known BASEID, we generate
                 //  ids for block level elements using WSN.
-                id=assignWSN(child);}
+                need_ids.push(child);}
             // else if ((id)&&(baseid)&&(id.search(baseid)!==0)) id=false;
             else if (!(id)) {}
             else if (!(idmap[id])) idmap[id]=child;
@@ -25126,11 +25185,7 @@ metaBook.DOMScan=(function(){
                 return;}
             var toclevel=getLevel(child,curlevel), info=false;
             if ((toclevel)&&(!(id))) {
-                id=assignWSN(child);
-                allids.push(id); info=new ScanInfo(id,scanstate);
-                if (docinfo[id]!==info) window.alert("Wrong");
-                docinfo[id]=info;
-                info.elt=child;}
+                need_ids.push(child);}
             if (!(id)) {}
             else if ((info=docinfo[id])) {}
             else {
@@ -25252,6 +25307,8 @@ metaBook.DOMScan=(function(){
                 scaninfo.ends_at=scanstate.location;
                 scaninfo=scaninfo.head;}};
         
+        if (need_ids.length) {
+            fdjtAsync.slowmap(assignWSN,need_ids);}
         docinfo._rootinfo=docinfo[root.id];
 
         return docinfo;}
@@ -37312,7 +37369,7 @@ metaBook.setMode=
                 fdjtLog("dombody_touched(atedge) %o: %o @ <%o,%o>",evt,elt,x,y);
             if (x<10) return mB.pageBackward();
             else if ((elt.offsetWidth-x)<10)
-                return mB.pageBackward();
+                return mB.pageForward();
             else return;}}
     metaBook.dombody_touched=dombody_touched;
 
@@ -40917,21 +40974,21 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1560-g542a94c';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Fri Mar 4 16:09:27 EST 2016';
-fdjt.builduuid='463b5c50-89d3-4962-898a-07ee3e2fcbbf';
+fdjt.revision='1.5-1562-geb59d45';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sat Mar 5 14:31:20 EST 2016';
+fdjt.builduuid='fcba98bb-5c19-476c-9270-ff9fe921cf0c';
 
-fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
+fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-156-ga7eef6e';
 // sBooks metaBook build information
-metaBook.version='v0.8-254-g68ddc00';
-metaBook.buildid='0a022c4b-93ef-45d1-967c-fc511d44d010';
-metaBook.buildtime='Fri Mar  4 16:09:46 EST 2016';
-metaBook.buildhost='Venus';
+metaBook.version='v0.8-258-gc703949';
+metaBook.buildid='1976fa60-5f10-48b5-8691-926fce8e5b36';
+metaBook.buildtime='Sat Mar  5 14:57:20 EST 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
-fdjt.CodexLayout.sourcehash='09B186221A389F5822B9ECD8CBD5921B33A74B2F';
+fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';

@@ -4184,58 +4184,41 @@ fdjt.DOM = function() {
             return string + suffix;
         }
     }
-    function getGeometry(elt, root, extra, withstack) {
-        withstack || (withstack = !1), "string" == typeof elt && (elt = document.getElementById(elt));
-        var top = elt.offsetTop, left = elt.offsetLeft, width = elt.offsetWidth, height = elt.offsetHeight, rootp = root && root.offsetParent, style = extra && getStyle(elt);
-        if (withstack = withstack ? [] : !1, elt === root) return {
-            left: 0,
-            top: 0,
-            width: width,
-            height: height,
-            bottom: height,
-            right: width
-        };
-        for (elt = elt.offsetParent; elt && (!root || elt !== root && elt !== rootp); ) withstack && withstack.push(elt), 
-        top += elt.offsetTop, left += elt.offsetLeft, elt = elt.offsetParent;
-        if (style) {
-            var t_margin = parsePX(style.marginTop), r_margin = parsePX(style.marginRight), b_margin = parsePX(style.marginBottom), l_margin = parsePX(style.marginLeft), t_padding = parsePX(style.paddingTop), r_padding = parsePX(style.paddingRight), b_padding = parsePX(style.paddingBottom), l_padding = parsePX(style.paddingLeft), t_border = parsePX(style.borderTopWidth), r_border = parsePX(style.borderRightWidth), b_border = parsePX(style.borderBottomWidth), l_border = parsePX(style.borderLeftWidth), outer_width = width + l_margin + r_margin, outer_height = height + t_margin + b_margin, inner_width = width - (l_border + l_padding + r_border + r_padding), inner_height = height - (t_border + t_padding + b_border + b_padding), lh = style.lineHeight, fs = style.fontSize, lhpx = !1;
-            return lhpx = "normal" === lh ? parsePX(fs) : lh.search(/px$/) > 0 ? parsePX(lh) : lh.search(/%$/) > 0 ? parseFloat(lh.slice(0, -1)) / 100 * parsePX(fs) : parsePX(fs), 
-            {
-                left: left,
-                top: top,
-                width: width,
-                height: height,
-                right: left + width,
-                bottom: top + height,
-                top_margin: t_margin,
-                bottom_margin: b_margin,
-                left_margin: l_margin,
-                right_margin: r_margin,
-                top_border: t_border,
-                bottom_border: b_border,
-                left_border: l_border,
-                right_border: r_border,
-                top_padding: t_padding,
-                bottom_padding: b_padding,
-                left_padding: l_padding,
-                right_padding: r_padding,
-                outer_height: outer_height,
-                outer_width: outer_width,
-                inner_height: inner_height,
-                inner_width: inner_width,
-                line_height: lhpx,
-                stack: withstack
-            };
+    function Geometry(elt, root) {
+        if (!elt) return this;
+        if ("string" == typeof elt && (elt = document.getElementById(elt)), elt) {
+            var top = elt.offsetTop, left = elt.offsetLeft, width = elt.offsetWidth, height = elt.offsetHeight, rootp = root && root.offsetParent;
+            if (this.elt = elt, this.root = root, elt === root) left = 0, top = 0, bottom = height, 
+            right = width; else for (elt = elt.offsetParent; elt && (!root || elt !== root && elt !== rootp); ) top += elt.offsetTop, 
+            left += elt.offsetLeft, elt = elt.offsetParent;
+            var bottom = top + height, right = left + width;
+            return this.left = left, this.top = top, this.width = width, this.height = height, 
+            this.right = right, this.bottom = bottom, this;
         }
-        return {
-            left: left,
-            top: top,
-            width: width,
-            height: height,
-            right: left + width,
-            bottom: top + height,
-            stack: withstack
-        };
+    }
+    function XGeometry(elt, root, withstack) {
+        if (withstack = withstack ? [] : !1, !elt) return this;
+        "string" == typeof elt && (elt = document.getElementById(elt));
+        var top = elt.offsetTop, left = elt.offsetLeft, width = elt.offsetWidth, height = elt.offsetHeight, rootp = root && root.offsetParent, style = getStyle(elt);
+        if (this.elt = elt, this.root = root, elt === root) left = 0, top = 0, bottom = height, 
+        right = width; else for (elt = elt.offsetParent; elt && (!root || elt !== root && elt !== rootp); ) withstack && withstack.push(elt), 
+        top += elt.offsetTop, left += elt.offsetLeft, elt = elt.offsetParent;
+        var bottom = top + height, right = left + width;
+        if (this.left = left, this.top = top, this.width = width, this.height = height, 
+        this.right = right, this.bottom = bottom, style) {
+            var t_margin = parsePX(style.marginTop), r_margin = parsePX(style.marginRight), b_margin = parsePX(style.marginBottom), l_margin = parsePX(style.marginLeft), t_padding = parsePX(style.paddingTop), r_padding = parsePX(style.paddingRight), b_padding = parsePX(style.paddingBottom), l_padding = parsePX(style.paddingLeft), t_border = parsePX(style.borderTopWidth), r_border = parsePX(style.borderRightWidth), b_border = parsePX(style.borderBottomWidth), l_border = parsePX(style.borderLeftWidth), outer_width = width + l_margin + r_margin, outer_height = height + t_margin + b_margin, inner_width = width - (l_border + l_padding + r_border + r_padding), inner_height = height - (t_border + t_padding + b_border + b_padding), lh = style.lineHeight, fs = style.fontSize, lhpx = !1;
+            lhpx = "normal" === lh ? parsePX(fs) : lh.search(/px$/) > 0 ? parsePX(lh) : lh.search(/%$/) > 0 ? parseFloat(lh.slice(0, -1)) / 100 * parsePX(fs) : parsePX(fs), 
+            this.top_margin = t_margin, this.bottom_margin = b_margin, this.left_margin = l_margin, 
+            this.right_margin = r_margin, this.top_border = t_border, this.bottom_border = b_border, 
+            this.left_border = l_border, this.right_border = r_border, this.top_padding = t_padding, 
+            this.bottom_padding = b_padding, this.left_padding = l_padding, this.right_padding = r_padding, 
+            this.outer_height = outer_height, this.outer_width = outer_width, this.inner_height = inner_height, 
+            this.inner_width = inner_width, this.line_height = lhpx;
+        }
+        return withstack && (this.stack = withstack), this;
+    }
+    function getGeometry(elt, root, extra) {
+        return extra ? new XGeometry(elt, root) : new Geometry(elt, root);
     }
     function geomString(geom) {
         return +("number" == typeof geom.width ? geom.width : "?") + "x" + ("number" == typeof geom.height ? geom.height : "?") + "@l:" + ("number" == typeof geom.left ? geom.left : "?") + ",t:" + ("number" == typeof geom.top ? geom.top : "?") + "/r:" + ("number" == typeof geom.right ? geom.right : "?") + ",b:" + ("number" == typeof geom.bottom ? geom.bottom : "?");
@@ -5194,7 +5177,9 @@ fdjt.DOM = function() {
         TABLE: "table",
         PRE: "preformatted"
     };
-    fdjtDOM.getDisplay = getDisplayStyle, fdjtDOM.textify = textify, fdjtDOM.getGeometry = getGeometry, 
+    fdjtDOM.getDisplay = getDisplayStyle, fdjtDOM.textify = textify, Geometry.prototype.width = Geometry.prototype.height = Geometry.prototype.left = Geometry.prototype.right = Geometry.prototype.top = Geometry.prototype.bottom = 0, 
+    XGeometry.prototype = new Geometry(), XGeometry.top_margin = XGeometry.bottom_margin = XGeometry.left_margin = XGeometry.right_margin = XGeometry.top_border = XGeometry.bottom_border = XGeometry.left_border = XGeometry.right_border = XGeometry.top_padding = XGeometry.bottom_padding = XGeometry.left_padding = XGeometry.right_padding = XGeometry.outer_height = XGeometry.outer_width = XGeometry.inner_height = XGeometry.inner_width = XGeometry.line_height = 0, 
+    fdjtDOM.getGeometry = getGeometry, fdjtDOM.XGeometry = XGeometry, fdjtDOM.Geometry = Geometry, 
     fdjtDOM.geomString = geomString, fdjtDOM.isVisible = isVisible, fdjtDOM.isAtTop = isAtTop, 
     fdjtDOM.textWidth = textwidth, fdjtDOM.countBreaks = countBreaks;
     var nontext_content = /(img|object|svg|hr)/i;
@@ -5891,7 +5876,9 @@ fdjt.DOM = function() {
         var trace = opts.trace, vname = dbname + ":" + version;
         return new Promise(usingIndexedDB);
     }
-    var fdjtState = fdjt.State, fdjtTime = fdjt.Time, fdjtAsync = fdjt.Async, fdjtDOM = fdjt.DOM, JSON = fdjt.JSON, fdjtLog = fdjt.Log, warn = fdjtLog.warn, refdbs = {}, all_refdbs = [], changed_dbs = [], aliases = {}, iDB = fdjt.iDB, indexedDB = iDB.indexedDB, REFINDEX = RefDB.REFINDEX = 2, REFLOAD = RefDB.REFLOAD = 4, REFSTRINGS = RefDB.REFSTRINGS = 8, default_flags = REFINDEX | REFSTRINGS;
+    var fdjtState = fdjt.State, fdjtTime = fdjt.Time, fdjtAsync = fdjt.Async, fdjtDOM = fdjt.DOM, JSON = fdjt.JSON, fdjtLog = fdjt.Log, warn = fdjtLog.warn, refdbs = {}, all_refdbs = [], changed_dbs = [], aliases = {}, iDB = fdjt.iDB, indexedDB = iDB.indexedDB;
+    RefDB.prototype.name = RefDB.prototype.aliases = RefDB.prototype.refs = RefDB.prototype.altrefs = RefDB.prototype.allrefs = RefDB.prototype.loaded = RefDB.prototype.changes = RefDB.prototype.changed = RefDB.prototype.storage = RefDB.prototype.absrefs = RefDB.prototype.oidrefs = RefDB.prototype.onload = RefDB.prototype.onadd = RefDB.prototype.indices = RefDB.prototype.complete = !1;
+    var REFINDEX = RefDB.REFINDEX = 2, REFLOAD = RefDB.REFLOAD = 4, REFSTRINGS = RefDB.REFSTRINGS = 8, default_flags = REFINDEX | REFSTRINGS;
     RefDB.open = function(name, DBClass) {
         return DBClass || (DBClass = RefDB), refdbs.hasOwnProperty(name) && refdbs[name] || aliases.hasOwnProperty(name) && aliases[name] || new DBClass(name);
     }, RefDB.probe = refDBProbe, RefDB.prototype.addAlias = function(alias) {
@@ -5957,6 +5944,7 @@ fdjt.DOM = function() {
     };
     var refpat = /^(((:|)@(([0-9a-fA-F]+\/[0-9a-fA-F]+)|(\/\w+\/.*)|(@\d+\/.*)))|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})|((U|#U|:#U|)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}t[0-9a-zA-Z]+)|([^@]+@.+))$/, getLocal = fdjtState.getLocal;
     RefDB.resolve = resolveRef, RefDB.ref = resolveRef, fdjt.Ref = RefDB.Ref = Ref, 
+    Ref.prototype._db = Ref.prototype._domain = Ref.prototype._qid = Ref.prototype._id = !1, 
     Ref.prototype.toString = function() {
         return this._qid ? this._qid : this._domain ? this._id + "@" + this._domain : this._db.absrefs ? this._id : this._id + "@" + this._db.name;
     }, Ref.prototype.getQID = function() {
@@ -8949,7 +8937,9 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         "number" == typeof akeynum && akeynum > 0 && (keynames[akeynum] = akeyname);
     }
     var sqrt = Math.sqrt, mouse_down = !1;
-    return TapHold.clear = function() {
+    return TapHold.prototype.id = TapHold.prototype.elt = TapHold.prototype.opts = TapHold.prototype.handlers = !1, 
+    TapHold.prototype.serial = 0, TapHold.prototype.istouched = TapHold.prototype.ispressed = TapHold.prototype.fakepress = TapHold.prototype.clear = TapHold.prototype.getState = TapHold.prototype.trace = TapHold.prototype.abort = TapHold.prototype.debug = !1, 
+    TapHold.clear = function() {
         traceall && fdjtLog("TapHold.clear()"), cleared = fdjtET();
     }, TapHold.trace = traceTapHold, TapHold.default_opts = default_opts, TapHold;
 }(), fdjt.UI || (fdjt.UI = {}), fdjt.TextSelect = fdjt.UI.Selecting = fdjt.UI.TextSelect = function() {
@@ -9283,6 +9273,9 @@ fdjt.UI.FocusBox || (fdjt.UI.FocusBox = {}), function() {
         taphold;
     }
     var fdjtDOM = fdjt.DOM, fdjtLog = fdjt.Log, fdjtUI = fdjt.UI, hasParent = fdjtDOM.hasParent, stripIDs = fdjtDOM.stripIDs, getStyle = fdjtDOM.getStyle, textify = fdjtDOM.textify, hasClass = fdjtDOM.hasClass, swapClass = fdjtDOM.swapClass, dropClass = fdjtDOM.dropClass, rAF = fdjtDOM.requestAnimationFrame, selectors = {}, alltapholds = {}, serialnum = 0, traceall = 0;
+    TextSelect.prototype.serial = TextSelect.prototype.traced = TextSelect.prototype.adjust = TextSelect.prototype.n_words = TextSelect.prototype.start = TextSelect.prototype.end = TextSelect.prototype.min = TextSelect.prototype.max = 0, 
+    TextSelect.prototype.prefix = TextSelect.prototype.traced = 0, TextSelect.prototype.nodes = TextSelect.prototype.orig = TextSelect.prototype.wrapped = TextSelect.prototype.wrappers = TextSelect.prototype.words = TextSelect.prototype.tapholds = TextSelect.prototype.loupe = [], 
+    TextSelect.prototype.onchange = TextSelect.prototype.wordnum = TextSelect.prototype.startEvent = !1, 
     TextSelect.prototype.toString = function() {
         for (var wrappers = this.wrappers, output = "TextSelect([" + this.min + ("start" === this.adjust ? "*" : "") + "," + this.max + ("end" === this.adjust ? "*" : "") + "],", i = 0, lim = wrappers.length; lim > i; ) {
             var id = wrappers[i].id;
@@ -9484,11 +9477,12 @@ var Knodule = function() {
         return string.replace(/^\s*#.*$/g, "").replace(/^\s*\/\/.*$/g, "");
     }
     var fdjtString = fdjt.String, fdjtTime = fdjt.Time, fdjtLog = fdjt.Log, RefDB = fdjt.RefDB, Ref = fdjt.Ref, warn = fdjtLog.warn, ObjectMap = RefDB.ObjectMap, trace_parsing = 0, lang_pat = /^(([A-Za-z]{2,3}\$)|([A-Za-z]{2,3}_[A-Za-z]{2,3}\$))/;
-    Knodule.prototype = new RefDB(), Knodule.prototype.toString = function() {
+    Knodule.prototype = new RefDB(), Knodule.prototype.language = Knodule.prototype.dterms = Knodule.prototype.alldterms = Knodule.prototype.prime = Knodule.prototype.primescores = Knodule.prototype.validate = Knodule.prototype.strict = Knodule.prototype.finished = Knodule.prototype.assumed_dterms = Knodule.prototype.xdterms = Knodule.prototype.allxdterms = Knodule.prototype.allwaysIndex = Knodule.prototype.oidmap = Knodule.prototype.drules = !1, 
+    Knodule.prototype.toString = function() {
         return "Knodule(" + this.name + ")";
     };
     var stdcap = fdjtString.stdcap;
-    KNode.prototype = new RefDB.Ref(), Knodule.refclass = Knodule.prototype.refclass = KNode, 
+    KNode.prototype = new RefDB.Ref(), KNode.prototype.dterms = !1, Knodule.refclass = Knodule.prototype.refclass = KNode, 
     Knodule.KNode = KNode, Knodule.Knode = KNode, Knodule.prototype.KNode = Knodule.prototype.Knode = function(arg, inits) {
         return arg instanceof KNode ? arg._db === this ? arg : arg : new KNode(arg, this, inits);
     }, Knodule.prototype.cons = function(string, lang) {
@@ -9892,46 +9886,6 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
         }
         node.appendChild(frag);
     }
-    function getGeom(elt, root, extra) {
-        var top = elt.offsetTop, left = elt.offsetLeft, width = elt.offsetWidth, height = elt.offsetHeight, rootp = root && root.offsetParent, style = extra && getStyle(elt);
-        if (elt === root) return {
-            left: 0,
-            top: 0,
-            width: width,
-            height: height
-        };
-        for (elt = elt.offsetParent; elt && (!root || elt !== root && elt !== rootp); ) top += elt.offsetTop, 
-        left += elt.offsetLeft, elt = elt.offsetParent;
-        if (extra) {
-            var t_margin = parsePX(style.marginTop), r_margin = parsePX(style.marginRight), b_margin = parsePX(style.marginBottom), l_margin = parsePX(style.marginLeft), t_padding = parsePX(style.paddingTop), r_padding = parsePX(style.paddingRight), b_padding = parsePX(style.paddingBottom), l_padding = parsePX(style.paddingLeft), t_border = parsePX(style.borderTopWidth), r_border = parsePX(style.borderRightWidth), b_border = parsePX(style.borderBottomWidth), l_border = parsePX(style.borderLeftWidth), outer_width = width + l_margin + r_margin, outer_height = height + t_margin + b_margin, inner_width = width - (l_border + l_padding + r_border + r_padding), inner_height = height - (t_border + t_padding + b_border + b_padding), lh = style.lineHeight, fs = style.fontSize, lhpx = !1;
-            return lhpx = "normal" === lh ? parsePX(fs) : lh.search(/px$/) > 0 ? parsePX(lh) : lh.search(/%$/) > 0 ? parseFloat(lh.slice(0, -1)) / 100 * parsePX(fs) : parsePX(fs), 
-            {
-                left: left,
-                top: top,
-                width: width,
-                height: height,
-                right: left + width,
-                bottom: top + height,
-                top_margin: t_margin,
-                bottom_margin: b_margin,
-                left_margin: l_margin,
-                right_margin: r_margin,
-                outer_height: outer_height,
-                outer_width: outer_width,
-                inner_height: inner_height,
-                inner_width: inner_width,
-                line_height: lhpx
-            };
-        }
-        return {
-            left: left,
-            top: top,
-            width: width,
-            height: height,
-            right: left + width,
-            bottom: top + height
-        };
-    }
     function isEmpty(string) {
         if ("string" == typeof string) {
             var pt;
@@ -10187,9 +10141,9 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 if (block.id && (layout.lastid = block.id), trace && block && (trace > 3 || track && track.match(block)) && (logfn("Considering block %o (#%d from %o); page=%o", block, block_i, root, page), 
                 tracing = !0), handle_dragging(block, terminal, info, style), block && (block = handle_standalone(block, info, style)), 
                 !block) return block_i++, void 0;
-                var geom = getGeom(block, page), lh = getLineHeight(block, style), padding_bottom = parsePX(style.paddingBottom);
+                var geom = new Geometry(block, page), lh = getLineHeight(block, style), padding_bottom = parsePX(style.paddingBottom);
                 if (trace && (trace > 3 || track && track.match(block)) && logfn("Layout/geom %o %j", block, geom), 
-                geom.bottom - padding_bottom > page_height || next && geom.height > 3 * lh && (page_height - geom.bottom) / page_height > .9 && geom.bottom + getGeom(next).height > page_height && !info.avoidbreakinside && nextinfo.avoidbreakinside && nextinfo.avoidbreakinside) {
+                geom.bottom - padding_bottom > page_height || next && geom.height > 3 * lh && (page_height - geom.bottom) / page_height > .9 && geom.bottom + new Geometry(next).height > page_height && !info.avoidbreakinside && nextinfo.avoidbreakinside && nextinfo.avoidbreakinside) {
                     var use_height = page_height;
                     if (page_height >= geom.bottom - padding_bottom && (use_height = geom.bottom - padding_bottom - 2 * lh), 
                     terminal) if ((short_page_height ? geom.top > short_page_height : geom.top > use_height - 1.2 * lh) && 0 === drag.length && !info.avoidbreakbefore) block = newPage(block, info); else if (info.floating) floating.push(block), 
@@ -10201,9 +10155,9 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                         var split = splitBlock(block, info, style, use_height);
                         if (split && split !== block) return layout.prev = prev = block, layout.prevstyle = prevstyle = style, 
                         layout.previnfo = previnfo = info, blocks[block_i] = split, styles[block_i] = style = getStyle(split), 
-                        blockinfo[block_i] = getBlockInfo(split, style), blockinfo[block_i].terminal = terminal, 
+                        blockinfo[block_i] = new BlockInfo(split, style), blockinfo[block_i].terminal = terminal, 
                         void 0;
-                        geom = getGeom(block, page), geom.bottom > page_height && (addClass(page, "codexoversize"), 
+                        geom = new Geometry(block, page), geom.bottom > page_height && (addClass(page, "codexoversize"), 
                         layout.drag = drag = [], newPage()), block_i++, layout.drag = drag = [];
                     } else tracing && logfn("Oversize non-terminal %o, continuing", block), block_i++;
                 } else info.avoidbreakafter && !atPageTop(block, page) ? ((0 === drag.length || 0 > drag.indexOf(block)) && (tracing && logfn("Possibly dragging %o", block), 
@@ -10219,7 +10173,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                             var w = node.offsetWidth, sw = w / page_width;
                             scaleToPage(node, page_width, sw * node.offsetHeight, !0);
                         }
-                        if (0 === node.offsetHeight || node.offsetHeight && 1.5 * page_height > node.offsetHeight) return nodeinfo = getBlockInfo(node, style), 
+                        if (0 === node.offsetHeight || node.offsetHeight && 1.5 * page_height > node.offsetHeight) return nodeinfo = new BlockInfo(node, style), 
                         addClass(node, "codexblock"), info.push(nodeinfo), blocks.push(node), styles.push(style), 
                         nodeinfo.terminal = node, moveUp(node), checkTerminal(node, root, info), void 0;
                         node.childNodes && node.childNodes.length && (fdjtLog.warn("Allowing split of huge (%d) block %o", node.offsetHeight, node), 
@@ -10227,7 +10181,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                     }
                     var disp = style.display;
                     if ("BR" !== node.tagName && "inline" !== disp && "table-cell" !== disp) {
-                        if (addClass(node, "codexblock"), nodeinfo = getBlockInfo(node, style), blocks.push(node), 
+                        if (addClass(node, "codexblock"), nodeinfo = new BlockInfo(node, style), blocks.push(node), 
                         styles.push(style), info.push(nodeinfo), "block" === disp || "table" === disp || "list-item" === disp || "table-row-group" === disp) {
                             for (var children = node.childNodes, total_blocks = blocks.length, i = 0, len = children.length; len > i; ) {
                                 var ch = children[i++];
@@ -10248,19 +10202,13 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                     }
                 }
             }
-            function getBlockInfo(node, style) {
-                return {
-                    avoidbreakinside: avoidBreakInside(node, style),
-                    forcebreakbefore: forcedBreakBefore(node, style),
-                    forcebreakafter: forcedBreakAfter(node, style),
-                    avoidbreakbefore: avoidBreakBefore(node, style),
-                    avoidbreakafter: avoidBreakAfter(node, style),
-                    fullpage: hasClass(node, /\bcodexfullpage\b/) || fullpages && testNode(node, fullpages),
-                    singlepage: checkSinglePage(node, style),
-                    atomic: atomic && atomic.match(node),
-                    floatpage: hasClass(node, /\bcodexfloatpage\b/) || floatpages && testNode(node, floatpages),
-                    floating: hasClass(node, "codexfloat") || floatblocks && floatblocks.match(node)
-                };
+            function BlockInfo(node, style) {
+                return this.avoidbreakinside = avoidBreakInside(node, style), this.forcebreakbefore = forcedBreakBefore(node, style), 
+                this.forcebreakafter = forcedBreakAfter(node, style), this.avoidbreakbefore = avoidBreakBefore(node, style), 
+                this.avoidbreakafter = avoidBreakAfter(node, style), this.fullpage = hasClass(node, /\bcodexfullpage\b/) || fullpages && testNode(node, fullpages), 
+                this.singlepage = checkSinglePage(node, style), this.atomic = atomic && atomic.match(node), 
+                this.floatpage = floatpages && testNode(node, floatpages), this.floating = hasClass(node, "codexfloat") || floatblocks && floatblocks.match(node), 
+                this;
             }
             function handle_dragging(block, terminal, info, style, tracing) {
                 block && (prev && 0 > drag.indexOf(prev) || (prev && atPageTop(prev) ? drag.length && (layout.drag = drag = []) : prev && terminal && info.avoidbreakbefore ? (tracing && logfn("Possibly dragging %o", prev), 
@@ -10281,11 +10229,11 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                     var oversize_limit = .2;
                     return !info.avoidbreakafter && (geom.bottom - page_height) / page_height > 1 && oversize_limit > (geom.bottom - page_height) / page_height ? (addClass(page, "codexoversize"), 
                     layout.drag = drag = [], newPage(), !1) : (layout.drag = drag = [], newblock = newPage(block, info), 
-                    page === curpage ? !1 : (block !== newblock && (info = getBlockInfo(newblock)), 
+                    page === curpage ? !1 : (block !== newblock && (info = new BlockInfo(newblock)), 
                     !break_blocks || info.atomic || info.avoidbreakinside || hasClass(newblock, "codexcantsplit") ? !1 : newblock));
                 }
-                return newblock = newPage(block, info), block !== newblock && (info = getBlockInfo(newblock)), 
-                page === curpage ? !1 : (block !== newblock && (info = getBlockInfo(newblock)), 
+                return newblock = newPage(block, info), block !== newblock && (info = new BlockInfo(newblock)), 
+                page === curpage ? !1 : (block !== newblock && (info = new BlockInfo(newblock)), 
                 !break_blocks || info.atomic || info.avoidbreakinside || hasClass(newblock, "codexcantsplit") ? !1 : newblock);
             }
             function isLastChild(node) {
@@ -10361,7 +10309,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 return !1;
             }
             function needNewPage(node) {
-                return page ? node && hasParent(node, page) ? page.firstChild === node || firstGChild(page, node) ? !1 : 1 === node.nodeType && 0 === getGeom(node, page).top && "BR" !== node.tagName ? !1 : !0 : hasContent(page, !0) : !0;
+                return page ? node && hasParent(node, page) ? page.firstChild === node || firstGChild(page, node) ? !1 : 1 === node.nodeType && 0 === new Geometry(node, page).top && "BR" !== node.tagName ? !1 : !0 : hasContent(page, !0) : !0;
             }
             function newPage(node, info, forcepage) {
                 var i, lim;
@@ -10381,8 +10329,8 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                     for (i = 0, lim = floaters.length; lim > i; ) {
                         var floater = floaters[i++], fg = !1;
                         checkSinglePage(floater) ? (newPage(floater), closed_page = page, forcepage = !0) : closed_page === page ? (newPage(floater), 
-                        fg = getGeom(floater, page), fg.bottom > page_height && (addClass(page, "codexoversize"), 
-                        closed_page = page)) : (moveNodeToPage(floater, page), fg = getGeom(floater, newpage), 
+                        fg = new Geometry(floater, page), fg.bottom > page_height && (addClass(page, "codexoversize"), 
+                        closed_page = page)) : (moveNodeToPage(floater, page), fg = new Geometry(floater, newpage), 
                         fg.bottom >= page_height && newPage(floater));
                     }
                 }
@@ -10423,7 +10371,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 !break_blocks || info.avoidbreakinside || !node.childNodes || 0 === node.childNodes.length) return addClass(node, "codexcantsplit"), 
                 newPage(node), node;
                 node.id && 0 !== node.id.search("CODEXTMP") && (splits[node.id] || (splits[node.id] = node.cloneNode(!0)));
-                var init_geom = getGeom(node, page, !0), line_height = init_geom.line_height || 12;
+                var init_geom = new XGeometry(node, page, !0), line_height = init_geom.line_height || 12;
                 if (use_height === page_height && init_geom.top + init_geom.top_margin + 1.2 * line_height > page_height) {
                     var cpage = page, newblock = newPage(node);
                     if (cpage !== page) return newblock;
@@ -10431,7 +10379,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 }
                 var children = nodeChildren(node);
                 node.innerHTML = "";
-                var geom = getGeom(node, page);
+                var geom = new Geometry(node, page);
                 if (geom.bottom > use_height) return appendChildren(node, children), addClass(node, "codexcantsplit"), 
                 newPage(node), node;
                 use_height === page_height && 1.2 * line_height > init_geom.bottom - page_height && init_geom.height > 3 * line_height && (use_height = page_height - floor(line_height));
@@ -10454,11 +10402,11 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             function splitChildren(node, children, init_geom, use_page_height) {
                 var page_break = !1, breaktype = !1, breakpos = -1, textsplit = !1, text_parent = !1;
                 use_page_height || (use_page_height = page_height);
-                var geom = init_geom || getGeom(node, page);
+                var geom = init_geom || new Geometry(node, page);
                 if (1 === children.length) page_break = children[0], breakpos = 0, breaktype = page_break.nodeType, 
                 node.appendChild(page_break); else for (var i = 0, n = children.length; n > i; ) {
                     var child = children[i++];
-                    if (node.appendChild(child), geom = getGeom(node, page), geom.bottom > use_page_height) {
+                    if (node.appendChild(child), geom = new Geometry(node, page), geom.bottom > use_page_height) {
                         page_break = child, breaktype = child.nodeType, breakpos = i - 1;
                         break;
                     }
@@ -10473,7 +10421,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 var probenode = textsplit, original = textsplit, text = textsplit.nodeValue, words = attachWhitespace(text.split(/(\s+)/gm));
                 if (2 > words.length) return 0 === breakpos ? node : children.slice(breakpos);
                 var wprobe = document.createTextNode(words[0]);
-                if (text_parent.replaceChild(wprobe, probenode), probenode = wprobe, geom = getGeom(node, page), 
+                if (text_parent.replaceChild(wprobe, probenode), probenode = wprobe, geom = new Geometry(node, page), 
                 geom.bottom > use_page_height) return text_parent.replaceChild(original, probenode), 
                 0 === breakpos ? node : 0 === words[0].search(/^[.,;~?!:"'”’)\]-]/) ? 1 === breakpos ? node : (text_parent.removeChild(original), 
                 children.slice(breakpos - 1)) : children.slice(breakpos);
@@ -10496,11 +10444,11 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             function splitWords(text_parent, probestart, words, node, use_page_height) {
                 for (var wlen = words.length, wtop = wlen, wbot = 0, foundbreak = !1, probenode = probestart, geom = !1; wtop > wbot; ) {
                     var wmid = wbot + floor((wtop - wbot) / 2), newprobe = document.createTextNode(words.slice(0, wmid).join(""));
-                    if (text_parent.replaceChild(newprobe, probenode), probenode = newprobe, geom = getGeom(node, page), 
+                    if (text_parent.replaceChild(newprobe, probenode), probenode = newprobe, geom = new Geometry(node, page), 
                     geom.bottom > use_page_height) wtop = wmid - 1; else {
                         var nextw = document.createTextNode(words[wmid]);
                         text_parent.appendChild(nextw);
-                        var ngeom = getGeom(node, page);
+                        var ngeom = new Geometry(node, page);
                         if (text_parent.removeChild(nextw), ngeom.bottom > use_page_height) {
                             foundbreak = wmid;
                             break;
@@ -10547,15 +10495,15 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
                 var pw = page.scrollWidth, ph = page.scrollHeight;
                 return pw > page_width || ph > page_height ? addClass(page, "codexoversize") : fullpage && .9 * page_width > pw && .9 * page_height > ph && addClass(page, "codexundersize"), 
                 newPage(), prev = layout.prev = root, prevstyle = layout.prevstyle = getStyle(root), 
-                previnfo = layout.previnfo = getBlockInfo(root, prevstyle), pagesDone(newpages), 
+                previnfo = layout.previnfo = new BlockInfo(root, prevstyle), pagesDone(newpages), 
                 newpages = [], drag = [], donefn && donefn(layout), void 0;
             }
-            var geom = getGeom(root, page), done = !1;
+            var geom = new Geometry(root, page), done = !1;
             if (mustBreakInside(root) || (page_height >= geom.bottom ? (cantBreakBefore(root) ? drag.push(root) : drag = cantBreakAfter(root) ? [ root ] : [], 
             done = !0) : (atomic && atomic.match(root) || avoidBreakInside(root)) && (newpage || (newPage(root), 
-            geom = getGeom(root, page)), page_height >= geom.bottom && (drag = cantBreakAfter(root) ? [ root ] : [], 
+            geom = new Geometry(root, page)), page_height >= geom.bottom && (drag = cantBreakAfter(root) ? [ root ] : [], 
             done = !0))), done) return prev = layout.prev = root, prevstyle = layout.prevstyle = getStyle(root), 
-            previnfo = layout.previnfo = getBlockInfo(root, prevstyle), pagesDone(newpages), 
+            previnfo = layout.previnfo = new BlockInfo(root, prevstyle), pagesDone(newpages), 
             newpages = [], donefn && donefn(layout), void 0;
             var blocks = [], blockinfo = [], styles = [];
             if (gatherBlocks(root, root, blocks, blockinfo, styles), layout.block_count = layout.block_count + blocks.length, 
@@ -10564,7 +10512,8 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
             pagesDone(newpages), newpages = [], donefn && donefn(layout), void 0;
             layout.root = cur_root = root;
             var block_i = 0, n_blocks = blocks.length;
-            if (timeslice) loop(); else {
+            if (BlockInfo.prototype.avoidbreakinside = BlockInfo.prototype.forcebreakbefore = BlockInfo.prototype.forcebreakafter = BlockInfo.prototype.avoidbreakbefore = BlockInfo.prototype.avoidbreakafter = BlockInfo.prototype.fullpage = BlockInfo.prototype.singlepage = BlockInfo.prototype.floatpage = BlockInfo.prototype.floating = BlockInfo.prototype.atomic = !1, 
+            timeslice) loop(); else {
                 for (;n_blocks > block_i; ) step();
                 pagesDone(newpages), donefn && donefn(layout);
             }
@@ -11157,7 +11106,7 @@ KNode !== Knode && fdjt.Log("Weird stuff"), function() {
     document.body ? root_namespace = document.body.namespaceURI : fdjtDOM.addListener(window, "load", function() {
         root_namespace = document.body.namespaceURI;
     });
-    var layoutDB, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, notspace = /[^ \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff]/g, adjustFontSize = fdjt.DOM.adjustFontSize, adjustFonts = fdjt.DOM.adjustFonts, tweakImage = fdjt.DOM.tweakImage, tmpid_count = 1, dupstate = /\bcodexdup(start|end)?\b/g, codexstate = /\bcodex(dupstart|dup|dupend|relocated)\b/g;
+    var layoutDB, getChildren = fdjtDOM.getChildren, getChild = fdjtDOM.getChild, Geometry = fdjtDOM.Geometry, XGeometry = fdjtDOM.XGeometry, notspace = /[^ \n\r\t\f\x0b\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u202f\u205f\u3000\uf3ff]/g, adjustFontSize = fdjt.DOM.adjustFontSize, adjustFonts = fdjt.DOM.adjustFonts, tweakImage = fdjt.DOM.tweakImage, tmpid_count = 1, dupstate = /\bcodexdup(start|end)?\b/g, codexstate = /\bcodex(dupstart|dup|dupend|relocated)\b/g;
     return CodexLayout.timeslice = 50, CodexLayout.timeskip = 5, CodexLayout.tracelevel = 0, 
     CodexLayout.prototype.getDups = function(id) {
         if (!id) return [];
@@ -12601,7 +12550,7 @@ var metaBook = {
                     }
                     fdjtLog.warn("Duplicate ID=%o newid=%o", id, newid), id = child.id = newid, docinfo[newid] || (docinfo[newid] = new ScanInfo(newid, scanstate)), 
                     idmap[newid] = child;
-                } else idmap[id] = child; else idmap[id] = child; else ; else id = assignWSN(child);
+                } else idmap[id] = child; else idmap[id] = child; else ; else need_ids.push(child);
                 var lim, i = 0, tocloc = child.metabooktocloc || child.getAttribute("data-tocloc");
                 if (tocloc && docinfo[tocloc]) {
                     var tocinfo = docinfo[tocloc];
@@ -12618,13 +12567,11 @@ var metaBook = {
                     scanstate.curinfo = curinfo, void 0;
                 }
                 var toclevel = getLevel(child, curlevel), info = !1;
-                if (toclevel && !id && (id = assignWSN(child), allids.push(id), info = new ScanInfo(id, scanstate), 
-                docinfo[id] !== info && window.alert("Wrong"), docinfo[id] = info, info.elt = child), 
-                id && ((info = docinfo[id]) || (allids.push(id), info = new ScanInfo(id, scanstate), 
-                docinfo[id] !== info && window.alert("Wrong"), docinfo[id] = info, info.elt = child)), 
-                (scanstate.notoc || "header" === tag) && (scanstate.notoc = !0, toclevel = 0), scanstate.eltcount++, 
-                info && id && child.id && child.id !== id && (info.addAlias(child.id), docinfo[child.id] = info), 
-                info && (info.starts_at = scanstate.location, info.bookhead = curhead.getAttribute("data-tocid") || curhead.id, 
+                if (toclevel && !id && need_ids.push(child), id && ((info = docinfo[id]) || (allids.push(id), 
+                info = new ScanInfo(id, scanstate), docinfo[id] !== info && window.alert("Wrong"), 
+                docinfo[id] = info, info.elt = child)), (scanstate.notoc || "header" === tag) && (scanstate.notoc = !0, 
+                toclevel = 0), scanstate.eltcount++, info && id && child.id && child.id !== id && (info.addAlias(child.id), 
+                docinfo[child.id] = info), info && (info.starts_at = scanstate.location, info.bookhead = curhead.getAttribute("data-tocid") || curhead.id, 
                 info.headstart = curinfo.starts_at), id && info && !start && (metaBook.start = start = child), 
                 info && toclevel && !info.toclevel && (info.toclevel = toclevel), id && info) {
                     var tags = child.getAttribute("tags") || child.getAttribute("data-tags");
@@ -12657,7 +12604,7 @@ var metaBook = {
                 }
             }
         }
-        var md5ID = fdjt.WSN.md5ID, stdspace = fdjtString.stdspace, getStyle = fdjtDOM.getStyle, rootns = root.namespaceURI, baseid = mB.baseid, idmap = {};
+        var md5ID = fdjt.WSN.md5ID, stdspace = fdjtString.stdspace, getStyle = fdjtDOM.getStyle, rootns = root.namespaceURI, baseid = mB.baseid, idmap = {}, need_ids = [];
         if (root === void 0) return this;
         docinfo || (docinfo = this instanceof MetaBookDOMScan ? this : new MetaBookDOMScan()), 
         root || (root = metaBook.docroot || document.body);
@@ -12686,7 +12633,8 @@ var metaBook = {
             } ],
             pool: metaBook.docdb
         }, docdb = new RefDB(dbid);
-        ScanInfo.prototype = new Ref(), docdb.refclass = ScanInfo, docinfo._docdb = docdb;
+        ScanInfo.prototype = new Ref(), ScanInfo.prototype._id = ScanInfo.prototype._domain = ScanInfo.prototype._db = ScanInfo.prototype.frag = ScanInfo.prototype._live = ScanInfo.prototype._changed = ScanInfo.prototype.starts_at = ScanInfo.prototype.ends_at = ScanInfo.prototype.head = ScanInfo.prototype.headstart = ScanInfo.prototype.elt = ScanInfo.prototype.title = ScanInfo.prototype.bookhead = !1, 
+        docdb.refclass = ScanInfo, docinfo._docdb = docdb;
         var rootinfo = docinfo[root.id] || (docinfo[root.id] = new ScanInfo(root.id, scanstate));
         scanstate.curhead = root, scanstate.curinfo = rootinfo, rootinfo.title = root.title || document.title, 
         rootinfo.starts_at = 0, rootinfo.level = 0, rootinfo.sub = [], rootinfo.head = !1, 
@@ -12709,9 +12657,10 @@ var metaBook = {
             docinfo._locinfo = scanstate.locinfo;
             for (var scaninfo = scanstate.curinfo; scaninfo; ) scaninfo.ends_at = scanstate.location, 
             scaninfo = scaninfo.head;
-        }, docinfo._rootinfo = docinfo[root.id], docinfo;
+        }, need_ids.length && fdjtAsync.slowmap(assignWSN, need_ids), docinfo._rootinfo = docinfo[root.id], 
+        docinfo;
     }
-    var mB = metaBook, Trace = mB.Trace, fdjtString = fdjt.String, fdjtTime = fdjt.Time, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, RefDB = fdjt.RefDB, Ref = RefDB.Ref, getLevel = metaBook.getTOCLevel;
+    var mB = metaBook, Trace = mB.Trace, fdjtString = fdjt.String, fdjtAsync = fdjt.Async, fdjtTime = fdjt.Time, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, RefDB = fdjt.RefDB, Ref = RefDB.Ref, getLevel = metaBook.getTOCLevel;
     return MetaBookDOMScan.prototype.toJSON = function() {
         var rep = {
             constructor: "metaBook.DOMScan",
@@ -18325,7 +18274,7 @@ var metaBook = {
             var touches = evt.touches && evt.touches.length && evt.touches || evt.changedTouches && evt.changedTouches.length && evt.changedTouches, x = evt.clientX || touches && touches[0].clientX, y = evt.clientY || touches && touches[0].clientY, elt = (x || y) && document.elementFromPoint(x, y);
             if (mB.Trace.gestures > 1 && fdjtLog("dombody_touched %o: %o @ <%o,%o>", evt, elt, x, y), 
             elt === document.body && !(50 > y || 50 > elt.offsetHeight - y)) return mB.Trace.gestures && fdjtLog("dombody_touched(atedge) %o: %o @ <%o,%o>", evt, elt, x, y), 
-            10 > x ? mB.pageBackward() : 10 > elt.offsetWidth - x ? mB.pageBackward() : void 0;
+            10 > x ? mB.pageBackward() : 10 > elt.offsetWidth - x ? mB.pageForward() : void 0;
         }
     }
     function showcover_tapped(evt) {
@@ -19722,10 +19671,10 @@ metaBook.HTML.console = '<h1>metaBook Console</h1>\n<div class=\'message\' id=\'
 metaBook.HTML.messages = '<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPSCAN">\n  <div class="indicator"></div>\n  <div class="message">\n    Scanning the book content for structure and metadata.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTOC">\n  <div class="indicator"></div>\n  <div class="message">\n    Setting up tables of content for book navigation.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPKNO">\n  <div class="indicator"></div>\n  <div class="message">\n    Processing embedded or referenced knowledge bases.\n    <div id="METABOOKSTARTUPKNODETAILS"></div>\n  </div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTAGGING">\n  <div class="indicator"></div>\n  <div class="message">Indexing with published tags.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPCLOUDS">\n  <div class="indicator"></div>\n  <div class="message">Setting up tag clouds for search and glossing.</div>\n</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKNEWGLOSSES">\n  <div class="indicator"></div>\n  <div class="message">Applying your glosses to your book.</div>\n</div>\n<!--\n     /* Emacs local variables\n     ;;;  Local variables: ***\n     ;;;  compile-command: "cd ../..; make" ***\n     ;;;  End: ***\n     */\n  -->\n\n', 
 metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" class="adjustfonts" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <a href="https://www.bookhub.io/" target="_blank"\n       class="bookplate__bookref metabookref"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      This book</a>\n    <span class="bookplate__text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/"\n       class="bookplate__username metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="checktext">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="checktext">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="checktext">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="checktext">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="checktext">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="checktext">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1560-g542a94c", fdjt.buildhost = "Venus", fdjt.buildtime = "Fri Mar 4 16:09:27 EST 2016", 
-fdjt.builduuid = "463b5c50-89d3-4962-898a-07ee3e2fcbbf", fdjt.CodexLayout.sourcehash = "09B186221A389F5822B9ECD8CBD5921B33A74B2F", 
-Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-254-g68ddc00", metaBook.buildid = "0a022c4b-93ef-45d1-967c-fc511d44d010", 
-metaBook.buildtime = "Fri Mar  4 16:09:46 EST 2016", metaBook.buildhost = "Venus", 
+fdjt.revision = "1.5-1562-geb59d45", fdjt.buildhost = "moby.dc.beingmeta.com", fdjt.buildtime = "Sat Mar 5 14:31:20 EST 2016", 
+fdjt.builduuid = "fcba98bb-5c19-476c-9270-ff9fe921cf0c", fdjt.CodexLayout.sourcehash = "2E1CF45D58B1AFA2030F6E720508E9758FE11C19", 
+Knodule.version = "v0.8-156-ga7eef6e", metaBook.version = "v0.8-258-gc703949", metaBook.buildid = "1976fa60-5f10-48b5-8691-926fce8e5b36", 
+metaBook.buildtime = "Sat Mar  5 14:57:20 EST 2016", metaBook.buildhost = "moby.dc.beingmeta.com", 
 "undefined" != typeof _metabook_suppressed && _metabook_suppressed || (window.onload = function() {
     metaBook.Setup();
 });

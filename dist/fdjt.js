@@ -7427,29 +7427,61 @@ fdjt.DOM=
 
         /* Geometry functions */
 
-        function getGeometry(elt,root,extra,withstack){
-            if (!(withstack)) withstack=false;
-            if (typeof elt === 'string')
+        function Geometry(elt,root){
+            if (!(elt)) return this;
+            else if (typeof elt === 'string')
+                elt=document.getElementById(elt);
+            if (!(elt)) return;
+            var top = elt.offsetTop;
+            var left = elt.offsetLeft;
+            var width=elt.offsetWidth;
+            var height=elt.offsetHeight;
+            var rootp=((root)&&(root.offsetParent));
+            this.elt=elt; this.root=root;
+            if (elt===root) {
+                left=0; top=0; bottom=height; right=width;}
+            else {
+                elt=elt.offsetParent;
+                while (elt) {
+                    if ((root)&&((elt===root)||(elt===rootp))) break;
+                    top += elt.offsetTop;
+                    left += elt.offsetLeft;
+                    elt=elt.offsetParent;}}
+            var bottom=top+height, right=left+width;
+            this.left=left; this.top=top;
+            this.width=width; this.height=height;
+            this.right=right; this.bottom=bottom;
+            return this;}
+        Geometry.prototype.width=Geometry.prototype.height=
+            Geometry.prototype.left=Geometry.prototype.right=
+            Geometry.prototype.top=Geometry.prototype.bottom=0;
+
+        function XGeometry(elt,root,withstack){
+            if (withstack) withstack=[]; else withstack=false;
+            if (!(elt)) return this;
+            else if (typeof elt === 'string')
                 elt=document.getElementById(elt);
             var top = elt.offsetTop;
             var left = elt.offsetLeft;
             var width=elt.offsetWidth;
             var height=elt.offsetHeight;
             var rootp=((root)&&(root.offsetParent));
-            var style=((extra)&&(getStyle(elt)));
-            if (withstack) withstack=[]; else withstack=false;
-            
-            if (elt===root) 
-                return {left: 0,top: 0,width:width,height: height,
-                        bottom: height,right: width};
-            elt=elt.offsetParent;
-            while (elt) {
-                if ((root)&&((elt===root)||(elt===rootp))) break;
-                if (withstack) withstack.push(elt);
-                top += elt.offsetTop;
-                left += elt.offsetLeft;
-                elt=elt.offsetParent;}
-            
+            var style=getStyle(elt);
+            this.elt=elt; this.root=root;
+            if (elt===root) {
+                left=0; top=0; bottom=height; right=width;}
+            else {
+                elt=elt.offsetParent;
+                while (elt) {
+                    if ((root)&&((elt===root)||(elt===rootp))) break;
+                    if (withstack) withstack.push(elt);
+                    top += elt.offsetTop;
+                    left += elt.offsetLeft;
+                    elt=elt.offsetParent;}}
+            var bottom=top+height, right=left+width;
+            this.left=left; this.top=top;
+            this.width=width; this.height=height;
+            this.right=right; this.bottom=bottom;
             if (style) {
                 var t_margin=parsePX(style.marginTop);
                 var r_margin=parsePX(style.marginRight);
@@ -7473,22 +7505,44 @@ fdjt.DOM=
                 else if (lh.search(/%$/)>0) 
                     lhpx=(parseFloat(lh.slice(0,-1))/100)*(parsePX(fs));
                 else lhpx=parsePX(fs);
-                return {left: left, top: top, width: width,height: height,
-                        right:left+width,bottom:top+height,
-                        top_margin: t_margin, bottom_margin: b_margin,
-                        left_margin: l_margin, right_margin: r_margin,
-                        top_border: t_border, bottom_border: b_border,
-                        left_border: l_border, right_border: r_border,
-                        top_padding: t_padding, bottom_padding: b_padding,
-                        left_padding: l_padding, right_padding: r_padding,
-                        outer_height: outer_height,outer_width: outer_width,
-                        inner_height: inner_height,inner_width: inner_width,
-                        line_height: lhpx,stack:withstack};}
-            else return {left: left, top: top, width: width,height: height,
-                         right:left+width,bottom:top+height,
-                         stack:withstack};}
-        fdjtDOM.getGeometry=getGeometry;
+                this.top_margin=t_margin;
+                this.bottom_margin=b_margin;
+                this.left_margin=l_margin;
+                this.right_margin=r_margin;
+                this.top_border=t_border;
+                this.bottom_border=b_border;
+                this.left_border=l_border;
+                this.right_border=r_border;
+                this.top_padding=t_padding;
+                this.bottom_padding=b_padding;
+                this.left_padding=l_padding;
+                this.right_padding=r_padding;
+                this.outer_height=outer_height;
+                this.outer_width=outer_width;
+                this.inner_height=inner_height;
+                this.inner_width=inner_width;
+                this.line_height=lhpx;}
+            if (withstack) this.stack=withstack;
+            return this;}
+        XGeometry.prototype=new Geometry();
+        XGeometry.top_margin=XGeometry.bottom_margin=
+            XGeometry.left_margin=XGeometry.right_margin=
+            XGeometry.top_border=XGeometry.bottom_border=
+            XGeometry.left_border=XGeometry.right_border=
+            XGeometry.top_padding=XGeometry.bottom_padding=
+            XGeometry.left_padding=XGeometry.right_padding=
+            XGeometry.outer_height=XGeometry.outer_width=
+            XGeometry.inner_height=XGeometry.inner_width=
+            XGeometry.line_height=0;
 
+        function getGeometry(elt,root,extra){
+            if (extra) 
+                return new XGeometry(elt,root);
+            else return new Geometry(elt,root);}
+        fdjtDOM.getGeometry=getGeometry;
+        fdjtDOM.XGeometry=XGeometry;
+        fdjtDOM.Geometry=Geometry;
+        
         function geomString(geom){
             return +((typeof geom.width === 'number')?(geom.width):"?")+
                 "x"+((typeof geom.height === 'number')?(geom.height):"?")+
@@ -10051,6 +10105,14 @@ fdjt.RefDB=(function(){
                     index.fordb=db;}}}
         
         return db;}
+    RefDB.prototype.name=RefDB.prototype.aliases=
+        RefDB.prototype.refs=RefDB.prototype.altrefs=
+        RefDB.prototype.allrefs=RefDB.prototype.loaded=
+        RefDB.prototype.changes=RefDB.prototype.changed=
+        RefDB.prototype.storage=RefDB.prototype.absrefs=
+        RefDB.prototype.oidrefs=RefDB.prototype.onload=
+        RefDB.prototype.onadd=RefDB.prototype.indices=
+        RefDB.prototype.complete=false;
 
     var REFINDEX=RefDB.REFINDEX=2;
     var REFLOAD=RefDB.REFLOAD=4;
@@ -10289,7 +10351,9 @@ fdjt.RefDB=(function(){
             db.allrefs.push(this);
             return this;}}
     fdjt.Ref=RefDB.Ref=Ref;
-
+    Ref.prototype._db=Ref.prototype._domain=
+        Ref.prototype._qid=Ref.prototype._id=false;
+    
     Ref.prototype.toString=function(){
         if (this._qid) return this._qid;
         else if (this._domain)
@@ -16617,6 +16681,13 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                     thid,elt,th,opts||false,trace,traceall);
         
         return this;}
+    TapHold.prototype.id=TapHold.prototype.elt=
+        TapHold.prototype.opts=TapHold.prototype.handlers=false;
+    TapHold.prototype.serial=0;
+    TapHold.prototype.istouched=TapHold.prototype.ispressed=
+        TapHold.prototype.fakepress=TapHold.prototype.clear=
+        TapHold.prototype.getState=TapHold.prototype.trace=
+        TapHold.prototype.abort=TapHold.prototype.debug=false;
 
     TapHold.clear=function(){
         if (traceall) fdjtLog("TapHold.clear()");
@@ -16801,8 +16872,17 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                         return;}}};
 
             return this;}
-
-        
+        TextSelect.prototype.serial=TextSelect.prototype.traced=
+            TextSelect.prototype.adjust=TextSelect.prototype.n_words=
+            TextSelect.prototype.start=TextSelect.prototype.end=
+            TextSelect.prototype.min=TextSelect.prototype.max=0;
+        TextSelect.prototype.prefix=TextSelect.prototype.traced=0;
+        TextSelect.prototype.nodes=TextSelect.prototype.orig=
+            TextSelect.prototype.wrapped=TextSelect.prototype.wrappers=
+            TextSelect.prototype.words=TextSelect.prototype.tapholds=
+            TextSelect.prototype.loupe=[];
+        TextSelect.prototype.onchange=TextSelect.prototype.wordnum=
+            TextSelect.prototype.startEvent=false;
 
         TextSelect.prototype.toString=function(){
             var wrappers=this.wrappers; 
@@ -17730,8 +17810,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1560-g542a94c';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Fri Mar 4 16:09:27 EST 2016';
-fdjt.builduuid='463b5c50-89d3-4962-898a-07ee3e2fcbbf';
+fdjt.revision='1.5-1562-geb59d45';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sat Mar 5 14:31:20 EST 2016';
+fdjt.builduuid='fcba98bb-5c19-476c-9270-ff9fe921cf0c';
 

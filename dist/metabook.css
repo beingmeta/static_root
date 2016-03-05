@@ -2049,8 +2049,7 @@ body._ANIMATE body.metabookfixed div.codexpage {
 
 /* The content */
 
-span.excerpt {
-    font-family: times,serif; line-height: 1.0;}
+span.excerpt {line-height: 1.0;}
 span.excerpt span.content { font-size: 80%; display: none;}
 .showexcerpt span.excerpt span.content { display: inline;}
 .showexcerpt span.excerpt span.ellipsis { display: none;}
@@ -3248,11 +3247,13 @@ media only screen and /* (min-width: 320px) and */
 
 @charset "UTF-8";
 
+.wf-inactive #METABOOKFRAME,
+.wf-inactive #METABOOKPAGECONTROLS,
 #METABOOKPAGECONTROLS, #METABOOKFRAME {
-    /* font-family: 'Open Sans', Arial, Helvetica, sans-serif, sans; */
-    font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif, sans;}
-html._HAVEOPENSANS #METABOOKFRAME, html._HAVEOPENSANS #METABOOKPAGECONTROLS {
-    font-family: 'Open Sans', Verdana, Tahoma, Arial, Helvetica, sans-serif;}
+    font-family: -apple-system, BlinkMacSystemFont, 
+    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", 
+    "Fira Sans", "Droid Sans", "Lucida Sans Unicode", "Lucida Grande",
+    sans-serif;}
 html._DYSLEXICAL #METABOOKFRAME, html._DYSLEXICAL .fdjtdialog,
 html._DYSLEXICAL #METABOOKPAGECONTROLS {
     font-family: 'Open Dyslexic', serif;}
@@ -3260,9 +3261,8 @@ html._DYSLEXICAL #METABOOKPAGECONTROLS {
     font-family: Arial, Helvetica, sans-serif, sans;}
 
 #METABOOKBODY, #METABOOKFRAME #METABOOKABOUT, span.excerpt {
-    font-family: Utopia, 'Palatino Linotype', Palatino,
-                 Georgia, Charter, Garamond,
-                 'Times New Roman', Times;}
+    font-family: Utopia, 'Palatino Linotype', 'Book Antiqua', Palatino,
+    Georgia, Charter, Garamond, 'Times New Roman', Times, serif;}
 
 html._DYSLEXICAL #METABOOKBODY, .dyslexical {
     font-family: 'Open Dyslexic', serif;}
@@ -3272,7 +3272,7 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
     line-height: 1.5;}
 
 #METABOOKFRAME #METABOOKCONSOLE, span.uri {
-  font-family: 'Courier New', 'Lucia Console', Courier, fixed;}
+  font-family: 'Courier New', 'Lucida Console', Courier, fixed;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -5126,8 +5126,6 @@ body.hudup #METABOOKBODY, body.mbCOVER #METABOOKBODY,
 body.mbMEDIA #METABOOKBODY, body.mbZOOM #METABOOKBODY {
     z-index: 0;}
 
-#METABOOKBODY {text-align: left;}
-
 #METABOOKBODY {pointer-events: none;}
 #METABOOKBODY #CODEXPAGE {pointer-events: all;}
 #METABOOKBODY #METABOOKPOINTGLOSSES {pointer-events: all;}
@@ -5202,7 +5200,6 @@ p { line-height: 1.2;}
 
 .sbooktitlepage {
   padding: 1em; margin: 0px;
-  font-family: helvetica,sans,sans-serif;
   text-align: center;
   page-break-inside: avoid;
   page-break-before: always;
@@ -6115,9 +6112,9 @@ a.mbtoc_showsize {
     font-size: 120%;}
 
 #METABOOKSKIMMER .mbtoc {
-    margin-left: 1ex; font-size: 80%;}
+    margin-left: 1ex; font-size: 80%; line-height: 100%;}
 body.hudup #METABOOKSKIMMER .mbtoc {
-    font-size: 100%;}
+    font-size: 90%;}
 
 #METABOOKSTATICTOC {
     box-sizing: border-box;
@@ -6533,7 +6530,8 @@ div.mbcard {
 div.mbcard_tochead {
     max-height: 3ex; white-space: nowrap;
     text-overflow: ellipsis; overflow: hidden;
-    line-height: 100%;}
+    padding-top: 2px; padding-bottom: 1px;
+    line-height: 120%;}
 
 div.mbcard_tochead { margin-left: -20px; }
 
