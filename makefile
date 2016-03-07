@@ -409,6 +409,7 @@ dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE) postcss.config.json
 		     --source-map $(METABOOK_CSS_BUNDLE) \
 	    -o dist/metabook.clean.css
 dist/metabook.post.css: dist/metabook.clean.css postcss.config.json
+	@echo Rebuilding dist/metabook.post.css
 	@$(POSTCSS) $(POSTCSSOPTS) -o dist/metabook.post.css dist/metabook.clean.css
 
 dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
