@@ -49,13 +49,13 @@ span[onclick] { cursor: pointer;}
     white-space: nowrap;
     overflow: hidden;}
 
-.noindent {text-indent: 0px !important;}
+.noindent {text-indent: 0 !important;}
 
 /* Clearing floats in various ways */
 
 div.fdjtclearfloats {
-    width: 100%; height: 0px; clear: both;
-    margin: 0px; padding: 0px; border: 0px;}
+    width: 100%; height: 0; clear: both;
+    margin: 0; padding: 0; border: 0;}
 
 /**
  * From: http://nicolasgallagher.com/micro-clearfix-hack/
@@ -143,12 +143,12 @@ th .checkspan.ischecked, th .checkspan[checked] { color: black;}
 /* Check blocks */
 
 div.checkblock {  text-align: left; margin-top: 0.5em;}
-td div.checkblock { margin-top: 0px; }
+td div.checkblock { margin-top: 0; }
 div.checkblock > table { display: none; }
 ul.checkblock > li, ol.checkblock > li { display: none; }
 div.checkblock > p {
    margin-left: 5em; text-indent: -3em;
-   margin-top: 0px; margin-bottom: 0px; font-size: 80%;
+   margin-top: 0; margin-bottom: 0; font-size: 80%;
    display: none;}
 div.checkblock > p:first-child {
    margin-left: 3em; text-indent: -3em; display: block;}
@@ -183,7 +183,7 @@ textarea.autoprompt.isempty { font-style: italic; color: gray;}
 
 img.helpicon { 
   padding-right: 2px; padding-left: 2px;
-  margin-left: 1px; margin-right: 0px;
+  margin-left: 1px; margin-right: 0;
   color: yellow; background-color: gray;
   font-size: 80%; vertical-align: middle;
   font-weight: bold; font-style: normal;}
@@ -284,8 +284,8 @@ table.fdjtdata td {
 
 table.fdjtdata span.symbol { font-weight: bold;}
 table.fdjtdata span.label { font-family: sans-serif;}
-table.fdjtdata td dl { margin-top: 1ex; margin-bottom: 0px}
-table.fdjtdata td > dl:first-child { margin-top: 0px; margin-bottom: 0px}
+table.fdjtdata td dl { margin-top: 1ex; margin-bottom: 0}
+table.fdjtdata td > dl:first-child { margin-top: 0; margin-bottom: 0}
 
 table.fdjtdata td ol { border: solid gray 1px; padding: 1px;}
 table.fdjtdata td dl { border: solid gray 1px; padding: 1px;}
@@ -525,7 +525,7 @@ div.live.richtip { display: block;}
 
 div.richtip span.controls .button {
   font-weight: bold; font-size: 150%; color: brown; 
-  padding: 0px; margin: 0px; padding-right: 1px;
+  padding: 0; margin: 0; padding-right: 1px;
   cursor: pointer; vertical-align: top;}
 
 div.richtip.minimized { max-height: 4em;}
@@ -537,8 +537,8 @@ div.richtip .maximize { display: none; }
 table.fdjtdata table { border: solid silver 2px;}
 table.fdjtdata table.fdjtdata { width: auto;}
 table.fdjtdata td ul, table.fdjtdata td ol {
-    margin-left: 0px; margin-right: 0px;
-    margin-top: 0px; margin-bottom: 0px;}
+    margin-left: 0; margin-right: 0;
+    margin-top: 0; margin-bottom: 0;}
 
 /* Tables for form input */
 
@@ -572,7 +572,7 @@ table.fdjtform td p {
     font-size: 80%; max-width: 45em;
     margin-top: 0.25ex; margin-left: 1em;
     margin-bottom: 0.25ex;}
-table.fdjtform td p:first-child { margin-top: 0px; }
+table.fdjtform td p:first-child { margin-top: 0; }
 
 table.fdjtform td.messages {
     text-align: center; font-style: italic;}
@@ -843,14 +843,14 @@ html._USESVG img.stdres, html._USESVG img.notsvg {
 
 div.fdjtprogress {
     text-align: left; position: relative;
-    margin: 0px; padding: 0px; border: 0px;}
+    margin: 0; padding: 0; border: 0;}
 div.fdjtprogress div.indicator {
-    position: absolute; left: 0px; top: 0px; z-index: 50;
+    position: absolute; left: 0; top: 0; z-index: 50;
     background-color: lightblue; height: 100%; width: 0%;
-    margin: 0px; padding: 0px; border: 0px;
+    margin: 0; padding: 0; border: 0;
     border-right: solid darkblue 2px;}
 div.fdjtprogress div.message {
-    position: absolute; left: 0px; top: 0px; z-index: 100;
+    position: absolute; left: 0; top: 0; z-index: 100;
     width: 100%; height: 100%;
     text-align: center; vertical-align: middle;}
 
@@ -867,14 +867,14 @@ div.fdjtprogress div.message {
    action of the mouse.  */
 
 div.reticle {
-    background-color: black; margin: 0px; border: 0px; padding: 0px;
+    background-color: black; margin: 0; border: 0; padding: 0;
     z-index: 1000; opacity: .50;
     pointer-events: none;}
 div.reticle.vertical {
-    position: fixed; height: 100%; top: 0px; bottom: 0px;
+    position: fixed; height: 100%; top: 0; bottom: 0;
     width: 1px;}
 div.reticle.horizontal {
-    position: fixed; width: 100%; left: 0px; right: 0px;
+    position: fixed; width: 100%; left: 0; right: 0;
     height: 1px;}
 
 div.reticle.highlight { color: blue;}
@@ -963,7 +963,7 @@ div.fdjtdialog {
     font-size: 2em; font-size: 2rem;
     box-sizing: border-box;
     width: 50%; max-width: 700px; top: 15%; max-height: 70%;
-    left: 0px; right: 0px; height: auto;
+    left: 0; right: 0; height: auto;
     margin-left: auto; margin-right: auto;
     text-align: center; padding: 1em; vertical-align: middle; 
     z-index: 250; 
@@ -981,7 +981,7 @@ div.fdjtdialog div.title {
   text-align: center; font-weight: bold; font-size: 120%;}
 div.fdjtdialog p {
   margin-top: 1ex; margin-bottom: 0.5ex;
-  text-align: left; text-indent: 0px;}
+  text-align: left; text-indent: 0;}
 
 div.fdjtdialog > div, div.fdjtdialog > span { vertical-align: middle;}
 
@@ -1065,9 +1065,9 @@ body.taptouch {}
 /* Text selection */
 
 .fdjtselecting {
-    margin: 0px !important;
-    padding: 0px !important;
-    border: 0px !important;}
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;}
 .fdjtselecting {
      user-select: none;
     -webkit-tap-highlight-color: rgba(0,0,0,0.5);}
@@ -1075,9 +1075,9 @@ body.taptouch {}
 .fdjtselectwrap {background-color: rgba(247, 247, 124, 0.25);}
 
 .fdjtselecting .fdjtselected {
-    margin: 0px !important;
-    padding: 0px !important;
-    border: 0px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
     background-color: rgba(255,255,0,0.7); }
 .fdjtselecting .fdjtselectstart, .fdjtselecting .fdjtselectend {
     background-color: rgba(255,215,0,0.7); }
@@ -1115,10 +1115,10 @@ html._TOUCH .fdjtselecting .fdjtselectend:hover {
     background-color: gold;}
 
 .fdjtselectloupe {
-    width: 0px; height: 0px;
+    width: 0; height: 0;
     overflow: visible;}
 .fdjtselectloupe .fdjtloupetext {
-    margin: 0px !important; text-indent: 0px !important;
+    margin: 0 !important; text-indent: 0 !important;
     z-index: 200; white-space: nowrap; pointer-events: none;
     background-color: gray; padding: 6px; font-size: 120%; 
     width: fit-content; height: fit-content;
@@ -1149,9 +1149,9 @@ html._TOUCH .fdjtselecting .fdjtselectend:hover {
 /* Adjust font wrapper */
 
 .fdjtfontwrapper {
-    margin: 0px !important;
-    padding: 0px !important;
-    border: 0px !important;}
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;}
 div.fdjtfontwrapper {
     display: inline-block !important;}
 
@@ -1216,14 +1216,14 @@ table.fdjtform .usebaseline td {
 div.fdjtpage.formatting {
     overflow-y: auto !important;
     max-height: 100% !important;
-    min-height: 0px !important;}
+    min-height: 0 !important;}
 div.fdjtpage:not(.getvisible) > div, div.fdjtpage:not(.getvisible) > p {
     display: none !important;}
 div.fdjtpage > div.fdjtshow, div.fdjtpage > p.fdjtshow {
     display: block !important;}
 
 div.fdjtpage .fdjtpageinfo {
-    position: absolute; right: 0px; bottom: 0px;
+    position: absolute; right: 0; bottom: 0;
     padding-right: 0.5ex; padding-left: 0.5ex; 
     color: black; background-color: rgba(0,0,0,0.4);
     font-size: 150%; /* line-height: 100%; */
@@ -1267,7 +1267,7 @@ div.fdjtpage .fdjtpageinfo.fdjteditpageinfo span.pct span.value {
     pointer-events: all;}
 
 html._TOUCH div.fdjtpageinfo.fdjteditpageinfo {
-    bottom: auto; top: 0px;}
+    bottom: auto; top: 0;}
 
 div.fdjtpage.formatting div, div.fdjtpage.getvisible div, 
 div.fdjtpage.formatting p, div.fdjtpage.getvisible p {
@@ -1308,7 +1308,7 @@ html._NOSVG .pager.pagerlayout {
 .pager .pagernav > span {
     color: blue; background-color: ivory;
     display: inline-block; box-sizing: border-box;
-    border: 0px; border-left: solid black 1px;
+    border: 0; border-left: solid black 1px;
     border-bottom: solid black 1ex;
     text-align: center;
     overflow: hidden;}
@@ -1324,7 +1324,7 @@ html._NOSVG .pager.pagerlayout {
     border-bottom: solid black 2px;}
 .pager .pagernav > div.pagenum {
     position: absolute;
-    top: 0px; left: 50%; margin-left: -1.5em;
+    top: 0; left: 50%; margin-left: -1.5em;
     background-color: rgba(255,255,255,0.8);
     display: none;}
 .pager .pagernav.packed > div.pagenum {
@@ -1820,7 +1820,7 @@ div.codexpage .codexpagetop > h2:first-child,
 div.codexpage .codexpagetop > h3:first-child,
 div.codexpage .codexpagetop > h4:first-child,
 div.codexpage .codexpagetop > p:first-child {
-    margin-top: 0px;}
+    margin-top: 0;}
 
 body.codexfixed div.codexpage {
     position: fixed; text-align: left;}
@@ -1835,7 +1835,7 @@ div.codexpage div.fdjtadjusted {
 
 .codexfullpage {
    page-break-before: always; page-break-after: always;
-   page-break-inside: never;
+   page-break-inside: avoid;
    height: 100%; width: 100%;
    text-align: center;}
 @media (max-device-width: 500px) {
@@ -1863,15 +1863,15 @@ div.codexpage div.fdjtadjusted {
    page-break-after: auto;}
 
 .codexpage .codexpagefoot {
-    position: absolute; bottom: 0px; left: 0px; right: 0px;
-    width: 100%; margin: 0px; border: 0px; padding: 0px;}
+    position: absolute; bottom: 0; left: 0; right: 0;
+    width: 100%; margin: 0; border: 0; padding: 0;}
 
 figure { page-break-inside: avoid; }
 figure + figcaption { page-break-before: avoid; }
 img + figcaption { page-break-before: avoid; }
 
 .codexdupleading {
-    display: inline-block; height: 0px; width: 70%; visibility: hidden;}
+    display: inline-block; height: 0; width: 70%; visibility: hidden;}
 
 h1, h2, h3, h4, h6, h6, h7 { page-break-after: avoid; }
 
@@ -1919,7 +1919,7 @@ div.richtip .relcode {
 
 span.dterm {
     padding-right: 0.35ex; padding-left: 0.5ex;
-    padding-top: 0px; padding-bottom: 0px;
+    padding-top: 0; padding-bottom: 0;
     border-top-left-radius: 1ex; border-bottom-left-radius: 1ex;
     border-top-right-radius: 3px; border-bottom-right-radius: 3px;
     color: darkblue; background-color: gold;
@@ -2005,13 +2005,13 @@ body.mbSHRINK._NOSHRINK #CODEXPAGE .codexpage {
 
 #CODEXPAGE #METABOOKPAGES {
     position: absolute;
-    top: 0px; bottom:0px; left: 0px; right: 0px;
-    padding: 0px; margin: 0px; border: 0px;
+    top: 0; bottom:0px; left: 0; right: 0;
+    padding: 0; margin: 0; border: 0;
     overflow: visible;}
 
 body._BYPAGE {
-    margin-top: 0px; margin-bottom: 0px;
-    margin-left: 0px; margin-right: 0px;}
+    margin-top: 0; margin-bottom: 0;
+    margin-left: 0; margin-right: 0;}
 
 body._SCROLL #CODEXCONTENT {
     padding-left: 3em; padding-right: 3em;}
@@ -2027,10 +2027,10 @@ body.mbSTARTUP #CODEXCONTENT {
 
 #CODEXPAGE #METABOOKPAGES #CODEXCONTENT {
     text-align: left;
-    padding: 0px; margin: 0px; border: 0px;
+    padding: 0; margin: 0; border: 0;
     /* This should make space for glossmarks and buttons */
     padding-left: 32px; padding-right: 32px;
-    margin-right: 0px;}
+    margin-right: 0;}
 
 body._BYPAGE #CODEXPAGE #CODEXCONTENT .metabookpagebreak {
     column-break-before: always;
@@ -2064,7 +2064,7 @@ span.note.ellipsis span.elision, span.note.ellipsis span.delision {
 #METABOOKFRAME table tr {
     /* Some documents may define style rules for TR which we want to override */
     background-color: transparent;
-    border: 0px transparent;}
+    border: 0 transparent;}
 #METABOOKFRAME input[TYPE="TEXT"] {
     box-sizing: border-box;
     padding-left: 0.3ex;}
@@ -2074,9 +2074,9 @@ span.note.ellipsis span.elision, span.note.ellipsis span.delision {
 /* html._TOUCH .fdjtselecting .fdjtselectloupe { display: inline-block; } */
 
 .fdjtselected {
-    box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 255, 0, 0.33);}
+    box-shadow: 0 0 0.5ex 0.5ex rgba(255, 255, 0, 0.33);}
 .fdjtselectstart, .fdjtselectend {
-    box-shadow: 0px 0px 0.5ex 0.5ex rgba(255, 215, 0, 0.33);}
+    box-shadow: 0 0 0.5ex 0.5ex rgba(255, 215, 0, 0.33);}
 
 #METABOOKBODY .fdjtselectwrap {
     background-color: transparent; }
@@ -2155,23 +2155,23 @@ html._TOUCH img.mouseicon { display: none;}
 div.locbar {
     width: 100%; clear: both;
     min-height: 6px; height: 6px;
-    border: 0px; margin: 0px; padding: 0px;
+    border: 0; margin: 0; padding: 0;
     margin-bottom: 2px;}
 div.locbar hr {
     min-width: 3px;
     border-right: solid gold 1px; border-left: solid gold 1px;
-    position: relative; left: 0px; width: 100%; height: 100%;
-    border: 0px; padding: 0px; margin: 0px;}
+    position: relative; left: 0; width: 100%; height: 100%;
+    border: 0; padding: 0; margin: 0;}
 
 /* Glossmarks */
 
 .glossmark {
-    position: absolute; right: 0px;
+    position: absolute; right: 0;
     /* float: right; text-align: right; */
-    margin: 0px; padding: 0px; text-indent: 0px; 
-    border: 0px;
+    margin: 0; padding: 0; text-indent: 0; 
+    border: 0;
     border-right: solid rgba(70,130,180,0.70) 6px;
-    width: 0px; overflow: visible;
+    width: 0; overflow: visible;
     width: 56px; height: 50px;
     box-sizing: border-box; 
     z-index: 50;}
@@ -2201,7 +2201,7 @@ html._MOUSE .glossmark#METABOOKOPENGLOSSMARK.hover > img {
     float: right;}
 .glossmark img { width: 100%; height: auto;}
 .glossmark img.wedge {
-    position: absolute; right: 0px; top: 0px;}
+    position: absolute; right: 0; top: 0;}
 
 .mbSKIMMING .glossmark, .mbPREVIEW .glossmark {
     opacity: 0.5;}
@@ -2325,7 +2325,7 @@ h1[toclevel='1'],h2[toclevel='1'] { page-break-before: always;}
 div.codexpage img.sbookpage {
     position: static; margin: auto;}
 div.codexpage .sbookpage .sbookinfo {
-    position: absolute; bottom: 0px; width: 100%;
+    position: absolute; bottom: 0; width: 100%;
     text-align: center;}
 
 .backmatter {page-break-before: always;}
@@ -2424,7 +2424,7 @@ div.codexpage {
 div.codexpage {
     padding: 2px;
     border: solid transparent 4px;
-    margin: 0px;}
+    margin: 0;}
 
 div.codexpage img.nomax { max-width: inherit; max-height: inherit;}
 
@@ -2473,16 +2473,16 @@ body._ANIMATE div.codexpage.newpage.onleft.curpage {
 /* Special rules for overriding properties on split (dup) passages */
 
 body #METABOOKBODY #CODEXPAGE .codexpage .metabookdupstart {
-    padding-bottom: 0px;
-    border-bottom-width: 0px;
-    margin-bottom: 0px;}
+    padding-bottom: 0;
+    border-bottom-width: 0;
+    margin-bottom: 0;}
 body #METABOOKBODY #CODEXPAGE .codexpage .metabookdup {
-    padding-top: 0px;
-    border-top-width: 0px;
-    margin-top: 0px;
-    padding-bottom: 0px;
-    border-bottom-width: 0px;
-    margin-bottom: 0px;}
+    padding-top: 0;
+    border-top-width: 0;
+    margin-top: 0;
+    padding-bottom: 0;
+    border-bottom-width: 0;
+    margin-bottom: 0;}
 body #METABOOKBODY #CODEXPAGE .codexpage p.metabookdup,
 
 img.metabookcoverpage {
@@ -2495,7 +2495,7 @@ img.metabookcoverpage {
 
 #METABOOKSTARTUPMESSAGES {
     position: absolute; z-index: -50;
-    top: 0px; left: 100px; right: 100px; height: 50px;
+    top: 0; left: 100px; right: 100px; height: 50px;
     opacity: 0.0;
     display: none;}
 body._ANIMATE #METABOOKSTARTUPMESSAGES {
@@ -2548,7 +2548,7 @@ div.fdjtdialog.metabooktaptap .choices button.cancel {
     color: red; font-weight: bold;
     padding-top: 3px; padding-bottom: 3px;}
 div.fdjtdialog.metabooktaptap .choices button.anchor {
-    overflow: hidden; text-overflow: ellipsis; padding: 0px;
+    overflow: hidden; text-overflow: ellipsis; padding: 0;
     line-height: 1; color: blue;}
 div.metabooktaptap .choices button.anchor .anchortext {
     font-size: 80%;}
@@ -2558,7 +2558,7 @@ div.fdjtdialog.fdjtconfirm.metabooktaptap div.choices {
 /* Rules for page references */
 
 .staticpageref {
-    position: absolute; right: 0px; 
+    position: absolute; right: 0; 
     font-size: 8px; font-size: 0.8rem;
     font-weight: normal; font-style: normal;
     display: none;}
@@ -2566,17 +2566,17 @@ div.fdjtdialog.fdjtconfirm.metabooktaptap div.choices {
 /* Custom dialog rules */
 
 div.fdjtdialog.savegloss {
-    top: 0px; left: 50px; right: 50px; height: 3.5em;
-    border-top: 0px; border-radius: 1ex;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
+    top: 0; left: 50px; right: 50px; height: 3.5em;
+    border-top: 0; border-radius: 1ex;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     width: inherit; max-width: inherit;
-    padding: 0px 1em 1ex 1ex;
+    padding: 0 1em 1ex 1ex;
     font-size: 1.5rem;
     text-align: left;}
 div.fdjtdialog.savegloss div.choices {
-    position: absolute; right: 1ex; top: 0px;
-    margin-top: 0px; padding-top: 3px;
+    position: absolute; right: 1ex; top: 0;
+    margin-top: 0; padding-top: 3px;
     text-align: right;}
 div.fdjtdialog.savegloss div.choices button {
     font-weight: bold; margin-top: 0.5ex;}
@@ -2586,7 +2586,7 @@ div.fdjtdialog.savegloss .message {
     display: inline-block;}
 div.fdjtdialog.savegloss .countdown {
     position: static; background-color: ivory;
-    padding: 0px 1ex; border-radius: 0.5ex;
+    padding: 0 1ex; border-radius: 0.5ex;
     margin-top: 3px; margin-right: 1ex;}
 div.fdjtdialog.savegloss.closing button[value="SAVE"] {
     display: none; }
@@ -2672,7 +2672,7 @@ body {
 /* We reduce the number of fixed position containers because that puts
    an extra load on some devices (such as iOS). */
 #METABOOKFRAME {
-    position: fixed; top: 0px; bottom: 0px; left: 0px; right: 0px;
+    position: fixed; top: 0; bottom: 0; left: 0; right: 0;
     width: 100%; height: 100%; line-height: normal;
     box-sizing: border-box;
     pointer-events: none;
@@ -2688,7 +2688,7 @@ body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.mbSKIMMING #METABOOKFRAME, body.openhud #METABOOKFRAME,
 body.hudup #METABOOKHUD, body.mbSKIMMING #METABOOKHUD,
 body.openhud #METABOOKHUD, body.mbCOVER #METABOOKCOVER {
-    top: 0px; bottom: 0px; left: 0px; right: 0px;
+    top: 0; bottom: 0; left: 0; right: 0;
     height: 100%; width: 100%;
     display: block;}
 body.mbZOOM #METABOOKFRAME, body.mbZOOM #METABOOKBODY,
@@ -2720,7 +2720,7 @@ body._FULLHEIGHT #METABOOKFRAME {
 /* The HUD is where all of the active interface elements for reading
    appear.  */
 #METABOOKHUD {
-    position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px;
+    position: absolute; top: 0; bottom: 0; left: 0; right: 0;
     width: 100%; height: 100%;
     transform: translateZ(0);
     pointer-events: none;}
@@ -2759,11 +2759,11 @@ body.mbSKIMMING div.mbpagecontrol > span {
 div#MBPAGERIGHT.mbpagecontrol {
     background-image: url(/static/g/metabook/page_right.svgz);
     background-position: center right; padding-right: 3px;
-    text-align: right; right: 0px;}
+    text-align: right; right: 0;}
 div#MBPAGELEFT.mbpagecontrol {
     background-image: url(/static/g/metabook/page_left.svgz);
     background-position: center left; padding-left: 3px;
-    text-align: left; left: 0px;}
+    text-align: left; left: 0;}
 
 body.mbSKIMMING div#MBPAGERIGHT.mbpagecontrol {
     background-image: url(/static/g/metabook/skim_right.svgz);}
@@ -2780,8 +2780,8 @@ body.mbSKIMMING.mbSKIMSTART div#MBPAGELEFT.mbpagecontrol {
    a small metaBook tutorial. */
 #METABOOKCOVER {
     position: absolute; width: 100%; height: 100%;
-    top: 0px; bottom: 0px; left: 0px; right: 0px;
-    margin: 0px; border: 0px; padding: 0px;
+    top: 0; bottom: 0; left: 0; right: 0;
+    margin: 0; border: 0; padding: 0;
     background-color: black; opacity: 1.0;
     text-align: center;
     z-index: 100;}
@@ -2803,7 +2803,7 @@ body.mbCOVER #METABOOKHUD, body.hudup.mbCOVER #METABOOKHUD {
 
 #METABOOKZOOM, #METABOOKZOOMBOX { 
     position: absolute;
-    top: 0px; left: 0px; bottom: 0px; right: 0px;
+    top: 0; left: 0; bottom: 0; right: 0;
     text-align: center; vertical-align: middle;}
 
 #METABOOKZOOM {
@@ -2827,7 +2827,7 @@ body.mbZOOM #METABOOKZOOM {
     display: block;}
 #METABOOKZOOMCONTROLS { 
     position: fixed;
-    top: 0px; left: 0px; height: 100%; width: 100%;
+    top: 0; left: 0; height: 100%; width: 100%;
     text-align: center; vertical-align: middle;
     z-index: 100; opacity: 0.7;
     transform: translateZ(0);
@@ -2895,14 +2895,14 @@ body.mbSHOWHELP.mbZOOM #METABOOKZOOMHELPTEXT { display: block; }
 
 #METABOOKMEDIA, #METABOOKMEDIABOX { 
     position: absolute;
-    top: 0px; left: 0px; bottom: 0px; right: 0px;
+    top: 0; left: 0; bottom: 0; right: 0;
     text-align: center; vertical-align: middle;}
 
 #METABOOKMEDIA {
     overflow-x: scroll; overflow-y: scroll;
     display: none; }
 #METABOOKMEDIATARGET {
-    transform-origin: 0px 0px;}
+    transform-origin: 0 0;}
 img#METABOOKMEDIATARGET {
     max-height: 90%; max-width: 90%;}
 
@@ -2958,7 +2958,7 @@ body.mbMEDIA #METABOOKMEDIA iframe {
    pages or not. */
 #METABOOKBODY {
     position: fixed; overflow: visible;
-    left: 0px; right: 0px; top: 0px; bottom: 0px;} /* z-index: -50; */
+    left: 0; right: 0; top: 0; bottom: 0;} /* z-index: -50; */
 #METABOOKBODY { background-color: transparent; color: black; }
 
 .metabookcontent { background-color: white; color: #444; }
@@ -2973,7 +2973,7 @@ body.mbMEDIA #METABOOKMEDIA iframe {
    It's left and right styles are set based on the content width. */
 #CODEXPAGE {
     position: absolute; overflow: visible;
-    padding: 0px; margin: 0px;
+    padding: 0; margin: 0;
     left: 50px; right: 50px;
     top: 50px; bottom: 50px;
     border: solid transparent 3px;
@@ -3002,8 +3002,8 @@ body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
 #METABOOKMENU {
     position: absolute; 
-    top: 0px; left: 0px; right: 0px; height: 60px; z-index: 20;
-    text-align: center; padding: 0px; max-height: 60px;}
+    top: 0; left: 0; right: 0; height: 60px; z-index: 20;
+    text-align: center; padding: 0; max-height: 60px;}
 
 #METABOOKMENU { opacity: 0.1;}
 
@@ -3021,7 +3021,7 @@ html._MOUSE #METABOOKMENU.tapholding:hover {
     opacity: 1;}
 
 #METABOOKMENU .hudbutton {
-    border-top: 0px; opacity: 0.5;}
+    border-top: 0; opacity: 0.5;}
 .hudup #METABOOKMENU .hudbutton,
 #METABOOKMENU.tapholding .hudbutton {
     opacity: 1;}
@@ -3045,12 +3045,12 @@ html._MOUSE not(body.mbSKIMMING) #METABOOKMENU:hover .hudbutton:hover {
     border-color: blue; border-style: dotted;
     opacity: 0.75;}
 
-.hudbutton.topleft { left: 0px; top: 0px; display: inline-block;}
-.hudbutton.topright { right: 0px; top: 0px; display: inline-block;}
+.hudbutton.topleft { left: 0; top: 0; display: inline-block;}
+.hudbutton.topright { right: 0; top: 0; display: inline-block;}
 
 #METABOOKMENU img.hudbutton[hudmode="allglosses"],
 #METABOOKMENU img.hudbutton[hudmode="help"] {
-    top: 0px; display: none;}
+    top: 0; display: none;}
 
 #METABOOKCOVERTAB {
     text-align: center; max-height: 100%;
@@ -3075,8 +3075,8 @@ body.mbSKIMMING #METABOOKCOVERTAB { display: none; }
 #METABOOKBREVET {
     box-sizing: border-box;
     display: inline-block; height: 24px; width: 64px; 
-    margin: 0px; padding: 2px; padding-top: 0px;
-    border: solid transparent 1px; border-top: 0px;
+    margin: 0; padding: 2px; padding-top: 0;
+    border: solid transparent 1px; border-top: 0;
     pointer-events: none;
     background-size: contain; background-repeat: no-repeat;
     background-position: top center;
@@ -3094,8 +3094,8 @@ html._NOSVG #METABOOKBREVET {
     display: inline-block;
     box-sizing: border-box;
     width: 5em; height: 50px; font-size: 45px; line-height: 1.0;
-    margin: 0px; margin-left: auto; margin-right: auto;
-    padding:  0px 1em 0px 1em;
+    margin: 0; margin-left: auto; margin-right: auto;
+    padding:  0 1em 0 1em;
     font-variant: small-caps; font-weight: bold;
     border-bottom-left-radius: 1ex; border-bottom-right-radius: 1ex;
     cursor: pointer;}
@@ -3325,7 +3325,7 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
 
 #METABOOKSPLASHPAGE {
     postion: fixed; width: 100%; height: 100%;
-    top: 0px; bottom: 0px; left: 0px; right: 0px;
+    top: 0; bottom: 0; left: 0; right: 0;
     background-color: black; color: ivory;
     text-align: center;
     opacity: 1.0;}
@@ -3354,7 +3354,7 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
     z-index: -50; opacity: 0.0;
     border-radius: 1em; border: solid black 3px; 
     display: none;}
-#METABOOKCOVER div.controls { border-radius: 0px; }
+#METABOOKCOVER div.controls { border-radius: 0; }
 #METABOOKCOVER div.flap.scrolling {
     overflow-y: auto;}
 #METABOOKFRAME._ANIMATE #METABOOKCOVER div.flap {
@@ -3366,14 +3366,14 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
 #METABOOKCOVERMESSAGE {
     position: absolute; white-space: nowrap;
     font-style: italic; font-size: 24px; font-size: 2rem;
-    width: 80%; left: 10%; right: 10%; border: 0px; 
-    top: 0px; bottom: auto;
+    width: 80%; left: 10%; right: 10%; border: 0; 
+    top: 0; bottom: auto;
     text-align: center; overflow: visible; 
     background-color: black; color: silver;
     cursor: pointer; display: block; opacity: 1.0;
     z-index: 50;}
 #METABOOKCOVER.coverpage #METABOOKCOVERMESSAGE {
-    width: 100%; left: 0px; right: 0px; z-index: 500;
+    width: 100%; left: 0; right: 0; z-index: 500;
     bottom: 40px; height: 60px; top: auto;}
 body.mbREADY #METABOOKCOVERMESSAGE { display: none;}
 body.mbREADY.mbLAYOUT #METABOOKCOVERMESSAGE { display: block;}
@@ -3385,7 +3385,7 @@ body.mbREADY.mbLAYOUT #METABOOKCOVERMESSAGE { display: block;}
 #METABOOKCOVERCONTROLS {
     box-sizing: border-box;
     position: absolute; height: 60px; bottom: 40px; top: auto;
-    width: 100%; left: 0px; right: 0px; border-width: 0px;
+    width: 100%; left: 0; right: 0; border-width: 0;
     padding-left: 1em; padding-right: 1em;
     margin-top: 0.25ex; margin-bottom: 0.25ex;
     line-height: 1.25;
@@ -3397,7 +3397,7 @@ body.mbREADY.mbLAYOUT #METABOOKCOVERMESSAGE { display: block;}
 #METABOOKCOVERCONTROLS span.control {
     color: silver; white-space: nowrap;
     padding-left: 0.5ex; padding-right: 0.5ex; padding-bottom: 0.5ex;
-    outline-width: 0px;
+    outline-width: 0;
     cursor: pointer;}
 html._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
 #METABOOKCOVERCONTROLS span.control:focus {
@@ -3406,7 +3406,7 @@ html._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
 #METABOOKCOVER div.loginbox, #METABOOKCOVER div.userbox {
     position: absolute; vertical-align: top;
     box-sizing: border-box;
-    bottom: 0px !important; top: auto !important; left: 0px; right: 0px; 
+    bottom: 0 !important; top: auto !important; left: 0; right: 0; 
     z-index: 50; color: gold; overflow: hidden;
     border-top: solid gold 1px; 
     opacity: 1.0;}
@@ -3414,7 +3414,7 @@ html._MOUSE #METABOOKCOVERCONTROLS span.control:hover,
     border-top: solid black 1px;
     padding-bottom: 2px;}
 #METABOOKCOVER div.userbox {
-    padding-top: 0px;}
+    padding-top: 0;}
 html._NOUSER #METABOOKCOVER div.userbox {display: none;}
 
 #METABOOKCOVER div.controls > div.fdjtfontwrapper {
@@ -3446,7 +3446,7 @@ html._USER #METABOOKCOVER div.loginbox {
 #METABOOKCOVER div.loginbox form input,
 #METABOOKCOVER div.loginbox form button,
 #METABOOKCOVER div.loginbox form select {
-    vertical-align: top; margin-top: 0px;}
+    vertical-align: top; margin-top: 0;}
 
 #METABOOKCOVER div.loginbox form input[NAME="LOGIN"] {
     max-width: 50%; float: left;} 
@@ -3457,8 +3457,8 @@ html._NOUSER #METABOOKCOVER > #METABOOKCOVERCONTROLS {
 
 #METABOOKCOVER div.loginbox {
     white-space: nowrap;
-    margin: 0px; padding: 0px;
-    height: 0px;}
+    margin: 0; padding: 0;
+    height: 0;}
 #METABOOKCOVER div.loginbox button { padding: 1px;}
 #METABOOKCOVER div.loginbox button > img { height: 100%; width: auto;}
 div.loginbox form > button, div.loginbox form > input[TYPE="TEXT"],
@@ -3506,7 +3506,7 @@ body.mbREADY #METABOOKCOVER.coverpage #METABOOKOPENTAB {
   display: none;}
 #METABOOKCOVER.coverpage div.flap#METABOOKCOVERPAGE,
 #METABOOKCOVER.bookcover div.flap#METABOOKCOVERPAGE {
-   top: 0px; bottom: 100px;}
+   top: 0; bottom: 100px;}
 
 
 #METABOOKCOVER.bookcover .control[data-mode='coverpage'],
@@ -3518,7 +3518,7 @@ body.mbREADY #METABOOKCOVER.coverpage #METABOOKOPENTAB {
 #METABOOKCOVER.help .control[data-mode='help'],
 #METABOOKCOVER.console .control[data-mode='console'],
 #METABOOKCOVER.login .control[data-mode='login'] {
-    outline-color: transparent; outline-width: 0px;
+    outline-color: transparent; outline-width: 0;
     display: inline;
     color: gold;}
 
@@ -3555,16 +3555,16 @@ html._USER._CONN .control[data-mode='login'] { display: none;}
 /* The sBooks app for managing layers */
 
 #METABOOKCOVER div.flap#METABOOKLAYERS {
-    border-top-left-radius: 0px; border-top-right-radius: 0px;
+    border-top-left-radius: 0; border-top-right-radius: 0;
     border-bottom-left-radius: 1.5em; border-bottom-right-radius: 1.5em;}
 
 #METABOOKCOVER div.flap#METABOOKLAYERS iframe#BOOKHUBAPP {
-    height: 100%; width: 100%; margin: 0px; padding: 0px;
+    height: 100%; width: 100%; margin: 0; padding: 0;
     background-color: ivory;}
 
 /* The book cover */
 
-div.flap#METABOOKCOVERPAGE { padding: 0px; }
+div.flap#METABOOKCOVERPAGE { padding: 0; }
 #METABOOKCOVERPAGE img {
     max-width: 95%; height: 95%; width: auto;}
 
@@ -3625,15 +3625,15 @@ html._SHOWCONSOLE .control[alt='Console'] {display: none;}
     margin-left: 4em; padding-top: 1em;}
 #METABOOKCONSOLE #METABOOKCONSOLEINPUT span.button {
     font-weight: bold; font-size: 200%;
-    padding: 0.5ex; border-radius: 0.5ex; padding-top: 0px;
-    margin: 0px; margin-top: 0.25ex; margin-right: 0.25ex;
+    padding: 0.5ex; border-radius: 0.5ex; padding-top: 0;
+    margin: 0; margin-top: 0.25ex; margin-right: 0.25ex;
     background-color: silver;
     float: right;}
 #METABOOKCONSOLE #METABOOKCONSOLEINPUT textarea { width: 80%;}
 html._TOUCH #METABOOKCONSOLE #METABOOKCONSOLEINPUT.uptop {
     position: absolute;
     top: 5px; left: 10%; right: 10%; width: 90%;
-    margin-left: 0px; padding-top: 0px;}
+    margin-left: 0; padding-top: 0;}
 html._TOUCH #METABOOKCONSOLELOG {
     /* This make it always scrollable on touch devices,
        in case interesting content is underneath the
@@ -3646,11 +3646,11 @@ html._TOUCH #METABOOKCONSOLELOG {
     text-align: center;}
 #METABOOKCOVERMESSAGE div.metabookstatus { display: none;}
 #METABOOKCOVER > .sbookslogo, #METABOOKCOVER > .publisherlogo {
-    position: absolute; top: 0px; z-index: 200;
+    position: absolute; top: 0; z-index: 200;
     color: silver; font-size: 2em;
     display: none; }
-#METABOOKCOVER > .sbookslogo {left: 0px;}
-#METABOOKCOVER > .publisherlogo {right: 0px;}
+#METABOOKCOVER > .sbookslogo {left: 0;}
+#METABOOKCOVER > .publisherlogo {right: 0;}
 
 #METABOOKCOVER > .sbookslogo em {color: steelblue;}
 
@@ -3658,9 +3658,9 @@ div#METABOOKOPENTAB {
     height: 40px; width: 7em; font-size: 38px; line-height: 1.0; white-space: nowrap;
     box-sizing: border-box;
     font-style: normal;
-    margin: 0px; margin-left: auto; margin-right: auto;
-    padding:  0px 1em 0px 1em; 
-    border: solid transparent 2px; border-top: 0px;
+    margin: 0; margin-left: auto; margin-right: auto;
+    padding:  0 1em 0 1em; 
+    border: solid transparent 2px; border-top: 0;
     background-color: gray; color: white;
     font-variant: small-caps; font-weight: bold;
     border-bottom-left-radius: 1ex; border-bottom-right-radius: 1ex;
@@ -3682,8 +3682,8 @@ body.mbBUSY #METABOOKCOVERMESSAGE #METABOOKOPENTAB {
 
 #METABOOKCOVERMESSAGE div.message {
     color: silver; font-size: 24px; font-size: 2rem;
-    padding-left: 0px; padding-right: 0px;
-    padding-top: 0px;
+    padding-left: 0; padding-right: 0;
+    padding-top: 0;
     box-sizing: border-box;
     width: 100%;}
 #METABOOKCOVERMESSAGE div.message {display: none;}
@@ -3691,7 +3691,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE #METABOOKOPENTAB {
     box-sizing: border-box;
     margin-top: 0.2ex; width: 7em;
     margin-left: auto; margin-right: auto;
-    padding:  0px 1em 0px 1em; border: solid transparent 4px;
+    padding:  0 1em 0 1em; border: solid transparent 4px;
     background-color: gray; color: white;
     font-variant: small-caps; font-weight: bold;
     border-radius: 1ex; }
@@ -3707,7 +3707,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 #METABOOKREADYMESSAGE { padding-bottom: 1ex; }
 
 #METABOOKCOVERMESSAGE div.message > div.metabookprogressbox {
-    width: 100%; border: solid silver 2px; border-top: 0px;}
+    width: 100%; border: solid silver 2px; border-top: 0;}
 #METABOOKCOVERMESSAGE div.indicator {
     height: 1ex; background-color: gold;}
 
@@ -3736,7 +3736,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 
     #METABOOKCOVER #METABOOKCOVERMESSAGE,
     #METABOOKCOVER.coverpage #METABOOKCOVERMESSAGE {
-        bottom: 0px; top: auto; z-index: 200;}
+        bottom: 0; top: auto; z-index: 200;}
 
     #METABOOKCOVER div.flap { left: 10px; right: 10px;}
 
@@ -3775,11 +3775,11 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
     #METABOOKCOVER div.loginbox form button { display: none;}
     #METABOOKCOVER div.loginbox form > span { display: none;}
     #METABOOKCOVER div.loginbox form select {
-        position: absolute; right: 0px;
+        position: absolute; right: 0;
         width: 48%; font-size: 16px; font-size: 1rem;
         display: inline-block;}
     #METABOOKCOVER div.loginbox form input[TYPE="TEXT"] {
-        position: absolute; left: 0px;
+        position: absolute; left: 0;
         width: 48%; font-size: 16px; font-size: 1rem;
         display: inline-block;}
     #METABOOKCOVER div.loginbox form input[TYPE="TEXT"]:focus {
@@ -3830,10 +3830,10 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 @charset "UTF-8";
 
 body form.metabooksettings h1 { 
-    margin-top: 0px; margin-bottom: 0.25ex;
+    margin-top: 0; margin-bottom: 0.25ex;
     text-align: left;}
 form.metabooksettings > h1 + div.fontsizes {
-    margin-top: 0px;}
+    margin-top: 0;}
 
 form.metabooksettings {font-size: 1rem;}
 
@@ -3884,7 +3884,7 @@ form.metabooksettings > div.justify {
 
 form.metabooksettings > div p {
     display: inline-block; 
-    margin-top: 0px; 
+    margin-top: 0; 
     margin-bottom: 1px;}
 form.metabooksettings > div p.body {
     font-size: 150%;}
@@ -4067,13 +4067,13 @@ html._TOUCH #METABOOKHUD .metabookslice {
 
 #METABOOKHEAD {
     position: absolute; left: 60px; right: 60px; z-index: 80;
-    min-height: 60px; max-height: 60px; padding: 0px;
+    min-height: 60px; max-height: 60px; padding: 0;
     background-color: transparent; 
-    border: solid transparent 0px;}
+    border: solid transparent 0;}
 #METABOOKFOOT {
-    position: absolute; left: 0px; right: 0px; height: 60px; z-index: 100;
-    text-align: center; padding: 0px; max-height: 60px;}
-#METABOOKFOOT { bottom: 0px; }
+    position: absolute; left: 0; right: 0; height: 60px; z-index: 100;
+    text-align: center; padding: 0; max-height: 60px;}
+#METABOOKFOOT { bottom: 0; }
 
 #METABOOKHEAD {
     padding-bottom: 2px; padding-top: 1px;
@@ -4088,8 +4088,8 @@ body.hudup #METABOOKHEAD .hudpanel {background-color: transparent;}
 html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.hudtip {
     background-color: rgba(141,168,191, 0.5);}
 
-#METABOOKHEAD {top: 0px; border-top: 0px;}
-#METABOOKFOOT {bottom: 0px; border-bottom: 0px;}
+#METABOOKHEAD {top: 0; border-top: 0;}
+#METABOOKFOOT {bottom: 0; border-bottom: 0;}
 
 #METABOOKHUD #METABOOKHEAD,
 #METABOOKHUD.openfoot #METABOOKFOOT,
@@ -4102,19 +4102,19 @@ html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.hudtip {
 
 #METABOOKHEAD, #METABOOKHEAD .hudpanel {
     border-radius: 0.5ex;
-    border-top-width: 0px;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;}
+    border-top-width: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;}
 #METABOOKFOOT, #METABOOKFOOT .hudpanel {
     border-radius: 1ex;
-    border-bottom-width: 0px;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;}
+    border-bottom-width: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;}
 
 #METABOOKFRAME._ANIMATE #METABOOKHEAD {
     transition-property: opacity; transition-duration: 0.5s;}
 #METABOOKHEAD {
-    opacity: 0.0; max-height: 0px;
+    opacity: 0.0; max-height: 0;
     display: block;}
 #METABOOKHUD.openhead #METABOOKHEAD {
     max-height: inherit; opacity: 1.0; 
@@ -4156,18 +4156,18 @@ body.hudup #METABOOKHUD #METABOOKFOOT { height: 60px;}
     border-color: rgba(70, 130, 180, 0.54);}
 
 #METABOOKHEART #METABOOKRIBBON {
-    border-radius: 0px; 
+    border-radius: 0; 
     border-top-left-radius: 1ex;
     border-top-right-radius: 1ex;}
 #METABOOKHEART #METABOOKHEARTBODY {}
 
 #METABOOKHUD #METABOOKRIBBON {
     position: absolute;
-    top: 0px; left: 0px; right: 0px; height: 0px; z-index: 50;
+    top: 0; left: 0; right: 0; height: 0; z-index: 50;
     background-color: rgba(141,168,191, 0.5);
     font-size: 50%;}
 #METABOOKHUD #METABOOKHEARTBODY {
-    position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background-color: transparent;}
 #METABOOKHUD #METABOOKHEARTBODY div.hudpanel {
     background-color: transparent;
@@ -4207,15 +4207,15 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 #METABOOKHUD.glossaddtag #METABOOKRIBBON,
 #METABOOKHUD.glossaddoutlet #METABOOKRIBBON {
     border-bottom: solid blue 2px;
-    padding-top: 0px;
+    padding-top: 0;
     height: 6ex;} /* font-size: 50%; */
 #METABOOKHUD.refinesearch #METABOOKHEARTBODY,
 #METABOOKHUD.expandsearch #METABOOKHEARTBODY,
 #METABOOKHUD.searchresults #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddtag #METABOOKHEARTBODY,
 #METABOOKHUD.glossaddoutlet #METABOOKHEARTBODY {
-    margin-top: 0px;
-    border-radius: 0px;
+    margin-top: 0;
+    border-radius: 0;
     top: 3ex;}
 
 #METABOOKHUD.refinesearch.emptysearch #METABOOKRIBBON,
@@ -4228,7 +4228,7 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEART,
 body.hudup #METABOOKHUD.openheart.allglosses #METABOOKHEARTBODY div.hudpanel,
 body.hudup #METABOOKHUD.openheart.searchresults
      #METABOOKHEARTBODY div.hudpanel {
-    padding-bottom: 1em; border-bottom: 0px; margin-bottom: 0px;}
+    padding-bottom: 1em; border-bottom: 0; margin-bottom: 0;}
 body.hudup #METABOOKHUD.openheart #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glossaddtag #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glosstagging #METABOOKHEARTBODY div.hudpanel,
@@ -4236,12 +4236,12 @@ body.hudup #METABOOKHUD.openheart #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glossaddoutlet #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glosseditdetail #METABOOKHEARTBODY div.hudpanel,
 #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY div.hudpanel {
-    margin-top: 0px; margin-bottom: 0px;}
+    margin-top: 0; margin-bottom: 0;}
 body.hudup #METABOOKHUD.allglosses.openheart #METABOOKHEARTBODY,
 body.hudup #METABOOKHUD.searchresults.openheart #METABOOKHEARTBODY {
-    padding-top: 0px;}
+    padding-top: 0;}
 
-#METABOOKHEARTBODY div.hudpanel > h1:first-child { margin-top: 0px;}
+#METABOOKHEARTBODY div.hudpanel > h1:first-child { margin-top: 0;}
 
 #METABOOKHUD.addgloss.glossaddtag #METABOOKHEART,
 #METABOOKHUD.addgloss.glosstagging #METABOOKHEART,
@@ -4252,20 +4252,20 @@ body.hudup #METABOOKHUD.searchresults.openheart #METABOOKHEARTBODY {
 #METABOOKHUD.addgloss.glossattach #METABOOKHEART {
     top: 150px; height: auto; min-height: 10em;}
 #METABOOKHUD.addgloss.glossattach #METABOOKHEARTBODY {
-    height: auto; min-height: 8em; padding-top: 0px;
+    height: auto; min-height: 8em; padding-top: 0;
     overflow: visible;}
 
 #METABOOKHUD #METABOOKFOOT {
-    position: absolute; bottom: 0px; z-index: 300;}
+    position: absolute; bottom: 0; z-index: 300;}
 
 /* HUD panels */
 
 #METABOOKHUD div.hudpanel {
     background-color: transparent;
-    z-index: 100; border: 0px;}
+    z-index: 100; border: 0;}
 /* Being on top */
 #METABOOKHUD .hudpanel {
-    position: absolute; left: 0px; right: 0px;
+    position: absolute; left: 0; right: 0;
     text-align: center; overflow: visible;}
 /* Being invisible */
 #METABOOKHUD .hudpanel {
@@ -4335,13 +4335,13 @@ body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCHRESULTS.hudpanel {
     padding-top: 12px;}
 
 #METABOOKHEARTBODY #METABOOKSEARCHBLOCK.hudpanel {
-    margin-left: 0px; margin-right: 0px;
+    margin-left: 0; margin-right: 0;
     background-color: transparent;}
 #METABOOKHUD.refinesearch #METABOOKSEARCHBLOCK.hudpanel,
 #METABOOKHUD.expandsearch #METABOOKSEARCHBLOCK.hudpanel,
 #METABOOKHUD.searchresults #METABOOKSEARCHBLOCK.hudpanel {
     position: absolute; display: block; overflow: hidden;
-    top: 0px; bottom: 0px; left: 0px; right: 0px;
+    top: 0; bottom: 0; left: 0; right: 0;
     opacity: 0.98;}
 
 div.completions.hudpanel { line-height: 120%;}
@@ -4410,22 +4410,22 @@ body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="allglosses"]{
 
 body.hudup img.hudbutton  {}
 
-.hudbutton.topleft {top: 0px; left: 0px; right: auto; bottom: auto;}
-.hudbutton.topright {top: 0px; right: 0px; left: auto; bottom: auto;}
-.hudbutton.botleft {bottom: 0px; left: 0px; right: auto; top: auto;}
-.hudbutton.botright {bottom: 0px; right: 0px; left: auto; top: auto;}
+.hudbutton.topleft {top: 0; left: 0; right: auto; bottom: auto;}
+.hudbutton.topright {top: 0; right: 0; left: auto; bottom: auto;}
+.hudbutton.botleft {bottom: 0; left: 0; right: auto; top: auto;}
+.hudbutton.botright {bottom: 0; right: 0; left: auto; top: auto;}
 
 img.hudbutton.topleft {
-    border-top-width: 0px; border-left-width: 0px;
+    border-top-width: 0; border-left-width: 0;
     border-bottom-right-radius: 6px;}
 img.hudbutton.topright {
-    border-top-width: 0px; border-right-width: 0px;
+    border-top-width: 0; border-right-width: 0;
     border-bottom-left-radius: 6px;}
 img.hudbutton.botleft {
-    border-bottom-width: 0px; border-left-width: 0px;
+    border-bottom-width: 0; border-left-width: 0;
     border-top-right-radius: 6px;}
 img.hudbutton.botright {
-    border-bottom-width: 0px; border-right-width: 0px;
+    border-bottom-width: 0; border-right-width: 0;
     border-top-left-radius: 6px;}
 
 img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
@@ -4437,7 +4437,7 @@ img.closebutton, img.metabookpagebutton, img.metabookskimbutton, img.hudbutton {
     display: block;}
 
 #METABOOKHUD.about #METABOOKHEARTBODY .tabcontent {
-    margin-top: 0px;}
+    margin-top: 0;}
 
 html._NOUSER a.logout {
     display: none !important;}
@@ -4463,7 +4463,7 @@ body.hudup #CODEXPAGE p, body.hudup #CODEXPAGE div { cursor: pointer;}
 
 /* METABOOKPOINTGLOSSES rules */
 
-#METABOOKPOINTGLOSSES div.mbcard { margin-left: 0px;}
+#METABOOKPOINTGLOSSES div.mbcard { margin-left: 0;}
 #METABOOKPOINTGLOSSES.hudpanel {
     top: 100px; left: auto; right: 50px;
     max-width: 80vw; min-width: 15em; min-height: 20px; 
@@ -4479,8 +4479,8 @@ body.openglossmark #METABOOKPOINTGLOSSES { display: block;}
 #METABOOKPOINTGLOSSES.hudpanel {
     border: solid blue 2px;
     border-radius: 1ex;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;}
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;}
 
 body.openglossmark #METABOOKPOINTGLOSSES.hudpanel {
     display: block;
@@ -4569,11 +4569,11 @@ body img.metabookpagebutton {
 body img.metabookskimbutton#METABOOKNEXTSKIM,
 body img.metabookskimbutton#METABOOKENDSKIM,
 body img.metabookpagebutton#METABOOKNEXTPAGE {
-    right: 0px;}
+    right: 0;}
 body img.metabookskimbutton#METABOOKPREVSKIM,
 body img.metabookskimbutton#METABOOKSTARTSKIM,
 body img.metabookpagebutton#METABOOKPREVPAGE {
-    left: 0px;}
+    left: 0;}
 
 body.mbSKIMMING img.metabookskimbutton {display: block;}
 body.mbSKIMMING img.metabookpagebutton { display: none;}
@@ -4608,7 +4608,7 @@ body.mbSKIMMING.mbSKIMSTART.mbSKIMEND img.metabookskimbutton#METABOOKPREVSKIM {
 /* METABOOKADDGLOSS rules */
 
 #METABOOKHUD.addgloss div.hudpanel#METABOOKADDGLOSS {
-    opacity: 0.95; margin-left: 0px; margin-right: 0px;
+    opacity: 0.95; margin-left: 0; margin-right: 0;
     border-color: silver; overflow: visible;
     background-color: transparent;}
 
@@ -4624,7 +4624,7 @@ body.mbSKIMMING.mbSKIMSTART.mbSKIMEND img.metabookskimbutton#METABOOKPREVSKIM {
 /* Buttons */
 
 #METABOOKHUD.about #METABOOKHEARTBODY .tabcontent {
-    margin-top: 0px;}
+    margin-top: 0;}
 
 /* The page layout message/progress indicator */
 
@@ -4679,7 +4679,7 @@ form.sbooksapp table td.text { padding-bottom: 1ex;}
 html._NOUSER ._USER { display: none;}
 html._USER ._NOUSER { display: none;}
 
-html._NOUSER form.sbooksapp { padding-top: 0px;}
+html._NOUSER form.sbooksapp { padding-top: 0;}
 
 .mbwithuser, .mbnouser, .mbdisconn, .mbwithconn { display: none; }
 
@@ -4710,7 +4710,7 @@ img.metabookclosehud {
     vertical-align: top; margin-top: 2px;
     display: inline-block;}
 img.metabookclosehud#METABOOKSTOPSKIM {
-    position: absolute; top: 0px; right: 5px;
+    position: absolute; top: 0; right: 5px;
     width: 40px; height: 40px;
     /* Let's try to do without this for now */
     display: none;}
@@ -4736,10 +4736,10 @@ body._FULLHEIGHT._FULLWIDTH.hudup #METABOOKHUD {
     display: block;}
 
 body._FULLHEIGHT #METABOOKSHOWCOVER {
-    padding: 0px;}
+    padding: 0;}
 body._FULLHEIGHT.hudup #METABOOKFOOT {
     padding-top: 2px;
-    border-radius: 0px;}
+    border-radius: 0;}
 
 /* Hover rules */
 
@@ -4770,7 +4770,7 @@ body.hudup img.metabookpagebutton {
         border-radius: 1ex;
         left: 5px; right: 5px;}
     #METABOOKHEARTBODY {
-        border-radius: 1ex; padding-bottom: 0px;
+        border-radius: 1ex; padding-bottom: 0;
         margin-bottom: 2px;
         left: 5px; right: 5px;}
     #METABOOKHUD.openheart #METABOOKHEART {
@@ -4843,8 +4843,8 @@ body.hudup img.metabookpagebutton {
 
 #METABOOKFOOT #METABOOKPAGEBAR {
     vertical-align: bottom; text-align: center; height: 40px; font-size: 16px;
-    position: absolute; left: 50px; right: 50px; bottom: 0px; z-index: 100;
-    margin-left: 20px; margin-right: 20px; border: 0px;
+    position: absolute; left: 50px; right: 50px; bottom: 0; z-index: 100;
+    margin-left: 20px; margin-right: 20px; border: 0;
     cursor: crosshair;
     display: none;}
 body._BYPAGE #METABOOKFOOT #METABOOKPAGEBAR { display: block; }
@@ -4869,7 +4869,7 @@ body.mbPAGEREFS #METABOOKFOOT #METABOOKPAGEREFTEXT {display: inline-block;}
     content: '》'; font-style: normal; font-weight: bold;}
 */
 #METABOOKFOOT #METABOOKPAGEBAR div.progressbar {
-    background-color: gray; border: solid black 1px; border-top-width: 0px;
+    background-color: gray; border: solid black 1px; border-top-width: 0;
     z-index: 50; height: 100%; position: absolute; opacity: 0.5;}
 #METABOOKFOOT #METABOOKPAGELEAP {opacity: 0.001;}
 html._MOUSE #METABOOKFOOT #METABOOKPAGELEAP:hover {opacity: 0.4;}
@@ -4878,7 +4878,7 @@ body.hudup #METABOOKFOOT #METABOOKPAGELEAP {opacity: 0.7;}
 /* Page spans */
 
 #METABOOKFOOT #METABOOKPAGEBAR div.textfoot {
-    position: absolute; bottom: 0px;
+    position: absolute; bottom: 0;
     font-size: 28px; line-height: 100%;
     width: 100%; height: 28px; 
     box-sizing: border-box;
@@ -4887,15 +4887,15 @@ body.hudup #METABOOKFOOT #METABOOKPAGELEAP {opacity: 0.7;}
 #METABOOKFOOT #METABOOKPAGEBAR div.textfoot > div {}
 #METABOOKFOOT #METABOOKPAGEBAR div.textfoot > span {}
 #METABOOKFOOT #METABOOKPAGEBAR div.textfoot > span {
-    z-index: 50; pointer-events: all; bottom: 0px;}
+    z-index: 50; pointer-events: all; bottom: 0;}
 hr#METABOOKLAYOUTINDICATOR {
-    position: absolute; bottom: 0px; left: 0px; height: 70%; width: 0%;
-    opacity: 0.0; margin: 0px;
+    position: absolute; bottom: 0; left: 0; height: 70%; width: 0%;
+    opacity: 0.0; margin: 0;
     box-sizing: border-box;
     display: none;}
 #METABOOKLAYOUTADJUST {
     position: absolute;
-    top: 0px; left: 0px; height: 100%; width: auto; margin: 0px;
+    top: 0; left: 0; height: 100%; width: auto; margin: 0;
     font-weight: bold;
     z-index: 200;
     display: none;}
@@ -4906,7 +4906,7 @@ body.mbLAYOUT hr#METABOOKLAYOUTINDICATOR {
 
 #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespan {
     opacity: 0.0; overflow: hidden; z-index: 20; height: 100%;
-    position: absolute; bottom: 0px; /* display: inline-block; */
+    position: absolute; bottom: 0; /* display: inline-block; */
     box-sizing: border-box; vertical-align: top;}
 body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespan {
     height: 100%;}
@@ -4933,7 +4933,7 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookp
 
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKPAGEPROGRESS {
     box-sizing: content-box;
-    position: absolute; bottom: 0px; left: 0px;
+    position: absolute; bottom: 0; left: 0;
     width: 33%; height: 100%; z-index: 50;
     pointer-events: none;
     transition-property: width; 
@@ -4943,7 +4943,7 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookp
     background-color: transparent;}
 #METABOOKFOOT #METABOOKPAGEBAR .metabooksectmarker {
     box-sizing: content-box;
-    position: absolute; bottom: 0px; left: 10%; width: 0%;
+    position: absolute; bottom: 0; left: 10%; width: 0%;
     height: 60%;
     border-top-left-radius: 4px; border-top-right-radius: 4px;
     pointer-events: none;
@@ -4959,7 +4959,7 @@ html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
     height: 100px;}
 
 #METABOOKHUD .metabookgoto {
-    position: absolute; bottom: 0px; padding-bottom: 0px;
+    position: absolute; bottom: 0; padding-bottom: 0;
     display: none; opacity: 0.0;
     background-color: transparent;
     white-space: nowrap;
@@ -4968,7 +4968,7 @@ html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
 #METABOOKHUD .metabookgoto .gototext { background-color: white; } 
 #METABOOKHUD .metabookgoto .gototext {
     display: inline-block; 
-    padding: 2px; padding-bottom: 0px;}
+    padding: 2px; padding-bottom: 0;}
 #METABOOKHUD .metabookgoto input {
     width: 4em; text-align: right; padding-right: 2px;}
 #METABOOKHUD.gotoloc  .metabookgoto#METABOOKGOTOLOC,
@@ -4976,21 +4976,21 @@ html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
 #METABOOKHUD.gotoref .metabookgoto#METABOOKGOTOREF {
     display: inline; opacity: 1.0;}
 #METABOOKHUD  .metabookgoto#METABOOKGOTOLOC {
-    right: 0px; left: auto;
-    padding-left: 1ex; padding-right: 0px;}
+    right: 0; left: auto;
+    padding-left: 1ex; padding-right: 0;}
 #METABOOKHUD  .metabookgoto#METABOOKGOTOPAGE {
     right: 40%; left: 40%;}
 #METABOOKHUD  .metabookgoto#METABOOKGOTOREF {
-    left: 0px;}
+    left: 0;}
 
 /* SHOWTEXT rules */
 
 #METABOOKFOOT #METABOOKSHOWTEXT {
     position: absolute; z-index: 500; opacity: 1.0;
-    bottom: 0px; left: 100px; right: 100px;
+    bottom: 0; left: 100px; right: 100px;
     text-align: center;
     font-size: 32px; font-weight: bold;
-    padding: 0px; white-space: nowrap;
+    padding: 0; white-space: nowrap;
     cursor: pointer;
     display: none;}
 #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT.tapholdtarget {
@@ -4999,7 +4999,7 @@ html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
 #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT > span > span {
     border: solid black 1px; 
     padding-left: 1em; padding-right: 1em;
-    padding-top: 0.2ex; padding-bottom: 0px;
+    padding-top: 0.2ex; padding-bottom: 0;
     border-radius: 1ex;
     opacity: 0.70;}
 #METABOOKHUD #METABOOKSHOWTEXT span.stopskimming,
@@ -5058,18 +5058,18 @@ body._FULLHEIGHT #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT > span > span {
 @media screen and (max-width: 500px) {
     #METABOOKFOOT #METABOOKPAGEBAR {
         margin-left: 2px; margin-right: 2px;
-        left: 0px; right: 0px;}
+        left: 0; right: 0;}
     #METABOOKFOOT #METABOOKPAGEBAR .metabooksectmarker { 
-        border: solid blue 1px; border-bottom: 0px; opacity: 0.7; }
+        border: solid blue 1px; border-bottom: 0; opacity: 0.7; }
 
     #METABOOKFOOT .hudbutton { bottom: 30px;}
-    body.hudup #METABOOKFOOT .hudbutton { bottom: 0px;}
+    body.hudup #METABOOKFOOT .hudbutton { bottom: 0;}
     body.hudup #METABOOKFOOT #METABOOKSHOWTEXT { bottom: 3px;}
     body.hudup #METABOOKFOOT #METABOOKPAGEBAR { display: none;}
 
     body.mbSHOWHELP #METABOOKFOOT .hudbutton,
     #METABOOKHUD.openheart #METABOOKFOOT .hudbutton {
-        bottom: 0px;}
+        bottom: 0;}
     body.mbSHOWHELP #METABOOKFOOT #METABOOKSHOWTEXT,
     #METABOOKHUD.openheart #METABOOKFOOT #METABOOKSHOWTEXT {
         bottom: 5px;}
@@ -5187,7 +5187,7 @@ p { line-height: 1.2;}
 .codexpage .sbookcover, .codexpage .sbookcoverpage,
 .codexpage .sbooktitlepage, .codexpage .sbookfullpage {
    page-break-before: always; page-break-after: always;
-   page-break-inside: never;
+   page-break-inside: avoid;
    box-sizing: border-box;
    height: 100%; width: 100%;
    text-align: center;}
@@ -5200,7 +5200,7 @@ p { line-height: 1.2;}
 /* Titlepage rules */
 
 .sbooktitlepage {
-  padding: 1em; margin: 0px;
+  padding: 1em; margin: 0;
   text-align: center;
   page-break-inside: avoid;
   page-break-before: always;
@@ -5218,7 +5218,7 @@ p { line-height: 1.2;}
 .sbooktitlepage .title h1, .sbooktitlepage .credits h1,
 .sbooktitlepage .title h2, .sbooktitlepage .credits h2,
 .sbooktitlepage .title h3, .sbooktitlepage .credits h3 {
-    margin-top: 0px; margin-bottom: 0.5ex;}
+    margin-top: 0; margin-bottom: 0.5ex;}
 .sbooktitlepage .credits .lifespan {
     white-space: nowrap; font-size: 0.9em;}
 
@@ -5234,7 +5234,7 @@ p { line-height: 1.2;}
 .sbooktitlepage .title, .sbooktitlepage .credits,
 .sbooktitlepage .author, .sbooktitlepage .byline,
 .sbooktitlepage .editor {
-    margin-top: 0px; margin-bottom: 1em;
+    margin-top: 0; margin-bottom: 1em;
     display: block; clear: both;}
 .sbooktitlepage .credits .author, .sbooktitlepage .credits .byline,
 .sbooktitlepage .credits .editor, .sbooktitlepage .credits .contributor {
@@ -5252,7 +5252,7 @@ p { line-height: 1.2;}
 .sbooktitlepage .title .translation,
 .sbooktitlepage .title .originaltitle {
     font-size: 50%; font-weight: normal;
-    margin-top: 1ex; margin-bottom: 0px;}
+    margin-top: 1ex; margin-bottom: 0;}
 
 .sbooktitlepage .credits, .sbooktitlepage .author, .sbooktitlepage .byline {
     font-size: 1.5em; font-style: italic;
@@ -5262,19 +5262,19 @@ p { line-height: 1.2;}
 .sbooktitlepage .pubinfo { 
     text-align: left; display: inline-block; font-size: 0.8em;
     min-width: 70%; max-width: 60em;
-    padding: 1ex; padding-bottom: 0px; margin-bottom: 0px;
+    padding: 1ex; padding-bottom: 0; margin-bottom: 0;
     margin-left: auto; margin-right: auto;
     page-break-inside: avoid;
     clear: both;}
 
 .sbooktitlepage .publisher { 
     font-size: 1em; text-align: center;
-    margin-top: 0.5em; margin-bottom: 0px; }
+    margin-top: 0.5em; margin-bottom: 0; }
 
 .sbooktitlepage .sbookbibinfo p, .sbooktitlepage .bibinfo p,
 .sbooktitlepage .pubinfo p {
     margin-right: 2em; margin-left: 3em; text-indent: -2em;
-    text-align: left; margin-bottom: 0px; margin-top: 0px;}
+    text-align: left; margin-bottom: 0; margin-top: 0;}
 
 .sbooktitlepage .sbookbibinfo span.bibdate,
 .sbooktitlepage .pubinfo span.bibdate,
@@ -5291,7 +5291,7 @@ p { line-height: 1.2;}
     margin-left: auto; margin-right: auto;
     max-width: 70%;}
 .sbooktitlepage .dedication p, .sbooktitlepage .epigraph p {
-    margin: 0px; padding: 0px;}
+    margin: 0; padding: 0;}
 .sbooktitlepage .dedication.leftalign p,
 .sbooktitlepage .epigraph.leftalign p {
     margin-left: 5em; text-indent: -5em;}
@@ -5332,22 +5332,22 @@ div.codexpage img {
 /* Add some layout override rules */
 body #METABOOKBODY #CODEXPAGE .codexpage p.codexdupend,
 body #METABOOKBODY #CODEXPAGE .codexpage p.codexdup {
-    text-indent: 0px;}
+    text-indent: 0;}
 body #METABOOKBODY #CODEXPAGE .codexpage .codexdupstart {
-    padding-bottom: 0px;
-    border-bottom-width: 0px;
-    margin-bottom: 0px;}
+    padding-bottom: 0;
+    border-bottom-width: 0;
+    margin-bottom: 0;}
 body #METABOOKBODY #CODEXPAGE .codexpage .codexdupend {
-    padding-top: 0px;
-    border-top-width: 0px;
-    margin-top: 0px;}
+    padding-top: 0;
+    border-top-width: 0;
+    margin-top: 0;}
 body #METABOOKBODY #CODEXPAGE .codexpage .codexdup {
-    padding-bottom: 0px;
-    border-bottom-width: 0px;
-    margin-bottom: 0px;
-    padding-top: 0px;
-    border-top-width: 0px;
-    margin-top: 0px;}
+    padding-bottom: 0;
+    border-bottom-width: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    border-top-width: 0;
+    margin-top: 0;}
 
 /* Anchor display */
 
@@ -5421,7 +5421,7 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 
 @media handheld and (orientation: landscape) {
     #METABOOKFOOT #METABOOKPAGEBAR {
-        margin-left: 0px; margin-right: 0px;}}
+        margin-left: 0; margin-right: 0;}}
 
 @media (lightlevel: dim OR lightlevel: washed) {
     #METABOOKBODY .metabookcontent {
@@ -5545,25 +5545,25 @@ div.helpbox img.closebutton, div.metabookhelp img.closebutton {
     color: red;}
 
 div.helpbox th.helptext, div.metabookhelp th.helptext {
-    text-indent: 0px;}
+    text-indent: 0;}
 
 div#METABOOKHUDHELP {
     position: absolute;
-    bottom: 0px; 
+    bottom: 0; 
     left: 75px; 
     right: 75px;
     width: auto; 
     height: auto;
     z-index: 500;
-    border-bottom: 0px;
-    border-bottom-left-radius: 0px; 
-    border-bottom-right-radius: 0px;
+    border-bottom: 0;
+    border-bottom-left-radius: 0; 
+    border-bottom-right-radius: 0;
     display: none;}
 
 #METABOOKHUDHELP div.helpbox {
     position: static; overflow: auto; font-size: 1rem;
-    border: 0px; border-radius: 0px;
-    padding: 0px; padding-bottom: 1em;}
+    border: 0; border-radius: 0;
+    padding: 0; padding-bottom: 1em;}
 
 body.mbSHOWHELP #METABOOKHUDHELP,
 body.mbSHOWHELP #METABOOKHUD.addgloss #METABOOKHUDHELP { 
@@ -5637,7 +5637,7 @@ body.mbSHOWHELP.openglossmark #METABOOKPOINTGLOSSES {
 
 div.helpbox p {}
 
-div.helpbox h3, div.helpbox h2 { margin-top: 0px;}
+div.helpbox h3, div.helpbox h2 { margin-top: 0;}
 div.helpbox img.screenshot {
     width: 80%; margin-left: 10%; margin-right: 10%;}
 div.helpbox img.screenshot.right {
@@ -5653,9 +5653,9 @@ div.helpbox blockquote p {
 
 #BOTTOMHUDHELP {
     position: absolute;
-    bottom: 0px; left: 20px; right: 20px;}
+    bottom: 0; left: 20px; right: 20px;}
 #BOTTOMHUDHELP p {
-    text-indent: 0px; margin-bottom: 1px; margin-top: 1px;
+    text-indent: 0; margin-bottom: 1px; margin-top: 1px;
     max-width: 40em; margin-left: auto; margin-right: auto;
     text-align: center;
     color: red;}
@@ -5675,11 +5675,11 @@ div.helpbox blockquote p {
 #METABOOKHUD .hudtip.botleft {bottom: 25px; left: 60px; text-align: right;}
 #METABOOKHUD .hudtip.botright {bottom: 25px; right: 60px; text-align: left;}
 #METABOOKHUD .hudtip.topcenter {
-    top: 0px; width: 50%; left: 25%; right: 25%; text-align: center;
-    border-top-left-radius: 0px; border-top-right-radius: 0px;
-    -o-border-top-left-radius: 0px; -o-border-top-right-radius: 0px; 
-    -webkit-border-top-left-radius: 0px; -webkit-border-top-right-radius: 0px; 
-    -o-border-radius-topleft: 0px; -oborder-radius-topright: 0px;}
+    top: 0; width: 50%; left: 25%; right: 25%; text-align: center;
+    border-top-left-radius: 0; border-top-right-radius: 0;
+    -o-border-top-left-radius: 0; -o-border-top-right-radius: 0; 
+    -webkit-border-top-left-radius: 0; -webkit-border-top-right-radius: 0; 
+    -o-border-radius-topleft: 0; -oborder-radius-topright: 0;}
 
 #METABOOKHUD .hudtip.botcenter {
     bottom: 40px;
@@ -5688,13 +5688,13 @@ div.helpbox blockquote p {
 
 #METABOOKHUD div.hudtip.leftmiddle {
     position: absolute; max-width: 50px; padding-left: 3px;
-    top: 40%; left: 0px; text-align: left; padding-right: 2px;
-    border-top-left-radius: 0px; border-bottom-left-radius: 0px;}
+    top: 40%; left: 0; text-align: left; padding-right: 2px;
+    border-top-left-radius: 0; border-bottom-left-radius: 0;}
 
 #METABOOKHUD div.hudtip.rightmiddle {
     position: absolute; max-width: 50px; padding-right: 3px;
-    top: 40%; right: 0px; text-align: right; padding-left: 2px;
-    border-top-right-radius: 0px; border-bottom-right-radius: 0px;}
+    top: 40%; right: 0; text-align: right; padding-left: 2px;
+    border-top-right-radius: 0; border-bottom-right-radius: 0;}
 
 .hudtip span.arrow { font-weight: bold; vertical-align: top;}
 .hudtip.topleft span.arrow { float: left;}
@@ -5709,7 +5709,7 @@ div.metabookhelp div.hudtip#HIDETHISHELP {
 body div.metabookhelp h1, body div.metabookhelp h2,
 body div.metabookhelp h3, body div.helpbox h1,
 body div.helpbox h2, body div.helpbox h3 {
-    text-align: left; margin-left: 0px; margin-right: 2px;}
+    text-align: left; margin-left: 0; margin-right: 2px;}
 div.metabookhelp h1 span.metabooktogglehelp,
 div.metabookhelp h2 span.metabooktogglehelp,
 div.metabookhelp h3 span.metabooktogglehelp,
@@ -5721,7 +5721,7 @@ div.helpbox h3 span.metabooktogglehelp {
     cursor: pointer;
     font-weight: bold; font-style: italic; overflow: hidden;
     background-color: transparent; color: transparent;
-    height: 1.5em; width: 1.5em; border: 0px; border-radius: 0px;
+    height: 1.5em; width: 1.5em; border: 0; border-radius: 0;
     margin-left: 1ex;}
 #METABOOKCOVER span.metabooktogglehelp { display: none; }
 div.metabookhelp h1 span.metabooktogglehelp,
@@ -5741,7 +5741,7 @@ body.NOSVG span.metabooktogglehelp {
 div.metabookhelp h1 {
     margin-top: 3px !important;
     margin-bottom: 1.5ex !important;
-    padding-top: 0px !important;}
+    padding-top: 0 !important;}
 
 div.metabookhelp .result {
     font-style: italic;}
@@ -5775,14 +5775,14 @@ div.metabookhelp .glossbarbox {
     padding-right: 2px; border-right: solid blue 3px; margin-right: 4px;
     max-width: 3px; width: 3px; height: 2em;}
 div.metabookhelp p.glossexample {
-    text-indent: 0px; text-align: right;
+    text-indent: 0; text-align: right;
     padding-right: 6px; border-right: solid blue 4px;}
 
 div#METABOOKHELP {
     position: absolute; text-align: left;
     top: 75px; bottom: 125px; left: 80px; right: 80px; 
     height: auto; width: auto;
-    padding: 0px;
+    padding: 0;
     padding-right: 1ex; padding-right: 2vw;
     padding-left: 1ex; padding-left: 2vw;
     border-radius: 1ex;
@@ -5820,13 +5820,13 @@ div#METABOOKHELP {
 .metabookhelp p dfn:after { content: "”"; }
 .metabookhelp p.subpara {
     color: rgb(0,0,0); font-size: 85%;
-    margin: 0px; margin-left: 2em;}
+    margin: 0; margin-left: 2em;}
 .metabookhelp p.tightbottom {
-    margin-bottom: 0px;}
+    margin-bottom: 0;}
 .metabookhelp span.subpara {
     display: block; color: rgb(0,0,0);
     font-size: 85%; line-height: 120%;
-    margin: 0px; margin-left: 5%;}
+    margin: 0; margin-left: 5%;}
 
 #METABOOKHUD #METABOOKKEYBOARDHELPBOX.hudpanel {
     position: absolute; text-align: center;
@@ -5873,7 +5873,7 @@ div#METABOOKHELP {
     div.helpbox blockquote {
         margin-left: 2px; margin-right: 2px;}
     div.helpbox blockquote p {
-        margin-right: 0px; margin-left: 1ex; text-indent: -1ex;}
+        margin-right: 0; margin-left: 1ex; text-indent: -1ex;}
     div.helpbox.atfoot { left: 55px; right: 55px;}
 
     html._TOUCH #METABOOKHUD .metabookhelp,
@@ -5889,7 +5889,7 @@ div#METABOOKHELP {
         bottom: 100px; width: auto; left: 60px; right: 60px;}
     body.mbPREVIEW.mbPAGEPREVIEW #METABOOKPAGEBARHELP,
     body.mbPREVIEW #METABOOKSEETHRUHELP {
-        left: 0px; right: 0px; width: 100%;
+        left: 0; right: 0; width: 100%;
         padding: 3px; font-size: 14px;}
     div.helpbox h1 { font-size: 12px; }
     div.helpbox blockquote p {
@@ -5938,7 +5938,7 @@ div.metabookslice.onepassage .tocblock mbcard_tochead {display:none;}
 div.metabookslice div.xrefs { display: none;}
 div.metabookslice .showxrefs div.xrefs { display: block;}
 div.metabookslice div.xrefs a { display: block;}
-div.metabookslice divspan.mbcard_tags span.other { display: none;}
+div.metabookslice span.mbcard_tags span.other { display: none;}
 
 div.metabookslice div.skimpoint.mbcard {}
 div.metabookslice div.skimpoint.mbcard .tool {
@@ -5949,13 +5949,13 @@ div.metabookslice .excerpt .delision {
 div.metabookslice .excerpt .elided {
     display: inline;}
 
-div.skimpoint .mbcard .mbcard_body { padding-top: 0px;}
+div.skimpoint .mbcard .mbcard_body { padding-top: 0;}
 
 div.metabookslice div.mbcard.skimpoint + div.mbcard > div.mbcard_body,
 div.metabookslice div.mbcard.skimpoint .mbcard_body {
-    border-top-width: 0px;}
+    border-top-width: 0;}
 div.metabookslice div.mbcard.skimpoint .fdjtclearfloats {
-    margin-bottom: 0px;}
+    margin-bottom: 0;}
 
 /* METABOOKSOURCES */
 
@@ -5966,7 +5966,7 @@ div.metabooksources img.button {
 div.metabooksources img.button.everyone {}
 div.metabooksources .button {
     border: solid transparent 2px;
-    margin: 0px; margin-left: 2px; margin-right: 2px;}
+    margin: 0; margin-left: 2px; margin-right: 2px;}
 div.metabooksources div.button.source {
     min-height: 50px; min-width: 50px; display: inline;
     height: 50px; width: 50px; font-size: 32px;
@@ -5992,8 +5992,8 @@ div.mbcard_tochead span.headtext {
 div.mbcard_tochead hr {
     min-width: 3px;
     border: none; border-right: solid gold 1px; border-left: solid gold 1px;
-    position: absolute; left: 0px; top: 0px; height: 100%; z-index: 1;
-    padding: 0px; margin: 0px;}
+    position: absolute; left: 0; top: 0; height: 100%; z-index: 1;
+    padding: 0; margin: 0;}
 div.mbcard_tochead span { z-index: 10; position: relative;}
 div.mbcard_tochead a { z-index: 10; color: blue;} 
 html._MOUSE div.mbcard_tochead a:hover { z-index: 10; color: darkblue;} 
@@ -6006,10 +6006,10 @@ div.metabookslice div.mbcard.fdjtstartofpage div.mbcard_tochead {
     display: block; }
 
 div.metabookslice div.mbcard.fdjtstartofpage div.mbcard_tochead {
-    border-top: 0px;}
+    border-top: 0;}
 
 #METABOOKSKIMMER div.mbcard div.mbcard_body {
-    border-top: 0px; padding-left: 1em; padding-top: 0.25ex;}
+    border-top: 0; padding-left: 1em; padding-top: 0.25ex;}
 
 /* Emacs local variables
 ;;;  Local variables: ***
@@ -6042,9 +6042,9 @@ div.metabookslice .mbtoc.mblivetoc.mbcurtoc {
     border-bottom-style: solid;}
 
 div.mbtoc_posbar {
-    position: absolute; left: 0px; top: 0px;
+    position: absolute; left: 0; top: 0;
     box-sizing: content-box; height: 100%; z-index: 50;
-    border: 0px; border-right: solid red 2px;
+    border: 0; border-right: solid red 2px;
     display: none;}
 .mblivetoc div.mbtoc_posbar {
     display: block;}
@@ -6072,16 +6072,16 @@ a.mbtoc_sectname {
     white-space: normal;}
 div.mbtoc_elements {
     transform: translate3d(0,0,0); overflow: visible;
-    margin: 0px; padding: 0px; border: 0px; height: 1.3em;
+    margin: 0; padding: 0; border: 0; height: 1.3em;
     z-index: -50; margin-left: 2em;}
 a.mbtoc_sectbrick {
     position: absolute; display: inline-block;
     box-sizing: border-box;
-    border: 0px;
+    border: 0;
     opacity: 0.8;
     height: 1.25em;}
 .mbtoc_text {
-    position: relative; height: 0px; overflow: visible;
+    position: relative; height: 0; overflow: visible;
     pointer-events: none;
     z-index: 100; }
 a.mbtoc_showsize {
@@ -6101,7 +6101,7 @@ a.mbtoc_showsize {
 
 #METABOOKSKIMMER .mbtoc {
     font-weight: bold; padding-top: 2px; height: fit-content;
-    border-bottom: 0px;}
+    border-bottom: 0;}
 
 #METABOOKSKIMMER .mbtoc_sectbrick,
 #METABOOKSKIMMER .mbtoc_showsize {
@@ -6167,7 +6167,7 @@ div.completions.noinput .cloudtoggle {
     display: none;}
 .cloud .showall {
     font-size: 24px; line-height: 100%; width: 60px; padding: 8px;
-    margin-left: 6px; margin-right: 8px; margin-bottom: 6px; margin-top: 0px;
+    margin-left: 6px; margin-right: 8px; margin-bottom: 6px; margin-top: 0;
     border: solid black 2px; border-radius: 12px;
     cursor: pointer;
     float: right;}
@@ -6197,8 +6197,8 @@ html._MOUSE .cloud .showall:hover,
 #METABOOKHUD .cloud .sectname, #METABOOKHUD .qtags .sectname {
     white-space: nowrap;
     font-weight: normal; font-style: italic;
-    padding: 0px; padding-left: 3px; padding-right: 3px; 
-    margin: 0px; margin-left: 3px; margin-right: 3px;
+    padding: 0; padding-left: 3px; padding-right: 3px; 
+    margin: 0; margin-left: 3px; margin-right: 3px;
     border-radius: 6px;}
 .cloud .sectname .name,
 #METABOOKHUD .qtags span.sectname .name {
@@ -6337,9 +6337,9 @@ span.completion.sectname.cue {
 
 #METABOOKSKIMMER {
     position: absolute;
-    top: 0px; left: 60px; right: 60px; z-index: 100;
-    border: solid steelblue 2px;  border-top: 0px;
-    padding: 2px; padding-top: 0px;
+    top: 0; left: 60px; right: 60px; z-index: 100;
+    border: solid steelblue 2px;  border-top: 0;
+    padding: 2px; padding-top: 0;
     font-size: 70%;
     max-height: 75px;
     display: none;}
@@ -6352,8 +6352,8 @@ body._ANIMATE #METABOOKSKIMMER {
 
 #METABOOKSKIMMER.flash { background-color: silver;}
 .hudup #METABOOKSKIMMER { 
-    border: solid steelblue 4px;  border-top: 0px; 
-    padding: 0px;}
+    border: solid steelblue 4px;  border-top: 0; 
+    padding: 0;}
 .hudup #METABOOKSKIMMER {
     max-height: inherit; }
 #METABOOKSKIMMER mbcard_tochead {
@@ -6371,7 +6371,7 @@ body._ANIMATE #METABOOKSKIMMER {
     border-bottom-right-radius: 1ex;}
 #METABOOKSKIMMER .mbcard,
 #METABOOKSKIMMER mbcard_tochead {
-    border-left: 0px;}
+    border-left: 0;}
 
 body._ANIMATE #METABOOKSKIMMER.transanimate {
     transition-property: transform; 
@@ -6413,7 +6413,7 @@ body.hudup #METABOOKSKIMMER .ellipsis .delision {
 
 /* This is the twisty control */
 #METABOOKSKIMMER span.expander {
-    position: absolute; left: 0px; top: 1.5em;}
+    position: absolute; left: 0; top: 1.5em;}
 #METABOOKSKIMMER span.expander img { width: 40px; height: 40px;}
 #METABOOKSKIMMER span.expander img[alt='-'] { display: none;}
 body.hudup #METABOOKSKIMMER span.expander img[alt='-'] { display: inline;}
@@ -6428,7 +6428,7 @@ body.hudup #METABOOKSKIMMER #METABOOKSKIMCONTROLS .collapsed {
     display: none;}
 
 #METABOOKSKIMMER div.mbcard_tochead, #METABOOKPOINTGLOSSES div.mbcard_tochead {
-    border-top-width: 0px; border-bottom-width: 0px;}
+    border-top-width: 0; border-bottom-width: 0;}
 #METABOOKPOINTGLOSSES div.mbcard_tochead { display: none; }
 
 #METABOOKSKIMMER div.mbcard_body {font-size: 75%;}
@@ -6444,19 +6444,19 @@ body.hudup #METABOOKSKIMMER div.mbcard_body img.button {
 #METABOOKSKIMMER div.mbcard.gloss div.mbcard_body {
     padding-left: 4px;}
 #METABOOKSKIMMER div.mbcard.gloss div.mbcard_tochead {
-    padding-left: 0px;}
+    padding-left: 0;}
 #METABOOKSKIMMER div.mbcard.gloss div.mbcard_body img.glosspic,
 #METABOOKSKIMMER div.mbcard.gloss div.mbcard_body .sourcepic {
-    position: absolute; top: 0px; left: 0px; margin-top: 0px;}
+    position: absolute; top: 0; left: 0; margin-top: 0;}
 
 /* Skimmer rules */
 
 body.hudup #METABOOKHUD #METABOOKSKIMMER img[alt="beginning"],
 body.hudup #METABOOKHUD #METABOOKSKIMMER img[alt="prev"] {
-    position: absolute; left: 0px; top: 8px;}
+    position: absolute; left: 0; top: 8px;}
 body.hudup #METABOOKHUD #METABOOKSKIMMER img[alt="end"], 
 body.hudup #METABOOKHUD #METABOOKSKIMMER img[alt="next"] {
-    position: absolute; right: 0px; top: 8px;}
+    position: absolute; right: 0; top: 8px;}
 body.hudup #METABOOKHUD #METABOOKSKIMMER img[alt="beginning"],
 body.hudup #METABOOKHUD #METABOOKSKIMMER img[alt="end"] {
     display: none;}
@@ -6477,7 +6477,7 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER span.whencollapsed {
 
 #METABOOKSKIMMER div.mbcard,
 #METABOOKSKIMMER div.mbcard_tochead {
-    margin-left: 0px;}
+    margin-left: 0;}
 #METABOOKSKIMMER div.mbcard {
     min-height: 50px;}
 
@@ -6504,7 +6504,7 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
         border-width: 2px;
         border-bottom-left-radius: 0.5ex;
         border-bottom-right-radius: 0.5ex;
-        padding-bottom: 0px;
+        padding-bottom: 0;
         left: 10px; right: 10px; }
 }
 
@@ -6526,7 +6526,7 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
     text-align: left; text-decoration: none;
     text-align: left;}
 div.mbcard {
-    margin-left: 20px; margin-right: 0px;
+    margin-left: 20px; margin-right: 0;
     border-left: transparent solid 1px;
     box-sizing: border-box;}
 div.mbcard_tochead {
@@ -6554,8 +6554,8 @@ div.mbcard_links span.count {
 div.mbcard > hr {
     min-width: 3px; height: 100%;
     border-right: solid gold 1px; border-left: solid gold 1px;
-    position: absolute; left: 0px; 
-    border: 0px; padding: 0px; margin: 0px;}
+    position: absolute; left: 0; 
+    border: 0; padding: 0; margin: 0;}
 
 .mbcard span.user { 
     color: green; font-size: 125%; font-style: italic;}
@@ -6597,7 +6597,7 @@ span.mbcard_audience .outlet { color: forestgreen; }
     border-top: solid purple 2px;}
 .mbcard.slicenewhead .mbcard_body,
 .mbcard:first-child .mbcard_body {
-    border-top: 0px;}
+    border-top: 0;}
 
 .mbcard span.sample {
     display: inline-block; white-space: nowrap;
@@ -6663,11 +6663,11 @@ mbcard div.sourcepic  {
     float: right; color: darkblue;
     font-size: 80%; vertical-align: top; margin-top: -0.5ex;}
 .mbcard .score img.inline {
-    padding-left: 0px; padding-right: 0px;}
+    padding-left: 0; padding-right: 0;}
 .mbcard .score .note { color: red; padding-right: 1ex;}
 .mbcard_glossinfo {
     float: right; clear: right; display: block;
-    padding: 0px; margin: 0px;
+    padding: 0; margin: 0;
     margin-left: 3px; padding-top: 2px;
     text-align: right;}
 .mbcard_glossinfo img { padding-left: 4px; cursor: pointer; }
@@ -6706,7 +6706,7 @@ html._MOUSE .mbcard .tool img:hover {opacity: 0.8;}
     float: right; clear: right; 
     font-family: times,serif;
     font-style: italic; font-size: 80%;
-    white-space: nowrap; padding: 2px; padding-top: 0px;
+    white-space: nowrap; padding: 2px; padding-top: 0;
     color: lightblue;}
 
 .mbcard span.maker {
@@ -6759,7 +6759,7 @@ div.searchbox .metabookclearsearch.tapholdtarget {
 div.searchbox input[type='TEXT'] {
     flex-grow: 1; max-height: 2em; margin-left: 1ex;}
 div.searchbox input[type='TEXT'] {
-    border-radius: 0px;}
+    border-radius: 0;}
 
 div.searchbox input[type='TEXT'][name='QTEXT'] {
     background-position: right top;
@@ -6782,14 +6782,14 @@ div.searchbox div.input input[type='TEXT'] {
     box-sizing: border-box;}
 
 div.resultinfo .noresults, div.resultinfo .noquery, div.resultinfo .stats {
-    float: right; padding-right: 0px;}
+    float: right; padding-right: 0;}
 div.resultinfo .stats > span {
     display: inline-block; text-align: center;
     cursor: pointer; background-color: white;
     padding-left: 1ex; padding-right: 1ex;
     border-bottom-left-radius: 0.5ex;
     border-bottom-right-radius: 0.5ex;
-    border: outset black 2px; border-top: 0px;
+    border: outset black 2px; border-top: 0;
     padding-top: 2px; padding-bottom: 4px;
     line-height: 0.9;}
 
@@ -6854,7 +6854,7 @@ html._NOSVG div.resultinfo .qtags .qelt span.redx {
 #METABOOKSEARCHINFO .qtags {
     box-sizing: border-box; display: inline-block;
     padding-top: 0.5ex; padding-right: 1ex;
-    margin-left: 3px; margin-bottom: 0px;
+    margin-left: 3px; margin-bottom: 0;
     height: 100%; vertical-align: top;
     white-space: normal;
     clear: left;}
@@ -6902,7 +6902,7 @@ div.metabookglossformbody {
 
 #METABOOKADDGLOSS div.metabookglossform {
     box-sizing: border-box;
-    border-top: 0px;}
+    border-top: 0;}
 /*
 #METABOOKADDGLOSS div.metabookglossform.private {
     border-color: red;}
@@ -6951,9 +6951,9 @@ body.hudup div.metabookglossform.focused form div.glossetc{
 
 #METABOOKADDGLOSS div.metabookglossform {
     border-radius: 1ex;
-    border-top-width: 0px;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;}
+    border-top-width: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;}
 
 div.metabookglossform { display: none;}
 div.metabookglossform#METABOOKADDGLOSSPROTOTYPE { display: none;}
@@ -6975,7 +6975,7 @@ div.metabookglossform div .respdate {
     font-weight: bold; font-variant: small-caps;}
 
 div.metabookglossform form {
-    padding: 0px; margin: 0px;}
+    padding: 0; margin: 0;}
 div.metabookglossform form .excerpt { }
 div.metabookglossform form .excerpt.empty { display: none;}
 div.metabookglossform form .checkspan.excerpt {
@@ -6993,7 +6993,7 @@ div.metabookglossform form div.inputhelp {
     padding-bottom: 4px; text-align: left;}
 div.metabookglossform form .bracketbutton {
     font-weight: bold; font-size: 110%;
-    padding: 0px; cursor: pointer;}
+    padding: 0; cursor: pointer;}
 div.metabookglossform form .bracketbutton strong {
     font-size: 110%; color: red;}
 div.metabookglossform.focused form div.inputhelp { display: block;}
@@ -7003,7 +7003,7 @@ div.metabookglossform form div.textbox textarea,
 div.metabookglossform form div.textbox input[TYPE='TEXT'] {
     overflow: hidden; font-size: 16px; font-size: 1rem;
     border: solid darkblue 1px;
-    margin: 0px; padding-left: 3px;
+    margin: 0; padding-left: 3px;
     width: 99%; max-width: 99%; 
     background-position: right top;
     background-position-x: right; background-position-y: top;
@@ -7060,7 +7060,7 @@ html._NOSVG div.metabookglossform div.textbox input[name='OUTLET'] {
     background-image: url(g/metabook/sbookspeople24x24.png);}
 
 div.metabookglossform .glossetc .glossdate {
-    font-size: 0.8em; font-variant: small-caps; color: purple; padding: 0px;
+    font-size: 0.8em; font-variant: small-caps; color: purple; padding: 0;
     display: none;}
 div.metabookglossform.focused form .glossetc .glossdate {
     padding-bottom: 1ex;}
@@ -7079,7 +7079,7 @@ div.metabookglossform .checkspan.postgloss {}
 div.metabookglossform .checkspan.postgloss input[type='checkbox'] {
     vertical-align: bottom; height: 1em; width: 1em;}
 div.metabookglossform .checkspan.postgloss img {
-    height: 2ex; width: auto; padding: 0px; margin: 0px; border: 0px;
+    height: 2ex; width: auto; padding: 0; margin: 0; border: 0;
     vertical-align: top;}
 
 /* div.metabookglossform.glossedit form .glossetc .glossdate {
@@ -7113,7 +7113,7 @@ div.metabookglossform form div.glossetc .tags span.checkspan .term {
     color: black;}
 
 div.metabookglossform form div.glossetc .tags span.checkspan {
-    padding: 2px; padding-top: 0px;}
+    padding: 2px; padding-top: 0;}
 div.metabookglossform form div.glossetc .checkspan.waschecked {
     text-decoration: line-through; color: red;}
 div.metabookglossform form div.glossetc .glosslink.checkspan.waschecked
@@ -7132,7 +7132,7 @@ div.metabookglossform form div.glossetc .checkspan img {
     height: 1.7ex; width: auto; vertical-align: baseline;
     padding-left: 0.8ex; padding-top: 2px;}
 div.metabookglossform form div.glossetc .checkspan input {
-    margin-left: 0px;}
+    margin-left: 0;}
 div.metabookglossform form div.glossetc .checkspan.anchor input,
 div.metabookglossform form div.glossetc .checkspan.outlet input,
 div.metabookglossform form div.glossetc .checkspan.glosstag input,
@@ -7193,7 +7193,7 @@ div.metabookglossform form div.glossetc .links span.checkspan a {
 div.metabookglossform form div.glossetc span.checkspan input {}
 
 div.metabookglossform form .button {
-    font-weight: bold; font-size: 24px; padding: 0px;
+    font-weight: bold; font-size: 24px; padding: 0;
     border: solid black 2px; border-radius: 4px;
     text-align: center; vertical-align: top;
     cursor: pointer;}
@@ -7227,9 +7227,9 @@ div.metabookglossform form .submitbutton {
     padding-top: 3px; padding-right: 3px;
     height: 50px;}
 div.metabookglossform form .submitbutton .button {
-    margin: 0px; padding: 0px; border: none;
+    margin: 0; padding: 0; border: none;
     background-color: transparent;
-    border-radius: 0px;
+    border-radius: 0;
     height: 100%; width: auto;}
 div.metabookglossform form .submitbutton .edit,
 div.metabookglossform form .submitbutton .reply {
@@ -7284,7 +7284,7 @@ html._NOSVG div.metabookglossform div.textbox input[type="TEXT"][name='LINK'] {
     background-image: url(g/metabook/diaglink16x16.png);}
 
 div.glossetc, div.glossetc img, div.glossetc span, div.glossetc input {
-    margin-top: 0px;}
+    margin-top: 0;}
 
 /* The add gloss panel */
 
@@ -7460,7 +7460,7 @@ div.metabookglossform form div.textbox {
     box-sizing: border-box; padding-top: 3px;}
 
 div.metabookglossform form div.addglossmenu {
-    position: absolute; top: 0px; right: 0px;
+    position: absolute; top: 0; right: 0;
     width: 50px;
     z-index: 800;}
 
@@ -7476,7 +7476,7 @@ html._TOUCH div.metabookglossform
     width: 80px; height: 80px; margin-left: -20px;}
 html._TOUCH div.metabookglossform 
   form div.addglossmenu > img.held.menutop {
-    width: 40px; height: 40px; margin-left: 0px;}
+    width: 40px; height: 40px; margin-left: 0;}
 div.metabookglossform
   form div.addglossmenu > img.menutop[alt="downmenu"],
 div.metabookglossform
@@ -7529,7 +7529,7 @@ div.metabookglossform form div.glossetc .glossexposure .checkspan input {
     vertical-align: top;}
 
 div.metabookglossform form .glossexposure .checkspan {
-    float: right; margin-top: 2px; margin-right: 0px;
+    float: right; margin-top: 2px; margin-right: 0;
     font-variant: smallcaps; vertical-align: top;}
 div.metabookglossform form .glossexposure .checkspan span {
     vertical-align: middle;}
@@ -7543,7 +7543,7 @@ div.metabookglossform form .glossexposure .checkspan span {
 /* Saving/saved overlays */
 
 div.metabookglossform div.messageoverlay {
-    position: absolute; top: 0px; width: 100%; text-align: center;
+    position: absolute; top: 0; width: 100%; text-align: center;
     opacity: 0.9; z-index: 45; pointer-events: none;
     font-size: 1.5em; font-weight: bold;
     display: none;}
@@ -7577,7 +7577,7 @@ div.metabookglossform.submitclose form > div.messageoverlay {
     div.metabookglossform form div.addglossmenu > img.held {
         width: 80px; height: 80px; margin-left: -20px;}
     div.metabookglossform form div.addglossmenu > img.held.menutop {
-        width: 40px; height: 40px; margin-left: 0px;}}
+        width: 40px; height: 40px; margin-left: 0;}}
 
 @media screen and (max-width: 500px) {
     #METABOOKHEAD, #METABOOKHUD.openhead #METABOOKHEAD {
@@ -7612,9 +7612,9 @@ div.metabookglossform.submitclose form > div.messageoverlay {
 #METABOOKHUD.login #METABOOKHEARTBODY .tabcontent#METABOOKLOGIN {
     overflow: visible;}
 #METABOOKHUD.sbooksapp #METABOOKHEARTBODY .tabcontent#BOOKHUBAPP {
-    width: 100%; height: 100%; border: 0px; margin: 0px; padding: 0px;}
+    width: 100%; height: 100%; border: 0; margin: 0; padding: 0;}
 #METABOOKHUD.login #METABOOKHEARTBODY .tabcontent#METABOOKLOGIN {
-    width: 100%; border: 0px; margin: 0px; padding: 0px;}
+    width: 100%; border: 0; margin: 0; padding: 0;}
 #METABOOKHUD #METABOOKHEARTBODY .tabcontent section { clear: both;}
 
 html._NOUSER a.logout {display: none;}
@@ -7706,15 +7706,15 @@ body.mbPREVIEW.mbSKIMMING #METABOOKHUD #METABOOKSKIMMER {
     pointer-events: none; opacity: 0.0;
     display: none;}
 #METABOOKPAGEBARHELP.helpbox, #METABOOKSEETHRUHELP.helpbox {
-    top: 0px; left: 40px; right: 40px; max-height: 70px;
-    border-top: 0px; padding: 1ex; padding-top: 0px; padding-bottom: 0px;
+    top: 0; left: 40px; right: 40px; max-height: 70px;
+    border-top: 0; padding: 1ex; padding-top: 0; padding-bottom: 0;
     text-align: center; overflow: hidden;
-    border-radius: 0px;
+    border-radius: 0;
     border-bottom-left-radius: 1ex;
     border-bottom-right-radius: 1ex;
     font-size: 20px; font-size: 1.1rem;}
 #METABOOKPAGEBARHELP.helpbox p, #METABOOKSEETHRUHELP.helpbox p {
-    margin: 0px; padding: 0px; text-align: center; text-indent: 0px;
+    margin: 0; padding: 0; text-align: center; text-indent: 0;
     max-width: inherit;}
 #METABOOKPAGEBARHELP.helpbox dfn, #METABOOKSEETHRUHELP.helpbox dfn {
     font-size: 125%;}
@@ -7747,20 +7747,6 @@ div.metabookhelp .result span { display: none; }
 ;;;  End: ***
 */
 
-/* -*- Mode: CSS; character-encoding: utf-8; -*- */
-
-/* Copyright (C) 2009-2015 beingmeta, inc. */
-
-/* Media rules for the web reader */
-
-@charset "UTF-8";
-
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ../..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-   */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
 /* Copyright (C) 2009-2015 beingmeta, inc. */
@@ -7860,11 +7846,11 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR
 /* skimmer.css */
 
 #METABOOKSKIMMER {
-    border: solid steelblue 2px;  border-top: 0px;}
+    border: solid steelblue 2px;  border-top: 0;}
 #METABOOKSKIMMER.flash { background-color: silver;}
 .hudup #METABOOKSKIMMER { 
-    border: solid steelblue 4px;  border-top: 0px;
-    padding: 0px;}
+    border: solid steelblue 4px;  border-top: 0;
+    padding: 0;}
 #METABOOKSKIMMER mbcard_tochead {
     background-color: steelblue; color: white;}
 #METABOOKSKIMMER mbcard_tochead a { color: white;}
@@ -7881,8 +7867,8 @@ span.excerpt {
 .dterm {color: darkblue; background-color: gold; }
 .dterm sup {color: black;}
 .dterm.weak {
-    background-color: rbga(0,0,0,0.8);}
-.rootform {color: rbga(0,0,0,0.8);}
+    background-color: rgba(0,0,0,0.8);}
+.rootform {color: rgba(0,0,0,0.8);}
 .rawterm, .rootform {color: black;}
 .glosslink {
     background-color: lightblue;

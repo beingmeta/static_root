@@ -37365,8 +37365,8 @@ metaBook.setMode=
             if ((y<50)||((elt.offsetHeight-y)<50)) return;
             if (mB.Trace.gestures)
                 fdjtLog("dombody_touched(atedge) %o: %o @ <%o,%o>",evt,elt,x,y);
-            if (x<10) return backward(evt);
-            else if ((elt.offsetWidth-x)<10)
+            if (x<25) return backward(evt);
+            else if ((elt.offsetWidth-x)<25)
                 return forward(evt);
             else return;}}
     metaBook.dombody_touched=dombody_touched;
@@ -40973,19 +40973,19 @@ metaBook.HTML.settings=
     "";
 // FDJT build information
 fdjt.revision='1.5-1564-g552aef5';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Mon Mar 7 01:32:24 UTC 2016';
-fdjt.builduuid='d19cb68d-dc36-4482-8c9c-f49d1c0be5d3';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Mon Mar 7 12:20:11 EST 2016';
+fdjt.builduuid='790038CA-FBEA-4E49-8EA6-BF62DBFFFA47';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-159-gd4d86ba';
 // sBooks metaBook build information
-metaBook.version='v0.8-267-g99588d0';
-metaBook.buildid='c5aae62b-89d6-4213-81b1-d35e9cc79b6f';
-metaBook.buildtime='Mon Mar  7 14:50:14 UTC 2016';
-metaBook.buildhost='dev.beingmeta.com';
+metaBook.version='v0.8-270-g33b1489';
+metaBook.buildid='21ED1D01-E2A2-4069-973B-A9156609D467';
+metaBook.buildtime='Mon Mar  7 12:36:41 EST 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
