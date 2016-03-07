@@ -407,10 +407,9 @@ dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE) postcss.config.json
 	@echo Rebuilding dist/metabook.clean.css
 	@$(CLEANCSS) --compatibility '*,-units.pt' \
 		     --source-map $(METABOOK_CSS_BUNDLE) \
-	    -o metabook.clean.css
-dist/metabook.post.css: dist/metabook/clean.css postcss.config.json
-	@$(POSTCSS) $(POSTCSSOPTS) -o metabook.post.css metabook.clean.css
-	@mv metabook.post.css metabook.post.css.map dist
+	    -o dist/metabook.clean.css
+dist/metabook.post.css: dist/metabook.clean.css postcss.config.json
+	@$(POSTCSS) $(POSTCSSOPTS) -o dist/metabook.post.css dist/metabook.clean.css
 
 dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		fdjt/buildstamp.js fdjt/codexlayouthash.js \
@@ -611,5 +610,7 @@ metabuild buildbuild:
 	npm install jshint -g --save-dev
 	npm install autoprefixer -g --save-dev
 	npm install postcss-cli -g --save-dev
-	npm install postcss-cssnext -g --save-dev
+	npm install postcss-import postcss-url -g --save-dev
+	npm install postcss-reporter postcss-browser-reporter -g --save-dev
+	npm install cssnano -g --save-dev
 	npm install stylelint -g --save-dev
