@@ -74,7 +74,9 @@
 
 (define apps.js {"bundle.js" "codexapp.js" "metabook.js"})
 (define apps.css {"bundle.css" "codexapp.css" "metabook.css"})
-(define apps.maps {"metabook.uglify.map" "metabook.clean.css.map"})
+(define apps.maps {"metabook.uglify.map" 
+		   "metabook.clean.css.map"
+		   "metabook.post.css.map"})
 
 (define (main (arg #f))
   (push-web "fdjt/")
@@ -85,7 +87,7 @@
   (push-web "dist/")
 
   (let ((js (filedata "dist/metabook.uglify.js.gz"))
-	(css (filedata "dist/metabook.clean.css.gz")))
+	(css (filedata "dist/metabook.post.css.gz")))
     (s3/put (s3/mkpath root apps.js) js "text/javascript"
 	    '("x-amz-acl: public-read"
 	      "content-encoding\: gzip"
@@ -97,10 +99,10 @@
     (s3/put (s3/mkpath root apps.css) css "text/css"
 	    '("x-amz-acl: public-read"
 	      "content-encoding\: gzip"
-	      "X-SourceMap\: metabook.clean.css.map")
+	      "X-SourceMap\: metabook.post.css.map")
 	    #[errs #t])
-    (s3/put (s3/mkpath root "metabook.clean.css.map")
-	    (filestring "dist/metabook.clean.css.map") 
+    (s3/put (s3/mkpath root "metabook.post.css.map")
+	    (filestring "dist/metabook.post.css.map") 
 	    "application/json" pubheaders
 	    #[errs #t]))
   (do-choices (local graphics) (push-graphics local))
@@ -115,7 +117,7 @@
   (push-web "dist/")
 
   (let ((js (filedata "dist/metabook.uglify.js.gz"))
-	(css (filedata "dist/metabook.clean.css.gz")))
+	(css (filedata "dist/metabook.post.css.gz")))
     (s3/put (s3/mkpath root apps.js) js "text/javascript"
 	    '("x-amz-acl: public-read"
 	      "content-encoding\: gzip"
@@ -128,10 +130,10 @@
     (s3/put (s3/mkpath root apps.css) css "text/css"
 	    '("x-amz-acl: public-read"
 	      "content-encoding\: gzip"
-	      "X-SourceMap\: metabook.clean.css.map")
+	      "X-SourceMap\: metabook.post.css.map")
 	    #[errs #t])
-    (s3/put (s3/mkpath root "metabook.clean.css.map")
-	    (filestring "dist/metabook.clean.css.map") 
+    (s3/put (s3/mkpath root "metabook.post.css.map")
+	    (filestring "dist/metabook.post.css.map") 
 	    "application/json" pubheaders
 	    #[errs #t]))
   (do-choices (local graphics) (push-graphics local))
