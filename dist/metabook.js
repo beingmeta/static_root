@@ -40972,20 +40972,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1564-g552aef5';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Mon Mar 7 12:20:11 EST 2016';
-fdjt.builduuid='790038CA-FBEA-4E49-8EA6-BF62DBFFFA47';
+fdjt.revision='1.5-1565-g1e5294e';
+fdjt.buildhost='dev.beingmeta.com';
+fdjt.buildtime='Mon Mar 7 17:47:26 UTC 2016';
+fdjt.builduuid='d099ac69-1a6d-431e-8ccb-db4f0bc6daf8';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
-Knodule.version='v0.8-159-gd4d86ba';
+Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-270-g33b1489';
-metaBook.buildid='21ED1D01-E2A2-4069-973B-A9156609D467';
-metaBook.buildtime='Mon Mar  7 12:36:41 EST 2016';
-metaBook.buildhost='Shiny';
+metaBook.buildid='e89c80da-53d6-430f-8f60-1483345e5cea';
+metaBook.buildtime='Mon Mar  7 17:48:33 UTC 2016';
+metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};
