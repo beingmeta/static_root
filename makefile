@@ -99,7 +99,7 @@ METABOOK_CSS=\
 	metabook/css/slices.css metabook/css/tocslice.css metabook/css/clouds.css \
 	metabook/css/skimmer.css metabook/css/card.css metabook/css/search.css \
 	metabook/css/addgloss.css metabook/css/heart.css \
-	metabook/css/preview.css metabook/css/media.css metabook/css/colors.css \
+	metabook/css/preview.css metabook/css/colors.css \
 	metabook/css/debug.css
 
 # removed sbooks/reset.css
