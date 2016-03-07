@@ -11786,11 +11786,9 @@ fdjt.RefDB=(function(){
             while (i_matches<n_matches) {
                 var match=matches[i_matches++];
                 var count=counts.get(match);
-                // If there are just two clauses, score their
-                // intersection; If there are more than two
-                // clauses (count>=2), score the union of their
-                // pairwise intersections.
-                if (count>=2) { /* ((n_clauses===2)||(count>=2)) */
+                // If there are more than two clauses, score the union
+                // of their pair-wise intersections (count>=2).
+                if (count>=2) {
                     var score=scores.get(match);
                     new_scores.set(match,score);
                     new_counts.set(match,count);
@@ -23109,7 +23107,6 @@ fdjt.DOM.noautofontadjust=true;
     var ObjectMap=fdjt.Map||RefDB.Map;
 
     var hasClass=fdjtDOM.hasClass;
-    var addClass=fdjtDOM.addClass;
     var hasParent=fdjtDOM.hasParent;
 
     var getLocal=fdjtState.getLocal;
@@ -23314,7 +23311,7 @@ fdjt.DOM.noautofontadjust=true;
                     metaBook.addTag2Cloud(maker,metaBook.empty_cloud);
                     metaBook.UI.addGlossSource(maker,true);}
                 var maker_knodule=metaBook.getMakerKnodule(item.maker);
-                var make_cue=(maker===metaBook.user);
+                // var make_cue=(maker===metaBook.user);
                 var i, lim, sources=item.sources;
                 if (sources) {
                     if (typeof sources === 'string') sources=[sources];
@@ -23328,9 +23325,9 @@ fdjt.DOM.noautofontadjust=true;
                     i=0; lim=alltags.length; while (i<lim) {
                         var each_tag=alltags[i++], entry;
                         entry=addTag2Cloud(each_tag,empty_cloud);
-                        if ((make_cue)&&(entry)) addClass(entry,"cue");
+                        // if ((make_cue)&&(entry)) addClass(entry,"cue");
                         entry=addTag2Cloud(each_tag,metaBook.gloss_cloud);
-                        if ((make_cue)&&(entry)) addClass(entry,"cue");
+                        // if ((make_cue)&&(entry)) addClass(entry,"cue");
                         taglist.appendChild(knodeToOption(each_tag));}
                     var tag_slots=["tags","*tags","**tags"];
                     var s=0, n_slots=tag_slots.length; while (s<n_slots) {
@@ -26014,7 +26011,6 @@ metaBook.DOMScan=(function(){
     var getChildren=fdjtDOM.getChildren, getChild=fdjtDOM.getChild;
     var toArray=fdjtDOM.toArray;
     var isEmpty=fdjtString.isEmpty;
-    var hasText=fdjtDOM.hasText;
 
     var mB=metaBook, Trace=metaBook.Trace;
     var applyMetaClass=mB.applyMetaClass;
@@ -26112,12 +26108,12 @@ metaBook.DOMScan=(function(){
                 else a.className=extclass;
                 a.target="_blank";}}
         
-        // Interpret links
+        // Interpet links
         var notelinks=getChildren(
             content,"a[rel='sbooknote'],a[rel='footnote'],a[rel='endnote']");
         i=0; lim=notelinks.length; while (i<lim) {
             var ref=notelinks[i++], nref=ref.href;
-            if (!(hasText(ref))) ref.innerHTML="Note";
+            if (!(fdjtDOM.hasText(ref))) ref.innerHTML="Note";
             if ((nref)&&(nref[0]==="#")) {
                 addClass($ID(nref.slice(1)),"sbooknote");}}
         
@@ -30019,7 +30015,7 @@ metaBook.Slice=(function () {
         if (getParent(target,".tochead")) {
             var anchor=getParent(target,".tocref");
             var href=(anchor)&&(anchor.getAttribute("data-tocref"));
-            metaBook.SkimTo(href);
+            metaBook.SkimTo(href,0,false);
             fdjtUI.cancel(evt);
             return;}
 
@@ -30049,7 +30045,7 @@ metaBook.Slice=(function () {
         var gloss=((glossid)&&(metaBook.glossdb.ref(glossid)));
         if (!(passage)) return;
         else if ((!(gloss))&&(passage)) {
-            metaBook.SkimTo(card,0);
+            metaBook.SkimTo(card,0,false);
             return fdjtUI.cancel(evt);}
         else if (getParent(target,".tool")) {
             var form=metaBook.setGlossTarget(gloss);           
@@ -30074,7 +30070,7 @@ metaBook.Slice=(function () {
             metaBook.setMode("glossdetail");
             return fdjtUI.cancel(evt);}
         else {
-            metaBook.SkimTo(card,0);
+            metaBook.SkimTo(card,0,false);
             return fdjtUI.cancel(evt);}}
     function slice_held(evt){
         evt=evt||window.event;
@@ -31821,7 +31817,7 @@ metaBook.setMode=
         
         var rAF=fdjtDOM.requestAnimationFrame;
 
-        function metaBookSkimTo(card,dir){
+        function metaBookSkimTo(card,dir,hudup){
             var skimmer=$ID("METABOOKSKIMMER");
             var skimpoint=mB.skimpoint;
             var slice=getSlice(card);
@@ -31892,6 +31888,8 @@ metaBook.setMode=
                 metaBook.skimpoint=card;}
             else {}
             skimMode(slice);
+            if (typeof hudup !== 'undefined')
+                setHUD(hudup,false);
             mB.GoTo(passage,"Skim");
             setSkimTarget(passage);
             highlightSkimTarget(passage,card);}
@@ -32913,7 +32911,7 @@ metaBook.setMode=
             metaBook.query=query;
             metaBook.qstring=qstring;}
         if (search_modes.exec(metaBook.mode)) {
-            if (query.results.length===0) {}
+            if ((!(query.results))||(query.results.length===0)) {}
             else if (query.results.length<7)
                 showSearchResults();
             else if (!(metaBook.touch)) {
@@ -36370,7 +36368,7 @@ metaBook.setMode=
                     if (evt.touches===2)
                         showPage.fastBckward(pagers[metaBook.mode]);
                     else showPage.backward(pagers[metaBook.mode]);}
-                else metaBook.pageBackward(evt,true);}}
+                else pageBackward(evt,true);}}
         else if (ady>(adx*2)) {
             // Vertical swipe
             if (!(mB.hudup)) {
@@ -36645,7 +36643,7 @@ metaBook.setMode=
             pageForward(evt);}
         else if (kc===38) {  /* arrow up */
             setHUD(false);
-            metaBook.pageBackward(evt);}
+            pageBackward(evt);}
         else if (kc===37) {  /* arrow left */
             if ((mB.mode)&&(!(mB.skimming))&&
                 (pagers[metaBook.mode]))
@@ -37367,9 +37365,9 @@ metaBook.setMode=
             if ((y<50)||((elt.offsetHeight-y)<50)) return;
             if (mB.Trace.gestures)
                 fdjtLog("dombody_touched(atedge) %o: %o @ <%o,%o>",evt,elt,x,y);
-            if (x<10) return mB.pageBackward();
+            if (x<10) return backward(evt);
             else if ((elt.offsetWidth-x)<10)
-                return mB.pageForward();
+                return forward(evt);
             else return;}}
     metaBook.dombody_touched=dombody_touched;
 
@@ -40974,20 +40972,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1563-gcbc506a';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Sat Mar 5 17:38:26 EST 2016';
-fdjt.builduuid='d5786ae2-b6d7-457a-9e22-fcf873c907cb';
+fdjt.revision='1.5-1564-g552aef5';
+fdjt.buildhost='dev.beingmeta.com';
+fdjt.buildtime='Mon Mar 7 01:32:24 UTC 2016';
+fdjt.builduuid='d19cb68d-dc36-4482-8c9c-f49d1c0be5d3';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
-Knodule.version='v0.8-157-g9b1ef81';
+Knodule.version='v0.8-159-gd4d86ba';
 // sBooks metaBook build information
-metaBook.version='v0.8-261-g248a817';
-metaBook.buildid='b13ddc23-7861-406e-a8ea-318684094182';
-metaBook.buildtime='Sat Mar  5 18:03:16 EST 2016';
-metaBook.buildhost='Venus';
+metaBook.version='v0.8-267-g99588d0';
+metaBook.buildid='c5aae62b-89d6-4213-81b1-d35e9cc79b6f';
+metaBook.buildtime='Mon Mar  7 14:50:14 UTC 2016';
+metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
     window.onload=function(evt){metaBook.Setup();};

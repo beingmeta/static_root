@@ -11758,11 +11758,9 @@ fdjt.RefDB=(function(){
             while (i_matches<n_matches) {
                 var match=matches[i_matches++];
                 var count=counts.get(match);
-                // If there are just two clauses, score their
-                // intersection; If there are more than two
-                // clauses (count>=2), score the union of their
-                // pairwise intersections.
-                if (count>=2) { /* ((n_clauses===2)||(count>=2)) */
+                // If there are more than two clauses, score the union
+                // of their pair-wise intersections (count>=2).
+                if (count>=2) {
                     var score=scores.get(match);
                     new_scores.set(match,score);
                     new_counts.set(match,count);
@@ -17810,8 +17808,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1563-gcbc506a';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Sat Mar 5 17:38:26 EST 2016';
-fdjt.builduuid='d5786ae2-b6d7-457a-9e22-fcf873c907cb';
+fdjt.revision='1.5-1564-g552aef5';
+fdjt.buildhost='dev.beingmeta.com';
+fdjt.buildtime='Mon Mar 7 01:32:24 UTC 2016';
+fdjt.builduuid='d19cb68d-dc36-4482-8c9c-f49d1c0be5d3';
 

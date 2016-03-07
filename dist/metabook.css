@@ -1921,8 +1921,9 @@ span.dterm {
     padding-right: 0.35ex; padding-left: 0.5ex;
     padding-top: 0px; padding-bottom: 0px;
     border-top-left-radius: 1ex; border-bottom-left-radius: 1ex;
+    border-top-right-radius: 3px; border-bottom-right-radius: 3px;
     color: darkblue; background-color: gold;
-    border: solid blue 2px;}
+    border: solid rgba(0,0,255,0.8) 2px;}
 .dterm.weak {
     border: solid yellow 2px;
     opacity: 0.85;}
@@ -5980,7 +5981,8 @@ div.mbcard_tochead {
     text-align: left; vertical-align: middle;}
 div.mbcard_tochead { background-color: whitesmoke; color: darkblue; }
 div.mbcard_tochead span.spacer {
-    font-size: 125%; font-weight: bold; font-style: italic;}
+    font-size: 125%; font-weight: bold; font-style: italic;
+    padding-right: 2px;}
 div.mbcard_tochead .paratext {
     color: darkblue; font-style: italic; padding-left: 5px;}
 div.mbcard_tochead span.head {
@@ -6355,7 +6357,7 @@ body._ANIMATE #METABOOKSKIMMER {
 .hudup #METABOOKSKIMMER {
     max-height: inherit; }
 #METABOOKSKIMMER mbcard_tochead {
-    background-color: steelblue; color: white;}
+    background-color: steelblue; color: white; font-size: 80%;}
 #METABOOKSKIMMER mbcard_tochead {
     max-height: 4ex;}
 .hudup #METABOOKSKIMMER mbcard_tochead {
@@ -6500,8 +6502,8 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
 @media screen and (max-width: 640px) {
     #METABOOKSKIMMER {
         border-width: 2px;
-        border-bottom-left-radius: 0px;
-        border-bottom-right-radius: 0px;
+        border-bottom-left-radius: 0.5ex;
+        border-bottom-right-radius: 0.5ex;
         padding-bottom: 0px;
         left: 10px; right: 10px; }
 }
@@ -6613,7 +6615,7 @@ span.mbcard_audience .outlet { color: forestgreen; }
 .mbcard .info span.score {
     color: gold; display: none;}
 span.mbcard_tags { 
-    font-size: 80%; padding-left: 1ex;}
+    font-size: 70%; padding-left: 0.5ex;}
 span.mbcard_tags img.tagicon { 
     height: 3ex; width: auto;
     display: none;}
@@ -7921,7 +7923,7 @@ body.openhud .mbhighlightpassage {
     background-color: rgba(255, 255, 0, 0.21);}
 body.mbSKIMMING .mbhighlightsearch,
 body.mbPREVIEW .mbhighlightsearch {
-    background-color: gold;}
+    background-color: rgba(255,215,0,0.5);}
 .mbpreviewing {color: rgb(122,34,95);}
 section.mbpreviewing, div.html5section.mbpreviewing,
 section.mbpreviewing p, div.html5section.mbpreviewing p,
