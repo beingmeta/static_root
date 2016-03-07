@@ -32,6 +32,7 @@ CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
 		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon \
 		*.rct *.ico
 SVN=svn --non-interactive --trust-server-cert
+POSTCSSOPTS=-c postcss.config.json
 
 FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js \
@@ -120,15 +121,17 @@ ROOT_FDJT=fdjt.js fdjt.min.js fdjt.min.js.gz fdjt.css fdjt.css.gz
 ROOT_METABOOK=metabook.js metabook.js.gz \
 	metabook.raw.js metabook.raw.js.gz \
 	metabook.min.js metabook.min.js.gz \
-	metabook.css metabook.css.gz metabook.clean.css \
-	metabook.clean.css.gz
+	metabook.css metabook.css.gz \
+	metabook.clean.css metabook.clean.css.gz \
+	metabook.post.css metabook.post.css.gz
 DIST_FDJT=dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.uglify.map \
 	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
 DIST_METABOOK=dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
 	dist/metabook.min.js dist/metabook.min.js.gz \
 	dist/metabook.uglify.js dist/metabook.uglify.js.gz \
-	dist/metabook.clean.css dist/metabook.clean.css.gz
+	dist/metabook.clean.css dist/metabook.clean.css.gz \
+	dist/metabook.post.css dist/metabook.post.css.gz
 
 SBOOKSTYLES=sbooks/sbookstyles.css
 
@@ -262,8 +265,9 @@ cleandist:
 	cd dist; rm -f fdjt.css.gz fdjt.js fdjt.js.gz  \
 	   fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
            metabook.css                                \
-	   metabook.clean.css metabook.clean.css.map   \
-           metabook.css.gz metabook.cleancss.gz        \
+	   metabook.clean.css metabook.clean.css.gz   \
+           metabook.post.css metabook.post.css.gz      \
+	   metabook.clean.css.map metabook.post.css.map \
            metabook.js metabook.js.gz                  \
            metabook.min.js metabook.min.js.gz          \
 	   metabook.uglify.js metabook.uglify.js.gz    \
@@ -276,6 +280,7 @@ redist:
 	for x in  fdjt.css.gz fdjt.js fdjt.js.gz              \
 		  fdjt.min.js fdjt.min.js.gz fdjt.uglify.map  \
 	          metabook.clean.css metabook.clean.css.gz    \
+	          metabook.post.css metabook.post.css.gz      \
 	          metabook.css metabook.css.gz                \
 		  metabook.js metabook.js.gz                  \
 		  metabook.min.js metabook.min.js.gz          \
@@ -297,10 +302,15 @@ fdjt/codexlayouthash.js: fdjt/codexlayout.js
 
 fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
 	cp fdjt/fdjt.js fdjt.js
-fdjt.css: fdjt/fdjt.css
+fdjt.css: fdjt/fdjt.css postcss.config.json
 	@echo Building ./fdjt.css and ./fdjt.css.map
 	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o fdjt.css
-	@$(POSTCSS) --use autoprefixer -o fdjt.css fdjt.css
+	@$(POSTCSS) $(POSTCSSOPTS) -o fdjt.css fdjt.css
+fdjt/post.css: fdjt/fdjt.css postcss.config.json
+	@echo Building fdjt/post.css and fdjt/post.css.map
+	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o post.css
+	@$(POSTCSS) $(POSTCSSOPTS) -o fdjt/post.css fdjt.css
+
 
 fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
@@ -338,8 +348,12 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	  metabook/autoload.js -o $@
 metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
-	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map $(METABOOK_CSS_BUNDLE) -o metabook.clean.css
-	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
+	@$(CLEANCSS) --compatibility '*,-units.pt'       \
+	             --source-map $(METABOOK_CSS_BUNDLE) \
+	             -o metabook.clean.css
+metabook.post.css: metabook.clean.css makefile postcss.config.json
+	@echo Building ./metabook.post.css and ./metabook.post.css.map
+	@$(POSTCSS) $(POSTCSSOPTS) -o metabook.post.css metabook.clean.css
 
 fresh:
 	make clean
@@ -389,13 +403,14 @@ dist/metabook.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js \
 dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
-dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE)
+dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE) postcss.config.json
 	@echo Rebuilding dist/metabook.clean.css
 	@$(CLEANCSS) --compatibility '*,-units.pt' \
 		     --source-map $(METABOOK_CSS_BUNDLE) \
 	    -o metabook.clean.css
-	@$(POSTCSS) --use autoprefixer -o metabook.clean.css metabook.clean.css
-	@mv metabook.clean.css metabook.clean.css.map dist
+dist/metabook.post.css: dist/metabook/clean.css postcss.config.json
+	@$(POSTCSS) $(POSTCSSOPTS) -o metabook.post.css metabook.clean.css
+	@mv metabook.post.css metabook.post.css.map dist
 
 dist/metabook.uglify.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		fdjt/buildstamp.js fdjt/codexlayouthash.js \
@@ -425,9 +440,9 @@ dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	    $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js -o $@
 	@cp fdjt.uglify.map dist
 
-dist/fdjt.css: fdjt/fdjt.css makefile
+dist/fdjt.css: fdjt/fdjt.css makefile postcss.config.json
 	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o dist/fdjt.css
-	@$(POSTCSS) --use autoprefixer -o dist/fdjt.css dist/fdjt.css
+	@$(POSTCSS) -c postcss.config.json -o dist/fdjt.css dist/fdjt.css
 
 # Compiled
 
@@ -588,8 +603,13 @@ mdiff:
 	cd metabook; git diff
 
 metabuild buildbuild:
-	sudo npm install uglify-js -g
-	sudo npm install clean-css -g
-	sudo npm install jshint -g
-	sudo npm install autoprefixer -g
-	sudo npm install postcss-cli -g
+	npm install uglify-js -g --save-dev
+	npm install uglify-js2 -g --save-dev
+	npm install rucksack -g --save-dev
+	npm install rucksack-css -g --save-dev
+	npm install clean-css -g --save-dev
+	npm install jshint -g --save-dev
+	npm install autoprefixer -g --save-dev
+	npm install postcss-cli -g --save-dev
+	npm install postcss-cssnext -g --save-dev
+	npm install stylelint -g --save-dev

@@ -1,0 +1,13 @@
+{
+    "use": [
+	"autoprefixer",
+	"postcss-import",
+	"postcss-url",
+	"postcss-cssnext",
+	"postcss-browser-reporter",
+	"postcss-reporter",
+	"cssnano"
+    ],
+    "stylelint": {"configFile": "stylelint.config.json"}
+}
+

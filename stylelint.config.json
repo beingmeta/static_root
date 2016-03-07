@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "indentation": "tab",
+    "number-leading-zero": null,
+    "color-no-invalid-hex": true,
+    "declaration-colon-space-after": "always",
+    "max-empty-lines": 2}
+}
