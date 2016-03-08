@@ -36343,7 +36343,7 @@ metaBook.setMode=
         if (Trace.gestures)
             fdjtLog("swiped d=%o,%o, ad=%o,%o, s=%o,%o vw=%o, n=%o",
                     dx,dy,adx,ady,evt.startX,evt.startY,vw,evt.ntouches);
-        if (adx>(ady*2)) {
+        if (adx>(ady*1.25)) {
             // Horizontal swipe
             if (dx<-(mB.minswipe||10)) {
                 if (evt.ntouches>2) window.history.forward();
@@ -36833,7 +36833,8 @@ metaBook.setMode=
                 setMode(mode);}}
         else if (evt.type==="hold") 
             addClass(document.body,"_HOLDING");
-        else dropClass(document.body,"_HOLDING");}
+        else dropClass(document.body,"_HOLDING");
+    }
     metaBook.UI.hudmodebutton=hudmodebutton;
 
     metaBook.UI.dropHUD=function(evt){
@@ -40982,9 +40983,9 @@ fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-270-g33b1489';
-metaBook.buildid='e89c80da-53d6-430f-8f60-1483345e5cea';
-metaBook.buildtime='Mon Mar  7 17:48:33 UTC 2016';
+metaBook.version='v0.8-274-gef314d3';
+metaBook.buildid='e27611af-264f-4e61-afd1-022139adcdc0';
+metaBook.buildtime='Tue Mar  8 21:02:37 UTC 2016';
 metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))
