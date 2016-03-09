@@ -40983,9 +40983,9 @@ fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-274-gef314d3';
-metaBook.buildid='e27611af-264f-4e61-afd1-022139adcdc0';
-metaBook.buildtime='Tue Mar  8 21:02:37 UTC 2016';
+metaBook.version='v0.8-276-g62773c3';
+metaBook.buildid='c7020896-0713-4a7e-9cf6-a3af2782f9f0';
+metaBook.buildtime='Wed Mar  9 02:07:58 UTC 2016';
 metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed)))

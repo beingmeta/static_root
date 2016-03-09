@@ -2051,6 +2051,10 @@ body._BYPAGE #CODEXPAGE #CODEXCONTENT .metabookpagebreak {
 body._ANIMATE body.metabookfixed div.codexpage {
     transition-property: opacity; transition-duration: 0.1s;}
 
+/* Hide the datalist object */
+
+datalist { display: none; }
+
 /* The content */
 
 span.excerpt {line-height: 1.0;}
@@ -4132,7 +4136,7 @@ html._TOUCH body.hudup #METABOOKFRAME > #METABOOKHUD > div.hudtip {
     border-bottom-right-radius: 0;}
 
 #METABOOKFRAME._ANIMATE #METABOOKHEAD {
-    transition-property: opacity; transition-duration: 0.5s;}
+    transition-property: opacity; transition-duration: 1s;}
 #METABOOKHEAD {
     opacity: 0.0; max-height: 0;
     display: block;}
@@ -4295,7 +4299,7 @@ body.hudup #METABOOKHUD div.hudpanel {
     opacity: 0.95;}
 /* When animating, transition opacity and height */
 #METABOOKFRAME._ANIMATE #METABOOKHUD div.hudpanel {
-    transition-property: opacity; transition-duration: 0.5s;}
+    transition-property: opacity; transition-duration: 1s;}
 
 /* Mode display rules */
 
