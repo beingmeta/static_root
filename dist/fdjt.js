@@ -10101,7 +10101,7 @@ fdjt.RefDB=(function(){
                 if (typeof ix !== "string") 
                     warn("Complex indices not yet handled!");
                 else {
-                    var index=this.indices[ix]=new ObjectMap();
+                    var index=db.indices[ix]=new ObjectMap();
                     index.fordb=db;}}}
         
         return db;}
@@ -17808,8 +17808,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1565-g1e5294e';
+fdjt.revision='1.5-1566-gd7555ab';
 fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Mon Mar 7 17:47:26 UTC 2016';
-fdjt.builduuid='d099ac69-1a6d-431e-8ccb-db4f0bc6daf8';
+fdjt.buildtime='Wed Mar 9 23:18:21 UTC 2016';
+fdjt.builduuid='c2a8a927-4540-48b2-af0c-ce1e24593c3d';
 
