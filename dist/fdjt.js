@@ -5724,7 +5724,7 @@ fdjt.State=
                 return false;}}
         fdjtState.getCookie=getCookie;
 
-        function setCookie(name,value,expires,path,domain){
+        function setCookie(name,value,expires,path,domain,secure){
             try {
                 if (value) {
                     var valuestring=
@@ -5737,17 +5737,19 @@ fdjt.State=
                             cookietext=cookietext+'; '+expires;
                     else if (expires.toGMTString)
                         cookietext=cookietext+"; expires="+expires.toGMTString();
-                    else if (typeof(expires)==='number')
+                    else if (typeof(expires)==='number') {
                         if (expires>0) {
                             var now=new Date();
                             now.setTime(now.getTime()+expires);
                             cookietext=cookietext+"; expires="+now.toGMTString;}
-                    else cookietext=cookietext+"; expires=Sun 1 Jan 2000 00:00:00 UTC";
+                        else cookietext=cookietext+
+                            "; expires=Sun 1 Jan 2000 00:00:00 UTC";}
                     else {}
                     if (path) cookietext=cookietext+"; path="+path;
                     // This certainly doesn't work generally and might not work ever
                     if (domain) cookietext=cookietext+"; domain="+domain;
                     // fdjtTrace("Setting cookie %o cookietext=%o",name,cookietext);
+                    if (secure) cookietext=cookietext+"; Secure";
                     document.cookie=cookietext;}
                 else clearCookie(name,path,domain);}
             catch (ex) {
@@ -17808,8 +17810,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1566-gd7555ab';
+fdjt.revision='1.5-1567-g1b90c0d';
 fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Wed Mar 9 23:18:21 UTC 2016';
-fdjt.builduuid='c2a8a927-4540-48b2-af0c-ce1e24593c3d';
+fdjt.buildtime='Thu Mar 10 13:04:07 UTC 2016';
+fdjt.builduuid='1a36027c-ff6d-4f23-b0ea-b0e03b19116a';
 

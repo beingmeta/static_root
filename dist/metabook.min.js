@@ -3307,7 +3307,7 @@ var idbModules = {};
             return !1;
         }
     }
-    function setCookie(name, value, expires, path, domain) {
+    function setCookie(name, value, expires, path, domain, secure) {
         try {
             if (value) {
                 var valuestring = "string" == typeof value ? value : value.toJSON ? value.toJSON() : value.toString ? "" + value : value, cookietext = name + "=" + encodeURIComponent(valuestring);
@@ -3316,7 +3316,7 @@ var idbModules = {};
                     now.setTime(now.getTime() + expires), cookietext = cookietext + "; expires=" + now.toGMTString;
                 } else cookietext += "; expires=Sun 1 Jan 2000 00:00:00 UTC";
                 path && (cookietext = cookietext + "; path=" + path), domain && (cookietext = cookietext + "; domain=" + domain), 
-                document.cookie = cookietext;
+                secure && (cookietext += "; Secure"), document.cookie = cookietext;
             } else clearCookie(name, path, domain);
         } catch (ex) {
             fdjtLog.warn("Error setting cookie %s", name);
@@ -11544,7 +11544,13 @@ var metaBook = {
     openinbook: [ "https://www.youtube.com/" ],
     srcloading: {},
     glossdata: {},
-    inits: [],
+    inits: {
+        local: [],
+        app: [],
+        head: [],
+        body: [],
+        dom: []
+    },
     default_config: {
         layout: "bypage",
         bodysize: "normal",
@@ -12174,15 +12180,22 @@ var metaBook = {
             setConfig(setting, value, !1, source), metaBook.updateSettings(setting, value));
         } else config = {};
         Trace.config && fdjtLog("initConfig default=%j", default_config);
-        for (setting in default_config) !default_config.hasOwnProperty(setting) || config.hasOwnProperty(setting) || getQuery(setting) || (getMeta("METABOOK." + setting) ? (value = getMeta("METABOOK." + setting), 
-        source = "initConfig/HTML") : (value = default_config[setting], source = "initConfig/appdefaults"), 
-        setConfig(setting, value, !1, "initConfig/HTML"), setConfig(setting, value, !1, source), 
-        metaBook.updateSettings(setting, value));
+        var devicename = current_config.devicename;
+        devicename && !isEmpty(devicename) && (metaBook.deviceName = devicename), Trace.startup > 1 && fdjtLog("initConfig took %dms", fdjtTime() - started);
+    }
+    function bookConfig() {
+        var started = fdjtTime(), config = current_config;
+        for (var setting in default_config) {
+            var value, source;
+            !default_config.hasOwnProperty(setting) || config.hasOwnProperty(setting) || getQuery(setting) || (getMeta("METABOOK." + setting) ? (value = getMeta("METABOOK." + setting), 
+            source = "initConfig/HTML") : (value = default_config[setting], source = "initConfig/appdefaults"), 
+            setConfig(setting, value, !1, "initConfig/HTML"), setConfig(setting, value, !1, source), 
+            metaBook.updateSettings(setting, value));
+        }
         var dopost = metaBook.postconfig;
         metaBook.postconfig = !1;
         for (var i = 0, lim = dopost.length; lim > i; ) dopost[i++]();
-        var devicename = current_config.devicename;
-        devicename && !isEmpty(devicename) && (metaBook.deviceName = devicename), Trace.startup > 1 && fdjtLog("initConfig took %dms", fdjtTime() - started);
+        Trace.config && fdjtLog("bookConfig took %dms", fdjtTime() - started);
     }
     function updateConfig(name, id, save) {
         save === void 0 && (save = !1);
@@ -12219,7 +12232,7 @@ var metaBook = {
     metaBook.addConfig = addConfig, metaBook.getConfig = getConfig, metaBook.setConfig = setConfig, 
     metaBook.resetConfig = function() {
         setConfig(saved_config);
-    }, metaBook.saveConfig = saveConfig, metaBook.initConfig = initConfig;
+    }, metaBook.saveConfig = saveConfig, metaBook.initConfig = initConfig, metaBook.bookConfig = bookConfig;
     var getParent = fdjtDOM.getParent, getChild = fdjtDOM.getChild;
     metaBook.updateConfig = updateConfig, metaBook.propConfig = metabookPropConfig, 
     metaBook.addConfig("keyboardhelp", function(name, value) {
@@ -12297,7 +12310,7 @@ var metaBook = {
                 addClass(target, "mbtarget"), addClass(target, "mbnewtarget"), addClass(targets, "mbtarget"), 
                 addClass(targets, "mbnewtarget"), setTimeout(function() {
                     dropClass(target, "mbnewtarget"), dropClass(targets, "mbnewtarget");
-                }, 3e3), fdjtState.setCookie("mbtarget", targetid || target.getAttribute("data-bookid")), 
+                }, 3e3), fdjtState.setCookie("MB:TARGET", targetid || target.getAttribute("data-bookid"), !1, !1, 0 == location.href.search("https:")), 
                 metaBook.target = primary, metaBook.UI.setTarget && metaBook.UI.setTarget(primary), 
                 metaBook.empty_cloud && metaBook.setCloudCuesFromTarget(metaBook.empty_cloud, primary);
             }
@@ -12432,7 +12445,7 @@ var metaBook = {
         target && metaBook.GoTo(target, "GoTOC");
     }
     var getDups, saveState, setHistory, fdjtDOM = fdjt.DOM, fdjtString = fdjt.String, fdjtState = fdjt.State, fdjtLog = fdjt.Log, fdjtUI = fdjt.UI, dropClass = fdjtDOM.dropClass, addClass = fdjtDOM.addClass, hasClass = fdjtDOM.hasClass, hasParent = fdjtDOM.hasParent, mB = metaBook, mbID = mB.ID, getHead = mB.getHead, getTarget = mB.getTarget, Trace = metaBook.Trace;
-    metaBook.inits.push(init_local), metaBook.setHead = setHead, metaBook.setLocation = setLocation, 
+    metaBook.inits.local.push(init_local), metaBook.setHead = setHead, metaBook.setLocation = setLocation, 
     metaBook.location2pct = location2pct, metaBook.setTarget = setTarget, metaBook.clearHighlights = clearHighlights, 
     metaBook.findExcerpt = findExcerpt;
     var sbookUIclasses = /(\bhud\b)|(\bglossmark\b)|(\bleading\b)/;
@@ -13489,7 +13502,7 @@ var metaBook = {
         metaBook.statedialog && (fdjt.Dialog.close(metaBook.statedialog), metaBook.statedialog = !1);
     }
     var setTarget, setConnected, setConfig, fdjtDOM = fdjt.DOM, fdjtState = fdjt.State, fdjtLog = fdjt.Log, fdjtUI = fdjt.UI, fdjtTime = fdjt.Time, $ID = fdjt.ID, mB = metaBook, mbID = mB.ID, saveLocal = mB.saveLocal, readLocal = mB.readLocal, clearLocal = mB.clearLocal, Trace = metaBook.Trace, loc2pct = metaBook.location2pct, sync_count = 0;
-    metaBook.inits.push(init_local);
+    metaBook.inits.local.push(init_local);
     var syncing = !1;
     metaBook.initState = function() {
         var state = readLocal("mB(" + mB.docid + ").state", !0), hash = metaBook.inithash;
@@ -13610,9 +13623,10 @@ var metaBook = {
         metaBook.updateInfo(), void 0) : void 0 : void 0;
     }
     function initUserOffline() {
-        var user = getLocal("mB.user"), sync = metaBook.sync, nodeid = getLocal("mB(" + mB.docid + ").nodeid", !0), userinfo = user && getLocal(user, !0);
-        if (Trace.storage && fdjtLog("initOffline user=%s sync=%s nodeid=%s info=%j", user, sync, nodeid, userinfo), 
-        sync && user) {
+        var user = getLocal("mB.user"), sync = metaBook.sync;
+        if (user) {
+            var nodeid = getLocal("mB(" + mB.docid + ").nodeid", !0), userinfo = user && getLocal(user, !0);
+            Trace.storage && fdjtLog("initOffline user=%s sync=%s nodeid=%s info=%j", user, sync, nodeid, userinfo), 
             Trace.startup > 1 && fdjtLog("initOffline userinfo=%j", userinfo);
             var outlets = metaBook.outlets = (getLocal("mB(" + mB.docid + ").outlets", !0) || []).map(sourceref), layers = metaBook.layers = (getLocal("mB(" + mB.docid + ").layers", !0) || []).map(sourceref);
             userinfo && setUser(userinfo, outlets, layers, sync), nodeid && setNodeID(nodeid);
@@ -13870,10 +13884,53 @@ var metaBook = {
         var splash = $ID("METABOOKSPLASHPAGE");
         splash && splash.parentNode && splash.parentNode.removeChild(splash);
     }
-    function run_inits() {
-        for (var inits = metaBook.inits, i = 0, lim = inits.length; lim > i; ) inits[i++]();
+    function setupWait(tprop, fcn) {
+        function waitingForSetup() {
+            Timeline[tprop] && (clearInterval(waiting), waiting = !1, fcn());
+        }
+        var waiting = !1;
+        Timeline[tprop] ? fcn() : waiting = setInterval(waitingForSetup, 50);
+    }
+    function run_inits(phase) {
+        for (var inits = metaBook.inits[phase], i = 0, lim = inits.length; lim > i; ) inits[i++]();
+    }
+    function appInit() {
+        var now = new Date(), started = fdjtTime();
+        run_inits("local"), metaBook.appsource = getSourceRef(), fdjtLog("This is metaBook %s, built %s on %s, launched %s, from %s", mB.version, mB.buildtime, mB.buildhost, "" + now, mB.root || metaBook.appsource || "somewhere"), 
+        fdjtLog("Copyright © 2010-2016 beingmeta, inc"), getQuery("mbtrace") && useTraceSettings(getQuery("mbtrace", !0)), 
+        getSession("mbtrace") && useTraceSettings([ getSession("mbtrace") ]), getLocal("mbtrace") && useTraceSettings([ getLocal("mbtrace") ]), 
+        (getLocal("mB.nologin") || getQuery("nologin")) && (metaBook.nologin = !0), fdjtState.getLocal("mB.devmode") && (addClass(document.documentElement, "_DEVMODE"), 
+        metaBook.devmode = !0);
+        try {
+            document.domain = "bookhub.io";
+        } catch (ex) {
+            fdjtLog.warn("Error setting document.domain");
+        }
+        metaBook.devinfo = fdjtState.versionInfo();
+        var docid = fdjtState.getCookie("MB:DOCID", !1);
+        docid && (metaBook.docid = docid);
+        var done = Timeline.app_init_done = app_init_done = fdjtTime();
+        Trace.startup && fdjtLog("appInit done in %dms", done - started);
     }
     function syncStartup() {
+        if (app_init_done || appInit(), fdjtLog.console = "METABOOKCONSOLELOG", fdjtLog.consoletoo = !0, 
+        run_inits("app"), metaBook._setup_started || (metaBook._setup_started = new Date()), 
+        $ID("METABOOKBODY") && (metaBook.body = $ID("METABOOKBODY")), readBookSettings(), 
+        fdjtLog("Book %s (%s) %s (%s%s)", mB.docref || "@??", mB.bookbuild || "", mB.refuri, mB.sourceid, mB.sourcetime ? ": " + ("" + mB.sourcetime) : ""), 
+        mB.initDB(), mB.initConfig(), mB.bookConfig(), readEnvSettings(), readMyCopyId(), 
+        getLocal("mB.user") && (metaBook.setPersist(!0), metaBook.userSetup()), metaBook.initState(), 
+        metaBook.syncState(), metaBook.user || window._metabook_loadinfo || metaBook.userinfo || window._userinfo || getLocal("mB.user") || (Trace.startup && fdjtLog("No local user info, requesting from bookhub server %s", mB.server), 
+        metaBook.updateInfo()), fdjt.Init(), setupBook(), setupDevice(), setupApp(), metaBook._ui_setup = fdjtTime(), 
+        showMessage(), metaBook._user_setup && metaBook.setupUI4User(), metaBook.setConfig(metaBook.getConfig()), 
+        Trace.startup > 1 && fdjtLog("Initializing markup converter"), Timeline.sync_startup = new Date(), 
+        metaBook.onsyncstartup) {
+            var delayed = metaBook.onsyncstartup;
+            if (delete metaBook.onsyncstartup, Array.isArray(delayed)) for (var i = 0, lim = delayed.length; lim > i; ) delayed[i](), 
+            i++; else delayed();
+        }
+        Trace.startup && fdjtLog("Done with sync startup");
+    }
+    function initMarkdown() {
         function md2DOM(mdstring, inline) {
             var div = fdjtDOM("div"), root = div, frag = document.createDocumentFragment();
             div.innerHTML = markdown_converter.makeHtml(mdstring);
@@ -13884,27 +13941,10 @@ var metaBook = {
             for (i = 0; lim > i; ) frag.appendChild(nodes[i++]);
             return frag;
         }
-        fdjtLog.console = "METABOOKCONSOLELOG", fdjtLog.consoletoo = !0, run_inits(), metaBook._setup_started || (metaBook._setup_started = new Date()), 
-        metaBook.appsource = getSourceRef(), fdjtLog("This is metaBook %s, built %s on %s, launched %s, from %s", mB.version, mB.buildtime, mB.buildhost, "" + mB._setup_started, mB.root || metaBook.appsource || "somewhere"), 
-        $ID("METABOOKBODY") && (metaBook.body = $ID("METABOOKBODY")), getQuery("mbtrace") && useTraceSettings(getQuery("mbtrace", !0)), 
-        getSession("mbtrace") && useTraceSettings([ getSession("mbtrace") ]), getLocal("mbtrace") && useTraceSettings([ getLocal("mbtrace") ]), 
-        readBookSettings(), fdjtLog("Book %s (%s) %s (%s%s)", mB.docref || "@??", mB.bookbuild || "", mB.refuri, mB.sourceid, mB.sourcetime ? ": " + ("" + mB.sourcetime) : ""), 
-        metaBook.initDB(), metaBook.initConfig(), readEnvSettings(), readMycopyid(), getLocal("mB.user") && (metaBook.setPersist(!0), 
-        metaBook.userSetup()), metaBook.initState(), metaBook.syncState();
-        var mycopyid = mB.readLocal("mB(" + mB.docid + ").mycopyid") || fdjtState.getQuery("MYCOPYID");
-        mB.gotMyCopyId(mycopyid), metaBook.user || window._metabook_loadinfo || metaBook.userinfo || window._userinfo || getLocal("mB.user") || (Trace.startup && fdjtLog("No local user info, requesting from bookhub server %s", mB.server), 
-        metaBook.updateInfo()), fdjt.Init(), setupBook(), setupDevice(), setupApp(), metaBook._ui_setup = fdjtTime(), 
-        showMessage(), metaBook._user_setup && metaBook.setupUI4User(), metaBook.setConfig(metaBook.getConfig()), 
-        Trace.startup > 1 && fdjtLog("Initializing markup converter");
         var markdown_converter = new Markdown.Converter();
-        if (metaBook.markdown_converter = markdown_converter, metaBook.md2HTML = function(mdstring) {
+        metaBook.markdown_converter = markdown_converter, metaBook.md2HTML = function(mdstring) {
             return markdown_converter.makeHtml(mdstring);
-        }, metaBook.md2DOM = md2DOM, metaBook.Timeline.sync_startup = new Date(), metaBook.onsyncstartup) {
-            var delayed = metaBook.onsyncstartup;
-            if (delete metaBook.onsyncstartup, Array.isArray(delayed)) for (var i = 0, lim = delayed.length; lim > i; ) delayed[i](), 
-            i++; else delayed();
-        }
-        Trace.startup && fdjtLog("Done with sync startup");
+        }, metaBook.md2DOM = md2DOM;
     }
     function getSourceRef() {
         for (var scripts = fdjtDOM.$("SCRIPT"), i = 0, len = scripts.length; len > i; ) {
@@ -13918,30 +13958,19 @@ var metaBook = {
         message && fdjt.UI.alertFor(10, message), fdjt.State.clearCookie("APPMESSAGE", "/", "bookhub.io");
     }
     function readEnvSettings() {
-        try {
-            document.domain = "bookhub.io";
-        } catch (ex) {
-            fdjtLog.warn("Error setting document.domain");
-        }
         fdjtDOM.addAppSchema("METABOOK", "http://metabook.bookhub.io/"), fdjtDOM.addAppSchema("BOOKHUB", "http://bookhub.io/"), 
         fdjtDOM.addAppSchema("PUBTOOL", "http://pubtool.bookhub.io/"), fdjtDOM.addAppSchema("DC", "http://purl.org/dc/elements/1.1/"), 
         fdjtDOM.addAppSchema("DCTERMS", "http://purl.org/dc/terms/"), fdjtDOM.addAppSchema("OLIB", "http://openlibrary.org/"), 
         fdjtDOM.addAppSchema("TOC", "http://beingmeta.com/TOC/"), fdjtDOM.addAppSchema("INDEX", "http://beingmeta.com/INDEX/"), 
-        fdjtDOM.addAppSchema("BM", "http://beingmeta.com/"), metaBook.devinfo = fdjtState.versionInfo(), 
-        "http://static.beingmeta.com/" === metaBook.root && "https:" === window.location.protocol && (metaBook.root = https_root), 
-        (getLocal("mB.nologin") || getQuery("nologin")) && (metaBook.nologin = !0);
+        fdjtDOM.addAppSchema("BM", "http://beingmeta.com/"), "http://static.beingmeta.com/" === metaBook.root && "https:" === window.location.protocol && (metaBook.root = https_root);
         var glosshost = getMeta("BOOKHUB.server") || getMeta("GLOSSDB");
         metaBook.server = glosshost ? glosshost : fdjtState.getCookie("METABOOKSERVER") ? fdjtState.getCookie("METABOOKSERVER") : fdjtState.getCookie("GLOSSDB") ? fdjtState.getCookie("GLOSSDB") : lookupServer(document.domain), 
         metaBook.server || (metaBook.server = metaBook.default_server), updateServerInfo(metaBook.server), 
-        fdjtState.getLocal("mB.devmode") && (addClass(document.documentElement, "_DEVMODE"), 
-        metaBook.devmode = !0), getScanSettings();
+        getScanSettings();
     }
-    function readMycopyid() {
-        var string = readLocal("mB(" + mB.docid + ").mycopyid");
-        if (string) {
-            var tickmatch = /:x(\d+)/.exec(string), tick = tickmatch && tickmatch.length > 1 && parseInt(tickmatch[1]), expires = tick && new Date(1e3 * tick);
-            expires > new Date() && mB.gotMyCopyId(string);
-        }
+    function readMyCopyId() {
+        var mycopyid = fdjtState.getQuery("MYCOPYID") || fdjtState.getCookie("MYCOPYID") || mB.docid && mB.readLocal("mB(" + mB.docid + ").mycopyid");
+        mB.gotMyCopyId(mycopyid);
     }
     function setupApp() {
         var body = document.body, started = fdjtTime();
@@ -14005,7 +14034,7 @@ var metaBook = {
     }
     function headReady() {
         return _head_processed || _head_processing ? void 0 : (mB._head_ready = _head_ready = fdjtET(), 
-        mB.Trace.startup && fdjtLog("Head ready"), processHead());
+        mB.Trace.startup && fdjtLog("Head ready"), run_inits("head"), processHead());
     }
     function headProcessed() {
         return _head_processed ? void 0 : (mB._head_processed = _head_processed = fdjtET(), 
@@ -14070,7 +14099,7 @@ var metaBook = {
     }
     function bodyReady() {
         return _body_processed || _body_processing ? void 0 : (mB._body_ready = _body_ready = fdjtET(), 
-        _head_ready ? (Trace.startup && fdjtLog("Body ready"), processBody()) : headReady());
+        _head_ready ? (Trace.startup && fdjtLog("Body ready"), run_inits("body"), processBody()) : headReady());
     }
     function bodyProcessed() {
         _body_processed || (mB._body_processed = _body_processed = fdjtET(), mB.Trace.startup && fdjtLog("Body processed in ", _body_processed - _body_processing), 
@@ -14078,7 +14107,7 @@ var metaBook = {
     }
     function domReady() {
         _dom_processed || (mB._dom_ready = _dom_ready = fdjtET(), headReady(), bodyReady(), 
-        mB.Trace.startup && fdjtLog("DOM ready"));
+        run_inits("dom"), mB.Trace.startup && fdjtLog("DOM ready"));
     }
     function startLayout() {
         metaBook.sizeContent(), metaBook.bypage ? metaBook.Paginate("initial") : addClass(document.body, "_SCROLL");
@@ -14120,7 +14149,7 @@ var metaBook = {
     }
     function startupDone(mode) {
         metaBook.glosshash && metaBook.glossdb.ref(metaBook.glosshash) ? metaBook.showGloss(metaBook.glosshash) ? (metaBook.glosshash = !1, 
-        metaBook.Timeline.initLocation = fdjtTime()) : metaBook.initLocation() : metaBook.initLocation(), 
+        Timeline.initLocation = fdjtTime()) : metaBook.initLocation() : metaBook.initLocation(), 
         window.onpopstate = function(evt) {
             evt.state && metaBook.restoreState(evt.state, "popstate");
         }, fdjtLog("metaBook startup done"), metaBook.resizeUI(), metaBook.displaySync(), 
@@ -14177,8 +14206,9 @@ var metaBook = {
         0 > refuris.indexOf(refuri) && (refuris.push(refuri), saveLocal("mB.refuris", refuris, !0)), 
         0 > docuris.indexOf(docuri) && (docuris.push(docuri), saveLocal("mB.docuris", docuris, !0));
         var docid, docref = getMeta("BOOKHUB.docref");
-        metaBook.docid = docref ? metaBook.docref = docid = docref : docid = docuri, saveLocal("mB(" + docid + ")", docuri), 
-        0 > docids.indexOf(docid) && (docuris.push(docuri), saveLocal("mB.docuris", docuris, !0));
+        metaBook.docid = docref ? metaBook.docref = docid = docref : docid = docuri, fdjtState.setCookie("MB:DOCID", docid, 3628800, !1, !1, !0), 
+        saveLocal("mB(" + docid + ")", docuri), 0 > docids.indexOf(docid) && (docuris.push(docuri), 
+        saveLocal("mB.docuris", docuris, !0));
         var coverpage = getRelLink("PUBTOOL.coverpage") || getRelLink("coverpage") || getRelLink("*.coverpage");
         coverpage && (metaBook.coverpage = coverpage);
         var coverimage = getRelLink("PUBTOOL.coverimage") || getRelLink("coverimage") || getRelLink("*.coverimage");
@@ -14347,9 +14377,11 @@ var metaBook = {
     function startupHandler() {
         mB._starting || mB._started || (mB.delay_startup ? "number" == typeof mB.delay_startup ? setTimeout(mB.Startup, mB.delay_startup) : setTimeout(startupHandler, 1e3) : metaBook.Startup());
     }
-    var fdjtString = fdjt.String, fdjtDevice = fdjt.device, fdjtState = fdjt.State, fdjtAsync = fdjt.Async, fdjtAjax = fdjt.Ajax, fdjtTime = fdjt.Time, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, fdjtET = fdjtTime.ET, $ID = fdjt.ID, RefDB = fdjt.RefDB, mbID = metaBook.ID, CodexLayout = fdjt.CodexLayout, https_root = "https://s3.amazonaws.com/beingmeta/static/", getLocal = fdjtState.getLocal, getSession = fdjtState.getSession, getQuery = fdjtState.getQuery, getCookie = fdjtState.getCookie, getMeta = fdjtDOM.getMeta, getLink = fdjtDOM.getLink, addClass = fdjtDOM.addClass, swapClass = fdjtDOM.swapClass, dropClass = fdjtDOM.dropClass, mB = metaBook, Trace = metaBook.Trace, readLocal = metaBook.readLocal, saveLocal = metaBook.saveLocal;
+    var fdjtString = fdjt.String, fdjtDevice = fdjt.device, fdjtState = fdjt.State, fdjtAsync = fdjt.Async, fdjtAjax = fdjt.Ajax, fdjtTime = fdjt.Time, fdjtLog = fdjt.Log, fdjtDOM = fdjt.DOM, fdjtUI = fdjt.UI, fdjtET = fdjtTime.ET, $ID = fdjt.ID, RefDB = fdjt.RefDB, mbID = metaBook.ID, CodexLayout = fdjt.CodexLayout, https_root = "https://s3.amazonaws.com/beingmeta/static/", getLocal = fdjtState.getLocal, getSession = fdjtState.getSession, getQuery = fdjtState.getQuery, getCookie = fdjtState.getCookie, getMeta = fdjtDOM.getMeta, getLink = fdjtDOM.getLink, addClass = fdjtDOM.addClass, swapClass = fdjtDOM.swapClass, dropClass = fdjtDOM.dropClass, mB = metaBook, Trace = metaBook.Trace, Timeline = metaBook.Timeline, readLocal = metaBook.readLocal, saveLocal = metaBook.saveLocal;
     metaBook.startupMessage = startupMessage, metaBook.dropSplashPage = dropSplashPage, 
-    metaBook.setSync = function(val) {
+    metaBook.setupWait = setupWait;
+    var app_init_done = !1;
+    metaBook.appInit = appInit, mB.inits.local.push(initMarkdown), metaBook.setSync = function(val) {
         if (!val) return !1;
         var cur = metaBook.sync;
         return cur && cur > val ? cur : (metaBook.sync = val, metaBook.persist && saveLocal("mB(" + mB.docid + ").sync", val), 
@@ -19720,11 +19752,12 @@ metaBook.HTML.console = '<h1>metaBook Console</h1>\n<div class=\'message\' id=\'
 metaBook.HTML.messages = '<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPSCAN">\n  <div class="indicator"></div>\n  <div class="message">\n    Scanning the book content for structure and metadata.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTOC">\n  <div class="indicator"></div>\n  <div class="message">\n    Setting up tables of content for book navigation.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPKNO">\n  <div class="indicator"></div>\n  <div class="message">\n    Processing embedded or referenced knowledge bases.\n    <div id="METABOOKSTARTUPKNODETAILS"></div>\n  </div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPTAGGING">\n  <div class="indicator"></div>\n  <div class="message">Indexing with published tags.</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKSTARTUPCLOUDS">\n  <div class="indicator"></div>\n  <div class="message">Setting up tag clouds for search and glossing.</div>\n</div>\n</div>\n<div class="startupmessage fdjtprogress" id="METABOOKNEWGLOSSES">\n  <div class="indicator"></div>\n  <div class="message">Applying your glosses to your book.</div>\n</div>\n<!--\n     /* Emacs local variables\n     ;;;  Local variables: ***\n     ;;;  compile-command: "cd ../..; make" ***\n     ;;;  End: ***\n     */\n  -->\n\n', 
 metaBook.HTML.cover = '<div id="METABOOKCOVERMESSAGE" class="controls">\n  <div id="METABOOKOPENTAB"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Open\n  </div>\n  <div id="METABOOKREADYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Loading\n  </div>\n  <div id="METABOOKBUSYMESSAGE" class="message"\n       style="width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;">\n    Busy\n  </div>\n  <div class="metabookstatus" id="METABOOKLAYOUTMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKINDEXMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n  <div class="metabookstatus" id="METABOOKGLOSSMESSAGE" class="message">\n    <div class="metabookprogressbox"><div class="indicator"></div></div>\n    <div class="message" style="font-size: 24px; font-size: 5vmin;"></div>\n  </div>\n</div>\n<div id="METABOOKCOVERPAGE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n  <img src="{{coverimage|}}" alt="{{covertext|}}"\n       style="max-width: 95%; width: auto; height: 90%;"\n       id="METABOOKCOVERIMAGE"/>\n</div>\n<div id="METABOOKTITLE" class="flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKCREDITS" class="flap metabookcredits"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;">\n</div>\n<div id="METABOOKBLURB" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKAPPHELP" class="metabookhelp scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <h1><span class="adjustfont">Welcome to the &metaBook; web-based\n      e-reader</span></h1>\n  \n  <p>You\'re using &metaBook;, a web-based e-reader created to deepen\n    reading and engagement while connecting to networks of knowledge,\n    conversation, and commmunity.  &metaBook; aims to reclaim the\n    virtues of physical books for electronic books, making them\n    natural to navigate, annotate, search, and personalize.</p>\n  <div id="METABOOKCOVERHELP"></div>\n</div>\n<div id="METABOOKSETTINGS" class="scrolling flap"\n     style="position: absolute; top: 50px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKCONSOLE" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n</div>\n<div id="METABOOKLAYERS" class="scrolling flap"\n     style="position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;">\n  <iframe name="BOOKHUBAPP" id="BOOKHUBAPP" frameborder="0" scrolling="auto"></iframe>\n</div>\n<div id="METABOOKCOVERCONTROLS" class="adjustfonts" \n     style="position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;">\n  <span class="control" data-mode="coverpage" title="see the cover"\n        tabindex="1">\n    Cover</span>\n  <span class="control" data-mode="titlepage"\n        title="this book\'s title page and other information"\n        tabindex="2">\n    Title</span>\n  <span class="control" data-mode="creditspage"\n        title="Credits to people and organizations contributing to this book, including bibliographic information"\n        tabindex="3">\n    Credits</span>\n  <span class="control" data-mode="blurb"\n        title="learn more about this book and its background"\n        tabindex="4">\n    About</span>\n  <span class="control" data-mode="layers"\n        title="manage added layers of glosses for your sBook"\n        tabindex="5">\n    Layers</span>\n  <span class="control" data-mode="console"\n        title="the debugging console (advanced)"\n        tabindex="6">\n    Console</span>\n  <span class="control" data-mode="settings"\n        title="alter this e-reader\'s appearance and interactions"\n        tabindex="7">\n    Settings</span>\n  <span class="control" data-mode="help"\n        title="simple help for using metaBook"\n        tabindex="8">\n    Help</span>\n</div>\n<div class="userbox controls"\n     data-maxfont="120%" id="METABOOKUSERBOX">\n  <span class="bookplate">\n    <a href="https://www.bookhub.io/" target="_blank"\n       class="bookplate__bookref metabookref"\n       title="Learn more about the metaBook reader and bookhub.io" tabindex="9">\n      This book</a>\n    <span class="bookplate__text">is personalized for</span>\n    <a href="https://my.bookhub.io/profile/"\n       class="bookplate__username metabookusername"\n       title="Edit your profile, add social networks, etc"\n       target="_blank" tabindex="10">\n      you</a></span>\n</div>\n<div class="loginbox controls" data-maxfont="120%" id="METABOOKLOGINBOX">\n  <div class="loginmessage">\n    Login to bookhub.io to read smarter</div>\n  <form action="https://auth.bookhub.io/" method="POST">\n    <input TYPE="HIDDEN" NAME="FRESHLOGIN" VALUE="yes"/>\n    <input TYPE="HIDDEN" NAME="LOGINFORM" VALUE="yes"/>\n    <input TYPE="TEXT" NAME="LOGIN" VALUE=""\n           PLACEHOLDER="email/cell login"\n           ONKEYPRESS="fdjt.UI.submitOnEnter(event);"\n           AUTOCOMPLETE="off"\n           tabindex="9"/>\n    <span>or use</span>\n    <select NAME="AUTHORITY">\n      <option value="" selected="SELECTED">Using account</option>\n      <option value=":FACEBOOK">Facebook</option>\n      <option value=":TWITTER">Twitter</option>\n      <option value=":YAHOO">Yahoo!</option>\n      <option value=":GOOGLE">Google</option>\n      <option value=":GPLUS">Google+</option>\n      <option value=":LINKEDIN">Linked In</option>\n      <option value=":AMAZON">Amazon</option>\n      <option value=":PAYPAL">PayPal</option>\n    </select>\n    <button name="AUTHORITY" TABINDEX="11"\n            value=":FACEBOOK">\n      <img src="{{bmg}}metabook/facebook64x64.png" class="nosvg"\n           alt="Facebook" class="noautoscale"/>\n      <img src="{{bmg}}metabook/facebook.svgz" class="svg"\n           alt="Facebook" class="noautoscale"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="12"\n            VALUE=":TWITTER">\n      <img src="{{bmg}}metabook/twitter64x64.png"\n           alt="Twitter" title="login with Twitter"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/twitter.svgz"\n           alt="Twitter" title="login with Twitter"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="13"\n            VALUE="https://open.login.yahooapis.com/openid/op/auth">\n      <img src="{{bmg}}metabook/yahoo64x64.png" class="nosvg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n      <img src="{{bmg}}metabook/yahoo.svgz" class="svg"\n           alt="Yahoo!" title="login using Yahoo!"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="14"\n            VALUE=":GOOGLE">\n      <img src="{{bmg}}metabook/google64x64.png"\n           alt="Google" title="login using your Google account"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/google.svgz"\n           alt="Google" title="login using your Google account"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" TABINDEX="15"\n            VALUE=":GPLUS">\n      <img src="{{bmg}}metabook/googleplus64x64.png"\n           alt="Google" title="login using Google+"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/googleplus.svgz"\n           alt="Google" title="login using Google+"\n           class="svg"/>\n    </button>\n    <button NAME="AUTHORITY" VALUE=":LINKEDIN" TABINDEX="16">\n      <img src="{{bmg}}metabook/linkedin64x64.png"\n           alt="Linked In" title="login with Linked In"\n           class="nosvg"/>\n      <img src="{{bmg}}metabook/linkedin.svgz"\n           alt="Linked In" title="login with Linked In"\n           class="svg"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="17"\n            value=":AMAZON">\n      <img src="{{bmg}}metabook/amazon64x64.png"\n           alt="Amazon" title="login with your Amazon account"/>\n    </button>\n    <button name="AUTHORITY" TABINDEX="18"\n            value=":PAYPAL">\n      <img src="{{bmg}}metabook/paypalsquare64x64.png" class="nosvg"\n           alt="PayPal" title="login with PayPal"/>\n      <img src="{{bmg}}metabook/paypalsquare.svgz" class="svg"\n           alt="PayPal" title="login with PayPal"/>\n    </button>\n  </form>\n</div>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
 metaBook.HTML.settings = '<form onsubmit="fdjt.UI.cancel(event); return false;" class="metabooksettings">\n  <h1 class="cf">\n    Settings\n    <span class="message" ID="METABOOKSETTINGSMESSAGE"></span></h1>\n  <div class="fontsizes body"\n       title="Set the font sizes used for the body text.">\n    <span class="label" id="METABOOKBODYSIZELABEL">\n      Body text<br/>\n      <button name="REFRESH" value="Layout"\n              id="METABOOKREFRESHLAYOUT">\n        <img src="{{bmg}}metabook/refresh.svgz" \n             onerror="this.src=\'{{bmg}}metabook/refresh50x50.png\'"\n             alt="Update">\n        Layout</button></span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="xlarge"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="large"/>\n        <span class="sample large">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize" \n               VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="bodysize"\n               VALUE="tiny"/>\n        <span class="sample tiny">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="contrast checkspans"\n       title="Select the contrast level for body text">\n    <span class="label smaller">Text Contrast</span>\n    <span class="checkspan highcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="high"/>\n      <span class="sample">High</span></span>\n    <span class="checkspan normalcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast" \n             VALUE="medium"/>\n      <span class="sample">Normal</span></span>\n    <span class="checkspan lowcontrast">\n      <input TYPE="RADIO" NAME="bodycontrast"\n             VALUE="low"/>\n      <span class="sample">Low</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="textlayout checkspans">\n    <span class="label smaller">Layout</span>\n    <span class="checkspans">\n      <span class="checkspan codex">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="bypage"/>\n        by pages</span>\n      <span class="checkspan scrolling">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT" \n               VALUE="scrolling"/>\n        just scroll</span>\n      <span class="checkspan scrollio">\n        <input TYPE="RADIO" NAME="METABOOKLAYOUT"\n               VALUE="scrollio"/>\n        hybrid (<em>scrollio</em>)</span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="also checkspans">\n    <span class="label smaller">Other Options</span>\n    <span class="checkspan opendyslexical"\n          title="OpenDyslexic is a font designed to increase readability for readers with dyslexia">\n      <input TYPE="CHECKBOX" NAME="dyslexical" VALUE="yes"/>\n      <span class="checktext">Use OpenDyslexic font</span>\n      <a href="http://opendyslexic.org/"\n         title="The Open Dyslexic font site">(about)</a>\n    </span>\n    <span class="sep">//</span>\n    <span class="checkspan justify"\n          title="left/right justify paragraphs of body text">\n      <input TYPE="CHECKBOX" NAME="textjustify" VALUE="yes"/>\n      Justify paragraphs</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="fontsizes device"\n       title="Set the font sizes used by the interface components of metaBook">\n    <span class="label">Application</span>\n    <span class="samples">\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="large"/>\n        <span class="sample xlarge">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="normal"/>\n        <span class="sample normal">Aa</span></span>\n      <span class="checkspan">\n        <input TYPE="RADIO" NAME="uisize" VALUE="small"/>\n        <span class="sample small">Aa</span></span>\n    </span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="animation">\n    <span class="label smaller">Animate</span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatecontent" VALUE="yes"/>\n      <span class="checktext">content (page flips, etc)</span></span>\n    <span class="checkspan">\n      <input TYPE="CHECKBOX" NAME="animatehud" VALUE="yes"/>\n      <span class="checktext">interface (overlays, controls, etc)</span></span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="header dataheader cf">\n    <button NAME="CLEARDATA" VALUE="ALL">Erase all</button>\n    <span class="label">Storage</span>\n  </div>\n  <div class="checkspan syncloc cf">\n    <button id="METABOOKRESETSYNC" name="SYNC" VALUE="RESET"\n            class="reset floatright"\n            title="Reset synchronized location information.">\n      <img src="{{bmg}}metabook/reset.svgz" \n           onerror="this.src=\'{{bmg}}metabook/reset50x50.png" alt=""/>\n      Reset</button>\n    <input TYPE="CHECKBOX" NAME="locsync" VALUE="yes"/>\n    <span class="checktext">\n      Sync your <strong>reading location</strong> with other devices</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan saveglosses cf">\n    <button id="METABOOKREFRESHOFFLINE" class="refresh floatright"\n            title="Reload glosses and layers for this book from the cloud.">\n      <img src="{{bmg}}metabook/refresh.svgz" \n           onerror="this.error=\'{{bmg}}metabook/refresh50x50.png" alt=""/>\n      Reload</button>\n    <input TYPE="CHECKBOX" NAME="cacheglosses" VALUE="yes" CHECKED/>\n    <span class="checktext">\n      Save copies of <strong>glosses</strong>\n      and <strong>layers</strong> on this device</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="checkspan showconsole cf">\n    <span class="label">Developer</span>\n    <input TYPE="CHECKBOX" NAME="showconsole" VALUE="yes"/>\n    <span class="checktext">Show the application console</span>\n  </div>\n  <div class="clearfloats"></div>\n  <div class="info" id="METABOOKINFOPANEL">\n    <span class="label">Info</span>\n    <p class="metabookrefinfo"></p>\n    <p class="metabooksourceinfo"></p>\n    <p class="metabookbuildinfo"></p>\n    <p class="metabookappinfo"></p>\n    <p class="metabookserverinfo"></p>\n  </div>\n  <div class="metabookcopyright">\n    <p class="metabookcopyrightinfo"></p>\n  </div>\n\n</form>\n\n<!--\n    /* Emacs local variables\n    ;;;  Local variables: ***\n    ;;;  compile-command: "cd ../..; make" ***\n    ;;;  indent-tabs-mode: nil ***\n    ;;;  End: ***\n    */\n  -->\n', 
-fdjt.revision = "1.5-1566-gd7555ab", fdjt.buildhost = "dev.beingmeta.com", fdjt.buildtime = "Wed Mar 9 23:18:21 UTC 2016", 
-fdjt.builduuid = "c2a8a927-4540-48b2-af0c-ce1e24593c3d", fdjt.CodexLayout.sourcehash = "2E1CF45D58B1AFA2030F6E720508E9758FE11C19", 
-Knodule.version = "v0.8-160-ga7c7916", metaBook.version = "v0.8-278-gb1ae6a2", metaBook.buildid = "7d3dd778-e2d9-4037-8895-d88ec69ebfc8", 
-metaBook.buildtime = "Wed Mar  9 23:18:47 UTC 2016", metaBook.buildhost = "dev.beingmeta.com", 
-"undefined" != typeof _metabook_suppressed && _metabook_suppressed || (document.addEventListener ? (document.addEventListener("load", metaBook.headReady), 
+fdjt.revision = "1.5-1567-g1b90c0d", fdjt.buildhost = "dev.beingmeta.com", fdjt.buildtime = "Thu Mar 10 13:04:07 UTC 2016", 
+fdjt.builduuid = "1a36027c-ff6d-4f23-b0ea-b0e03b19116a", fdjt.CodexLayout.sourcehash = "2E1CF45D58B1AFA2030F6E720508E9758FE11C19", 
+Knodule.version = "v0.8-160-ga7c7916", metaBook.version = "v0.8-279-g727dff2", metaBook.buildid = "87ed726f-a2ee-4084-9579-b730d0e3ce29", 
+metaBook.buildtime = "Thu Mar 10 13:04:53 UTC 2016", metaBook.buildhost = "dev.beingmeta.com", 
+"undefined" != typeof _metabook_suppressed && _metabook_suppressed || (metaBook.appInit(), 
+document.addEventListener ? (document.addEventListener("load", metaBook.headReady), 
 document.addEventListener("DOMContentLoaded", metaBook.bodyReady), window.onload = metaBook.domReady) : window.onload = function() {
     metaBook.Setup();
 });
