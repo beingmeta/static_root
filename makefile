@@ -362,10 +362,6 @@ metabook.post.css: metabook_bundle.css makefile postcss.config.json
 		    -o metabook.post.css \
 	            metabook_bundle.css
 
-metabook.xpost.css: makefile postcss.config.json  $(METABOOK_CSS_BUNDLE)
-	@echo Building ./metabook.post.css and ./metabook.post.css.map
-	@$(POSTCSS) -c metabook.postcss.json
-
 fresh:
 	make clean
 	make $(ROOT_FDJT) $(ROOT_METABOOK)
