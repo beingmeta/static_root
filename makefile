@@ -353,7 +353,7 @@ metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	             -o metabook.clean.css
 metabook.post.css: metabook.clean.css makefile postcss.config.json
 	@echo Building ./metabook.post.css and ./metabook.post.css.map
-	@$(POSTCSS) $(POSTCSSOPTS) -o metabook.post.css metabook.clean.css
+	@$(POSTCSS) $(POSTCSSOPTS) --map --no-inline-map --annotation metabook.post.css.map -o metabook.post.css metabook.clean.css
 
 fresh:
 	make clean
