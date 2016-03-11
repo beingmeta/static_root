@@ -8,6 +8,6 @@
 	"postcss-reporter",
 	"cssnano"
     ],
-    "stylelint": {"configFile": "stylelint.config.json"}
+    "map": {"inline": false}
 }
 
