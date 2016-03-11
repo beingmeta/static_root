@@ -611,7 +611,7 @@ metabuild buildbuild:
 	npm install jshint -g --save-dev
 	npm install autoprefixer -g --save-dev
 	npm install postcss-cli -g --save-dev
-	npm install postcss-import postcss-url -g --save-dev
+	npm install postcss-cssnext postcss-import postcss-url -g --save-dev
 	npm install postcss-reporter postcss-browser-reporter -g --save-dev
 	npm install cssnano -g --save-dev
 	npm install stylelint -g --save-dev
