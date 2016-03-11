@@ -24566,7 +24566,7 @@ fdjt.CodexLayout.dbname="metaBook";
                    3000);
         fdjtState.setCookie(
             "MB:TARGET",targetid||target.getAttribute('data-bookid'),
-            false,false,(location.href.search('https:')==0));
+            false,false,(location.href.search('https:')===0));
         metaBook.target=primary;
         if (metaBook.UI.setTarget) metaBook.UI.setTarget(primary);
         if (metaBook.empty_cloud)
@@ -26021,6 +26021,7 @@ metaBook.DOMScan=(function(){
     var getChildren=fdjtDOM.getChildren, getChild=fdjtDOM.getChild;
     var toArray=fdjtDOM.toArray;
     var isEmpty=fdjtString.isEmpty;
+    var hasText=fdjtDOM.hasText;
 
     var mB=metaBook, Trace=metaBook.Trace;
     var applyMetaClass=mB.applyMetaClass;
@@ -26122,12 +26123,12 @@ metaBook.DOMScan=(function(){
                 else a.className=extclass;
                 a.target="_blank";}}
         
-        // Interpet links
+        // Interpret links
         var notelinks=getChildren(
             content,"a[rel='sbooknote'],a[rel='footnote'],a[rel='endnote']");
         i=0; lim=notelinks.length; while (i<lim) {
             var ref=notelinks[i++], nref=ref.href;
-            if (!(fdjtDOM.hasText(ref))) ref.innerHTML="Note";
+            if (!(hasText(ref))) ref.innerHTML="Note";
             if ((nref)&&(nref[0]==="#")) {
                 addClass($ID(nref.slice(1)),"sbooknote");}}
         
@@ -41100,19 +41101,19 @@ metaBook.HTML.settings=
     "";
 // FDJT build information
 fdjt.revision='1.5-1567-g1b90c0d';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Thu Mar 10 13:04:07 UTC 2016';
-fdjt.builduuid='1a36027c-ff6d-4f23-b0ea-b0e03b19116a';
+fdjt.buildhost='Venus';
+fdjt.buildtime='Fri Mar 11 11:32:09 EST 2016';
+fdjt.builduuid='c3af769f-e24b-4d6e-8e65-deba4696fcf9';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-279-g727dff2';
-metaBook.buildid='87ed726f-a2ee-4084-9579-b730d0e3ce29';
-metaBook.buildtime='Thu Mar 10 13:04:53 UTC 2016';
-metaBook.buildhost='dev.beingmeta.com';
+metaBook.version='v0.8-281-g6b97f56';
+metaBook.buildid='d650ed4f-84e2-44da-9c96-5c5109e7c13c';
+metaBook.buildtime='Fri Mar 11 11:32:48 EST 2016';
+metaBook.buildhost='Venus';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
