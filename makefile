@@ -351,7 +351,7 @@ metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
 	@$(CLEANCSS) --compatibility '*,-units.pt'       \
 	             --source-map $(METABOOK_CSS_BUNDLE) \
 	             -o metabook.clean.css
-metabook_bundle.css: makefile
+metabook_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	echo "/* metaBook CSS bundle */" > metabook_bundle.css
 	for cssfile in $(METABOOK_CSS_BUNDLE); \
 	  do echo "@import '$${cssfile}';" >> metabook_bundle.css; \
