@@ -16085,6 +16085,10 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
             playSound("releasesound",target,th);
+            var point_target=document.elementFromPoint(x,y);
+            if (point_target) point_target=getParent(point_target,touchable);
+            if ((point_target)&&(point_target!==target)&&(hasParent(point_target,target))) {
+                target=point_target;}
             if (holdclass)
                 setTimeout(check_holding,50);
             if ((target_time)&&(target_time<200)) {
@@ -25857,9 +25861,6 @@ metaBook.DOMScan=(function(){
         
         metaBook.showCover();
         
-        // Make the cover hidden by default
-        metaBook.CSS.hidecover=fdjtDOM.addCSSRule(
-            "#METABOOKCOVER","opacity: 0.0; z-index: -10; pointer-events: none; height: 0px; width: 0px;");
         if (Trace.startup>1)
             fdjtLog("Cover setup done in %dms",fdjtTime()-started);
         return cover;}
@@ -28017,7 +28018,6 @@ metaBook.Startup=
         var fdjtLog=fdjt.Log;
         var fdjtDOM=fdjt.DOM;
         var fdjtUI=fdjt.UI;
-        var fdjtET=fdjtTime.ET;
         var $ID=fdjt.ID;
         var RefDB=fdjt.RefDB;
         var mbID=metaBook.ID;
@@ -28043,6 +28043,8 @@ metaBook.Startup=
 
         var readLocal=metaBook.readLocal;
         var saveLocal=metaBook.saveLocal;
+
+        var keep_open_msecs=((3600+1800)*1000);
 
         /* Initialization */
         
@@ -28394,8 +28396,8 @@ metaBook.Startup=
         
         function metaBookStartup(){
             if (metaBook._started) return;
-            _head_ready=mB._head_ready=fdjtET();
-            _body_ready=mB._body_ready=fdjtET();
+            _head_ready=Timeline.head_ready=fdjtTime();
+            _body_ready=Timeline.body_ready=fdjtTime();
             processHead();}
         metaBook.Startup=metaBookStartup;
         
@@ -28406,7 +28408,7 @@ metaBook.Startup=
         function processHead(){
             if ((_head_processed)||(_head_processing)) return;
             if (!(_head_ready)) return;
-            metaBook._starting=_head_processing=fdjtET();
+            metaBook._starting=_head_processing=fdjtTime();
             /* Cleanup, save initial hash location */
             if ((location.hash==="null")||(location.hash==="#null"))
                 location.hash="";
@@ -28419,13 +28421,13 @@ metaBook.Startup=
             addClass(document.body,"mbSTARTUP");
             // This is all of the startup that we need to do synchronously
             syncStartup();
-            metaBook.resizeUI().then(function(){dropSplashPage();});
+            metaBook.resizeUI();
             headProcessed();}
         metaBook.processHead=processHead;
         
         function headReady(){
             if ((_head_processed)||(_head_processing)) return;
-            mB._head_ready=_head_ready=fdjtET();
+            Timeline.head_ready=_head_ready=fdjtTime();
             if (mB.Trace.startup) fdjtLog("Head ready");
             run_inits("head");
             return processHead();}
@@ -28433,10 +28435,16 @@ metaBook.Startup=
 
         function headProcessed(){
             if (_head_processed) return;
-            mB._head_processed=_head_processed=fdjtET();
+            Timeline.head_processed=_head_processed=fdjtTime();
             if (mB.Trace.startup) 
-                fdjtLog("Head processed in %s",_head_processed-_head_processing);
+                fdjtLog("Head processed in %dms",(_head_processed-_head_processing));
             _head_processing=false;
+            if (mB.docid) {
+                var opened=readLocal(
+                    "mB("+mB.docid+").opened",true);
+                if ((!(opened))||((opened+keep_open_msecs)>fdjtTime())) {
+                    mB.showCover();
+                    dropSplashPage();}}
             if ((_body_ready)&&(!(_body_processed))&&(!(_body_processing)))
                 return processBody();}
         
@@ -28447,7 +28455,7 @@ metaBook.Startup=
             if (!(_head_processed)) {
                 if (_head_ready) return processHead();
                 else return;}
-            _body_processing=fdjtET();
+            _body_processing=fdjtTime();
             // Modifies the DOM in various ways
             metaBook.initBody();
             // Sets up event handlers
@@ -28541,7 +28549,7 @@ metaBook.Startup=
 
         function bodyReady(){
             if ((_body_processed)||(_body_processing)) return;
-            mB._body_ready=_body_ready=fdjtET();
+            Timeline.body_ready=_body_ready=fdjtTime();
             if (!(_head_ready)) return headReady();
             if (Trace.startup) fdjtLog("Body ready");
             run_inits("body");
@@ -28550,16 +28558,16 @@ metaBook.Startup=
 
         function bodyProcessed(){
             if (_body_processed) return;
-            mB._body_processed=_body_processed=fdjtET();
+            Timeline.body_processed=_body_processed=fdjtTime();
             if (mB.Trace.startup)
-                fdjtLog("Body processed in ",_body_processed-_body_processing);
+                fdjtLog("Body processed in %dms",(_body_processed-_body_processing));
             _body_processing=false;
             startLayout();
             startupDone();}
 
         function domReady(){
             if (_dom_processed) return;
-            mB._dom_ready=_dom_ready=fdjtET();
+            Timeline.dom_ready=_dom_ready=fdjtTime();
             headReady(); 
             bodyReady();
             run_inits("dom");
@@ -28687,7 +28695,7 @@ metaBook.Startup=
             else if ((!(mode))&&(metaBook.user)) {
                 var opened=readLocal(
                     "mB("+mB.docid+").opened",true);
-                if ((opened)&&((opened+((3600+1800)*1000))>fdjtTime()))
+                if ((opened)&&((opened+keep_open_msecs)<fdjtTime()))
                     metaBook.hideCover();}
             if (fdjtDOM.vischange)
                 fdjtDOM.addListener(document,fdjtDOM.vischange,
@@ -28886,7 +28894,7 @@ metaBook.Startup=
         function setupBook(){
             if (metaBook.bookinfo) return;
             var bookinfo=metaBook.bookinfo={}; var started=fdjtTime();
-            if (Trace.startup>2) fdjtLog("Book setup at %o",started/1000);
+            if (Trace.startup>2) fdjtLog("setupBook started");
             bookinfo.title=
                 getMeta("METABOOK.title")||
                 getMeta("PUBTOOL.title")||
@@ -37483,8 +37491,8 @@ metaBook.setMode=
             var elt=((x)||(y))&&(document.elementFromPoint(x,y));
             if (mB.Trace.gestures>1)
                 fdjtLog("dombody_touched %o: %o @ <%o,%o>",evt,elt,x,y);
-            if (elt!==document.body) return;
-            if ((y<50)||((elt.offsetHeight-y)<50)) return;
+            if ((elt!==document.body)&&(hasParent(elt,document.body))) return;
+            if ((elt.offsetHeight)&&((y<50)||((elt.offsetHeight-y)<50))) return;
             if (mB.Trace.gestures)
                 fdjtLog("dombody_touched(atedge) %o: %o @ <%o,%o>",evt,elt,x,y);
             if (x<25) return backward(evt);
@@ -37732,6 +37740,7 @@ metaBook.setMode=
             keypress: mb_onkeypress,
             touchmove: preview_touchmove_nodefault,
             focus: mb_onfocus,
+            touchstart : dombody_touched,
             blur: mb_onblur},
          content: {tap: body_tapped,
                    hold: body_held,
@@ -37747,7 +37756,6 @@ metaBook.setMode=
                slip: toc_slipped, release: toc_released,
                touchtoo: toc_touchtoo,
                touchmove: preview_touchmove_nodefault},
-         body: {touchstart : dombody_touched},
          glossmark: {touchstart: glossmark_tapped,touchend: cancel},
          "#METABOOKSTARTPAGE": {touchend: metaBook.UI.dropHUD},
          "#METABOOKMENU": {tap: raiseHUD},
@@ -38473,6 +38481,7 @@ metaBook.Paginate=
 
         var mB=metaBook;
         var Trace=mB.Trace;
+        var Timeline=mB.Timeline;
         var fdjtString=fdjt.String;
         var fdjtState=fdjt.State;
         var fdjtHash=fdjt.Hash;
@@ -38566,6 +38575,7 @@ metaBook.Paginate=
         function Paginate(why,init){
             if (((metaBook.layout)&&(!(metaBook.layout.done)))) return;
             if (!(why)) why="because";
+            Timeline.page_layout_started=fdjtTime();
             if (Trace.layout)
                 fdjtLog("Starting pagination (%s) with %j",why,init);
             layoutMessage("Preparing your book",0);
@@ -38635,7 +38645,9 @@ metaBook.Paginate=
                 dropClass(document.body,"_SCROLL");
                 addClass(document.body,"_BYPAGE");
                 layout.started=fdjtTime();
-                layout.restoreLayout(content).then(finish_layout);}
+                layout.restoreLayout(content).then(function(){
+                    Timeline.layout_restored=fdjtTime();
+                    finish_layout();});}
             function finish_layout(layout) {
                 var started=layout.started;
                 $ID("CODEXPAGE").style.visibility='';
@@ -38667,6 +38679,7 @@ metaBook.Paginate=
                     var fn=metaBook.layoutdone;
                     metaBook.layoutdone=false;
                     fn();}
+                Timeline.layout_complete=fdjtTime();
                 if (metaBook.state)
                     metaBook.restoreState(metaBook.state,"layoutRestored");
                 metaBook.layout.running=false;
@@ -38768,6 +38781,7 @@ metaBook.Paginate=
                         var pages=layout.pages;
                         var i=0, n=pages.length; while (i<n)
                             finishPageInfo(pages[i++],layout);
+                        Timeline.layout_done=fdjtTime();
                         var cachethresh=metaBook.cache_layout_thresh;
                         if (cachethresh) {
                             var elapsed=layout.done-layout.started;
@@ -38809,14 +38823,18 @@ metaBook.Paginate=
                     while (running) running=rootloop();}}
             var layout_wait=false;
             function start_new_layout(){
-                if (!(layout_wait)) new_layout();
-                else if (mB._dom_ready) {
+                if (!(layout_wait)) {
+                    Timeline.layout_started=fdjtTime();
+                    new_layout();}
+                else if (Timeline.dom_ready) {
                     clearInterval(layout_wait);
                     layout_wait=false;
+                    Timeline.layout_started=fdjtTime();
                     new_layout();}}
             function request_layout(){
-                if (!(layout_wait)) 
-                    layout_wait=setInterval(start_new_layout,50);}
+                if (!(layout_wait)) {
+                    Timeline.layout_requested=fdjtTime();
+                    layout_wait=setInterval(start_new_layout,50);}}
             
             if ((metaBook.cache_layout_thresh)&&
                 (!((metaBook.forcelayout)))&&
@@ -38829,6 +38847,7 @@ metaBook.Paginate=
                         if (Trace.layout) fdjtLog("Got layout %s",layout_id);
                         recordLayout(layout_id,metaBook.sourceid);
                         try {
+                            Timeline.layout_fetched=fdjtTime();
                             return restore_layout(content,layout_id);}
                         catch (ex) {
                             fdjtLog("Layout restore error: %o",ex);
@@ -41101,19 +41120,19 @@ metaBook.HTML.settings=
     "";
 // FDJT build information
 fdjt.revision='1.5-1567-g1b90c0d';
-fdjt.buildhost='Venus';
-fdjt.buildtime='Fri Mar 11 11:32:09 EST 2016';
-fdjt.builduuid='c3af769f-e24b-4d6e-8e65-deba4696fcf9';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sat Mar 12 13:41:47 EST 2016';
+fdjt.builduuid='c05cc793-9c27-48d0-99ef-d4eb522b8e8d';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-281-g6b97f56';
-metaBook.buildid='d650ed4f-84e2-44da-9c96-5c5109e7c13c';
-metaBook.buildtime='Fri Mar 11 11:32:48 EST 2016';
-metaBook.buildhost='Venus';
+metaBook.version='v0.8-287-g55c7a45';
+metaBook.buildid='c44173e5-4f31-4723-8902-a0b10767f30a';
+metaBook.buildtime='Sat Mar 12 15:21:03 EST 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();

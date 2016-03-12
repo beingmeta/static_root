@@ -2808,8 +2808,10 @@ body.mbSKIMMING.mbSKIMSTART div#MBPAGELEFT.mbpagecontrol {
     margin: 0; border: 0; padding: 0;
     background-color: black; opacity: 1.0;
     text-align: center;
-    z-index: 100;}
+    z-index: 100;
+    display: none;}
 body.mbCOVER #METABOOKFRAME > #METABOOKCOVER { pointer-events: all; }
+body.mbCOVER #METABOOKCOVER { display: block; }
 
 #METABOOKFRAME.metabookuifontlarge #METABOOKCOVER { font-size: 3em; }
 #METABOOKFRAME.metabookuifontnormal #METABOOKCOVER { font-size: 2em; }
@@ -3088,7 +3090,9 @@ body.hudup #METABOOKBREVET,
 #METABOOKMENU.tapholding #METABOOKBREVET { 
     display: none;}
 
-body.mbSKIMMING #METABOOKCOVERTAB { display: none; }
+body.mbSKIMMING #METABOOKCOVERTAB,
+body.mbSKIMMING #METABOOKMENU { 
+    display: none; }
 #METABOOKCOVERTAB .hudbutton {
     position: static;}
 #METABOOKCOVERTAB .hudbutton.left {
@@ -3156,7 +3160,7 @@ body.hudup #METABOOKBREVET, .mbcover #METABOOKBREVET { display: none;}
         display: none;}
 }
 
-media only screen and /* (min-width: 320px) and */
+@media only screen and /* (min-width: 320px) and */
             (max-width: 480px) {
     #METABOOKMENU .hudbutton[hudmode="allglosses"] {right: 70px;}
     #METABOOKMENU .hudbutton[hudmode="help"] {left: 70px;}
