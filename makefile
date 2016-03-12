@@ -122,7 +122,6 @@ ROOT_METABOOK=metabook.js metabook.js.gz \
 	metabook.raw.js metabook.raw.js.gz \
 	metabook.min.js metabook.min.js.gz \
 	metabook.css metabook.css.gz \
-	metabook.clean.css metabook.clean.css.gz \
 	metabook.post.css metabook.post.css.gz
 DIST_FDJT=dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.min.map \
 	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
@@ -130,7 +129,6 @@ DIST_METABOOK=dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
 	dist/metabook.min.js dist/metabook.min.js.gz \
 	dist/metabook.min.js dist/metabook.min.js.gz \
-	dist/metabook.clean.css dist/metabook.clean.css.gz \
 	dist/metabook.post.css dist/metabook.post.css.gz
 
 SBOOKSTYLES=sbooks/sbookstyles.css
@@ -265,9 +263,8 @@ cleandist:
 	cd dist; rm -f fdjt.css.gz fdjt.js fdjt.js.gz  \
 	   fdjt.min.js fdjt.min.js.gz fdjt.min.map  \
            metabook.css                                \
-	   metabook.clean.css metabook.clean.css.gz   \
-           metabook.post.css metabook.post.css.gz      \
-	   metabook.clean.css.map metabook.post.css.map \
+	   metabook.post.css metabook.post.css.gz      \
+	   metabook.post.css.map \
            metabook.js metabook.js.gz                  \
            metabook.min.js metabook.min.js.gz          \
 	   metabook.min.js metabook.min.js.gz    \
@@ -302,15 +299,6 @@ fdjt/codexlayouthash.js: fdjt/codexlayout.js
 
 fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
 	cp fdjt/fdjt.js fdjt.js
-fdjt.css: fdjt/fdjt.css postcss.config.json
-	@echo Building ./fdjt.css and ./fdjt.css.map
-	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o fdjt.css
-	@$(POSTCSS) $(POSTCSSOPTS) -o fdjt.css fdjt.css
-fdjt/post.css: fdjt/fdjt.css postcss.config.json
-	@echo Building fdjt/post.css and fdjt/post.css.map
-	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o post.css
-	@$(POSTCSS) $(POSTCSSOPTS) -o fdjt/post.css fdjt.css
-
 
 fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
@@ -346,11 +334,6 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
 	  metabook/autoload.js -o $@
-metabook.clean.css: $(METABOOK_CSS_BUNDLE) makefile
-	@echo Building ./metabook.clean.css and ./metabook.clean.css.map
-	@$(CLEANCSS) --compatibility '*,-units.pt'       \
-	             --source-map $(METABOOK_CSS_BUNDLE) \
-	             -o metabook.clean.css
 metabook_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	echo "/* metaBook CSS bundle */" > metabook_bundle.css
 	for cssfile in $(METABOOK_CSS_BUNDLE); \
@@ -406,15 +389,9 @@ dist/metabook.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js \
 		dist/tieoff.js metabook/autoload.js > $@
 	@echo "fdjt.CodexLayout.sourcehash='`etc/sha1 fdjt/codexlayout.js`';" \
 		>> $@
-
 dist/metabook.css: $(METABOOK_CSS_BUNDLE)
 	@echo Rebuilding dist/metabook.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
-dist/metabook.clean.css: $(METABOOK_CSS_BUNDLE) postcss.config.json
-	@echo Rebuilding dist/metabook.clean.css
-	@$(CLEANCSS) --compatibility '*,-units.pt' \
-		     --source-map $(METABOOK_CSS_BUNDLE) \
-	    -o dist/metabook.clean.css
 dist/metabook.post.css: ./metabook.post.css makefile
 	@echo Building dist/metabook.post.css
 	@cp ./metabook.post.css ./metabook.post.css.map dist
@@ -425,28 +402,31 @@ dist/metabook.min.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		metabook/tieoff.js metabook/autoload.js
 	@echo Building dist/metabook.min.js
 	@$(UGLIFY) $(UGLIFY_OFLAGS) \
-	  --source-map dist/metabook.min.map \
+	  --source-map dist/metabook.min.js.map \
 	  --source-map-root /static \
 	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
 	    metabook/tieoff.js metabook/autoload.js > $@
+dist/metabook.min.js.map: dist/metabook.min.js
 
-dist/fdjt.min.map: dist/fdjt.min.js
+dist/fdjt.min.js.map: dist/fdjt.min.js
 dist/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Rebuilding dist/fdjt.js
 	@cat $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js > $@
 dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Rebuilding dist/fdjt.min.js
 	@$(UGLIFY) $(UGLIFY_OFLAGS)     \
-	  --source-map fdjt.min.map  \
-	  --source-map-root /static          \
+	  --source-map fdjt.min.js.map  \
+	  --source-map-root /static     \
 	    $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js -o $@
-	@cp fdjt.min.map dist
+	@cp fdjt.min.js.map dist
 
-dist/fdjt.css: fdjt/fdjt.css makefile postcss.config.json
-	@$(CLEANCSS) --compatibility '*,-units.pt' --source-map fdjt/fdjt.css -o dist/fdjt.css
-	@$(POSTCSS) -c postcss.config.json -o dist/fdjt.css dist/fdjt.css
+fdjt.css: fdjt/fdjt.css makefile postcss.config.json
+	@$(POSTCSS) -c postcss.config.json --map file \
+	            -o fdjt.css fdjt/fdjt.css
+dist/fdjt.css: fdjt.css
+	@cp fdjt.css dist/fdjt.css
 
 # Compiled
 

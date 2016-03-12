@@ -16085,10 +16085,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
             playSound("releasesound",target,th);
-            var point_target=document.elementFromPoint(x,y);
-            if (point_target) point_target=getParent(point_target,touchable);
-            if ((point_target)&&(point_target!==target)&&(hasParent(point_target,target))) {
-                target=point_target;}
             if (holdclass)
                 setTimeout(check_holding,50);
             if ((target_time)&&(target_time<200)) {
@@ -28894,7 +28890,7 @@ metaBook.Startup=
         function setupBook(){
             if (metaBook.bookinfo) return;
             var bookinfo=metaBook.bookinfo={}; var started=fdjtTime();
-            if (Trace.startup>2) fdjtLog("setupBook started");
+            if (Trace.startup>2) fdjtLog("Book setup started");
             bookinfo.title=
                 getMeta("METABOOK.title")||
                 getMeta("PUBTOOL.title")||
@@ -41120,19 +41116,19 @@ metaBook.HTML.settings=
     "";
 // FDJT build information
 fdjt.revision='1.5-1567-g1b90c0d';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sat Mar 12 13:41:47 EST 2016';
-fdjt.builduuid='c05cc793-9c27-48d0-99ef-d4eb522b8e8d';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sat Mar 12 18:22:14 EST 2016';
+fdjt.builduuid='AAE17528-4DE6-4449-93BD-FA4974DBA346';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-288-ga46e4d4';
-metaBook.buildid='dc10c129-a60f-42be-a411-55bb911b9b43';
-metaBook.buildtime='Sat Mar 12 15:31:30 EST 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-289-ge1f9227';
+metaBook.buildid='8F72F876-40A2-4377-82BA-648E794552DC';
+metaBook.buildtime='Sat Mar 12 18:22:34 EST 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
