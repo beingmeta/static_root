@@ -425,7 +425,7 @@ dist/metabook.min.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		metabook/tieoff.js metabook/autoload.js
 	@echo Building dist/metabook.min.js
 	@$(UGLIFY) $(UGLIFY_OFLAGS) \
-	  --source-map metabook.min.map \
+	  --source-map dist/metabook.min.map \
 	  --source-map-root /static \
 	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
