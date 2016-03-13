@@ -16057,6 +16057,10 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
             playSound("releasesound",target,th);
+            var point_target=document.elementFromPoint(x,y);
+            if (point_target) point_target=getParent(point_target,touchable);
+            if ((point_target)&&(point_target!==target)&&(hasParent(point_target,target))) {
+                target=point_target;}
             if (holdclass)
                 setTimeout(check_holding,50);
             if ((target_time)&&(target_time<200)) {
@@ -17810,8 +17814,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1567-g1b90c0d';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sat Mar 12 18:22:14 EST 2016';
-fdjt.builduuid='AAE17528-4DE6-4449-93BD-FA4974DBA346';
+fdjt.revision='1.5-1568-g5ce94a4';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sun Mar 13 14:22:56 EDT 2016';
+fdjt.builduuid='a902ed61-9868-4ebd-b4a9-d9d7c61e2baf';
 

@@ -16085,6 +16085,10 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if (typeof x === "undefined") x=touch_x;
             if (typeof y === "undefined") y=touch_y;
             playSound("releasesound",target,th);
+            var point_target=document.elementFromPoint(x,y);
+            if (point_target) point_target=getParent(point_target,touchable);
+            if ((point_target)&&(point_target!==target)&&(hasParent(point_target,target))) {
+                target=point_target;}
             if (holdclass)
                 setTimeout(check_holding,50);
             if ((target_time)&&(target_time<200)) {
@@ -24518,13 +24522,13 @@ fdjt.CodexLayout.dbname="metaBook";
         metaBook.location=location;}
     metaBook.setLocation=setLocation;
 
-    function location2pct(location) {
-        var max_loc=metaBook.ends_at;
-        var pct=(100*location)/max_loc;
+    function location2pct(location,loclen) {
+        if (!(loclen)) loclen=metaBook.ends_at;
+        var pct=(100*location)/loclen;
         if (pct>100) pct=100;
         // This is (very roughly) intended to be the precision needed
         //  for line level (40 character) accuracy.
-        var prec=Math.round(Math.log(max_loc/40)/Math.log(10))-2;
+        var prec=Math.round(Math.log(loclen/40)/Math.log(10))-2;
         if (prec<0) prec=0;
         if (Math.floor(pct)===pct)
             return Math.floor(pct)+"%";
@@ -27099,8 +27103,8 @@ metaBook.DOMScan=(function(){
             //  separately)
             return;}
         var now=fdjtTime.tick();
-        if ((now-state.changed)<(30)) {
-            // If our state changed in the past 30 seconds, don't
+        if ((now-state.changed)<(3000)) {
+            // If our state changed in the past 5 minutes, don't
             // bother changing the current state.
             return;}
         if (Trace.state) 
@@ -27108,12 +27112,14 @@ metaBook.DOMScan=(function(){
                     state,xstate);
         var msg1="Start at";
         var choices=[];
-        var latest=xstate.location, farthest=xstate.maxloc;
+        var latest=xstate.location, farthest=xstate.maxloc, loclen=xstate.loclen;
+        var prefer_current=((state.location>17)&&((now-state.changed)<(3600*24)));
+        var prefer_latest=((farthest-loclen)<80);
         if (farthest>state.location)
             choices.push(
-                {label: "farthest @"+loc2pct(farthest),
+                {label: "farthest @"+loc2pct(farthest,loclen),
                  title: "your farthest location on any device/app",
-                 isdefault: false,
+                 isdefault: ((!(prefer_latest))&&(!(prefer_current))),
                  handler: function(){
                      metaBook.GoTo(xstate.maxloc,"sync");
                      state=metaBook.state; state.changed=fdjtTime.tick();
@@ -27121,9 +27127,9 @@ metaBook.DOMScan=(function(){
                      metaBook.hideCover();}});
         if ((latest!==state.location)&&(latest!==farthest))
             choices.push(
-                {label: ("latest @"+loc2pct(latest)),
+                {label: ("latest @"+loc2pct(latest,loclen)),
                  title: "the most recent location on any device/app",
-                 isdefault: false,
+                 isdefault: ((prefer_latest)&&(!(prefer_current))),
                  handler: function(){
                      metaBook.restoreState(xstate); state=metaBook.state;
                      state.changed=fdjtTime.tick();
@@ -27132,9 +27138,9 @@ metaBook.DOMScan=(function(){
         if ((choices.length)&&(state.location>17))
             choices.push(
                 {label: ("current @"+((state.location<42)?("start"):
-                                      (loc2pct(state.location)))),
+                                      (loc2pct(state.location,loclen)))),
                  title: "the most recent location on this device",
-                 isdefault: true,
+                 isdefault: prefer_current,
                  handler: function(){
                      state.changed=fdjtTime.tick();
                      metaBook.saveState(state,true,true);
@@ -27150,7 +27156,8 @@ metaBook.DOMScan=(function(){
         if (choices.length)
             metaBook.statedialog=fdjtUI.choose(
                 {choices: choices,cancel: true,timeout: 7,
-                 nodefault: true,noauto: true,
+                 // nodefault: true,
+                 // noauto: true,
                  onclose: function(){metaBook.statedialog=false;},
                  spec: "div.fdjtdialog.resolvestate#METABOOKRESOLVESTATE"},
                 fdjtDOM("div",msg1));}
@@ -38643,8 +38650,8 @@ metaBook.Paginate=
                 layout.started=fdjtTime();
                 layout.restoreLayout(content).then(function(){
                     Timeline.layout_restored=fdjtTime();
-                    finish_layout();});}
-            function finish_layout(layout) {
+                    finish_restore(layout);});}
+            function finish_restore(layout) {
                 var started=layout.started;
                 $ID("CODEXPAGE").style.visibility='';
                 $ID("CODEXCONTENT").style.visibility='';
@@ -41115,20 +41122,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1567-g1b90c0d';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sat Mar 12 18:22:14 EST 2016';
-fdjt.builduuid='AAE17528-4DE6-4449-93BD-FA4974DBA346';
+fdjt.revision='1.5-1568-g5ce94a4';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sun Mar 13 14:22:56 EDT 2016';
+fdjt.builduuid='a902ed61-9868-4ebd-b4a9-d9d7c61e2baf';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-289-ge1f9227';
-metaBook.buildid='8F72F876-40A2-4377-82BA-648E794552DC';
-metaBook.buildtime='Sat Mar 12 18:22:34 EST 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-293-gbb95e44';
+metaBook.buildid='95ca24e3-7854-413b-89c1-58475989ff09';
+metaBook.buildtime='Sun Mar 13 14:56:12 EDT 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
