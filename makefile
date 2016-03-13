@@ -123,7 +123,7 @@ ROOT_METABOOK=metabook.js metabook.js.gz \
 	metabook.min.js metabook.min.js.gz \
 	metabook.css metabook.css.gz \
 	metabook.post.css metabook.post.css.gz
-DIST_FDJT=dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.min.map \
+DIST_FDJT=dist/fdjt.min.js dist/fdjt.min.js.gz dist/fdjt.min.js.map \
 	dist/fdjt.js.gz dist/fdjt.js dist/fdjt.css dist/fdjt.css.gz
 DIST_METABOOK=dist/metabook.js dist/metabook.css \
 	dist/metabook.js.gz dist/metabook.css.gz \
@@ -261,28 +261,27 @@ undist:
 	rm dist/*; git checkout dist
 cleandist:
 	cd dist; rm -f fdjt.css.gz fdjt.js fdjt.js.gz  \
-	   fdjt.min.js fdjt.min.js.gz fdjt.min.map  \
+	   fdjt.min.js fdjt.min.js.gz fdjt.min.js.map  \
            metabook.css                                \
 	   metabook.post.css metabook.post.css.gz      \
 	   metabook.post.css.map \
            metabook.js metabook.js.gz                  \
            metabook.min.js metabook.min.js.gz          \
 	   metabook.min.js metabook.min.js.gz    \
-	   metabook.min.map;
+	   metabook.min.js.map;
 freshdist:
 	make cleandist
 	make dist
 
 redist:
 	for x in  fdjt.css.gz fdjt.js fdjt.js.gz              \
-		  fdjt.min.js fdjt.min.js.gz fdjt.min.map  \
+		  fdjt.min.js fdjt.min.js.gz fdjt.min.js.map  \
 	          metabook.clean.css metabook.clean.css.gz    \
 	          metabook.post.css metabook.post.css.gz      \
 	          metabook.css metabook.css.gz                \
 		  metabook.js metabook.js.gz                  \
 		  metabook.min.js metabook.min.js.gz          \
-		  metabook.min.js metabook.min.js.gz    \
-	          metabook.min.map;                        \
+	          metabook.min.js.map;                        \
 	  do git add dist/$x; done
 
 fdjt/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA)
@@ -327,7 +326,7 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	metabook/tieoff.js etc/sha1
-	@echo Building ./metabook.min.js and ./metabook.min.map
+	@echo Building ./metabook.min.js and ./metabook.min.js.map
 	@$(UGLIFY) $(UGLIFY_FLAGS) \
 	  --source-map metabook.min.js.map \
 	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
