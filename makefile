@@ -303,7 +303,7 @@ fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
 fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
 	@echo Building ./fdjt.min.js
 	$(UGLIFY) $(UGLIFY_FLAGS) \
-	  --source-map fdjt.min.map \
+	  --source-map fdjt.min.js.map \
 	    ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js \
 	  > $@
 
@@ -329,11 +329,12 @@ metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
 	metabook/tieoff.js etc/sha1
 	@echo Building ./metabook.min.js and ./metabook.min.map
 	@$(UGLIFY) $(UGLIFY_FLAGS) \
-	  --source-map metabook.min.map \
-	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) metabook/tieoff.js \
+	  --source-map metabook.min.js.map \
+	    metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
+	    metabook/tieoff.js \
 	    fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	    knodules/buildstamp.js metabook/buildstamp.js \
-	  metabook/autoload.js -o $@
+	    metabook/autoload.js -o $@
 metabook_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	echo "/* metaBook CSS bundle */" > metabook_bundle.css
 	for cssfile in $(METABOOK_CSS_BUNDLE); \
