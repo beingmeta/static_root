@@ -17496,11 +17496,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
                 fdjtLog("TextSelect/slip %o t=%o sel=%o",evt,target,sel);
             if (sel) {
                 if (sel.loupe) sel.loupe_timeout=
-                    setTimeout(function(){
-                        sel.loupe_timeout=false;
-                        if (sel.active) stopSelection(sel);
-                        sel.loupe.style.display='none';},
-                               2000);}}
+                    setTimeout(get_loupe_timeout(sel),2000);}}
         TextSelect.release_handler=release_handler;
         function get_release_handler(sel,also){
             return function(evt){
@@ -17510,6 +17506,12 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
             return function(evt){
                 slip_handler(evt,sel);
                 if (also) also(evt,sel);};}
+        function get_loupe_timeout(sel){
+            return function(){
+                        sel.loupe_timeout=false;
+                        if (sel.active) stopSelection(sel);
+                sel.loupe.style.display='none';};}
+            
         
         function addHandlers(container,sel,opts){
             // We always override the default action when selecting
@@ -23035,6 +23037,7 @@ var metaBook={
         knodules: 0,      // How much to trace knodule processing
         preview: false,   // Whether to trace preview activity
         flips: false,     // Whether to trace page flips (movement by pages)
+        skimming: false,  // Whether to trace skimming
         resize: false,    // Whether to trace resizing events/activity
         messages: false,  // Whether to trace inter-window messages
         glossing: false,  // Whether to trace gloss adding or edition
@@ -26650,6 +26653,7 @@ metaBook.DOMScan=(function(){
         applyMultiTagSpans();
         applyTagAttributes(metadata);
         var pubindex=metaBook._publisher_index||
+            window._publisher_autoindex||
             window._pubtool_autoindex;
         if (pubindex) {
             handlePublisherIndex(pubindex,indexingDone);
@@ -26902,7 +26906,7 @@ metaBook.DOMScan=(function(){
         if (sync_req) {
             fdjtLog("Skipping state sync because one is already in process");
             if (sync_wait) clearTimeout(sync_wait);
-            setTimeout(function(){syncState(force);},15000);
+            setTimeout(((force)?(forceSyncState):(syncState)),15000);
             return;}
         if ((!(force))&&(elapsed<metaBook.sync_interval)) {
             if (Trace.state)
@@ -26915,9 +26919,8 @@ metaBook.DOMScan=(function(){
                 fdjtLog("Skipping state sync because page is hidden");
             return;}
         if ((!(force))&&(elapsed<(metaBook.sync_min))) {
-            sync_wait=setTimeout(
-                function(){syncState(force);},
-                metaBook.sync_min);
+            sync_wait=setTimeout(((force)?(forceSyncState):(syncState)),
+                                 metaBook.sync_min);
             return;}
         else if (sync_wait) {clearTimeout(sync_wait); sync_wait=false;} 
         if (((force)||(metaBook.locsync))&&(navigator.onLine)) {
@@ -26974,18 +26977,17 @@ metaBook.DOMScan=(function(){
                         "Sync request %s returned status %d, pausing for %ds",
                         uri,req.status,metaBook.sync_pause/1000);}
                 metaBook.locsync=false;
-                setTimeout(function(){metaBook.locsync=true;},
-                           metaBook.sync_pause);}}
+                setTimeout(startLocSync,metaBook.sync_pause);}}
     } metaBook.syncState=syncState;
+    function forceSyncState(){syncState(true);}
+    function startLocSync(){metaBook.locsync=true;}
 
     function syncTimeout(evt){
         evt=evt||window.event;
         fdjtLog.warn("Sync request timed out, pausing for %ds",
                      metaBook.sync_pause/1000);
         metaBook.locsync=false;
-        setTimeout(function(){
-            metaBook.locsync=true;},
-                   metaBook.sync_pause);}
+        setTimeout(startLocSync,metaBook.sync_pause);}
 
     var prompted=false;
 
@@ -27052,11 +27054,12 @@ metaBook.DOMScan=(function(){
     function forceSync(){
         if (metaBook.connected) metaBook.update();
         else if (metaBook._onconnect)
-            metaBook._onconnect.push(function(){metaBook.update();});
-        else metaBook._onconnect=[function(){metaBook.update();}];
+            metaBook._onconnect.push(mBUpdate);
+        else metaBook._onconnect=[mBUpdate];
         if (!(metaBook.syncstart)) metaBook.syncLocation();
         else syncState();
     } metaBook.forceSync=forceSync;
+    function mBUpdate(){metaBook.update();}
 
     function getLoc(x){
         var info=metaBook.getLocInfo(x);
@@ -27603,7 +27606,7 @@ metaBook.DOMScan=(function(){
                 (info.mycopyid!==metaBook.mycopyid))
                 fdjtLog.warn("Mismatched mycopyids");
             if (info.mycopyid!==metaBook.mycopyid) {
-                metaBook.mycopyid=info.mycopyid;
+                gotMyCopyId(info.mycopyid);
                 if (mB.iosAuthKludge) mB.iosAuthKludge();}}
         if (!(metaBook.docinfo)) { /* Scan not done */
             metaBook.scandone=function(){loadInfo(info);};
@@ -28472,7 +28475,7 @@ metaBook.Startup=
                     applyTOCRules();
                     metadata=scanDOM();
                     metaBook.setupTOC(metadata[metaBook.content.id]);
-                    fdjt.Async(processMetadata,metadata);},
+                    fdjt.Async(metadataDone,metadata);},
                 // Now you're ready to lay out the book, which is
                 //  timesliced and runs on its own.  We wait to do
                 //  this until we've scanned the DOM because we may
@@ -28512,43 +28515,43 @@ metaBook.Startup=
                 bodyProcessed],
              {slice: 100, space: 25});}
 
-        function processMetadata(metadata){
+        function metadataDone(metadata){
             if (Trace.startup) fdjtLog("Processing metadata");
-            fdjtAsync.timeslice
-            ([  // Load all source (user,layer,etc) information
-                function loadSourceDB(){
-                    if (Trace.startup>1) fdjtLog("Loading sourcedb");
-                    metaBook.sourcedb.load(true);},
-                // Read knowledge bases (knodules) used by the book
-                ((Knodule)&&(Knodule.HTML)&&
-                 (Knodule.HTML.Setup)&&(metaBook.knodule)&&
-                 (function setupKnodule(){
-                     var knomsg=$ID("METABOOKSTARTUPKNO");
-                     var knodetails=$ID("METABOOKSTARTUPKNODETAILS");
-                     if (knodetails) {
-                         knodetails.innerHTML=fdjtString(
-                             "Processing knodule %s",metaBook.knodule.name);}
-                     addClass(knomsg,"running");
-                     if ((Trace.startup>1)||(Trace.indexing))
-                         fdjtLog("Processing knodule %s",metaBook.knodule.name);
-                     Knodule.HTML.Setup(metaBook.knodule);
-                     dropClass(knomsg,"running");})),
-                // Process locally stored (offline data) glosses
-                function syncGlosses(){
-                    if (metaBook.sync) {
-                        if (metaBook.cacheglosses) 
-                            return metaBook.initGlossesOffline();}
-                    else if (window._metabook_loadinfo) {
-                        metaBook.loadInfo(window._metabook_loadinfo);
-                        window._metabook_loadinfo=false;}},
-                // Process anything we got via JSONP ahead of processing
-                //  _metabook_loadinfo
-                ((window._metabook_newinfo)&&(function loadPendingInfo(){
-                    metaBook.loadInfo(window._metabook_newinfo);
-                    window._metabook_newinfo=false;})),
-                function(){metaBook.setupIndex(metadata);},
-                function(){if (Trace.startup) fdjtLog("Metadata processed");}],
-             {slice: 100, space: 25});}
+            // Read knowledge bases (knodules) used by the book
+            if ((Knodule)&&(Knodule.HTML)&&
+                (Knodule.HTML.Setup)&&(metaBook.knodule)) {
+                var knomsg=$ID("METABOOKSTARTUPKNO");
+                var knodetails=$ID("METABOOKSTARTUPKNODETAILS");
+                if (knodetails) {
+                    knodetails.innerHTML=fdjtString(
+                        "Processing knodule %s",metaBook.knodule.name);}
+                addClass(knomsg,"running");
+                if ((Trace.startup>1)||(Trace.indexing))
+                    fdjtLog("Processing knodule %s",metaBook.knodule.name);
+                Knodule.HTML.Setup(metaBook.knodule);
+                dropClass(knomsg,"running");}
+            fdjtAsync(function(){metaBook.setupIndex(metadata);});
+
+            return fdjtAsync.timeslice(
+                [  // Load all source (user,layer,etc) information
+                    function loadSourceDB(){
+                        if (Trace.startup>1) fdjtLog("Loading sourcedb");
+                        metaBook.sourcedb.load(true);},
+                    // Process locally stored (offline data) glosses
+                    function syncGlosses(){
+                        if (metaBook.sync) {
+                            if (metaBook.cacheglosses) 
+                                return metaBook.initGlossesOffline();}
+                        else if (window._metabook_loadinfo) {
+                            metaBook.loadInfo(window._metabook_loadinfo);
+                            window._metabook_loadinfo=false;}},
+                    // Process anything we got via JSONP ahead of processing
+                    //  _metabook_loadinfo
+                    ((window._metabook_newinfo)&&(function loadPendingInfo(){
+                        metaBook.loadInfo(window._metabook_newinfo);
+                        window._metabook_newinfo=false;})),
+                    function(){if (Trace.startup) fdjtLog("Metadata processed");}],
+                {slice: 100, space: 25});}
 
         function bodyReady(){
             if ((_body_processed)||(_body_processing)) return;
@@ -31945,6 +31948,9 @@ metaBook.setMode=
         function stopSkimming(){
             // Tapping the tochead returns to results/glosses/etc
             var skimming=mB.skimpoint;
+            if (!(skimming)) return;
+            if ((Trace.skimming)||(Trace.flips))
+                fdjtLog("stopSkimming() %o",skimming);
             if (!(mB.skimming)) return;
             dropClass(document.body,"mbSKIMMING");
             mB.skimming=false;
@@ -31982,7 +31988,7 @@ metaBook.setMode=
             else if (hasParent(card,$ID("METABOOKSTATICTOC")))
                 metaBook.skimming=mB.slices.statictoc;
             else mB.skimming=true;
-            if (Trace.mode)
+            if ((Trace.mode)||(Trace.skimming))
                 fdjtLog("metaBookSkim() %o (card=%o) mode=%o scn=%o/%o dir=%o",
                         passage,card,
                         mB.mode,mB.skimpoint,
@@ -36290,6 +36296,9 @@ metaBook.setMode=
             return;}
         if (mB.skimming) {
             cancel(evt);
+            if (Trace.gestures) 
+                fdjtLog("stop_skimming/body_held %o %o %o",
+                        evt,anchor,href);
             mB.stopSkimming();
             setHUD(false);
             mB.TapHold.body.abort();
@@ -41122,20 +41131,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1568-g5ce94a4';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun Mar 13 14:22:56 EDT 2016';
-fdjt.builduuid='a902ed61-9868-4ebd-b4a9-d9d7c61e2baf';
+fdjt.revision='1.5-1570-g3681637';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sat Mar 19 09:38:50 EDT 2016';
+fdjt.builduuid='2E406C78-8B1F-4209-90D8-197FF06A7D04';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-293-gbb95e44';
-metaBook.buildid='95ca24e3-7854-413b-89c1-58475989ff09';
-metaBook.buildtime='Sun Mar 13 14:56:12 EDT 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-298-g4dd4f34';
+metaBook.buildid='7DF4BEC1-FD0E-4311-BEAB-B5613B4DD4E4';
+metaBook.buildtime='Sat Mar 19 09:52:20 EDT 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
