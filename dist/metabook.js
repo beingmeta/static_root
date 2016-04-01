@@ -6824,6 +6824,7 @@ fdjt.DOM=
             var classes=[]; var classnames=[]; var attribs=false;
             if (!(elts))
                 fdjtLog.warn("Couldn't parse spec %s",spec);
+            this.tag=false;
             if (elts) {
                 i=0; lim=elts.length;
                 if (!((elts[0][0]==='.')||(elts[0][0]==='#')||
@@ -6849,16 +6850,20 @@ fdjt.DOM=
                 else fdjtLog.uhoh("weird elts %o",elts[i++]);}
             if (classes.length) {
                 this.classes=classes; this.classnames=classnames;}
+            else this.classes=false;
             if (attribs) this.attribs=attribs;
+            else this.attribs=false;
             this.rank=[0,((this.id)?(1):(0)),
-                       classnames.length+attribs.length,1];
+                       classnames.length+((attribs)?(attribs.length):(0)),
+                       1];
             selectors[spec]=this;
             this.spec=spec;
             return this;}
+        // Populate the prototype's fields
+        Selector.prototype.tag=Selector.prototype.classes=
+            Selector.prototype.attribs=Selector.prototype.id=false;
         Selector.prototype.match=function(elt){
-            if (elt.matches) 
-                return elt.matches(this.spec);
-            else if (elt.matchesSelector)
+            if (elt.matchesSelector)
                 return elt.matchesSelector(this.spec);
             var i, lim;
             if (this.compound) {
@@ -16190,8 +16195,9 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
                 else slipped(th_target,evt);}
             else if (pressed) {
                 var geom=fdjtDOM.getGeometry(elt);
-                if ((x>=geom.left)&&(x<=geom.right)&&
-                    (y>=geom.top)&&(y<=geom.bottom))
+                if (((x===0)&&(y===0))||
+                    ((x>=geom.left)&&(x<=geom.right)&&
+                     (y>=geom.top)&&(y<=geom.bottom)))
                     released(pressed,evt,x,y);
                 else if (noslip)
                     released(pressed,evt,x,y);
@@ -24469,7 +24475,7 @@ fdjt.CodexLayout.dbname="metaBook";
             head=getHead(mbID(head))||metaBook.content;
         else head=arg;
         var headid=head.codexbaseid||head.id;
-        var headinfo=metaBook.docinfo[headid];
+        var headinfo=(mB.docinfo)&&(mB.docinfo[headid]);
         while ((headinfo)&&(!(headinfo.level))) {
             headinfo=headinfo.head;
             headid=headinfo.frag;
@@ -24576,7 +24582,7 @@ fdjt.CodexLayout.dbname="metaBook";
             false,false,(location.href.search('https:')===0));
         metaBook.target=primary;
         if (metaBook.UI.setTarget) metaBook.UI.setTarget(primary);
-        if (metaBook.empty_cloud)
+        if ((mB.docinfo)&&(metaBook.empty_cloud))
             metaBook.setCloudCuesFromTarget(metaBook.empty_cloud,primary);}
     metaBook.setTarget=setTarget;
 
@@ -24713,8 +24719,8 @@ fdjt.CodexLayout.dbname="metaBook";
         else if ((typeof istarget === "string")&&(mbID(istarget)))
             target=mbID(istarget);
         else {}
-        var info=(target)&&
-            metaBook.docinfo[target.getAttribute("data-baseid")||target.id];
+        var info=(target)&&(mB.docinfo)&&
+            mB.docinfo[target.getAttribute("data-baseid")||target.id];
         if ((location)&&(info)&&(info.ends_at)&&(info.starts_at)&&
             ((location>(info.ends_at))||(location<(info.starts_at))))
             // Why does this happen???
@@ -24752,7 +24758,7 @@ fdjt.CodexLayout.dbname="metaBook";
         if (info) {
             metaBook.point=target;
             if (!((metaBook.hudup)||(metaBook.mode))) metaBook.skimpoint=false;}
-        setHead(target);
+        if (mB.docinfo) setHead(target);
         setLocation(location);
         if ((istarget)&&(targetid)&&(!(inUI(target)))) setTarget(target);
         if ((savestate)&&(istarget))
@@ -26809,7 +26815,8 @@ metaBook.DOMScan=(function(){
         if (!(state.refuri)) state.refuri=metaBook.refuri;
         if (!(state.docuri)) state.docuri=metaBook.docuri;
         var title=state.title, frag=state.target;
-        if ((!(title))&&(frag)&&(metaBook.docinfo[frag])) {
+        if ((!(title))&&(frag)&&(metaBook.docinfo)&&
+            (metaBook.docinfo[frag])) {
             state.title=title=metaBook.docinfo[frag].title||
                 metaBook.docinfo[frag].head.title;}
         if (Trace.state) fdjtLog("Setting state to %j",state);
@@ -26844,7 +26851,8 @@ metaBook.DOMScan=(function(){
         if (!(hash)) hash=state.target;
         if (!(title)) title=state.title;
         var href=fdjtState.getURL();
-        if ((!(title))&&(hash)&&(metaBook.docinfo[hash])) {
+        if ((!(title))&&(hash)&&(metaBook.docinfo)&&
+            (metaBook.docinfo[hash])) {
             state.title=title=metaBook.docinfo[hash].title||
                 metaBook.docinfo[hash].head.title;}
         if ((!(hash))&&(state.location)&&
@@ -27171,6 +27179,127 @@ metaBook.DOMScan=(function(){
             fdjt.Dialog.close(metaBook.statedialog);
             metaBook.statedialog=false;}}
     metaBook.clearStateDialog=clearStateDialog;
+})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ###################### metabook/mycopyid.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file implements a Javascript/DHTML web application for reading
+   large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+/* globals Promise */
+
+// mycopyid.js
+(function(){
+    "use strict";
+    var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log;
+    var fdjtTime=fdjt.Time, fdjtAsync=fdjt.Async;
+    var fdjtState=fdjt.State, fdjtAjax=fdjt.Ajax;
+
+    var mB=metaBook, Trace=mB.Trace;
+
+    var need_mycopyid=[];
+
+    function gotMyCopyId(string){
+        function mycopyidupdate(resolve){
+            if (!(string)) return resolve(string);
+            if (string===mB.mycopyid) return resolve(string);
+            var tickmatch=/:x(\d+)/.exec(string);
+            var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
+            var expires=(tick)&&(new Date(tick*1000));
+            if ((Trace.glosses>1)||(Trace.glossdata))
+                fdjtLog("gotMyCopyId: %s/%s, cur=%s/%s",
+                        string,expires,metaBook.mycopyid,metaBook.mycopyid_expires);
+            if (!(expires)) {
+                metaBook.umycopyid=string;
+                metaBook.saveLocal("umycopyid("+mB.docuri+")",string);}
+            if ((!(metaBook.mycopyid))||
+                ((!(metaBook.mycopyid_expires))&&(expires))||
+                ((metaBook.mycopyid_expires)&&(expires)&&
+                 (expires>metaBook.mycopyid_expires))) {
+                metaBook.mycopyid=string; metaBook.mycopyid_expires=expires;
+                metaBook.saveLocal("mycopyid("+mB.docuri+")",string);
+                if (mB.iosAuthKludge) mB.iosAuthKludge();}
+            else {}
+            if ((need_mycopyid)&&(need_mycopyid.length)) {
+                var needs=need_mycopyid; need_mycopyid=[];
+                return fdjtAsync.slowmap(function(fn){fn(string);},needs).
+                    then(function(){resolve(string);});}
+            else return resolve(string);}
+        return new Promise(mycopyidupdate);}
+    metaBook.gotMyCopyId=gotMyCopyId;
+
+    var good_origin=/https:\/\/[^\/]+.(bookhub\.io|metabooks\.net)/;
+    function myCopyMessage(evt){
+        var origin=evt.origin, data=evt.data;
+        if (Trace.messages)
+            fdjtLog("Got a message from %s with payload %s",
+                    origin,data);
+        if (origin.search(good_origin)!==0) {
+            fdjtLog.warn("Rejecting insecure message from %s: %s",
+                         origin,evt.data);
+            return;}
+        if (data.search(/^mycopyid=/)===0) {
+            var mycopyid=data.slice(9);
+            gotMyCopyId(mycopyid);
+            return;}
+        else return;}
+    fdjtDOM.addListener(window,"message",myCopyMessage);
+
+    var getting_mycopyid=false;
+
+    function getMyCopyId(){
+        function updatemycopyid(resolved){
+            var now=new Date();
+            if ((mB.mycopyid)&&(mB.mycopyid_expires>now))
+                return resolved(mB.mycopyid);
+            else if (!(getting_mycopyid)) getFreshMyCopyId();
+            need_mycopyid.push(resolved);}
+        return new Promise(updatemycopyid);}
+    metaBook.getMyCopyId=getMyCopyId;
+
+    function getFreshMyCopyId(){
+        if (getting_mycopyid) return;
+        getting_mycopyid=fdjtTime();
+        fdjtAjax.fetchText(
+            "https://auth.bookhub.io/getmycopyid?DOC="+mB.docref).
+            then(function(mycopyid){
+                gotMyCopyId(mycopyid).then(
+                    function(){getting_mycopyid=false;});});}
+
 })();
 
 /* Emacs local variables
@@ -27549,7 +27678,6 @@ metaBook.DOMScan=(function(){
 
 */
 /* jshint browser: true */
-/* globals Promise */
 
 // getglosses.js
 (function(){
@@ -27567,6 +27695,8 @@ metaBook.DOMScan=(function(){
 
     var getLocal=fdjtState.getLocal;
     var saveLocal=metaBook.saveLocal;
+
+    var gotMyCopyId=mB.gotMyCopyId;
 
     /* Loading meta info (user, glosses, etc) */
 
@@ -27905,56 +28035,6 @@ metaBook.DOMScan=(function(){
                             metaBook.glossdb.allrefs.length,
                             metaBook.sourcedb.allrefs.length);});}
     metaBook.initGlossesOffline=initGlossesOffline;
-
-    var need_mycopyid=[];
-
-    function gotMyCopyId(string){
-        function mycopyidupdate(resolve){
-            if (!(string)) return resolve(string);
-            if (string===mB.mycopyid) return resolve(string);
-            var tickmatch=/:x(\d+)/.exec(string);
-            var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
-            var expires=(tick)&&(new Date(tick*1000));
-            if ((Trace.glosses>1)||(Trace.glossdata))
-                fdjtLog("gotMyCopyId: %s/%s, cur=%s/%s",
-                        string,expires,metaBook.mycopyid,metaBook.mycopyid_expires);
-            if (!(expires)) {
-                metaBook.umycopyid=string;
-                metaBook.saveLocal("umycopyid("+mB.docuri+")",string);}
-            if ((!(metaBook.mycopyid))||
-                ((!(metaBook.mycopyid_expires))&&(expires))||
-                ((metaBook.mycopyid_expires)&&(expires)&&
-                 (expires>metaBook.mycopyid_expires))) {
-                metaBook.mycopyid=string; metaBook.mycopyid_expires=expires;
-                metaBook.saveLocal("mycopyid("+mB.docuri+")",string);
-                if (mB.iosAuthKludge) mB.iosAuthKludge();}
-            else {}
-            if ((need_mycopyid)&&(need_mycopyid.length)) {
-                var needs=need_mycopyid; need_mycopyid=[];
-                return fdjtAsync.slowmap(function(fn){fn(string);},needs).
-                    then(function(){resolve(string);});}
-            else return resolve(string);}
-        return new Promise(mycopyidupdate);}
-    metaBook.gotMyCopyId=gotMyCopyId;
-
-    var getting_mycopyid=false;
-
-    function getMyCopyId(){
-        function updatemycopyid(resolved){
-            var now=new Date();
-            if ((mB.mycopyid)&&(mB.mycopyid_expires>now))
-                return resolved(mB.mycopyid);
-            else if (!(getting_mycopyid)) getFreshMyCopyId();
-            need_mycopyid.push(resolved);}
-        return new Promise(updatemycopyid);}
-    metaBook.getMyCopyId=getMyCopyId;
-
-    function getFreshMyCopyId(){
-        if (getting_mycopyid) return;
-        getting_mycopyid=fdjtTime();
-        fdjtAjax.fetchText("https://auth.bookhub.io/getmycopyid?DOC="+mB.docref).
-            then(function(mycopyid){
-                gotMyCopyId(mycopyid).then(function(){getting_mycopyid=false;});});}
 
 })();
 
@@ -28475,6 +28555,7 @@ metaBook.Startup=
                     applyTOCRules();
                     metadata=scanDOM();
                     metaBook.setupTOC(metadata[metaBook.content.id]);
+                    if (mB.target) mB.setTarget(mB.target);
                     fdjt.Async(metadataDone,metadata);},
                 // Now you're ready to lay out the book, which is
                 //  timesliced and runs on its own.  We wait to do
@@ -28829,7 +28910,9 @@ metaBook.Startup=
             if (autofonts.length)
                 fdjt.DOM.autofont=fdjt.DOM.autofont+","+autofonts.join(",");
 
-            if (getMeta("METABOOK.forcelayout")) mB.forcelayout=true;
+            if ((getMeta("METABOOK.forcelayout"))||
+                (getQuery("mbFORCELAYOUT")))
+                mB.forcelayout=true;
 
             var autotoc=getMeta("METABOOK.autotoc");
             if (autotoc) {
@@ -30612,7 +30695,7 @@ metaBook.Slice=(function () {
             var noun=((dterm.search(/\.\.\.$/)>0)?("root form"):("concept"));
             var title=
                 ((knode.prime)?("key "):
-                 (knode.weak)?("weak "):(""))+
+                 (knode.weak)?("rough "):(""))+
                 ((origin==="index")?("index "+noun+" "):
                  (noun+" (from "+origin+") "));
             if (knode.about)
@@ -31057,21 +31140,24 @@ metaBook.Slice=(function () {
                 addClass(completion,"softcue");}}}
     function setCloudCuesFromTarget(cloud,target){
         var tags=[];
+        if (!(mB.docinfo)) return;
         var targetid=((target.codexbaseid)||(target.id)||(target.frag));
-        var info=metaBook.docinfo[targetid];
-        var glosses=metaBook.glossdb.find('frag',targetid);
+        var info=mB.docinfo[targetid];
         var knodule=metaBook.knodule;
         if ((info)&&(info.tags)) tags=tags.concat(info.tags);
-        if ((info)&&(info.autotags)&&(info.autotags.length)) {
+        if ((info)&&(info.autotags)&&(info.autotags.length)&&(knodule)) {
             var autotags=info.autotags; var j=0; var jlim=autotags.length;
             while (j<jlim) {
                 var kn=knodule.probe(autotags[j]);
                 if (kn) tags.push(kn.tagString());
                 j++;}}
-        var i=0; var lim=glosses.length;
-        while (i<lim) {
-            var g=glosses[i++]; var gtags=g.tags;
-            if (gtags) tags=tags.concat(gtags);}
+        var glosses=mB.glossdb&&
+            mB.glossdb.find('frag',targetid);
+        if (glosses) {
+            var i=0; var lim=glosses.length;
+            while (i<lim) {
+                var g=glosses[i++]; var gtags=g.tags;
+                if (gtags) tags=tags.concat(gtags);}}
         setCloudCues(cloud,tags);}
     metaBook.setCloudCues=setCloudCues;
     metaBook.setCloudCuesFromTarget=setCloudCuesFromTarget;
@@ -33045,11 +33131,16 @@ metaBook.setMode=
             metaBook.search_cloud=metaBook.empty_cloud;
             fdjtDOM.replace(
                 "METABOOKSEARCHCLOUD",fdjtDOM("div#METABOOKSEARCHCLOUD"));
+            fdjtDOM.replace(
+                "METABOOKSEARCHRESULTS",
+                fdjtDOM("div.metabookslice.mbsyncslice.searchslice.hudpanel"));
             displayQuery(query,$ID("METABOOKSEARCH"));
             metaBook.empty_cloud.complete("");
             addClass(metaBook.HUD,"emptysearch");
             metaBook.query=mB.empty_query;
             metaBook.qstring="";
+            if (mB.mode==='searchresults')
+                mB.setMode('refinesearch');
             return;}
         else dropClass(metaBook.HUD,"emptysearch");
         mB.empty_cloud.complete("");
@@ -36297,8 +36388,8 @@ metaBook.setMode=
         if (mB.skimming) {
             cancel(evt);
             if (Trace.gestures) 
-                fdjtLog("stop_skimming/body_held %o %o %o",
-                        evt,anchor,href);
+                fdjtLog("stop_skimming/body_held %o skimming=%o",
+                        evt,mB.skimming);
             mB.stopSkimming();
             setHUD(false);
             mB.TapHold.body.abort();
@@ -36958,6 +37049,7 @@ metaBook.setMode=
             (evt.type==='release')) {
             dropClass(document.body,"_HOLDING");
             if ((mB.skimpoint)&&(!(mB.hudup))) {
+                if (mB.skimming) mB.stopSkimming();
                 if ((mode==="refinesearch")||(mode==="searchresults")) {
                     setMode("searchresults"); return;}
                 else if (mode==="allglosses") {
@@ -41131,20 +41223,20 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1570-g3681637';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sat Mar 19 09:38:50 EDT 2016';
-fdjt.builduuid='2E406C78-8B1F-4209-90D8-197FF06A7D04';
+fdjt.revision='1.5-1572-g363347f';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Fri Apr 1 09:20:26 EDT 2016';
+fdjt.builduuid='53ddb9e3-b8df-4f9f-9952-b197b7ac1e34';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-298-g4dd4f34';
-metaBook.buildid='7DF4BEC1-FD0E-4311-BEAB-B5613B4DD4E4';
-metaBook.buildtime='Sat Mar 19 09:52:20 EDT 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-309-g28f64db';
+metaBook.buildid='fe67ba7d-bc67-4c4a-b3f0-2f607b562fbd';
+metaBook.buildtime='Fri Apr  1 12:25:38 EDT 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
