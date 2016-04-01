@@ -65,7 +65,7 @@ METABOOK_FILES=\
 	metabook/layout.js metabook/debug.js
 METABOOK_HINTS=\
 	metabook/core.hint metabook/config.hint metabook/syncstate.hint \
-	metabook/nav.hint \
+	metabook/nav.hint metabook/mycopyid.hint \
 	metabook/domscan.hint metabook/glossdata.hint \
 	metabook/user.hint metabook/getglosses.hint \
 	metabook/cover.hint metabook/body.hint metabook/tagindex.hint \
@@ -202,6 +202,8 @@ hints:
 	make cleanhints
 	make allhints
 
+.PHONY: ssc dist allhints hints cleanhints
+
 fdjt/fdjt.hints: $(FDJT_HINTS)
 	cd fdjt; make fdjt.hints
 metabook/metabook.hints: $(METABOOK_HINTS) metabook/.jshintrc
@@ -285,7 +287,9 @@ redist:
 	          metabook.min.js.map;                        \
 	  do git add dist/$x; done
 
-fdjt/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA)
+.PHONY: tidy clean undist cleandist freshdist redist
+
+fdjt/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/fdjt.hints
 	cd fdjt; make all
 fdjt/buildstamp.js: $(FDJT_FILES) $(FDJT_EXTRA) $(FDJT_CSS)
 	cd fdjt; make all
@@ -297,10 +301,10 @@ fdjt/codexlayouthash.js: fdjt/codexlayout.js
 	@echo >> fdjt/codexlayouthash.js
 	cd fdjt; make all
 
-fdjt.js: fdjt/fdjt.js makefile fdjt/makefile
+fdjt.js: fdjt/fdjt.js makefile fdjt/makefile fdjt/fdjt.hints
 	cp fdjt/fdjt.js fdjt.js
 
-fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile
+fdjt.min.js: ${FDJT_FILES} $(FDJT_EXTRA) fdjt/buildstamp.js makefile fdjt/fdjt.hints
 	@echo Building ./fdjt.min.js
 	$(UGLIFY) $(UGLIFY_FLAGS) \
 	  --source-map fdjt.min.js.map \
@@ -324,6 +328,7 @@ knodules/buildstamp.js: $(KNODULES_FILES) $(KNODULES_CSS)
 
 
 metabook.min.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js makefile \
+	fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints \
 	fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	metabook/tieoff.js etc/sha1
@@ -354,6 +359,7 @@ metabook.raw.css: $(METABOOK_CSS_BUNDLE) makefile
 	@echo Building ./metabook.raw.css
 	@cat $(METABOOK_CSS_BUNDLE) > $@
 metabook.raw.js: $(METABOOK_JS_BUNDLE) makefile \
+	fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints \
 	fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	metabook/tieoff.js metabook/autoload.js
@@ -379,7 +385,8 @@ metabook.css: metabook.raw.css
 metabook/tieoff.js dist/tieoff.js:
 	@touch $@
 
-dist/metabook.js: $(METABOOK_JS_BUNDLE) metabook/autoload.js \
+dist/metabook.js: fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints \
+	$(METABOOK_JS_BUNDLE) metabook/autoload.js \
 	fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	knodules/buildstamp.js metabook/buildstamp.js \
 	dist/tieoff.js etc/sha1
@@ -397,7 +404,8 @@ dist/metabook.post.css: ./metabook.post.css makefile
 	@echo Building dist/metabook.post.css
 	@cp ./metabook.post.css ./metabook.post.css.map dist
 
-dist/metabook.min.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
+dist/metabook.min.js: fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints \
+		metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 		fdjt/buildstamp.js fdjt/codexlayouthash.js \
 	        knodules/buildstamp.js metabook/buildstamp.js \
 		metabook/tieoff.js metabook/autoload.js
@@ -412,10 +420,10 @@ dist/metabook.min.js: metabook/amalgam.js $(METABOOK_JS_BUNDLE) \
 dist/metabook.min.js.map: dist/metabook.min.js
 
 dist/fdjt.min.js.map: dist/fdjt.min.js
-dist/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
+dist/fdjt.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js fdjt/fdjt.hints makefile
 	@echo Rebuilding dist/fdjt.js
 	@cat $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js > $@
-dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js makefile
+dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js fdjt/fdjt.hints makefile
 	@echo Rebuilding dist/fdjt.min.js
 	@$(UGLIFY) $(UGLIFY_OFLAGS)     \
 	  --source-map fdjt.min.js.map  \
@@ -431,8 +439,8 @@ dist/fdjt.css: fdjt.css
 
 # Compiled
 
-metabook.compiled.js: makefile $(METABOOK_JS_BUNDLE) \
-	knodules/buildstamp.js metabook/buildstamp.js \
+metabook.compiled.js:  metabook/metabook.hints knodules/knodules.hints makefile \
+	$(METABOOK_JS_BUNDLE) knodules/buildstamp.js metabook/buildstamp.js \
 	dist/tieoff.js etc/sha1
 	java -jar closure/compiler.jar \
 		--language_in ECMASCRIPT5 \
@@ -600,3 +608,9 @@ metabuild buildbuild:
 	npm install postcss-reporter postcss-browser-reporter -g --save-dev
 	npm install cssnano -g --save-dev
 	npm install stylelint -g --save-dev
+
+.PHONY: fresh compiled alltags checkout diff status pull \
+	update update-code clean-graphics update-graphics \
+	push convert sync-graphics publish release \
+	publish-bundle fdiff kdiff mdiff \
+	metabuild build build
