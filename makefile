@@ -55,7 +55,8 @@ METABOOK_FILES=\
 	metabook/root.js metabook/core.js metabook/config.js \
 	metabook/nav.js metabook/domscan.js metabook/glossdata.js \
 	metabook/cover.js metabook/body.js metabook/tagindex.js \
-	metabook/syncstate.js metabook/user.js metabook/getglosses.js \
+	metabook/syncstate.js metabook/mycopyid.js \
+	metabook/user.js metabook/getglosses.js \
 	metabook/startup.js \
 	metabook/slices.js metabook/clouds.js metabook/tocslice.js \
 	metabook/hud.js metabook/preview.js metabook/resize.js \
