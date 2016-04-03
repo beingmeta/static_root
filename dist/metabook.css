@@ -2984,7 +2984,7 @@ body.mbMEDIA #METABOOKMEDIA iframe {
    pages or not. */
 #METABOOKBODY {
     position: fixed; overflow: visible;
-    left: 0; right: 0; top: 0; bottom: 0;} /* z-index: -50; */
+    left: 0; right: 0; top: 0px; bottom: 50px;} /* z-index: -50; */
 #METABOOKBODY { background-color: transparent; color: black; }
 
 .metabookcontent { background-color: white; color: #444; }
@@ -3001,7 +3001,7 @@ body.mbMEDIA #METABOOKMEDIA iframe {
     position: absolute; overflow: visible;
     padding: 0; margin: 0;
     left: 50px; right: 50px;
-    top: 50px; bottom: 50px;
+    top: 50px; bottom: 0px;
     border: solid transparent 3px;
     border-radius: 18px;
     z-index: 50;}
@@ -3376,7 +3376,7 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
 
 #METABOOKCOVER div.flap {
     position: absolute;
-    top: 60px; bottom: 120px; left: 10%; right: 10%;
+    top: 3vw; top: 36px; bottom: 120px; left: 10%; right: 10%;
     box-sizing: border-box; padding: 1em; padding-top: 2px;
     height: auto; width: auto; overflow: hidden;
     z-index: -50; opacity: 0.0;
@@ -3392,19 +3392,19 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
     height: 100%; width: 100%;}
 
 #METABOOKCOVERMESSAGE {
-    position: absolute; white-space: nowrap;
-    font-style: italic; font-size: 24px; font-size: 2rem;
-    width: 80%; left: 10%; right: 10%; border: 0; 
-    top: 0; bottom: auto;
+    position: absolute; 
+    width: 100%; left: 0; right: 0; border: 0; 
+    top: 0; height: 36px; height: 3vw; bottom: auto;
+    font-size: 36px; font-size: 3vw;
+    font-variant: small-caps; white-space: nowrap;
     text-align: center; overflow: visible; 
-    background-color: black; color: silver;
+    background-color: black; 
     cursor: pointer; display: block; opacity: 1.0;
     z-index: 50;}
-#METABOOKCOVER.coverpage #METABOOKCOVERMESSAGE {
-    width: 100%; left: 0; right: 0; z-index: 500;
-    bottom: 40px; height: 60px; top: auto;}
-body.mbREADY #METABOOKCOVERMESSAGE { display: none;}
-body.mbREADY.mbLAYOUT #METABOOKCOVERMESSAGE { display: block;}
+#METABOOKCOVERMESSAGE > div {
+    font-weight: bold; line-height: 1.2ex;
+    margin-left: 10%; margin-right: 10%; width: 80%;
+    color: silver;}
 
 #METABOOKCOVERCONTROLS {
     white-space: nowrap;
@@ -3449,7 +3449,7 @@ html._NOUSER #METABOOKCOVER div.userbox {display: none;}
     width: 100%;}
 
 html._NOUSER #METABOOKCOVER div.flap {
-    top: 65px; bottom: 150px; }
+    bottom: 150px; }
 #METABOOKCOVER div.userbox { 
     height: 40px; padding-top: 1px; 
     display: none;}
@@ -3485,8 +3485,7 @@ html._NOUSER #METABOOKCOVER > #METABOOKCOVERCONTROLS {
 
 #METABOOKCOVER div.loginbox {
     white-space: nowrap;
-    margin: 0; padding: 0;
-    height: 0;}
+    margin: 0; padding: 0;}
 #METABOOKCOVER div.loginbox button { padding: 1px;}
 #METABOOKCOVER div.loginbox button > img { height: 100%; width: auto;}
 div.loginbox form > button, div.loginbox form > input[TYPE="TEXT"],
@@ -3523,6 +3522,7 @@ html._USER #METABOOKCOVER div.userbox {
 #METABOOKCOVER.console div.flap#METABOOKCONSOLE,
 #METABOOKCOVER.settings div.flap#METABOOKSETTINGS, 
 #METABOOKCOVER.layers div.flap#METABOOKLAYERS,
+#METABOOKCOVER.login div.flap#METABOOKLOGIN,
 #METABOOKCOVER.bookcover div.flap#METABOOKCOVERPAGE, /* Legacy */
 #METABOOKCOVER.bookcover div.flap#METABOOKBOOKCOVER,
 #METABOOKCOVER.aboutbook div.flap#METABOOKBLURB,
@@ -3532,10 +3532,6 @@ html._USER #METABOOKCOVER div.userbox {
 body.mbREADY #METABOOKCOVER.bookcover #METABOOKOPENTAB,
 body.mbREADY #METABOOKCOVER.coverpage #METABOOKOPENTAB {
   display: none;}
-#METABOOKCOVER.coverpage div.flap#METABOOKCOVERPAGE,
-#METABOOKCOVER.bookcover div.flap#METABOOKCOVERPAGE {
-   top: 0; bottom: 100px;}
-
 
 #METABOOKCOVER.bookcover .control[data-mode='coverpage'],
 #METABOOKCOVER.coverpage .control[data-mode='coverpage'],
@@ -3560,7 +3556,11 @@ html._USER span.control[data-mode='layers'] .whenloggedin {
     display: inline;}
 html._USER span.control[data-mode='layers'] .notloggedin {
     display: none;}
-html._USER._CONN .control[data-mode='login'] { display: none;}
+#METABOOKCOVER .control[data-mode='login'] { display: none;}
+html._SHOWLOGIN #METABOOKCOVER .control[data-mode='login'] { 
+    display: inline;}
+html._SHOWLOGIN._USER #METABOOKCOVER .control[data-mode='login'] { 
+    display: none;}
 
 #METABOOKCOVERCONTROLS.nobookcover .control[data-mode='bookcover'],
 #METABOOKCOVERCONTROLS.nocoverpage .control[data-mode='coverpage'],
@@ -3586,7 +3586,7 @@ html._USER._CONN .control[data-mode='login'] { display: none;}
     border-top-left-radius: 0; border-top-right-radius: 0;
     border-bottom-left-radius: 1.5em; border-bottom-right-radius: 1.5em;}
 
-#METABOOKCOVER div.flap#METABOOKLAYERS iframe#BOOKHUBAPP {
+#METABOOKCOVER div.flap iframe {
     height: 100%; width: 100%; margin: 0; padding: 0;
     background-color: ivory;}
 
@@ -3594,7 +3594,7 @@ html._USER._CONN .control[data-mode='login'] { display: none;}
 
 div.flap#METABOOKCOVERPAGE { padding: 0; }
 #METABOOKCOVERPAGE img {
-    max-width: 95%; height: 95%; width: auto;}
+    max-width: 95%; height: 100%; width: auto;}
 
 /* Help */
 
@@ -3791,8 +3791,7 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
         margin-left: 1ex;}
 
     #METABOOKCOVER div.flap {
-        left: 5%; right: 5%;
-        top: 40px; bottom: 100px;
+        left: 5%; right: 5%; bottom: 100px;
         padding: 2px 1ex 1ex 2px;}
 
 }
@@ -3863,12 +3862,17 @@ body form.metabooksettings h1 {
 form.metabooksettings > h1 + div.fontsizes {
     margin-top: 0;}
 
+#METABOOKSETTINGSMESSAGE, h1 #METABOOKSETTINGSMESSAGE {
+    font-weight: normal; }
+#METABOOKSETTINGSMESSAGE strong {
+    font-size: 150%; color: purple; padding-right: 1ex;}
+
 form.metabooksettings {font-size: 1rem;}
 
 form.metabooksettings button, form.metabooksettings .button {
     font-size: 1.2rem; cursor: pointer;}
 form.metabooksettings > div button {
-    white-space: nowrap; width: 6em;
+    white-space: nowrap; width: 6em; margin-top: 0.25ex;
     text-align: left;}
 form.metabooksettings button img {
     height: 1.5ex; width: auto;
@@ -4424,12 +4428,11 @@ html._MOUSE img.hudbutton:hover, img.hudbutton.tapholdtarget {
 #METABOOKFOOT img.hudbutton[hudmode="statictoc"],
 #METABOOKFOOT img.hudbutton[alt="save gloss"] {
     display: none; }
-#METABOOKHUD.addgloss #METABOOKFOOT img.hudbutton {
-    opacity: 0.8;}
 #METABOOKHUD.addgloss #METABOOKFOOT img.hudbutton[alt="save gloss"],
-body.mbSKIMMING #METABOOKHUD.searchresults
-   img.hudbutton[hudmode="searchresults"],
-body.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="statictoc"] {
+.mbSKIMMING #METABOOKHUD.searchresults img.hudbutton[hudmode="searchresults"],
+.mbSKIMMING #METABOOKHUD.allglosses img.hudbutton[hudmode="allglosses"],
+.mbSKIMMING #METABOOKHUD.statictoc img.hudbutton[hudmode="statictoc"] {
+    opacity: 0.8; z-index: 50;
     display: inline-block; }
 #METABOOKHUD.addgloss img.hudbutton[hudmode="allglosses"],
 body.mbSKIMMING #METABOOKHUD.searchresults img.hudbutton[hudmode="allglosses"],
@@ -5151,7 +5154,6 @@ body.hudup #METABOOKBODY, body.mbCOVER #METABOOKBODY,
 body.mbMEDIA #METABOOKBODY, body.mbZOOM #METABOOKBODY {
     z-index: 0;}
 
-#METABOOKBODY {pointer-events: none;}
 #METABOOKBODY #CODEXPAGE {pointer-events: all;}
 #METABOOKBODY #METABOOKPOINTGLOSSES {pointer-events: all;}
 
@@ -6825,7 +6827,7 @@ div.resultinfo.noresults .stats { display: none;}
 div.resultinfo .noquery { display: none;}
 #METABOOKHUD.emptysearch div.resultinfo .noquery { display: block;}
 
-#METABOOKHUD.emptysearch div.resultinfo span { display: none;}
+#METABOOKHUD.emptysearch div.resultinfo span.stats { display: none;}
 
 #METABOOKHUD div.resultinfo {
     text-align: left; min-height: 1ex; max-height: 100%;

@@ -13774,7 +13774,10 @@ fdjt.UI.ProgressBar=(function(){
         if (kc===13) {
             var target=fdjtUI.T(evt);
             var form=fdjtDOM.getParent(target,'FORM');
+            var submit_event = document.createEvent("HTMLEvents");
+            submit_event.initEvent('submit',false,true);
             fdjtUI.cancel(evt);
+            form.dispatchEvent(submit_event);
             form.submit();}}
     fdjtUI.submitOnEnter=submitOnEnter;
 
@@ -13815,7 +13818,9 @@ fdjt.UI.ProgressBar=(function(){
 (function() {
     "use strict";
     var fdjtDOM=fdjt.DOM;
+    var fdjtLog=fdjt.Log;
     var fdjtUI=fdjt.UI;
+    var device=fdjt.device;
 
     var vreticle=false;
     var hreticle=false;
@@ -13829,7 +13834,11 @@ fdjt.UI.ProgressBar=(function(){
         if (!(hreticle)) {
             hreticle=fdjtDOM("div.reticle.horizontal#HRETICLE"," ");
             fdjtDOM.prepend(document.body,hreticle);}
-        fdjtDOM.addListener(document,"mousemove",mousemove);
+        fdjtLog("Setting up reticle");
+        if (device.touch)
+            fdjtDOM.addListener(document.body,"touchmove",touchmove);
+        else fdjtDOM.addListener(document,"mousemove",mousemove);
+        fdjtDOM.addListener(document.body,"touchmove",touchmove);
         fdjtDOM.addListener(document,"click",doflash);
         fdjtUI.Reticle.live=true;}
     
@@ -13837,6 +13846,11 @@ fdjt.UI.ProgressBar=(function(){
 
     function mousemove(evt,x,y){
         setXY(x||evt.clientX,y||evt.clientY);}
+    function touchmove(evt,x,y,touch){
+        if (evt.touches) touch=evt.touches[0];
+        else touch=evt;
+        // fdjtLog("touchmove %o: %o",evt,touch);
+        setXY(x||touch.clientX,y||touch.clientY);}
     
     var highlighted=false;
     
@@ -13862,7 +13876,10 @@ fdjt.UI.ProgressBar=(function(){
     fdjtUI.Reticle.highlight=highlight;
     fdjtUI.Reticle.flash=flash;
     fdjtUI.Reticle.onmousemove=mousemove;
+    fdjtUI.Reticle.ontouchmove=touchmove;
+    fdjtUI.Reticle.onmove=((device.touch)?(touchmove):(mousemove));
     fdjtUI.Reticle.setXY=setXY;
+    fdjtUI.Reticle.visible=false;
     fdjtUI.Reticle.live=false;})();
 
 
@@ -16237,6 +16254,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             // if (target!==th_target) fdjtLog("New target %o",target);
             var x=evt.clientX||getClientX(evt,touch_x,touch_y);
             var y=evt.clientY||getClientY(evt,touch_x,touch_y);
+            if (reticle.live) reticle.onmove(evt,x,y);
             var distance=((pressed)?
                           (xyd(x,y,target_x,target_y)):
                           (xyd(x,y,start_x,start_y)));
@@ -16341,8 +16359,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if ((evt.touches)&&(evt.touches.length)&&
                 (evt.touches.length>maxtouches))
                 return;
-            else {
-                if (reticle.live) reticle.onmousemove(evt,touch_x,touch_y);}
             if (!(target)) target=getRealTarget(elt,touchable,touch_x,touch_y);
             if (!(target)) return;
             if ((hasParent(target,".tapholder"))&&(!(noslip)))
@@ -17822,8 +17838,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1572-g363347f';
+fdjt.revision='1.5-1573-g1c8e14e';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Apr 1 09:20:26 EDT 2016';
-fdjt.builduuid='53ddb9e3-b8df-4f9f-9952-b197b7ac1e34';
+fdjt.buildtime='Sat Apr 2 12:51:57 EDT 2016';
+fdjt.builduuid='5eda012f-3cda-4fd7-83dd-c8e1410a1836';
 

@@ -13802,7 +13802,10 @@ fdjt.UI.ProgressBar=(function(){
         if (kc===13) {
             var target=fdjtUI.T(evt);
             var form=fdjtDOM.getParent(target,'FORM');
+            var submit_event = document.createEvent("HTMLEvents");
+            submit_event.initEvent('submit',false,true);
             fdjtUI.cancel(evt);
+            form.dispatchEvent(submit_event);
             form.submit();}}
     fdjtUI.submitOnEnter=submitOnEnter;
 
@@ -13843,7 +13846,9 @@ fdjt.UI.ProgressBar=(function(){
 (function() {
     "use strict";
     var fdjtDOM=fdjt.DOM;
+    var fdjtLog=fdjt.Log;
     var fdjtUI=fdjt.UI;
+    var device=fdjt.device;
 
     var vreticle=false;
     var hreticle=false;
@@ -13857,7 +13862,11 @@ fdjt.UI.ProgressBar=(function(){
         if (!(hreticle)) {
             hreticle=fdjtDOM("div.reticle.horizontal#HRETICLE"," ");
             fdjtDOM.prepend(document.body,hreticle);}
-        fdjtDOM.addListener(document,"mousemove",mousemove);
+        fdjtLog("Setting up reticle");
+        if (device.touch)
+            fdjtDOM.addListener(document.body,"touchmove",touchmove);
+        else fdjtDOM.addListener(document,"mousemove",mousemove);
+        fdjtDOM.addListener(document.body,"touchmove",touchmove);
         fdjtDOM.addListener(document,"click",doflash);
         fdjtUI.Reticle.live=true;}
     
@@ -13865,6 +13874,11 @@ fdjt.UI.ProgressBar=(function(){
 
     function mousemove(evt,x,y){
         setXY(x||evt.clientX,y||evt.clientY);}
+    function touchmove(evt,x,y,touch){
+        if (evt.touches) touch=evt.touches[0];
+        else touch=evt;
+        // fdjtLog("touchmove %o: %o",evt,touch);
+        setXY(x||touch.clientX,y||touch.clientY);}
     
     var highlighted=false;
     
@@ -13890,7 +13904,10 @@ fdjt.UI.ProgressBar=(function(){
     fdjtUI.Reticle.highlight=highlight;
     fdjtUI.Reticle.flash=flash;
     fdjtUI.Reticle.onmousemove=mousemove;
+    fdjtUI.Reticle.ontouchmove=touchmove;
+    fdjtUI.Reticle.onmove=((device.touch)?(touchmove):(mousemove));
     fdjtUI.Reticle.setXY=setXY;
+    fdjtUI.Reticle.visible=false;
     fdjtUI.Reticle.live=false;})();
 
 
@@ -16265,6 +16282,7 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             // if (target!==th_target) fdjtLog("New target %o",target);
             var x=evt.clientX||getClientX(evt,touch_x,touch_y);
             var y=evt.clientY||getClientY(evt,touch_x,touch_y);
+            if (reticle.live) reticle.onmove(evt,x,y);
             var distance=((pressed)?
                           (xyd(x,y,target_x,target_y)):
                           (xyd(x,y,start_x,start_y)));
@@ -16369,8 +16387,6 @@ fdjt.TapHold=fdjt.UI.TapHold=(function(){
             if ((evt.touches)&&(evt.touches.length)&&
                 (evt.touches.length>maxtouches))
                 return;
-            else {
-                if (reticle.live) reticle.onmousemove(evt,touch_x,touch_y);}
             if (!(target)) target=getRealTarget(elt,touchable,touch_x,touch_y);
             if (!(target)) return;
             if ((hasParent(target,".tapholder"))&&(!(noslip)))
@@ -23211,7 +23227,6 @@ fdjt.DOM.noautofontadjust=true;
         var i=0, len=waiting.length; while (i<len)
             waiting[i++](ex);}
 
-    
     if ((indexedDB)&&(!(mB.noidb))) {
         var req=indexedDB.open("metaBook",1);
         req.onerror=function(event){
@@ -23238,18 +23253,9 @@ fdjt.DOM.noautofontadjust=true;
 
     /* Initialize the runtime for the core databases */
 
-    function initDB() {
-        if (Trace.start>1) fdjtLog("Initializing DB");
-        var refuri=(metaBook.refuri||document.location.href);
-        if (refuri.indexOf('#')>0) refuri=refuri.slice(0,refuri.indexOf('#'));
-
-        metaBook.setupGlossData();
-
-        var taglist=metaBook.taglist||$ID("METABOOKTAGLIST");
-        if (!(taglist)) {
-            taglist=metaBook.taglist=fdjt.DOM("datalist#METABOOKTAGLIST");
-            document.body.appendChild(taglist);}
-        
+    var databases_created=false;
+    function createDatabases(refuri) {
+        if (databases_created) return; else databases_created=true;
         metaBook.docdb=new RefDB(
             refuri+"#",{indices: ["frag","head","heads",
                                   "tags","tags*",
@@ -23260,8 +23266,88 @@ fdjt.DOM.noautofontadjust=true;
                                   "^tags*","~^tags*","*^tags*","**^tags*"]});
         metaBook.docdb.slots=["head","heads"];
         
-        var knodeToOption=Knodule.knodeToOption;
+        metaBook.BRICO=new Knodule("BRICO");
+        metaBook.BRICO.addAlias(":@1/");
+        metaBook.BRICO.addAlias("@1/");
+        
+        var glosses_init={
+            indices: ["frag","maker","outlets",
+                      "tags","*tags","**tags",
+                      "tags*","*tags*","**tags*"]};
+        var glossdbname="glosses@"+refuri;
+        var glossdb=metaBook.glossdb=new RefDB(glossdbname,glosses_init); {
+            glossdb.absrefs=true;
+            glossdb.dbname="glosses";
+            glossdb.addAlias("glossdb");
+            glossdb.addAlias("-UUIDTYPE=61");
+            glossdb.addAlias(":@31055/");
+            glossdb.addAlias("@31055/");}
 
+        function Gloss(){return Ref.apply(this,arguments);}
+        Gloss.prototype=new Ref();
+        
+        var exportTagSlot=Knodule.exportTagSlot;
+        var tag_export_rules={
+            "*tags": exportTagSlot, "**tags": exportTagSlot,
+            "~tags": exportTagSlot, "~~tags": exportTagSlot,
+            "tags": exportTagSlot,
+            "*tags*": exportTagSlot, "**tags*": exportTagSlot,
+            "~tags*": exportTagSlot, "~~tags*": exportTagSlot,
+            "tags*": exportTagSlot,
+            "*tags**": exportTagSlot, "**tags**": exportTagSlot,
+            "~tags**": exportTagSlot, "~~tags**": exportTagSlot,
+            "tags**": exportTagSlot};
+        metaBook.tag_export_rules=tag_export_rules;
+        metaBook.tag_import_rules=tag_export_rules;
+
+        // Use this when generating external summaries.  In particular,
+        //  this recovers all of the separate weighted tag slots into
+        //  one tags slot which uses prefixed strings to indicate weights.
+        Gloss.prototype.ExportExternal=function exportGloss(){
+            return Ref.Export.call(this,tag_export_rules);};
+
+        metaBook.glossdb.refclass=Gloss;
+
+        var sourcedbname="sources@"+refuri;
+        var sourcedb=metaBook.sourcedb=new RefDB(sourcedbname);{
+            sourcedb.absrefs=true;
+            sourcedb.dbname="sources";
+            sourcedb.oidrefs=true;
+            sourcedb.addAlias("@1961/");
+            sourcedb.addAlias(":@1961/");            
+            sourcedb.addAlias("@acc/");
+            sourcedb.addAlias(":@acc/");            
+            sourcedb.onLoad(function initSource(item) {
+                if ((item.pic)&&(typeof item.pic === "string")&&
+                    (item.pic.search("data:")===0)) {
+                    item._pic=fdjtDOM.data2URL(item.pic);}});
+            sourcedb.forDOM=function(source){
+                var spec="span.source"+((source.kind)?".":"")+
+                    ((source.kind)?(source.kind.slice(1).toLowerCase()):"");
+                var name=source.name||source.oid||source.uuid||source.uuid;
+                var span=fdjtDOM(spec,name);
+                if (source.about) span.title=source.about;
+                return span;};}
+    }
+    mB.createDatabases=createDatabases;
+        
+    var db_initialized=false;
+    function initDB() {
+        if (db_initialized) return; else db_initialized=true;
+        if (Trace.start>1) fdjtLog("Initializing DB");
+        var refuri=(metaBook.refuri||document.location.href);
+        if (refuri.indexOf('#')>0) refuri=refuri.slice(0,refuri.indexOf('#'));
+
+        createDatabases(refuri);
+
+        metaBook.setupGlossData();
+
+        var taglist=metaBook.taglist||$ID("METABOOKTAGLIST");
+        if (!(taglist)) {
+            taglist=metaBook.taglist=fdjt.DOM("datalist#METABOOKTAGLIST");
+            document.body.appendChild(taglist);}
+        
+        var knodeToOption=Knodule.knodeToOption;
 
         var cachelink=/^https:\/\/glossdata.(sbooks\.net|metabooks\.net|beingmeta\.com|bookhub\.io)\//;
         mB.cachelink=cachelink;
@@ -23273,22 +23359,9 @@ fdjt.DOM.noautofontadjust=true;
             refuri;
         metaBook.knodule=new Knodule(knodule_name);
         Knodule.current=metaBook.knodule;
-        metaBook.BRICO=new Knodule("BRICO");
-        metaBook.BRICO.addAlias(":@1/");
-        metaBook.BRICO.addAlias("@1/");
-        var glosses_init={
-            indices: ["frag","maker","outlets",
-                      "tags","*tags","**tags",
-                      "tags*","*tags*","**tags*"]};
+
         var stdspace=fdjtString.stdspace;
-        var glossdbname="glosses@"+metaBook.refuri;
-        var glossdb=metaBook.glossdb=new RefDB(glossdbname,glosses_init); {
-            glossdb.absrefs=true;
-            glossdb.dbname="glosses";
-            glossdb.addAlias("glossdb");
-            glossdb.addAlias("-UUIDTYPE=61");
-            glossdb.addAlias(":@31055/");
-            glossdb.addAlias("@31055/");
+        var glossdb=metaBook.glossdb; {
             glossdb.onLoad(function initGloss(item) {
                 var info=metaBook.docinfo[item.frag];
                 if (!(info)) {
@@ -23361,52 +23434,6 @@ fdjt.DOM.noautofontadjust=true;
                     getDB().then(function(db){glossdb.storage=db;});
                 else glossdb.storage=localStorage;}}
         
-        function Gloss(){return Ref.apply(this,arguments);}
-        Gloss.prototype=new Ref();
-        
-        var exportTagSlot=Knodule.exportTagSlot;
-        var tag_export_rules={
-            "*tags": exportTagSlot, "**tags": exportTagSlot,
-            "~tags": exportTagSlot, "~~tags": exportTagSlot,
-            "tags": exportTagSlot,
-            "*tags*": exportTagSlot, "**tags*": exportTagSlot,
-            "~tags*": exportTagSlot, "~~tags*": exportTagSlot,
-            "tags*": exportTagSlot,
-            "*tags**": exportTagSlot, "**tags**": exportTagSlot,
-            "~tags**": exportTagSlot, "~~tags**": exportTagSlot,
-            "tags**": exportTagSlot};
-        metaBook.tag_export_rules=tag_export_rules;
-        metaBook.tag_import_rules=tag_export_rules;
-
-        // Use this when generating external summaries.  In particular,
-        //  this recovers all of the separate weighted tag slots into
-        //  one tags slot which uses prefixed strings to indicate weights.
-        Gloss.prototype.ExportExternal=function exportGloss(){
-            return Ref.Export.call(this,tag_export_rules);};
-
-        metaBook.glossdb.refclass=Gloss;
-        
-        var sourcedbname="sources@"+metaBook.refuri;
-        var sourcedb=metaBook.sourcedb=new RefDB(sourcedbname);{
-            sourcedb.absrefs=true;
-            sourcedb.dbname="sources";
-            sourcedb.oidrefs=true;
-            sourcedb.addAlias("@1961/");
-            sourcedb.addAlias(":@1961/");            
-            sourcedb.addAlias("@acc/");
-            sourcedb.addAlias(":@acc/");            
-            sourcedb.onLoad(function initSource(item) {
-                if ((item.pic)&&(typeof item.pic === "string")&&
-                    (item.pic.search("data:")===0)) {
-                    item._pic=fdjtDOM.data2URL(item.pic);}});
-            sourcedb.forDOM=function(source){
-                var spec="span.source"+((source.kind)?".":"")+
-                    ((source.kind)?(source.kind.slice(1).toLowerCase()):"");
-                var name=source.name||source.oid||source.uuid||source.uuid;
-                var span=fdjtDOM(spec,name);
-                if (source.about) span.title=source.about;
-                return span;};}
-
         metaBook.queued=
             ((metaBook.cacheglosses)&&
              (getLocal("mB("+metaBook.docid+").queued",true)))||[];
@@ -23516,6 +23543,8 @@ fdjt.DOM.noautofontadjust=true;
                 clearLocal("mB("+docid+").layers");
                 clearLocal("mB("+docid+").etc");
                 clearLocal("mB("+docid+").sync");
+                clearLocal("mB("+docid+").sourceid");
+                clearLocal("mB("+docid+").opened");
                 // We don't currently clear sources when doing book
                 // specific clearing because they might be shared
                 // between books.  This is a bug.
@@ -24224,7 +24253,9 @@ fdjt.CodexLayout.dbname="metaBook";
         saved_config=saved;}
     metaBook.saveConfig=saveConfig;
 
+    var config_initialized=false;
     function initConfig(){
+        if (config_initialized) return; else config_initialized=true;
         var setting, value, source, started=fdjtTime(); // changed=false;
         var config=getLocal("mB("+mB.docid+").config",true)||
             fdjtState.getSession("mB("+mB.docid+").config",
@@ -25864,10 +25895,17 @@ metaBook.DOMScan=(function(){
         if ((existing_cover)&&(existing_cover.parentNode===frame))
             frame.replaceChild(cover,existing_cover);
         else {
-            frame.appendChild(cover); 
+            frame.appendChild(cover);
             if (existing_cover)
                 existing_cover.parentNode.removeChild(existing_cover);}
         
+        var hidden_refuri=fdjt.ID("BHLOGIN_REFURI");
+        var hidden_docid=fdjt.ID("BHLOGIN_DOCID");
+        var hidden_origin=fdjt.ID("BHLOGIN_ORIGIN");
+        if ((hidden_refuri)&&(mB.refuri)) hidden_refuri.value=mB.refuri;
+        if ((hidden_docid)&&(mB.docid)) hidden_docid.value=mB.docid;
+        if (hidden_origin) hidden_origin.value=location.origin;
+
         metaBook.showCover();
         
         if (Trace.startup>1)
@@ -27226,42 +27264,39 @@ metaBook.DOMScan=(function(){
 (function(){
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log;
-    var fdjtTime=fdjt.Time, fdjtAsync=fdjt.Async;
-    var fdjtState=fdjt.State, fdjtAjax=fdjt.Ajax;
+    var fdjtTime=fdjt.Time, fdjtAjax=fdjt.Ajax;
 
     var mB=metaBook, Trace=mB.Trace;
 
     var need_mycopyid=[];
 
-    function gotMyCopyId(string){
-        function mycopyidupdate(resolve){
-            if (!(string)) return resolve(string);
-            if (string===mB.mycopyid) return resolve(string);
-            var tickmatch=/:x(\d+)/.exec(string);
-            var tick=(tickmatch)&&(tickmatch.length>1)&&(parseInt(tickmatch[1]));
-            var expires=(tick)&&(new Date(tick*1000));
-            if ((Trace.glosses>1)||(Trace.glossdata))
-                fdjtLog("gotMyCopyId: %s/%s, cur=%s/%s",
-                        string,expires,metaBook.mycopyid,metaBook.mycopyid_expires);
-            if (!(expires)) {
-                metaBook.umycopyid=string;
-                metaBook.saveLocal("umycopyid("+mB.docuri+")",string);}
-            if ((!(metaBook.mycopyid))||
-                ((!(metaBook.mycopyid_expires))&&(expires))||
-                ((metaBook.mycopyid_expires)&&(expires)&&
-                 (expires>metaBook.mycopyid_expires))) {
-                metaBook.mycopyid=string; metaBook.mycopyid_expires=expires;
-                metaBook.saveLocal("mycopyid("+mB.docuri+")",string);
-                if (mB.iosAuthKludge) mB.iosAuthKludge();}
-            else {}
-            if ((need_mycopyid)&&(need_mycopyid.length)) {
-                var needs=need_mycopyid; need_mycopyid=[];
-                return fdjtAsync.slowmap(function(fn){fn(string);},needs).
-                    then(function(){resolve(string);});}
-            else return resolve(string);}
-        return new Promise(mycopyidupdate);}
-    metaBook.gotMyCopyId=gotMyCopyId;
-
+    function setMyCopyId(string){
+        if (!(string)) return;
+        if (mB.mycopyid===string) return;
+        var parts=string.split('.'), payload=false, doc;
+        try {
+            payload=JSON.parse(atob(parts[1]));}
+        catch (ex) {payload=false;}
+        if (!(payload)) {
+            fdjtLog.warn("Bad mycopyid JWT %s",string);
+            return;}
+        else if ((doc=payload.doc)) {
+            doc=(doc.replace(/^:/,"")).toLowerCase();
+            if (doc!==mB.docid) {
+                fdjtLog.warn("mycopyid for wrong title %s; doc=%s, payload=%j",
+                             doc,mB.docid,payload);
+                return;}}
+        else {}
+        var expstring=payload.exp;
+        var expires=(expstring)&&(new Date(expstring));
+        mB.mycopyid=string;
+        mB.mycopyid_payload=payload;
+        mB.mycopyid_expires=expires;
+        var waiting=need_mycopyid; need_mycopyid=[];
+        var i=0, lim=waiting.length; while (i<lim) {
+            waiting[i++](string);}}
+    metaBook.setMyCopyId=setMyCopyId;
+            
     var good_origin=/https:\/\/[^\/]+.(bookhub\.io|metabooks\.net)/;
     function myCopyMessage(evt){
         var origin=evt.origin, data=evt.data;
@@ -27274,7 +27309,7 @@ metaBook.DOMScan=(function(){
             return;}
         if (data.search(/^mycopyid=/)===0) {
             var mycopyid=data.slice(9);
-            gotMyCopyId(mycopyid);
+            setMyCopyId(mycopyid);
             return;}
         else return;}
     fdjtDOM.addListener(window,"message",myCopyMessage);
@@ -27282,23 +27317,26 @@ metaBook.DOMScan=(function(){
     var getting_mycopyid=false;
 
     function getMyCopyId(){
-        function updatemycopyid(resolved){
-            var now=new Date();
-            if ((mB.mycopyid)&&(mB.mycopyid_expires>now))
-                return resolved(mB.mycopyid);
-            else if (!(getting_mycopyid)) getFreshMyCopyId();
-            need_mycopyid.push(resolved);}
-        return new Promise(updatemycopyid);}
+        var now=new Date();
+        if ((mB.mycopyid)&&
+            ((!(mB.mycopyid_expires))||(now>mB.mycopyid_expires)))
+            return Promise.resolve(mB.mycopyid);
+        else return fetchMyCopyId();}
     metaBook.getMyCopyId=getMyCopyId;
 
-    function getFreshMyCopyId(){
-        if (getting_mycopyid) return;
-        getting_mycopyid=fdjtTime();
-        fdjtAjax.fetchText(
-            "https://auth.bookhub.io/getmycopyid?DOC="+mB.docref).
-            then(function(mycopyid){
-                gotMyCopyId(mycopyid).then(
-                    function(){getting_mycopyid=false;});});}
+    function fetchMyCopyId(){
+        function fetching_mycopyid(resolve,reject){
+            need_mycopyid.push(resolve);
+            if (getting_mycopyid) return;
+            getting_mycopyid=fdjtTime();
+            fdjtAjax.fetchText(
+                "https://auth.bookhub.io/getmycopyid?DOC="+mB.docref).
+                then(function(mycopyid,alt){
+                    if (typeof mycopyid === 'undefined') 
+                        return reject(alt);
+                    getting_mycopyid=fdjtTime();
+                    setMyCopyId(mycopyid);});}
+        return new Promise(fetching_mycopyid);}
 
 })();
 
@@ -27696,7 +27734,7 @@ metaBook.DOMScan=(function(){
     var getLocal=fdjtState.getLocal;
     var saveLocal=metaBook.saveLocal;
 
-    var gotMyCopyId=mB.gotMyCopyId;
+    var setMyCopyId=mB.setMyCopyId;
 
     /* Loading meta info (user, glosses, etc) */
 
@@ -27707,8 +27745,8 @@ metaBook.DOMScan=(function(){
         if (window._metabook_loadinfo!==info)
             metaBook.setConnected(true);
         if (info.sticky) metaBook.setPersist(true);
-        if (info.mycopyid) gotMyCopyId(info.mycopyid);
-        else if (info.mycopy) gotMyCopyId(info.mycopy);
+        if (info.mycopyid) setMyCopyId(info.mycopyid);
+        else if (info.mycopy) setMyCopyId(info.mycopy);
         else {}
         if (!(metaBook.user)) {
             if (info.userinfo)
@@ -27736,7 +27774,7 @@ metaBook.DOMScan=(function(){
                 (info.mycopyid!==metaBook.mycopyid))
                 fdjtLog.warn("Mismatched mycopyids");
             if (info.mycopyid!==metaBook.mycopyid) {
-                gotMyCopyId(info.mycopyid);
+                setMyCopyId(info.mycopyid);
                 if (mB.iosAuthKludge) mB.iosAuthKludge();}}
         if (!(metaBook.docinfo)) { /* Scan not done */
             metaBook.scandone=function(){loadInfo(info);};
@@ -27780,7 +27818,7 @@ metaBook.DOMScan=(function(){
         if (info.sources) gotInfo("sources",info.sources,keepdata);
         if (info.outlets) gotInfo("outlets",info.outlets,keepdata);
         if (info.layers) gotInfo("layers",info.layers,keepdata);
-        if (info.mycopyid) gotMyCopyId(info.mycopyid);
+        if (info.mycopyid) setMyCopyId(info.mycopyid);
         metaBook.addOutlets2UI(info.outlets);
         if ((info.sync)&&((!(metaBook.sync))||(info.sync>=metaBook.sync))) {
             metaBook.setSync(info.sync);}
@@ -28200,9 +28238,13 @@ metaBook.Startup=
             metaBook.devinfo=fdjtState.versionInfo();
             
             var docid=fdjtState.getCookie("MB:DOCID",false);
+            var refuri=fdjtState.getCookie("MB:REFURI",false);
             if (docid) {
                 // We could do a lot more here
                 metaBook.docid=docid;}
+            if (refuri) {
+                metaBook.refuri=refuri;
+                mB.createDatabases(refuri);}
 
             var done=Timeline.app_init_done=app_init_done=fdjtTime();
 
@@ -28364,7 +28406,7 @@ metaBook.Startup=
                 (fdjtState.getCookie("MYCOPYID"))||
                 ((mB.docid)&&(mB.readLocal("mB("+mB.docid+").mycopyid")));
             // Should check signature and expiration
-            mB.gotMyCopyId(mycopyid);}
+            mB.setMyCopyId(mycopyid);}
 
         function setupApp(){
 
@@ -28747,10 +28789,11 @@ metaBook.Startup=
                     addClass("METABOOKSPLASHPAGE","startupdone");},
                            3000);
             var rmsg=$ID("METABOOKREADYMESSAGE");
-            if (!($ID("METABOOKOPENTAB"))) {
-                rmsg.innerHTML="Open";
-                rmsg.id="METABOOKOPENTAB";}
-            else rmsg.style.display='none';
+            if (rmsg) {
+                if (!($ID("METABOOKOPENTAB"))) {
+                    rmsg.innerHTML="Open";
+                    rmsg.id="METABOOKOPENTAB";}
+                else rmsg.style.display='none';}
             if (mode) {}
             else if (getQuery("startmode"))
                 mode=getQuery("startmode");
@@ -28776,7 +28819,7 @@ metaBook.Startup=
             if ((msg=getCookie("APPMESSAGE"))) {
                 fdjtUI.alertFor(10,msg);
                 fdjtState.clearCookie("APPMESSAGE","bookhub.io","/");}
-            if ((!(mode))&&(location.hash)&&(metaBook.state)&&
+            if ((!(mode))&&(mB.user)&&(location.hash)&&(metaBook.state)&&
                 (location.hash.slice(1)!==metaBook.state.target))
                 metaBook.hideCover();
             else if ((!(mode))&&(metaBook.user)) {
@@ -28866,6 +28909,7 @@ metaBook.Startup=
             if (docref) metaBook.docid=metaBook.docref=docid=docref;
             else metaBook.docid=docid=docuri;
             fdjtState.setCookie("MB:DOCID",docid,3600*24*42,false,false,true);
+            fdjtState.setCookie("MB:REFURI",refuri,3600*24*42,false,false,true);
             saveLocal("mB("+docid+")",docuri);
 
             if (docids.indexOf(docid)<0) {
@@ -31543,7 +31587,7 @@ metaBook.setMode=
                 var origin=evt.origin;
                 if (Trace.messages)
                     fdjtLog("Got a message from %s with payload %j",origin,evt.data);
-                if (origin.search(/https?:\/\/[^\/]+.(bookhub\.io|metabooks\.net|sbooks\.net)/)!==0) {
+                if (origin.search(/https:\/\/[^\/]+.(bookhub\.io|metabooks\.net)/)!==0) {
                     fdjtLog.warn("Rejecting insecure message from %s: %s",
                                  origin,evt.data);
                     return;}
@@ -31559,7 +31603,7 @@ metaBook.setMode=
                     if (!(mB.user)) {
                         metaBook.userinfo=JSON.parse(evt.data.slice(8));
                         mB.loginUser(mB.userinfo);
-                        setMode("welcome");
+                        if (mB.mode==='login') setMode("cover");
                         mB.userSetup();}}
                 else if (evt.data.updateglosses) {
                     mB.updateInfo();}
@@ -31572,7 +31616,7 @@ metaBook.setMode=
                     if (!(mB.user)) {
                         metaBook.userinfo=evt.data.userinfo;
                         mB.loginUser(mB.userinfo);
-                        setMode("welcome");
+                        if (mB.mode==='login') setMode("cover");
                         mB.userSetup();}}
                 else if (evt.data)
                     fdjtDOM("METABOOKINTRO",evt.data);
@@ -31727,7 +31771,8 @@ metaBook.setMode=
                     dropClass(document.body,"mbSKIMEND");
                     addClass(document.body,"mbNOMODE");
                     metaBook.skimming=false;
-                    metaBook.mode=false;}
+                    if ((mB.mode)&&(mB.mode.search(metaBookCoverModes)<0))
+                        mB.mode=false;}
                 dropClass(document.body,"hudup");
                 dropClass(document.body,"openhud");
                 mB.focusBody();}}
@@ -31767,7 +31812,7 @@ metaBook.setMode=
         var metabookHeartModes=/\b((statictoc)|(search)|(refinesearch)|(expandsearch)|(searchresults)|(allglosses)|(showaside)|(glossaddtag)|(glossaddtag)|(glossaddoutlet)|(glossdetail))\b/g;
         var metabookHeadModes=/\b((search)|(refinesearch)|(expandsearch)|(searchresults)|(allglosses)|(addgloss)|(shownote))\b/g;
         var metaBookPopModes=/\b((glossdetail))\b/g;
-        var metaBookCoverModes=/\b((welcome)|(help)|(layers)|(login)|(settings)|(cover)|(aboutsbooks)|(aboutmetabooks)|(console)|(aboutbook)|(titlepage))\b/g;
+        var metaBookCoverModes=/\b((cover)|(help)|(layers)|(login)|(settings)|(cover)|(aboutsbooks)|(aboutmetabooks)|(console)|(aboutbook)|(titlepage))\b/g;
         var metaBookSearchModes=/((refinesearch)|(searchresults)|(expandsearch))/;
         metaBook.searchModes=metaBookSearchModes;
         var metabook_mode_foci=
@@ -31825,8 +31870,13 @@ metaBook.setMode=
                 else if (typeof mode !== 'string') 
                     throw new Error('mode arg not a string');
                 else if (mode.search(metaBookCoverModes)>=0) {
+                    var cover=fdjt.ID("METABOOKCOVER");
+                    if (mode==='login')
+                        addClass(document.documentElement,'_SHOWLOGIN');
+                    if (mode==="cover")
+                        mode=cover.getAttribute("data-defaultclass")||"help";
                     if (mode!==mB.mode) {
-                        $ID("METABOOKCOVER").className=mode;
+                        cover.className=mode;
                         metaBook.mode=mode;
                         metaBook.modechange=fdjtTime();}
                     if (mode==="console") fdjtLog.update();
@@ -37688,7 +37738,11 @@ metaBook.setMode=
     function clearOffline(evt){
         evt=evt||window.event; cancel(evt);
         if (Trace.gestures) fdjtLog("clearOffline %o",evt);
-        metaBook.clearOffline();}
+        metaBook.clearOffline();
+        fdjt.ID("METABOOKSETTINGSMESSAGE").innerHTML=
+            "<strong>Poof!</strong> Local copies of your "+
+            "personalizations (glosses, settings, etc) for this "+
+            "book have been erased.";}
     function consolefn(evt){
         evt=evt||window.event; metaBook.consolefn(evt);}
 
@@ -38617,9 +38671,10 @@ metaBook.Paginate=
 
         function layoutMessage(string,pct){
             var pb=$ID("METABOOKLAYOUTMESSAGE");
-            fdjt.UI.ProgressBar.setMessage(pb,string);
-            if (typeof pct==="number")
-                fdjt.UI.ProgressBar.setProgress(pb,pct);}
+            if (pb) {
+                fdjt.UI.ProgressBar.setMessage(pb,string);
+                if (typeof pct==="number")
+                    fdjt.UI.ProgressBar.setProgress(pb,pct);}}
 
         /* Reporting progress, debugging */
         function layout_progress(info){
@@ -40062,7 +40117,6 @@ metaBook.HTML.hud=
     "      </div>\n"+
     "    </div>\n"+
     "    <hr class=\"metabooklayoutindicator\" id=\"METABOOKLAYOUTINDICATOR\"/>\n"+
-    "    <div class=\"metabookpageprogress\" id=\"METABOOKPAGEPROGRESS\"></div>\n"+
     "    <div class=\"metabooksectmarker\" id=\"METABOOKSECTMARKER1\"></div>\n"+
     "    <div class=\"metabooksectmarker\" id=\"METABOOKSECTMARKER2\"></div>\n"+
     "    <div class=\"metabooksectmarker\" id=\"METABOOKSECTMARKER3\"></div>\n"+
@@ -40838,29 +40892,8 @@ metaBook.HTML.messages=
 
 metaBook.HTML.cover=
     "<div id=\"METABOOKCOVERMESSAGE\" class=\"controls\">\n"+
-    "  <div id=\"METABOOKOPENTAB\"\n"+
-    "       style=\"width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;\">\n"+
-    "    Open\n"+
-    "  </div>\n"+
-    "  <div id=\"METABOOKREADYMESSAGE\" class=\"message\"\n"+
-    "       style=\"width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.2ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;\">\n"+
-    "    Loading\n"+
-    "  </div>\n"+
-    "  <div id=\"METABOOKBUSYMESSAGE\" class=\"message\"\n"+
-    "       style=\"width: 7em; margin-left: auto; margin-right: auto; color: white; background-color: gray; margin-top: 0.7ex; padding:  0px 1em 0px 1em; border: solid transparent 2px; font-variant: small-caps; border-radius: 1ex; box-sizing: border-box;\">\n"+
-    "    Busy\n"+
-    "  </div>\n"+
-    "  <div class=\"metabookstatus\" id=\"METABOOKLAYOUTMESSAGE\" class=\"message\">\n"+
-    "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
-    "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
-    "  </div>\n"+
-    "  <div class=\"metabookstatus\" id=\"METABOOKINDEXMESSAGE\" class=\"message\">\n"+
-    "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
-    "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
-    "  </div>\n"+
-    "  <div class=\"metabookstatus\" id=\"METABOOKGLOSSMESSAGE\" class=\"message\">\n"+
-    "    <div class=\"metabookprogressbox\"><div class=\"indicator\"></div></div>\n"+
-    "    <div class=\"message\" style=\"font-size: 24px; font-size: 5vmin;\"></div>\n"+
+    "  <div id=\"METABOOKOPENCOVER\">\n"+
+    "    <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span> to open\n"+
     "  </div>\n"+
     "</div>\n"+
     "<div id=\"METABOOKCOVERPAGE\" class=\"flap\"\n"+
@@ -40900,6 +40933,10 @@ metaBook.HTML.cover=
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "  <iframe name=\"BOOKHUBAPP\" id=\"BOOKHUBAPP\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
     "</div>\n"+
+    "<div id=\"METABOOKLOGIN\" class=\"scrolling flap\"\n"+
+    "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
+    "  <iframe name=\"BOOKHUBLOGIN\" id=\"BOOKHUBLOGIN\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
+    "</div>\n"+
     "<div id=\"METABOOKCOVERCONTROLS\" class=\"adjustfonts\" \n"+
     "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;\">\n"+
     "  <span class=\"control\" data-mode=\"coverpage\" title=\"see the cover\"\n"+
@@ -40921,6 +40958,10 @@ metaBook.HTML.cover=
     "        title=\"manage added layers of glosses for your sBook\"\n"+
     "        tabindex=\"5\">\n"+
     "    Layers</span>\n"+
+    "  <span class=\"control\" data-mode=\"login\"\n"+
+    "        title=\"login to bookhub.io\"\n"+
+    "        tabindex=\"5\">\n"+
+    "    Login</span>\n"+
     "  <span class=\"control\" data-mode=\"console\"\n"+
     "        title=\"the debugging console (advanced)\"\n"+
     "        tabindex=\"6\">\n"+
@@ -40948,12 +40989,20 @@ metaBook.HTML.cover=
     "       target=\"_blank\" tabindex=\"10\">\n"+
     "      you</a></span>\n"+
     "</div>\n"+
-    "<div class=\"loginbox controls\" data-maxfont=\"120%\" id=\"METABOOKLOGINBOX\">\n"+
+    "<div class=\"loginbox controls\" data-maxfont=\"120%\" \n"+
+    "     id=\"METABOOKLOGINBOX\">\n"+
     "  <div class=\"loginmessage\">\n"+
     "    Login to bookhub.io to read smarter</div>\n"+
-    "  <form action=\"https://auth.bookhub.io/\" method=\"POST\">\n"+
+    "  <form action=\"https://auth.bookhub.io/\" method=\"POST\"\n"+
+    "        onsubmit=\"metaBook.setMode('login');\"\n"+
+    "        target=\"BOOKHUBLOGIN\">\n"+
     "    <input TYPE=\"HIDDEN\" NAME=\"FRESHLOGIN\" VALUE=\"yes\"/>\n"+
     "    <input TYPE=\"HIDDEN\" NAME=\"LOGINFORM\" VALUE=\"yes\"/>\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"REFURI\" VALUE=\"\" ID=\"BHLOGIN_REFURI\"/>\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"DOCID\" VALUE=\"\" ID=\"BHLOGIN_DOCID\"/>\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"BOOKORIGIN\" VALUE=\"\" ID=\"BHLOGIN_ORIGIN\"/>\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"EMBEDDED\" VALUE=\"yes\"/>\n"+
+    "    <input TYPE=\"HIDDEN\" NAME=\"RETURN_TO\" VALUE=\"welcome\"/>\n"+
     "    <input TYPE=\"TEXT\" NAME=\"LOGIN\" VALUE=\"\"\n"+
     "           PLACEHOLDER=\"email/cell login\"\n"+
     "           ONKEYPRESS=\"fdjt.UI.submitOnEnter(event);\"\n"+
@@ -41166,7 +41215,7 @@ metaBook.HTML.settings=
     "  </div>\n"+
     "  <div class=\"clearfloats\"></div>\n"+
     "  <div class=\"header dataheader cf\">\n"+
-    "    <button NAME=\"CLEARDATA\" VALUE=\"ALL\">Erase all</button>\n"+
+    "    <button NAME=\"CLEARDATA\" VALUE=\"ALL\" class=\"clearoffline\">Erase all</button>\n"+
     "    <span class=\"label\">Storage</span>\n"+
     "  </div>\n"+
     "  <div class=\"checkspan syncloc cf\">\n"+
@@ -41223,19 +41272,19 @@ metaBook.HTML.settings=
     "  -->\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1572-g363347f';
+fdjt.revision='1.5-1573-g1c8e14e';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Apr 1 09:20:26 EDT 2016';
-fdjt.builduuid='53ddb9e3-b8df-4f9f-9952-b197b7ac1e34';
+fdjt.buildtime='Sat Apr 2 12:51:57 EDT 2016';
+fdjt.builduuid='5eda012f-3cda-4fd7-83dd-c8e1410a1836';
 
 fdjt.CodexLayout.sourcehash='2E1CF45D58B1AFA2030F6E720508E9758FE11C19';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-309-g28f64db';
-metaBook.buildid='fe67ba7d-bc67-4c4a-b3f0-2f607b562fbd';
-metaBook.buildtime='Fri Apr  1 12:25:38 EDT 2016';
+metaBook.version='v0.8-313-g8df8d8f';
+metaBook.buildid='b6fa3e4f-dae8-4c81-bf1a-eaf5a4b049ea';
+metaBook.buildtime='Sun Apr  3 15:49:32 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
