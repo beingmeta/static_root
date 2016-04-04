@@ -1,5 +1,6 @@
 s3://beingmeta/static/
 s3://bookhubio/static/
+s3://opentexts/static/
 s3://static.bookhub.io/
 s3://bookhub-static/
 s3://bkhub/static/
@@ -10,7 +11,6 @@ s3://bestatic/
 s3://bhstatic/
 s3://bookhubstore/static/
 s3://mybookhub/static/
-s3://opentexts/static/
 s3://ccbooks/static/
 s3://loveabook/static/
 s3://quakers/static/
