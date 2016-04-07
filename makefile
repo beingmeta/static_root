@@ -81,7 +81,8 @@ METABOOK_DERIVED_FILES=\
 	metabook/html/hud.js metabook/html/heart.js metabook/html/attach.js  \
 	metabook/html/help.js metabook/html/hudhelp.js metabook/html/menu.js \
 	metabook/html/console.js metabook/html/messages.js     \
-	metabook/html/cover.js metabook/html/settings.js
+	metabook/html/cover.js metabook/html/settings.js \
+	metabook/html/layoutwait.js
 
 METABOOK_HTML_FILES=\
 	metabook/html/searchbox.html metabook/html/addgloss.html \
@@ -89,7 +90,8 @@ METABOOK_HTML_FILES=\
 	metabook/html/attach.html metabook/html/menu.html \
 	metabook/html/help.html metabook/html/hudhelp.html \
 	metabook/html/console.html metabook/html/messages.html \
-	metabook/html/cover.html metabook/html/settings.html
+	metabook/html/cover.html metabook/html/settings.html \
+	metabook/html/layoutwait.html
 
 # fonts/open_sans.css 
 METABOOK_CSS=\
