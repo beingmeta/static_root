@@ -2454,6 +2454,8 @@ div.codexpage {
 div.codexpage img.nomax { max-width: inherit; max-height: inherit;}
 
 div.codexpage.curpage {display: block;}
+div.codexpage.curpage.previewcurpage {
+    opacity: 0.8; color: gray;}
 
 div.codexpage.oldpage, div.codexpage.newpage { display: block; }
 
@@ -3013,6 +3015,23 @@ body.hudup #CODEXPAGE {z-index: 0;}
    issues. */
 body.hudup._DEBUG #METABOOKHUD {z-index: 0;}
 
+div#MBLAYOUTWAIT {
+    position: fixed; z-index: 100; box-sizing: border-box;
+    height: 6em; bottom: 40%;
+    width: 60%; left: 20%; right: 20%;
+    font-size: 48px; font-size: 3vw;
+    padding: 2em; border-radius: 1em;
+    text-align: center; line-height: 180%;
+    background-color: rgba(0,0,0,0.6);
+    border: solid black 2px;
+    color: white;
+    display: none;}
+div#MBLAYOUTWAIT.live { display: block; }
+div#MBLAYOUTWAIT div.fdjtprogress { 
+    height: 2em; 
+    box-sizing: border-box;
+    border: solid black 3px;}
+
 /* Emacs local variables
 ;;;  Local variables: ***
 ;;;  compile-command: "cd ../..; make" ***
@@ -3278,7 +3297,7 @@ body.hudup #METABOOKBREVET, .mbcover #METABOOKBREVET { display: none;}
 
 .wf-inactive #METABOOKFRAME,
 .wf-inactive #METABOOKPAGECONTROLS,
-#METABOOKPAGECONTROLS, #METABOOKFRAME {
+#METABOOKPAGECONTROLS, #METABOOKFRAME, .metabookui {
     font-family: -apple-system, BlinkMacSystemFont, 
     "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", 
     "Fira Sans", "Droid Sans", "Lucida Sans Unicode", "Lucida Grande",
@@ -4925,8 +4944,8 @@ hr#METABOOKLAYOUTINDICATOR {
     box-sizing: border-box;
     display: none;}
 #METABOOKLAYOUTADJUST {
-    position: absolute;
-    top: 0; left: 0; height: 100%; width: auto; margin: 0;
+    position: absolute; text-align: center;
+    top: 0; left: 0; height: 100%; width: 100%; margin: 0;
     font-weight: bold;
     z-index: 200;
     display: none;}

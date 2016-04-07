@@ -5988,7 +5988,7 @@ fdjt.State=
                                    ((matchcase)?"g":"gi"));
             start=from.search(namepat);
             while (start>=0) {
-                // Skip over separator if non-initial
+                if (from[start]==='&') start++;
                 var valstart=start+ename.length;
                 var valstring=from.slice(valstart+1);
                 var end=valstring.search(/(&|$)/g);
@@ -17838,8 +17838,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1573-g1c8e14e';
+fdjt.revision='1.5-1574-ge473417';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sat Apr 2 12:51:57 EDT 2016';
-fdjt.builduuid='5eda012f-3cda-4fd7-83dd-c8e1410a1836';
+fdjt.buildtime='Thu Apr 7 14:23:10 EDT 2016';
+fdjt.builduuid='7514cd48-8b97-4b85-92a7-f0c842279f6c';
 
