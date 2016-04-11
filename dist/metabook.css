@@ -3764,9 +3764,6 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
     html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1.3em; }}
 
 @media screen and (max-width: 640px) {
-    div.fdjtprogress#METABOOKLAYOUTMESSAGE {
-        left: 50px; right: 50px;}
-
     #METABOOKSETTINGS table.settings th {
         white-space: normal; font-size: 80%; max-width: 10ex;}
 

@@ -5841,13 +5841,18 @@ fdjt.State=
             else clearCookie(name);}
         fdjtState.dropSession=dropSession;
 
-        function clearSession(){
+        function clearSession(pat){
             if (window.sessionStorage) {
-                var storage=window.localStorage;
+                var storage=window.sessionStorage;
                 var i=0; var lim=storage.length;
                 var keys=[];
-                while (i<lim) keys.push(storage.key(i++));
-                i=0; while (i<lim) storage.removeItem(keys[i++]);}}
+                if (pat)
+                    while (i<lim) {
+                        var key=storage.key(i++);
+                        if (pat.exec(key)) keys.push(key);}
+                else while (i<lim) keys.push(storage.key(i++));
+                i=0; lim=keys.length;
+                while (i<lim) storage.removeItem(keys[i++]);}}
         fdjtState.clearSession=clearSession;
         
         function listSession(name){
@@ -5999,13 +6004,20 @@ fdjt.State=
             return keys;}
         fdjtState.listLocal=listLocal;
 
-        function clearLocal(){
+        function clearLocal(pat){
+            if (typeof pat === 'string')
+                pat=new RegExp(".*"+pat+".*");
             if (window.localStorage) {
                 var storage=window.localStorage;
                 var i=0; var lim=storage.length;
                 var keys=[];
-                while (i<lim) keys.push(storage.key(i++));
-                i=0; while (i<lim) storage.removeItem(keys[i++]);}}
+                if (pat)
+                    while (i<lim) {
+                        var key=storage.key(i++);
+                        if (pat.exec(key)) keys.push(key);}
+                else while (i<lim) keys.push(storage.key(i++));
+                i=0; lim=keys.length;
+                while (i<lim) storage.removeItem(keys[i++]);}}
         fdjtState.clearLocal=clearLocal;
 
         /* Gets arguments from the query string */
@@ -23546,6 +23558,7 @@ fdjt.DOM.noautofontadjust=true;
                 clearLocal("mB("+docid+").etc");
                 clearLocal("mB("+docid+").sync");
                 clearLocal("mB("+docid+").sourceid");
+                clearLocal("mB("+docid+").state");
                 clearLocal("mB("+docid+").opened");
                 // We don't currently clear sources when doing book
                 // specific clearing because they might be shared
@@ -38715,7 +38728,7 @@ metaBook.Paginate=
             layout_waiting=true;
             layout_preview_next=fdjtTime();
             setTimeout(function(){addClass("MBLAYOUTWAIT","live");},
-                       1500);}
+                       500);}
         function stopLayoutWait(){
             if (layout_previewing) {
                 dropClass(layout_previewing,"previewcurpage");
@@ -38723,7 +38736,8 @@ metaBook.Paginate=
                 layout_previewing=false;}
             layout_waiting=false;
             layout_preview_next=false;
-            dropClass("MBLAYOUTWAIT","live");}
+            setTimeout(function(){dropClass("MBLAYOUTWAIT","live");},
+                       500);}
 
         function layoutMessage(string,pct){
             var pb=$ID("METABOOKLAYOUTMESSAGE");
@@ -39288,7 +39302,7 @@ metaBook.Paginate=
                     curloc=info.starts_at+locoff;
                     if (topid) page.setAttribute("data-topid",topid);
                     page.setAttribute("data-mbloc",curloc);}
-                if (mB.state) {
+                if ((mB.state)&&(layout_waiting)) {
                     var state=mB.state, target=state.target, loc=state.location;
                     var resolved=(target)?(getPage(target,loc)):
                         ((curloc)&&(loc<curloc)&&(loc2page(loc,layout)));
@@ -41385,20 +41399,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1574-ge473417';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Apr 7 14:23:10 EDT 2016';
-fdjt.builduuid='7514cd48-8b97-4b85-92a7-f0c842279f6c';
+fdjt.revision='1.5-1577-g24f4ea5';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sun Apr 10 20:45:17 BST 2016';
+fdjt.builduuid='DFC48BA7-6320-4075-8C16-05D7AE8C4EEB';
 
 fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-324-g1919b68';
-metaBook.buildid='7ef36be7-d742-4cf5-9650-fba6d932258e';
-metaBook.buildtime='Thu Apr  7 14:55:39 EDT 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-325-g1f812f9';
+metaBook.buildid='4883F5BE-EE6C-43F8-9059-EBE8909C9B0F';
+metaBook.buildtime='Sun Apr 10 20:45:21 BST 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();

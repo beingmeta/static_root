@@ -5813,13 +5813,18 @@ fdjt.State=
             else clearCookie(name);}
         fdjtState.dropSession=dropSession;
 
-        function clearSession(){
+        function clearSession(pat){
             if (window.sessionStorage) {
-                var storage=window.localStorage;
+                var storage=window.sessionStorage;
                 var i=0; var lim=storage.length;
                 var keys=[];
-                while (i<lim) keys.push(storage.key(i++));
-                i=0; while (i<lim) storage.removeItem(keys[i++]);}}
+                if (pat)
+                    while (i<lim) {
+                        var key=storage.key(i++);
+                        if (pat.exec(key)) keys.push(key);}
+                else while (i<lim) keys.push(storage.key(i++));
+                i=0; lim=keys.length;
+                while (i<lim) storage.removeItem(keys[i++]);}}
         fdjtState.clearSession=clearSession;
         
         function listSession(name){
@@ -5971,13 +5976,20 @@ fdjt.State=
             return keys;}
         fdjtState.listLocal=listLocal;
 
-        function clearLocal(){
+        function clearLocal(pat){
+            if (typeof pat === 'string')
+                pat=new RegExp(".*"+pat+".*");
             if (window.localStorage) {
                 var storage=window.localStorage;
                 var i=0; var lim=storage.length;
                 var keys=[];
-                while (i<lim) keys.push(storage.key(i++));
-                i=0; while (i<lim) storage.removeItem(keys[i++]);}}
+                if (pat)
+                    while (i<lim) {
+                        var key=storage.key(i++);
+                        if (pat.exec(key)) keys.push(key);}
+                else while (i<lim) keys.push(storage.key(i++));
+                i=0; lim=keys.length;
+                while (i<lim) storage.removeItem(keys[i++]);}}
         fdjtState.clearLocal=clearLocal;
 
         /* Gets arguments from the query string */
@@ -17838,8 +17850,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1574-ge473417';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Apr 7 14:23:10 EDT 2016';
-fdjt.builduuid='7514cd48-8b97-4b85-92a7-f0c842279f6c';
+fdjt.revision='1.5-1577-g24f4ea5';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sun Apr 10 20:45:17 BST 2016';
+fdjt.builduuid='DFC48BA7-6320-4075-8C16-05D7AE8C4EEB';
 
