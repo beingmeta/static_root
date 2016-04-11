@@ -41399,20 +41399,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1577-g24f4ea5';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sun Apr 10 20:45:17 BST 2016';
-fdjt.builduuid='DFC48BA7-6320-4075-8C16-05D7AE8C4EEB';
+fdjt.revision='1.5-1578-ga4f947a';
+fdjt.buildhost='dev.beingmeta.com';
+fdjt.buildtime='Mon Apr 11 12:59:23 UTC 2016';
+fdjt.builduuid='e1c9235f-b05d-4c74-b026-d7acb7dfa09e';
 
 fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-325-g1f812f9';
-metaBook.buildid='4883F5BE-EE6C-43F8-9059-EBE8909C9B0F';
-metaBook.buildtime='Sun Apr 10 20:45:21 BST 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-330-g1968165';
+metaBook.buildid='95cf0ffa-2327-4ef8-922a-e525f650d2c2';
+metaBook.buildtime='Mon Apr 11 13:00:35 UTC 2016';
+metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
