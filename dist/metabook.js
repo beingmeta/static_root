@@ -28609,7 +28609,8 @@ metaBook.Startup=
             if (Trace.startup>1) fdjtLog("Head ready");
             run_inits("head");
             return processHead();}
-        metaBook.headReady=headReady;
+        metaBook.headReady=function declareHeadReady(){
+            setTimeout(headReady,5);};
 
         function headProcessed(){
             if (_head_processed) return;
@@ -28733,7 +28734,8 @@ metaBook.Startup=
             if (Trace.startup>1) fdjtLog("Body ready");
             run_inits("body");
             return processBody();}
-        metaBook.bodyReady=bodyReady;
+        metaBook.bodyReady=function declareBodyReady(){
+            setTimeout(bodyReady,5);};
 
         function bodyProcessed(){
             if (_body_processed) return;
@@ -28751,7 +28753,8 @@ metaBook.Startup=
             bodyReady();
             run_inits("dom");
             if (Trace.startup>1) fdjtLog("DOM ready");}
-        metaBook.domReady=domReady;
+        metaBook.domReady=function declareDOMReady(){
+            setTimeout(domReady,5);};
         
         function startLayout(){
             metaBook.sizeContent();
@@ -41459,8 +41462,8 @@ fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-339-g4bfe466';
-metaBook.buildid='EB935736-B257-4885-A8A5-023D4125DB5F';
-metaBook.buildtime='Tue Apr 12 08:28:54 BST 2016';
+metaBook.buildid='727C3350-6209-4978-B292-EF1ADFCCCB62';
+metaBook.buildtime='Tue Apr 12 09:00:06 BST 2016';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
