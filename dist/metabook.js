@@ -26378,7 +26378,7 @@ metaBook.DOMScan=(function(){
     
     function publisherIndex(pubindex){
         mB._publisher_index=pubindex;
-        indexReady();}
+        if (Timeline.metadata_done) indexReady();}
     metaBook.publisherIndex=publisherIndex;
 
     function indexReady(){
@@ -28704,6 +28704,7 @@ metaBook.Startup=
                     fdjtLog("Processing knodule %s",metaBook.knodule.name);
                 Knodule.HTML.Setup(metaBook.knodule);
                 dropClass(knomsg,"running");}
+            Timeline.metadata_done=fdjtTime();
             fdjtAsync(function(){metaBook.setupIndex(metadata);});
 
             return fdjtAsync.timeslice(
@@ -41462,8 +41463,8 @@ fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-339-g4bfe466';
-metaBook.buildid='727C3350-6209-4978-B292-EF1ADFCCCB62';
-metaBook.buildtime='Tue Apr 12 09:00:06 BST 2016';
+metaBook.buildid='694F8BFF-8245-4638-8AFC-B400EC85289D';
+metaBook.buildtime='Tue Apr 12 11:22:49 BST 2016';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
