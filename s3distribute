@@ -115,15 +115,15 @@
   (push-web "fonts/")
   (push-web "dist/")
 
-  (let ((js (filedata "dist/metabook.uglify.js.gz"))
+  (let ((js (filedata "dist/metabook.min.js.gz"))
 	(css (filedata "dist/metabook.post.css.gz")))
     (s3/put (s3/mkpath root apps.js) js "text/javascript"
 	    '("x-amz-acl: public-read"
 	      "content-encoding\: gzip"
-	      "X-SourceMap\: metabook.uglify.map")
+	      "X-SourceMap\: metabook.js.map")
 	    #[errs #t])
-    (s3/put (s3/mkpath root "metabook.uglify.map")
-	    (filestring "dist/metabook.uglify.map") 
+    (s3/put (s3/mkpath root "metabook.js.map")
+	    (filestring "dist/metabook.min.js.map") 
 	    "application/json" pubheaders
 	    #[errs #t])
     (s3/put (s3/mkpath root apps.css) css "text/css"
