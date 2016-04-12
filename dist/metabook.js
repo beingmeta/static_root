@@ -41058,7 +41058,7 @@ metaBook.HTML.messages=
 metaBook.HTML.cover=
     "<div id=\"METABOOKCOVERMESSAGE\" class=\"controls\">\n"+
     "  <div id=\"METABOOKOPENCOVER\">\n"+
-    "    <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span> to open\n"+
+    "    <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span> to Open\n"+
     "  </div>\n"+
     "</div>\n"+
     "<div id=\"METABOOKCOVERPAGE\" class=\"flap\"\n"+
@@ -41458,9 +41458,9 @@ fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-338-gc04f532';
-metaBook.buildid='6349F35E-7125-4F3C-AD50-CA4204C7C026';
-metaBook.buildtime='Tue Apr 12 08:11:48 BST 2016';
+metaBook.version='v0.8-339-g4bfe466';
+metaBook.buildid='EB935736-B257-4885-A8A5-023D4125DB5F';
+metaBook.buildtime='Tue Apr 12 08:28:54 BST 2016';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
