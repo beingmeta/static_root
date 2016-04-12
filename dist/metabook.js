@@ -26370,26 +26370,33 @@ metaBook.DOMScan=(function(){
     var fdjtAsync=fdjt.Async;
     var dropClass=fdjtDOM.dropClass, addClass=fdjtDOM.addClass;
     var getLink=fdjtDOM.getLink, isEmpty=fdjtString.isEmpty;
+    var addListener=fdjtDOM.addListener;
 
-    var mB=metaBook, Trace=mB.Trace;
+    var mB=metaBook, Trace=mB.Trace, Timeline=mB.Timeline;
 
     /* Indexing tags */
     
-    function handlePublisherIndex(pubindex,whendone){
-        if (!(pubindex))
-            pubindex=metaBook._publisher_index||window._pubtool_autoindex;
-        if (!(pubindex)) {
-            if (whendone) whendone();
-            return;}
-        if ((Trace.startup>1)||(Trace.indexing)) {
+    function publisherIndex(pubindex){
+        mB._publisher_index=pubindex;
+        indexReady();}
+    metaBook.publisherIndex=publisherIndex;
+
+    function indexReady(){
+        var pubindex=metaBook._publisher_index||window._pubtool_autoindex;
+        if (metaBook._publisher_index) metaBook._publisher_index=false;
+        if (window._pubtool_autoindex) window._pubtool_autoindex=false;
+        if (Timeline.index_done) return;
+        Timeline.index_done=fdjtTime();
+        if (((Trace.startup>1)||(Trace.indexing))&&(pubindex)) {
             if (pubindex._nkeys)
                 fdjtLog("Processing provided index of %d keys and %d refs",
                         pubindex._nkeys,pubindex._nrefs);
             else fdjtLog("Processing provided index");}
-        mB.useIndexData(pubindex,metaBook.knodule,false,whendone);}
-
+        return mB.useIndexData(pubindex,metaBook.knodule,false,indexingDone);}
+    metaBook.indexReady=indexReady;
+        
     function indexingDone(){
-        if ((Trace.indexing)||(Trace.startup))
+        if ((Trace.indexing)||(Trace.startup>1))
             fdjtLog("Content indexing is completed");
         if (metaBook._started) setupClouds();
         else metaBook.onsetup=setupClouds;}
@@ -26716,19 +26723,11 @@ metaBook.DOMScan=(function(){
         applyMultiTagSpans();
         applyTagAttributes(metadata);
         var pubindex=metaBook._publisher_index||
-            window._publisher_autoindex||
             window._pubtool_autoindex;
-        if (pubindex) {
-            handlePublisherIndex(pubindex,indexingDone);
-            metaBook._publisher_index=false;
-            window._pubtool_autoindex=false;}
+        if (pubindex) indexReady();
         else if ($ID("PUTBOOLAUTOINDEX")) {
             var elt=$ID("PUBTOOLAUTOINDEX");
-            fdjtDOM.addListener(elt,"load",function(evt){
-                evt=evt||window.event;
-                handlePublisherIndex(false,indexingDone);
-                metaBook._publisher_index=false;
-                window._pubtool_autoindex=false;});}
+            fdjtDOM.addListener(elt,"load",indexReady);}
         else {
             var indexref=getLink("PUBTOOL.bookindex");
             if (indexref) {
@@ -26736,12 +26735,12 @@ metaBook.DOMScan=(function(){
                 script_elt.setAttribute("src",indexref);
                 script_elt.setAttribute("language","javascript");
                 script_elt.setAttribute("async","async");
-                fdjtDOM.addListener(script_elt,"load",function(){
-                    handlePublisherIndex(false,indexingDone);
-                    metaBook._publisher_index=false;
-                    window._pubtool_autoindex=false;});
+                fdjtDOM.addListener(script_elt,"load",indexReady);
+                fdjtDOM.addListener(script_elt,"error",indexReady);
                 document.body.appendChild(script_elt);}
-            else indexingDone();}}
+            else if (document.readyState==="complete")
+                indexReady();
+            else addListener(window,"load",indexReady);}}
     metaBook.setupIndex=setupIndex;
 
 })();
@@ -27316,9 +27315,8 @@ metaBook.DOMScan=(function(){
         if (now>expires) {
             fdjtLog.warn("Expired (%s) mycopyid %j",expires,payload);
             return false;}
-        if ((Trace.startup)||(Trace.creds)) {
-            fdjtLog("Setting myCopyID to %s",string);
-            fdjtLog("myCopyID payload is %j",payload);}
+        if ((Trace.startup>1)||(Trace.creds)) {
+            fdjtLog("Setting myCopyID to %s payload=%j",string,payload);}
         mB.mycopyid=string;
         mB.mycopyid_payload=payload;
         mB.mycopyid_expires=expires;
@@ -27457,8 +27455,9 @@ metaBook.DOMScan=(function(){
     function setUser(userinfo,outlets,layers,sync){
         var started=fdjtTime();
         var root=document.documentElement||document.body;
-        fdjtLog("Setting up user %s (%s)",userinfo._id,
-                userinfo.name||userinfo.email);
+        if (Trace.startup>1)
+            fdjtLog("Setting up user %s (%s)",userinfo._id,
+                    userinfo.name||userinfo.email);
         if (userinfo) {
             fdjtDOM.dropClass(root,"_NOUSER");
             fdjtDOM.addClass(root,"_USER");}
@@ -28386,7 +28385,7 @@ metaBook.Startup=
                     var i=0, lim=delayed.length;
                     while (i<lim) {delayed[i](); i++;}}
                 else delayed();}
-            if (Trace.startup)
+            if (Trace.startup>1)
                 fdjtLog("Done with sync startup");}
 
         function initMarkdown(){
@@ -28505,7 +28504,7 @@ metaBook.Startup=
 
             if (Trace.startup>1) {
                 fdjtLog("App setup took %dms",fdjtTime()-started);
-                fdjtLog("Body: %s",document.body.className);}}
+                fdjtLog("Body: class='%s'",document.body.className);}}
         
         function imageSetup(){
             var i, lim, started=fdjtTime();
@@ -28553,10 +28552,12 @@ metaBook.Startup=
             return val;};
 
         function useTraceSettings(tracing){
+            if (typeof tracing === 'string')
+                tracing=tracing.split(';');
             var i=0; var lim=tracing.length;
             while (i<lim) {
                 var trace_spec=tracing[i++];
-                var colon=trace_spec.indexOf(";");
+                var colon=trace_spec.indexOf(":");
                 if (colon<0) {
                     if (typeof Trace[trace_spec] === 'number')
                         Trace[trace_spec]=1;
@@ -28567,6 +28568,7 @@ metaBook.Startup=
                     if (typeof Trace[trace_name] === 'number')
                         Trace[trace_name]=parseInt(trace_val,10);
                     else Trace[trace_name]=trace_val;}}}
+        metaBook.useTraceSettings=useTraceSettings;
 
         var glosshash_pat=/G[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
         
@@ -28827,7 +28829,7 @@ metaBook.Startup=
             else metaBook.initLocation();
             window.onpopstate=function onpopstate(evt){
                 if (evt.state) metaBook.restoreState(evt.state,"popstate");};
-            fdjtLog("metaBook startup done");
+            if (Trace.startup>1) fdjtLog("metaBook startup done");
             metaBook.resizeUI(); // Just in case
             metaBook.displaySync();
             fdjtDOM.dropClass(document.body,"mbSTARTUP");
@@ -28869,12 +28871,12 @@ metaBook.Startup=
                 fdjtState.clearCookie("APPMESSAGE","bookhub.io","/");}
             if ((!(mode))&&(mB.user)&&(location.hash)&&(metaBook.state)&&
                 (location.hash.slice(1)!==metaBook.state.target))
-                metaBook.hideCover();
+                mB.layoutReady(metaBook.hideCover);
             else if ((!(mode))&&(metaBook.user)) {
                 var opened=readLocal(
                     "mB("+mB.docid+").opened",true);
                 if ((opened)&&((opened+keep_open_msecs)>fdjtTime()))
-                    metaBook.hideCover();}
+                    mB.layoutReady(metaBook.hideCover);}
             if (fdjtDOM.vischange)
                 fdjtDOM.addListener(document,fdjtDOM.vischange,
                                     metaBook.visibilityChange);
@@ -38723,21 +38725,34 @@ metaBook.Paginate=
         var layout_previewing=false;
         var layout_preview_next=false;
         var layout_waiting=false;
-
+        
         function layoutWait(){
-            layout_waiting=true;
+            if (!(layout_waiting)) layout_waiting=[];
             layout_preview_next=fdjtTime();
+            fdjtLog("Waiting for layout to finish");
             setTimeout(function(){addClass("MBLAYOUTWAIT","live");},
-                       500);}
+                       100);}
         function stopLayoutWait(){
             if (layout_previewing) {
                 dropClass(layout_previewing,"previewcurpage");
                 dropClass(layout_previewing,"curpage");
                 layout_previewing=false;}
+            if (!(layout_waiting)) return;
+            fdjtLog("Done with layout wait");
+            var readyfns=layout_waiting;
             layout_waiting=false;
             layout_preview_next=false;
             setTimeout(function(){dropClass("MBLAYOUTWAIT","live");},
-                       500);}
+                       200);
+            var i=0, lim=readyfns.length; while (i<lim) {
+                readyfns[i++]();}}
+        function layoutReady(whenready){
+            if ((mB.layout)&&(mB.layout.done))
+                return whenready();
+            else if (layout_waiting)
+                layout_waiting.push(whenready);
+            else layout_waiting=[whenready];}
+        metaBook.layoutReady=layoutReady;
 
         function layoutMessage(string,pct){
             var pb=$ID("METABOOKLAYOUTMESSAGE");
@@ -38836,7 +38851,6 @@ metaBook.Paginate=
             layoutMessage("Preparing your book",0);
             dropClass(document.body,"_SCROLL");
             addClass(document.body,"mbLAYOUT");
-            layoutWait(true);
             scaleLayout(false);
             if (Trace.layout) fdjtLog("Unscaled layout");
             var forced=((init)&&(init.forced));
@@ -38847,7 +38861,7 @@ metaBook.Paginate=
             var size=mB.bodysize||"normal";
             var family=(mB.dyslexical)?("opendyslexic"):
                 (mB.bodyfamily||"default");
-            if ((!(mB.layout))&&(Trace.startup))
+            if ((!(mB.layout))&&(Trace.startup>1))
                 fdjtLog("Page layout requires %dx%d %s pages",
                         width,height,size);
             if (mB.layout) {
@@ -38861,7 +38875,6 @@ metaBook.Paginate=
                     (((justify)&&(current.justify))||
                      ((!justify)&&(!current.justify)))) {
                     dropClass(document.body,"mbLAYOUT");
-                    stopLayoutWait();
                     fdjtLog("Skipping redundant pagination for %s",
                             current.layout_id);
                     return;}
@@ -38910,12 +38923,12 @@ metaBook.Paginate=
                 $ID("CODEXPAGE").style.visibility='';
                 $ID("CODEXCONTENT").style.visibility='';
                 dropClass(document.body,"mbLAYOUT");
-                stopLayoutWait();
                 mB.layout=layout;
                 mB.pagecount=layout.pages.length;
                 fdjtLog("Restored %d-page layout %s in %ds, adding glosses",
                         layout.pages.length,layout_id,
                         (fdjtTime()-started)/1000);
+                stopLayoutWait();
                 var lostids=layout.lostids, moved_ids=lostids._all_ids;
                 var i=0, lim=moved_ids.length;
                 while (i<lim) {
@@ -38997,11 +39010,53 @@ metaBook.Paginate=
                             id=getPageLastID(child,id);}}}
                 return id;}
 
+            var images_count=0, images_loaded=0, images_failed=0;
+            function get_image_donefn(whenready){
+                function image_loaded(evt){
+                    var target=fdjt.UI.T(evt);
+                    target.onload=false; target.onerror=false;
+                    if (evt.type==="load")
+                        images_loaded++;
+                    else images_failed++;
+                    if (target.parentElement)
+                        target.parentElement.removeChild(target);
+                    if ((images_loaded+images_failed)>=images_count) {
+                        Timeline.images_loaded=fdjtTime();
+                        whenready();}}
+                return image_loaded;}
+
+            function body_wait(content,whenready){
+                if (!(content))
+                    content=mB.content||document.body;
+                if (Timeline.dom_ready)
+                    return whenready();
+                else {
+                    var images=fdjtDOM.getChildren(content,"IMG");
+                    var donefn=get_image_donefn(whenready);
+                    if ((images)&&(images.length)) {
+                        var dups=[];
+                        var i=0, n_imgs=images.length;
+                        while (i<n_imgs) {
+                            var img=images[i++];
+                            if (img.src) {
+                                var dup=fdjtDOM("IMG");
+                                dup.src=img.src;
+                                dup.onload=dup.onerror=donefn;
+                                dup.style.display='none';
+                                dups.push(dup);}}
+                        if (dups.length===0)
+                            return whenready();
+                        images_count=dups.length;
+                        var body=document.body;
+                        var j=0, n_dups=dups.length;
+                        while (j<n_dups) 
+                            body.appendChild(dups[j++]);}}}
+
             function new_layout(){
-                fdjtLog("new_layout");
                 // Prepare to do the layout
                 dropClass(document.body,"_SCROLL");
                 addClass(document.body,"_BYPAGE");
+                layoutWait();
                 // This keeps the page content hidden during layout
                 // $ID("CODEXPAGE").style.visibility='hidden';
                 // This shouldn't be neccessary because CODEXCONTENT 
@@ -39084,20 +39139,14 @@ metaBook.Paginate=
                 else {
                     var running=true;
                     while (running) running=rootloop();}}
-            var layout_wait=false;
+
             function start_new_layout(){
-                if (!(layout_wait)) {
-                    Timeline.layout_started=fdjtTime();
-                    new_layout();}
-                else if (Timeline.dom_ready) {
-                    clearInterval(layout_wait);
-                    layout_wait=false;
-                    Timeline.layout_started=fdjtTime();
-                    new_layout();}}
+                Timeline.layout_started=fdjtTime();
+                new_layout();}
             function request_layout(){
-                if (!(layout_wait)) {
+                if (!(Timeline.layout_requested))
                     Timeline.layout_requested=fdjtTime();
-                    layout_wait=setInterval(start_new_layout,50);}}
+                body_wait(mB.content,start_new_layout);}
             
             if ((mB.cache_layout_thresh)&&
                 (!((mB.forcelayout)))&&
@@ -41399,20 +41448,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1578-ga4f947a';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Mon Apr 11 12:59:23 UTC 2016';
-fdjt.builduuid='e1c9235f-b05d-4c74-b026-d7acb7dfa09e';
+fdjt.revision='1.5-1577-g24f4ea5';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Sun Apr 10 20:45:17 BST 2016';
+fdjt.builduuid='DFC48BA7-6320-4075-8C16-05D7AE8C4EEB';
 
 fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-330-g1968165';
-metaBook.buildid='95cf0ffa-2327-4ef8-922a-e525f650d2c2';
-metaBook.buildtime='Mon Apr 11 13:00:35 UTC 2016';
-metaBook.buildhost='dev.beingmeta.com';
+metaBook.version='v0.8-338-gc04f532';
+metaBook.buildid='6349F35E-7125-4F3C-AD50-CA4204C7C026';
+metaBook.buildtime='Tue Apr 12 08:11:48 BST 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
