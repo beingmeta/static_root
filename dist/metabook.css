@@ -3033,8 +3033,8 @@ div#MBLAYOUTWAIT div.fdjtprogress {
     border: solid black 3px;}
 
 @media screen and (max-width: 640px) {
-div#MBLAYOUTWAIT {
-    width: 60%; left: 20%; right: 20%;
+    div#MBLAYOUTWAIT {
+        width: 80%; left: 10%; right: 10%;
 }
 }
 
@@ -3607,9 +3607,11 @@ html._SHOWLOGIN._USER #METABOOKCOVER .control[data-mode='login'] {
 
 /* The sBooks app for managing layers */
 
-#METABOOKCOVER div.flap#METABOOKLAYERS {
+#METABOOKCOVER div.flap#METABOOKLAYERS,
+#METABOOKCOVER div.flap#METABOOKLOGIN {
     border-top-left-radius: 0; border-top-right-radius: 0;
-    border-bottom-left-radius: 1.5em; border-bottom-right-radius: 1.5em;}
+    border-bottom-left-radius: 1.5em; border-bottom-right-radius: 1.5em;
+    padding-bottom: 0px;}
 
 #METABOOKCOVER div.flap iframe {
     height: 100%; width: 100%; margin: 0; padding: 0;
