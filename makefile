@@ -7,7 +7,7 @@ ECHO=/bin/echo
 CLEAN=/bin/rm -f
 PATH:=/usr/local/bin:${PATH}
 FDJT_FILES=fdjt/header.js \
-	fdjt/promise.js fdjt/async.js fdjt/fetch.js fdjt/idbshim.js \
+	fdjt/promise.js fdjt/async.js fdjt/fetch.js \
 	fdjt/charnames.js fdjt/string.js fdjt/time.js \
 	fdjt/template.js fdjt/hash.js \
 	fdjt/log.js fdjt/init.js fdjt/state.js \
@@ -112,8 +112,10 @@ SBOOKS_FILES=sbooks/sbooks.css \
 LOGIN_CSS=sbooks/login.css
 
 # metabook/fontcheck.js
-METABOOK_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} fdjt/codexlayout.js \
-	${PAGEDOWN_FILES} ${METABOOK_FILES} ${METABOOK_DERIVED_FILES}
+METABOOK_JS_BUNDLE=${FDJT_FILES} ${KNODULES_FILES} \
+	fdjt/idbshim.js fdjt/codexlayout.js \
+	${PAGEDOWN_FILES} ${METABOOK_FILES} \
+	${METABOOK_DERIVED_FILES}
 # removed sbooks/reset.css 
 METABOOK_CSS_BUNDLE=${FDJT_CSS} fdjt/codexlayout.css \
 	${KNODULES_CSS} ${METABOOK_CSS}
