@@ -19290,6 +19290,9 @@ fdjt.CodexLayout=
 
             this.dontsave=init.dontsave||false;
 
+            var use_raf=(window.requestAnimationFrame)?(true):(false);
+            // use_raf=false;
+
             var use_scaling=
                 ((typeof init.use_scaling === 'undefined')?(true):
                  (init.use_scaling));
@@ -19510,13 +19513,32 @@ fdjt.CodexLayout=
                 layout.root=cur_root=root;
 
                 var block_i=0, n_blocks=blocks.length; 
-                
+                var block_hidden=0;
+
+                // Hide all of the blocks to start; this avoids
+                // needless computation as blocks are moved onto pages
+                // from wherever they started.
+                var hide_i=0; while (hide_i<n_blocks) {
+                    var hide_block=blocks[hide_i++];
+                    hide_block.style.display='none';}
+
                 function step(){
                     var block=blocks[block_i], style=styles[block_i];
                     var info=blockinfo[block_i], terminal=info.terminal||false;
                     var next=blocks[block_i+1], nextinfo=blockinfo[block_i+1];
                     var tracing=false;
                     if (block.id) layout.lastid=block.id;
+                    
+                    // Reveal the block and it's children
+                    if (block_i<=block_hidden) {
+                        var show_i=block_i;
+                        block.style.display='';
+                        while (show_i<n_blocks) {
+                            var show_block=blocks[show_i];
+                            if (hasParent(show_block,block)) {
+                                show_block.style.display=''; show_i++;}
+                            else break;}
+                        block_hidden=show_i;}
                     
                     if ((trace)&&(block)&&
                         ((trace>3)||((track)&&(track.match(block))))) {
@@ -19739,6 +19761,7 @@ fdjt.CodexLayout=
                     BlockInfo.prototype.atomic=false;
 
                 function handle_dragging(block,terminal,info,style,tracing){
+
                     // If this block is terminal and we don't want to
                     // break before this block or after the preceding
                     // block, drag along the previous block to the new
@@ -19748,7 +19771,8 @@ fdjt.CodexLayout=
                     // placed, so the previous page will end up short.
                     // Them's the breaks (so to speak).
                     if (!(block)) {}
-                    else if ((prev)&&(drag.indexOf(prev)<0)) {}
+                    else if ((prev)&&(drag.indexOf(prev)<0)) {
+                        if (drag.length) layout.drag=drag=[];}
                     else if ((prev)&&(atPageTop(prev))) {
                         if (drag.length) layout.drag=drag=[];}
                     else if ((prev)&&(terminal)&&(info.avoidbreakbefore)) {
@@ -19757,9 +19781,7 @@ fdjt.CodexLayout=
                             drag.push(prev);}
                     else if ((prev)&&(info.avoidbreakafter)) {
                         if (tracing) logfn("Possibly dragging %o",prev);
-                        if (drag.indexOf(prev)<0) 
-                            drag.push(prev);}
-                    else if (drag.length) layout.drag=drag=[];
+                        if (drag.indexOf(prev)<0) drag.push(prev);}
                     else {}}
 
                 function handle_standalone(block,info,style,tracing){
@@ -20458,17 +20480,28 @@ fdjt.CodexLayout=
 
                 function loop(){
                     function layoutLoopDone(){donefn(layout);}
-                    var loop_start=fdjtTime();
-                    while ((block_i<n_blocks)&&
-                           ((!(timeslice))||(serialize)||
-                            ((fdjtTime()-loop_start)<timeslice)))
-                        step();
-                    if (progressfn) progressfn(layout);
-                    if (block_i<n_blocks) {
-                        if (timeslice)
-                            layout.timer=setTimeout(loop,timeskip||timeslice);
-                        else loop();}
-                    else {
+                    var wait_for=timeskip||timeslice;
+                    if ((!(timeslice))||(serialize)) 
+                        while (block_i<n_blocks) step();
+                    else if ((use_raf)&&(block_i<n_blocks)) {
+                        window.requestAnimationFrame(function(){
+                            var loop_start=fdjtTime();
+                            while ((block_i<n_blocks)&&(!(serialize))&&
+                                   ((fdjtTime()-loop_start)<timeslice))
+                                step();
+                            if (progressfn) progressfn(layout);
+                            layout.timer=setTimeout(loop,wait_for);});}
+                    else if (block_i<n_blocks) {
+                        var loop_start=fdjtTime();
+                        while ((block_i<n_blocks)&&(!(serialize))&&
+                               ((fdjtTime()-loop_start)<timeslice))
+                            step();
+                        if (progressfn) progressfn(layout);
+                        if (serialize)
+                            return loop();
+                        else layout.timer=setTimeout(loop,wait_for);}
+                    else {}
+                    if (block_i>=n_blocks) {
                         var last_block=blocks[n_blocks-1];
                         if ((forcedBreakAfter(last_block))||
                             (hasClass(last_block,/\bcodexfullpage\b/))||
@@ -41461,20 +41494,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1577-g24f4ea5';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sun Apr 10 20:45:17 BST 2016';
-fdjt.builduuid='DFC48BA7-6320-4075-8C16-05D7AE8C4EEB';
+fdjt.revision='1.5-1578-ga4f947a';
+fdjt.buildhost='dev.beingmeta.com';
+fdjt.buildtime='Mon Apr 11 12:59:23 UTC 2016';
+fdjt.builduuid='e1c9235f-b05d-4c74-b026-d7acb7dfa09e';
 
-fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
+fdjt.CodexLayout.sourcehash='B9CAE94A4DD389F524290579937214D415D966A5';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-342-g9f46a25';
-metaBook.buildid='34724169-171B-4B9A-8730-A3FED5980770';
-metaBook.buildtime='Wed Apr 13 10:44:37 BST 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-345-gf5286fc';
+metaBook.buildid='67d3c8cb-633a-4bf1-bfab-2db5cc5aa6b8';
+metaBook.buildtime='Sat Apr 16 14:59:06 UTC 2016';
+metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
@@ -41490,4 +41523,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='A3AA9CEEC5106B67FC3C02CC4474BA6DCDB464FC';
+fdjt.CodexLayout.sourcehash='B9CAE94A4DD389F524290579937214D415D966A5';
