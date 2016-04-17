@@ -19290,7 +19290,8 @@ fdjt.CodexLayout=
 
             this.dontsave=init.dontsave||false;
 
-            var use_raf=(window.requestAnimationFrame)?(true):(false);
+            var use_raf=(!(CodexLayout.dont_rAF))&&
+                ((window.requestAnimationFrame)?(true):(false));
             // use_raf=false;
 
             var use_scaling=
@@ -24395,6 +24396,9 @@ fdjt.CodexLayout.dbname="metaBook";
         metaBook.taptapmsecs=value;
         fdjtUI.TapHold.default_opts.taptapmsecs=value;});
 
+    metaBook.addConfig("dont_rAF",function(name,value){
+        fdjt.CodexLayout.dont_rAF=value;});
+
     metaBook.addConfig("checksync",function(name,value){
         metaBook.sync_interval=value;
         if (metaBook.synctock) {
@@ -24768,7 +24772,7 @@ fdjt.CodexLayout.dbname="metaBook";
         if (typeof savestate === 'undefined') savestate=true;
         var target, location, locinfo;
         if (savestate) metaBook.clearStateDialog();
-        if (!(arg)) {
+        if ((!(arg))&&(arg!==0)) {
             fdjtLog.warn("falsy arg (%s) to metabookGoTo from %s",arg,caller);
             return;}
         if (typeof arg === 'string') {
@@ -27167,7 +27171,7 @@ metaBook.DOMScan=(function(){
        document, using the hash value if there is one. */ 
     function initLocation() {
         var state=metaBook.state;
-        if (state) {}
+        if ((state)&&((state.location)||(state.target))) {}
         else {
             var target=$ID("METABOOKSTART")||fdjt.$1(".metabookstart")||
                 $ID("SBOOKSTART")||fdjt.$1(".sbookstart")||
@@ -27177,8 +27181,9 @@ metaBook.DOMScan=(function(){
                        // This is the beginning of the 21st century
                        changed: 978307200};
             else state={location: 1,changed: 978307200};}
-        mB.GoTo(state.location||state.target,"initLocation",
-                false,false,false);
+        var goto_arg=((typeof state.location === "undefined")?(state.target):
+                      (state.location));
+        mB.GoTo(goto_arg,"initLocation",false,false,false);
         mB.saveState(state,true,true);}
     metaBook.initLocation=initLocation;
 
@@ -41499,14 +41504,14 @@ fdjt.buildhost='dev.beingmeta.com';
 fdjt.buildtime='Mon Apr 11 12:59:23 UTC 2016';
 fdjt.builduuid='e1c9235f-b05d-4c74-b026-d7acb7dfa09e';
 
-fdjt.CodexLayout.sourcehash='B9CAE94A4DD389F524290579937214D415D966A5';
+fdjt.CodexLayout.sourcehash='4BBADFC0A12B20833316607D312C0218EB204422';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-345-gf5286fc';
-metaBook.buildid='67d3c8cb-633a-4bf1-bfab-2db5cc5aa6b8';
-metaBook.buildtime='Sat Apr 16 14:59:06 UTC 2016';
+metaBook.version='v0.8-349-g511ba67';
+metaBook.buildid='9f1350d0-0ac7-4a87-b52a-1136a87a00fa';
+metaBook.buildtime='Sun Apr 17 11:28:43 UTC 2016';
 metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
@@ -41523,4 +41528,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='B9CAE94A4DD389F524290579937214D415D966A5';
+fdjt.CodexLayout.sourcehash='4BBADFC0A12B20833316607D312C0218EB204422';
