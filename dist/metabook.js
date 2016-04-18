@@ -20971,23 +20971,15 @@ fdjt.CodexLayout=
                     if (x.pageno>y.pageno) return 1;
                     else if (x.pageno<y.pageno) return -1;
                     else return 0;});
+                var start_at=olpage[0].list.getAttribute("start");
+                if (start_at) start_at=parseInt(start_at);
+                else start_at=0;
                 i=0; lim=olpage.length; while (i<lim) {
                     var olist=olpage[i++].list;
                     var new_items=countListItems(olist);
-                    if (ntotal) addEmptyItems(olist,ntotal);
+                    if (ntotal) olist.setAttribute("start",start_at+ntotal);
                     ntotal=ntotal+new_items;}}
 
-            function addEmptyItems(root,count){
-                var frag=document.createDocumentFragment();
-                while (count>0) {
-                    var item=fdjtDOM("LI","empty");
-                    item.setAttribute(
-                        "style",
-                        "visibility: hidden !important; width: 0px !important; height: 0px !important; pointer-events: none; margin: 0px !important;");
-                    frag.appendChild(item);
-                    count--;}
-                if (root.firstChild) root.insertBefore(frag,root.firstChild);
-                else root.appendChild(frag);}
             function countListItems(root,count){
                 if (!(count)) count=0;
                 var children=root.childNodes;
@@ -20996,8 +20988,11 @@ fdjt.CodexLayout=
                     var child=children[i++];
                     if (child.nodeType===1) {
                         if ((child.tagName==="OL")||
-                            (child.tagName==="UL")) return count;
-                        else if (child.tagName==="LI") count++;
+                            (child.tagName==="UL")) 
+                            return count;
+                        else if (child.tagName==="LI") {
+                            if (!(hasClass(child,/\bcodexdup(end)?\b/)))
+                                count++;}
                         else count=countListItems(child,count);}}
                 return count;}
 
@@ -41504,14 +41499,14 @@ fdjt.buildhost='dev.beingmeta.com';
 fdjt.buildtime='Mon Apr 11 12:59:23 UTC 2016';
 fdjt.builduuid='e1c9235f-b05d-4c74-b026-d7acb7dfa09e';
 
-fdjt.CodexLayout.sourcehash='4BBADFC0A12B20833316607D312C0218EB204422';
+fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-349-g511ba67';
-metaBook.buildid='9f1350d0-0ac7-4a87-b52a-1136a87a00fa';
-metaBook.buildtime='Sun Apr 17 11:28:43 UTC 2016';
+metaBook.buildid='bee3511a-eb99-43c0-af93-10bd00a9d3b0';
+metaBook.buildtime='Mon Apr 18 17:03:17 UTC 2016';
 metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
@@ -41528,4 +41523,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='4BBADFC0A12B20833316607D312C0218EB204422';
+fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
