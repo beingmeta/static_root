@@ -4377,6 +4377,7 @@ body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCHRESULTS.hudpanel {
 #METABOOKHUD.searchresults #METABOOKHEARTBODY #METABOOKSEARCHRESULTS.hudpanel,
 #METABOOKHUD.login #METABOOKLOGIN.hudpanel {
     position: static; display: block;
+    pointer-events: all;
     opacity: 0.98;}
 
 #METABOOKHUD.refinesearch #METABOOKHEARTBODY #METABOOKALLTAGS.hudpanel,
@@ -4387,16 +4388,6 @@ body.mbSKIMMING #METABOOKHUD.searchresults #METABOOKSEARCHRESULTS.hudpanel {
 #METABOOKHUD #METABOOKHEARTBODY #METABOOKSEARCHCLOUD,
 #METABOOKHUD #METABOOKHEARTBODY #METABOOKALLTAGS {
     padding-top: 12px;}
-
-#METABOOKHEARTBODY #METABOOKSEARCHBLOCK.hudpanel {
-    margin-left: 0; margin-right: 0;
-    background-color: transparent;}
-#METABOOKHUD.refinesearch #METABOOKSEARCHBLOCK.hudpanel,
-#METABOOKHUD.expandsearch #METABOOKSEARCHBLOCK.hudpanel,
-#METABOOKHUD.searchresults #METABOOKSEARCHBLOCK.hudpanel {
-    position: absolute; display: block; overflow: hidden;
-    top: 0; bottom: 0; left: 0; right: 0;
-    opacity: 0.98;}
 
 div.completions.hudpanel { line-height: 120%;}
 div.completions.hudpanel .prime { line-height: 250%;}

@@ -35668,6 +35668,7 @@ metaBook.setMode=
         $ID("METABOOKATTACHFILE").className="nofile";
         $ID("METABOOKATTACHFILENAME").innerHTML="";
         fdjt.UI.CheckSpan.set(rightsok,false);        
+        dropClass($ID("METABOOKATTACHFORM"),"editlink");
         metaBook.glossattach=false;
         metaBook.editlink=false;
         fileinput.value="";}
@@ -41504,9 +41505,9 @@ fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-349-g511ba67';
-metaBook.buildid='bee3511a-eb99-43c0-af93-10bd00a9d3b0';
-metaBook.buildtime='Mon Apr 18 17:03:17 UTC 2016';
+metaBook.version='v0.8-351-g6a66ca8';
+metaBook.buildid='8514853e-241a-41bb-89a4-f7a053ea142f';
+metaBook.buildtime='Tue Apr 19 15:45:06 UTC 2016';
 metaBook.buildhost='dev.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
