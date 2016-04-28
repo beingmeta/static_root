@@ -4962,7 +4962,8 @@ body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR .metabookpagespan {
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
     visibility: visible; opacity: 1.0; overflow: visible;}
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
-    background-color: lightblue; color: transparent; }
+    background-color: transparent; color: transparent; 
+    border-right: solid blue 2px;}
 body #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
     vertical-align: bottom; height: 28px;}
 body.mbPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookpagespan {
@@ -5000,7 +5001,7 @@ body.mbPAGEPREVIEW #METABOOKFOOT #METABOOKPAGEBAR #METABOOKCURPAGESPAN.metabookp
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER1.metabooksectmarker {
     height: 85%;}
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER2.metabooksectmarker {
-    height: 55%; }
+    height: 70%; }
 #METABOOKFOOT #METABOOKPAGEBAR #METABOOKSECTMARKER3.metabooksectmarker {
     height: 35%; }
 

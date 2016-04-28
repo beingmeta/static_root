@@ -26,6 +26,1022 @@
 */
 
 window._metabook_amalgam=(document)&&(document.currentScript)&&(document.currentScript.src);
+/* From https://github.com/axemclion/IndexedDBShim, BSD License */
+/* jshint strict: false, evil: true, expr: true, browser: true */
+/* globals console: false, DOMException: false */
+var idbModules = {};
+(function(idbModules) {
+  function callback(fn, context, event, func) {
+    event.target = context;
+    (typeof context[fn] === "function") && context[fn].apply(context, [event]);
+    (typeof func === "function") && func();
+  }
+
+  function throwDOMException(name, message, error) {
+    var e = new DOMException.constructor(0, message);
+    e.name = name;
+    e.message = message;
+    e.stack = arguments.callee.caller;
+    idbModules.DEBUG && console.log(name, message, error, e);
+    throw e;
+  }
+  var StringList = function() {
+      this.length = 0;
+      this._items = [];
+    };
+  StringList.prototype = {
+    contains: function(str) {
+      return -1 !== this._items.indexOf(str);
+    },
+    item: function(key) {
+      return this._items[key];
+    },
+    indexOf: function(str) {
+      return this._items.indexOf(str);
+    },
+    push: function(item) {
+      this._items.push(item);
+      this.length += 1;
+    },
+    splice: function() {
+      this._items.splice.apply(this._items, arguments);
+      this.length = this._items.length;
+    }
+  };
+  idbModules.util = {
+    "throwDOMException": throwDOMException,
+    "callback": callback,
+    "quote": function(arg) {
+      return "'" + arg + "'";
+    },
+    "StringList": StringList
+  };
+}(idbModules));
+(function(idbModules) {
+  var Sca = (function() {
+    return {
+      "encode": function(val) {
+        return JSON.stringify(val);
+      },
+      "decode": function(val) {
+        return JSON.parse(val);
+      }
+    };
+  }());
+  idbModules.Sca = Sca;
+}(idbModules));
+(function(idbModules) {
+  var collations = ["", "number", "string", "boolean", "object", "undefined"];
+  var getGenericEncoder = function() {
+      return {
+        "encode": function(key) {
+          return collations.indexOf(typeof key) + "-" + JSON.stringify(key);
+        },
+        "decode": function(key) {
+          if (typeof key === "undefined") {
+            return undefined;
+          } else {
+            return JSON.parse(key.substring(2));
+          }
+        }
+      };
+    };
+  var types = {
+    "number": getGenericEncoder("number"),
+    "boolean": getGenericEncoder(),
+    "object": getGenericEncoder(),
+    "string": {
+      "encode": function(key) {
+        return collations.indexOf("string") + "-" + key;
+      },
+      "decode": function(key) {
+        return "" + key.substring(2);
+      }
+    },
+    "undefined": {
+      "encode": function(key) {
+        return collations.indexOf("undefined") + "-undefined";
+      },
+      "decode": function(key) {
+        return undefined;
+      }
+    }
+  };
+  var Key = (function() {
+    return {
+      encode: function(key) {
+        return types[typeof key].encode(key);
+      },
+      decode: function(key) {
+        return types[collations[key.substring(0, 1)]].decode(key);
+      }
+    };
+  }());
+  idbModules.Key = Key;
+}(idbModules));
+(function(idbModules, undefined) {
+  var Event = function(type, debug) {
+      return {
+        "type": type,
+        debug: debug,
+        bubbles: false,
+        cancelable: false,
+        eventPhase: 0,
+        timeStamp: new Date()
+      };
+    };
+  idbModules.Event = Event;
+}(idbModules));
+(function(idbModules) {
+  var IDBRequest = function() {
+      this.onsuccess = this.onerror = this.result = this.error = this.source = this.transaction = null;
+      this.readyState = "pending";
+    };
+  var IDBOpenRequest = function() {
+      this.onblocked = this.onupgradeneeded = null;
+    };
+  IDBOpenRequest.prototype = IDBRequest;
+  idbModules.IDBRequest = IDBRequest;
+  idbModules.IDBOpenRequest = IDBOpenRequest;
+}(idbModules));
+(function(idbModules, undefined) {
+  var IDBKeyRange = function(lower, upper, lowerOpen, upperOpen) {
+      this.lower = lower;
+      this.upper = upper;
+      this.lowerOpen = lowerOpen;
+      this.upperOpen = upperOpen;
+    };
+  IDBKeyRange.only = function(value) {
+    return new IDBKeyRange(value, value, true, true);
+  };
+  IDBKeyRange.lowerBound = function(value, open) {
+    return new IDBKeyRange(value, undefined, open, undefined);
+  };
+  IDBKeyRange.upperBound = function(value) {
+    return new IDBKeyRange(undefined, value, undefined, open);
+  };
+  IDBKeyRange.bound = function(lower, upper, lowerOpen, upperOpen) {
+    return new IDBKeyRange(lower, upper, lowerOpen, upperOpen);
+  };
+  idbModules.IDBKeyRange = IDBKeyRange;
+}(idbModules));
+(function(idbModules, undefined) {
+  function IDBCursor(range, direction, idbObjectStore, cursorRequest, keyColumnName, valueColumnName) {
+    this.__range = range;
+    this.source = this.__idbObjectStore = idbObjectStore;
+    this.__req = cursorRequest;
+    this.key = undefined;
+    this.direction = direction;
+    this.__keyColumnName = keyColumnName;
+    this.__valueColumnName = valueColumnName;
+    if (!this.source.transaction.__active) {
+      idbModules.util.throwDOMException("TransactionInactiveError - The transaction this IDBObjectStore belongs to is not active.");
+    }
+    this.__offset = -1;
+    this.__lastKeyContinued = undefined;
+    this["continue"]();
+  }
+  IDBCursor.prototype.__find = function(key, tx, success, error) {
+    var me = this;
+    var sql = ["SELECT * FROM ", idbModules.util.quote(me.__idbObjectStore.name)];
+    var sqlValues = [];
+    sql.push("WHERE ", me.__keyColumnName, " NOT NULL");
+    if (me.__range && (me.__range.lower || me.__range.upper)) {
+      sql.push("AND");
+      if (me.__range.lower) {
+        sql.push(me.__keyColumnName + (me.__range.lowerOpen ? " >=" : " >") + " ?");
+        sqlValues.push(idbModules.Key.encode(me.__range.lower));
+      }
+      (me.__range.lower && me.__range.upper) && sql.push("AND");
+      if (me.__range.upper) {
+        sql.push(me.__keyColumnName + (me.__range.upperOpen ? " <= " : " < ") + " ?");
+        sqlValues.push(idbModules.Key.encode(me.__range.upper));
+      }
+    }
+    if (typeof key !== "undefined") {
+      me.__lastKeyContinued = key;
+      me.__offset = 0;
+    }
+    if (me.__lastKeyContinued !== undefined) {
+      sql.push("AND " + me.__keyColumnName + " >= ?");
+      sqlValues.push(idbModules.Key.encode(me.__lastKeyContinued));
+    }
+    sql.push("ORDER BY ", me.__keyColumnName);
+    sql.push("LIMIT 1 OFFSET " + me.__offset);
+    idbModules.DEBUG && console.log(sql.join(" "), sqlValues);
+    tx.executeSql(sql.join(" "), sqlValues, function(tx, data) {
+      if (data.rows.length === 1) {
+        var key = idbModules.Key.decode(data.rows.item(0)[me.__keyColumnName]);
+        var val = me.__valueColumnName === "value" ? idbModules.Sca.decode(data.rows.item(0)[me.__valueColumnName]) : idbModules.Key.decode(data.rows.item(0)[me.__valueColumnName]);
+        success(key, val);
+      } else {
+        idbModules.DEBUG && console.log("Reached end of cursors");
+        success(undefined, undefined);
+      }
+    }, function(tx, data) {
+      idbModules.DEBUG && console.log("Could not execute Cursor.continue");
+      error(data);
+    });
+  };
+  IDBCursor.prototype["continue"] = function(key) {
+    var me = this;
+    this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__offset++;
+      me.__find(key, tx, function(key, val) {
+        me.key = key;
+        me.value = val;
+        success(typeof me.key !== "undefined" ? me : undefined, me.__req);
+      }, function(data) {
+        error(data);
+      });
+    });
+  };
+  IDBCursor.prototype.advance = function(count) {
+    if (count <= 0) {
+      idbModules.util.throwDOMException("Type Error - Count is invalid - 0 or negative", count);
+    }
+    var me = this;
+    this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__offset += count;
+      me.__find(undefined, tx, function(key, value) {
+        me.key = key;
+        me.value = value;
+        success(typeof me.key !== "undefined" ? me : undefined, me.__req);
+      }, function(data) {
+        error(data);
+      });
+    });
+  };
+  IDBCursor.prototype.update = function(valueToUpdate) {
+    var me = this;
+    return this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__find(undefined, tx, function(key, value) {
+        var sql = "UPDATE " + idbModules.util.quote(me.__idbObjectStore.name) + " SET value = ? WHERE key = ?";
+        idbModules.DEBUG && console.log(sql, valueToUpdate, key);
+        tx.executeSql(sql, [idbModules.Sca.encode(valueToUpdate), idbModules.Key.encode(key)], function(tx, data) {
+          if (data.rowsAffected === 1) {
+            success(key);
+          } else {
+            error("No rowns with key found" + key);
+          }
+        }, function(tx, data) {
+          error(data);
+        });
+      }, function(data) {
+        error(data);
+      });
+    });
+  };
+  IDBCursor.prototype["delete"] = function() {
+    var me = this;
+    return this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__find(undefined, tx, function(key, value) {
+        var sql = "DELETE FROM  " + idbModules.util.quote(me.__idbObjectStore.name) + " WHERE key = ?";
+        idbModules.DEBUG && console.log(sql, key);
+        tx.executeSql(sql, [idbModules.Key.encode(key)], function(tx, data) {
+          if (data.rowsAffected === 1) {
+            success(undefined);
+          } else {
+            error("No rowns with key found" + key);
+          }
+        }, function(tx, data) {
+          error(data);
+        });
+      }, function(data) {
+        error(data);
+      });
+    });
+  };
+  idbModules.IDBCursor = IDBCursor;
+}(idbModules));
+(function(idbModules, undefined) {
+  function IDBIndex(indexName, idbObjectStore) {
+    this.indexName = indexName;
+    this.__idbObjectStore = this.source = idbObjectStore;
+  }
+  IDBIndex.prototype.__createIndex = function(indexName, keyPath, optionalParameters) {
+    var me = this;
+    var transaction = me.__idbObjectStore.transaction;
+    transaction.__addToTransactionQueue(function(tx, args, success, failure) {
+      me.__idbObjectStore.__getStoreProps(tx, function() {
+        function error() {
+          idbModules.util.throwDOMException(0, "Could not create new index", arguments);
+        }
+        if (transaction.mode !== 2) {
+          idbModules.util.throwDOMException(0, "Invalid State error, not a version transaction", me.transaction);
+        }
+        var idxList = JSON.parse(me.__idbObjectStore.__storeProps.indexList);
+        if (typeof idxList[indexName] !== "undefined") {
+          idbModules.util.throwDOMException(0, "Index already exists on store", idxList);
+        }
+        var columnName = indexName;
+        idxList[indexName] = {
+          "columnName": columnName,
+          "keyPath": keyPath,
+          "optionalParams": optionalParameters
+        };
+        me.__idbObjectStore.__storeProps.indexList = JSON.stringify(idxList);
+        var sql = ["ALTER TABLE", idbModules.util.quote(me.__idbObjectStore.name), "ADD", columnName, "BLOB"].join(" ");
+        idbModules.DEBUG && console.log(sql);
+        tx.executeSql(sql, [], function(tx, data) {
+          tx.executeSql("SELECT * FROM " + idbModules.util.quote(me.__idbObjectStore.name), [], function(tx, data) {
+            (function initIndexForRow(i) {
+              if (i < data.rows.length) {
+                try {
+                  var value = idbModules.Sca.decode(data.rows.item(i).value);
+                  var indexKey = eval("value['" + keyPath + "']");
+                  tx.executeSql("UPDATE " + idbModules.util.quote(me.__idbObjectStore.name) + " set " + columnName + " = ? where key = ?", [idbModules.Key.encode(indexKey), data.rows.item(i).key], function(tx, data) {
+                    initIndexForRow(i + 1);
+                  }, error);
+                } catch (e) {
+                  initIndexForRow(i + 1);
+                }
+              } else {
+                idbModules.DEBUG && console.log("Updating the indexes in table", me.__idbObjectStore.__storeProps);
+                tx.executeSql("UPDATE __sys__ set indexList = ? where name = ?", [me.__idbObjectStore.__storeProps.indexList, me.__idbObjectStore.name], function() {
+                  me.__idbObjectStore.__setReadyState("createIndex", true);
+                  success(me);
+                }, error);
+              }
+            }(0));
+          }, error);
+        }, error);
+      }, "createObjectStore");
+    });
+  };
+  IDBIndex.prototype.openCursor = function(range, direction) {
+    var cursorRequest = new idbModules.IDBRequest();
+    var cursor = new idbModules.IDBCursor(range, direction, this.source, cursorRequest, this.indexName, "value");
+    return cursorRequest;
+  };
+  IDBIndex.prototype.openKeyCursor = function(range, direction) {
+    var cursorRequest = new idbModules.IDBRequest();
+    var cursor = new idbModules.IDBCursor(range, direction, this.source, cursorRequest, this.indexName, "key");
+    return cursorRequest;
+  };
+  IDBIndex.prototype.__fetchIndexData = function(key, opType) {
+    var me = this;
+    return me.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      var sql = ["SELECT * FROM ", idbModules.util.quote(me.__idbObjectStore.name), " WHERE", me.indexName, "NOT NULL"];
+      var sqlValues = [];
+      if (typeof key !== "undefined") {
+        sql.push("AND", me.indexName, " = ?");
+        sqlValues.push(idbModules.Key.encode(key));
+      }
+      idbModules.DEBUG && console.log("Trying to fetch data for Index", sql.join(" "), sqlValues);
+      tx.executeSql(sql.join(" "), sqlValues, function(tx, data) {
+        var d;
+        if (typeof opType === "count") {
+          d = data.rows.length;
+        } else if (data.rows.length === 0) {
+          d = undefined;
+        } else if (opType === "key") {
+          d = idbModules.Key.decode(data.rows.item(0).key);
+        } else {
+          d = idbModules.Sca.decode(data.rows.item(0).value);
+        }
+        success(d);
+      }, error);
+    });
+  };
+  IDBIndex.prototype.get = function(key) {
+    return this.__fetchIndexData(key, "value");
+  };
+  IDBIndex.prototype.getKey = function(key) {
+    return this.__fetchIndexData(key, "key");
+  };
+  IDBIndex.prototype.count = function(key) {
+    return this.__fetchIndexData(key, "count");
+  };
+  idbModules.IDBIndex = IDBIndex;
+}(idbModules));
+(function(idbModules) {
+  var IDBObjectStore = function(name, idbTransaction, ready) {
+      this.name = name;
+      this.transaction = idbTransaction;
+      this.__ready = {};
+      this.__setReadyState("createObjectStore", typeof ready === "undefined" ? true : ready);
+      this.indexNames = new idbModules.util.StringList();
+    };
+  IDBObjectStore.prototype.__setReadyState = function(key, val) {
+    this.__ready[key] = val;
+  };
+  IDBObjectStore.prototype.__waitForReady = function(callback, key) {
+    var ready = true;
+    if (typeof key !== "undefined") {
+      ready = (typeof this.__ready[key] === "undefined") ? true : this.__ready[key];
+    } else {
+      for (var x in this.__ready) {
+        if (!this.__ready[x]) {
+          ready = false;
+        }
+      }
+    }
+    if (ready) {
+      callback();
+    } else {
+      idbModules.DEBUG && console.log("Waiting for to be ready", key);
+      var me = this;
+      window.setTimeout(function() {
+        me.__waitForReady(callback, key);
+      }, 100);
+    }
+  };
+  IDBObjectStore.prototype.__getStoreProps = function(tx, callback, waitOnProperty) {
+    var me = this;
+    this.__waitForReady(function() {
+      if (me.__storeProps) {
+        idbModules.DEBUG && console.log("Store properties - cached", me.__storeProps);
+        callback(me.__storeProps);
+      } else {
+        tx.executeSql("SELECT * FROM __sys__ where name = ?", [me.name], function(tx, data) {
+          if (data.rows.length !== 1) {
+            callback();
+          } else {
+            me.__storeProps = {
+              "name": data.rows.item(0).name,
+              "indexList": data.rows.item(0).indexList,
+              "autoInc": data.rows.item(0).autoInc,
+              "keyPath": data.rows.item(0).keyPath
+            };
+            idbModules.DEBUG && console.log("Store properties", me.__storeProps);
+            callback(me.__storeProps);
+          }
+        }, function() {
+          callback();
+        });
+      }
+    }, waitOnProperty);
+  };
+  IDBObjectStore.prototype.__deriveKey = function(tx, value, key, callback) {
+    function getNextAutoIncKey() {
+      tx.executeSql("SELECT * FROM sqlite_sequence where name like ?", [me.name], function(tx, data) {
+        if (data.rows.length !== 1) {
+          callback(0);
+        } else {
+          callback(data.rows.item(0).seq);
+        }
+      }, function(tx, error) {
+        idbModules.util.throwDOMException(0, "Data Error - Could not get the auto increment value for key", error);
+      });
+    }
+    var me = this;
+    me.__getStoreProps(tx, function(props) {
+      if (!props) {
+        idbModules.util.throwDOMException(0, "Data Error - Could not locate defination for this table", props);
+      }
+      if (props.keyPath) {
+        if (typeof key !== "undefined") {
+          idbModules.util.throwDOMException(0, "Data Error - The object store uses in-line keys and the key parameter was provided", props);
+        }
+        if (value) {
+          try {
+            var primaryKey = eval("value['" + props.keyPath + "']");
+            if (!primaryKey) {
+              if (props.autoInc === "true") {
+                getNextAutoIncKey();
+              } else {
+                idbModules.util.throwDOMException(0, "Data Error - Could not eval key from keyPath");
+              }
+            } else {
+              callback(primaryKey);
+            }
+          } catch (e) {
+            idbModules.util.throwDOMException(0, "Data Error - Could not eval key from keyPath", e);
+          }
+        } else {
+          idbModules.util.throwDOMException(0, "Data Error - KeyPath was specified, but value was not");
+        }
+      } else {
+        if (typeof key !== "undefined") {
+          callback(key);
+        } else {
+          if (props.autoInc === "false") {
+            idbModules.util.throwDOMException(0, "Data Error - The object store uses out-of-line keys and has no key generator and the key parameter was not provided. ", props);
+          } else {
+            getNextAutoIncKey();
+          }
+        }
+      }
+    });
+  };
+  IDBObjectStore.prototype.__insertData = function(tx, value, primaryKey, success, error) {
+    var paramMap = {};
+    if (typeof primaryKey !== "undefined") {
+      paramMap.key = idbModules.Key.encode(primaryKey);
+    }
+    var indexes = JSON.parse(this.__storeProps.indexList);
+    for (var key in indexes) {
+      try {
+        paramMap[indexes[key].columnName] = idbModules.Key.encode(eval("value['" + indexes[key].keyPath + "']"));
+      } catch (e) {
+        error(e);
+      }
+    }
+    var sqlStart = ["INSERT INTO ", idbModules.util.quote(this.name), "("];
+    var sqlEnd = [" VALUES ("];
+    var sqlValues = [];
+    for (key in paramMap) {
+      sqlStart.push(key + ",");
+      sqlEnd.push("?,");
+      sqlValues.push(paramMap[key]);
+    }
+    sqlStart.push("value )");
+    sqlEnd.push("?)");
+    sqlValues.push(idbModules.Sca.encode(value));
+    var sql = sqlStart.join(" ") + sqlEnd.join(" ");
+    idbModules.DEBUG && console.log("SQL for adding", sql, sqlValues);
+    tx.executeSql(sql, sqlValues, function(tx, data) {
+      success(primaryKey);
+    }, function(tx, err) {
+      error(err);
+    });
+  };
+  IDBObjectStore.prototype.add = function(value, key) {
+    var me = this;
+    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__deriveKey(tx, value, key, function(primaryKey) {
+        me.__insertData(tx, value, primaryKey, success, error);
+      });
+    });
+  };
+  IDBObjectStore.prototype.put = function(value, key) {
+    var me = this;
+    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__deriveKey(tx, value, key, function(primaryKey) {
+        var sql = "DELETE FROM " + idbModules.util.quote(me.name) + " where key = ?";
+        tx.executeSql(sql, [idbModules.Key.encode(primaryKey)], function(tx, data) {
+          idbModules.DEBUG && console.log("Did the row with the", primaryKey, "exist? ", data.rowsAffected);
+          me.__insertData(tx, value, primaryKey, success, error);
+        }, function(tx, err) {
+          error(err);
+        });
+      });
+    });
+  };
+  IDBObjectStore.prototype.get = function(key) {
+    var me = this;
+    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__waitForReady(function() {
+        var primaryKey = idbModules.Key.encode(key);
+        idbModules.DEBUG && console.log("Fetching", me.name, primaryKey);
+        tx.executeSql("SELECT * FROM " + idbModules.util.quote(me.name) + " where key = ?", [primaryKey], function(tx, data) {
+          idbModules.DEBUG && console.log("Fetched data", data);
+          try {
+            if (0 === data.rows.length) {
+              return success();
+            }
+            success(idbModules.Sca.decode(data.rows.item(0).value));
+          } catch (e) {
+            idbModules.DEBUG && console.log(e);
+            success(undefined);
+          }
+        }, function(tx, err) {
+          error(err);
+        });
+      });
+    });
+  };
+  IDBObjectStore.prototype["delete"] = function(key) {
+    var me = this;
+    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__waitForReady(function() {
+        var primaryKey = idbModules.Key.encode(key);
+        idbModules.DEBUG && console.log("Fetching", me.name, primaryKey);
+        tx.executeSql("DELETE FROM " + idbModules.util.quote(me.name) + " where key = ?", [primaryKey], function(tx, data) {
+          idbModules.DEBUG && console.log("Deleted from database", data.rowsAffected);
+          success();
+        }, function(tx, err) {
+          error(err);
+        });
+      });
+    });
+  };
+  IDBObjectStore.prototype.clear = function() {
+    var me = this;
+    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__waitForReady(function() {
+        tx.executeSql("DELETE FROM " + idbModules.util.quote(me.name), [], function(tx, data) {
+          idbModules.DEBUG && console.log("Cleared all records from database", data.rowsAffected);
+          success();
+        }, function(tx, err) {
+          error(err);
+        });
+      });
+    });
+  };
+  IDBObjectStore.prototype.count = function(key) {
+    var me = this;
+    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
+      me.__waitForReady(function() {
+        var sql = "SELECT * FROM " + idbModules.util.quote(me.name) + ((typeof key !== "undefined") ? " WHERE key = ?" : "");
+        var sqlValues = [];
+        (typeof key !== "undefined") && sqlValues.push(idbModules.Key.encode(key));
+        tx.executeSql(sql, sqlValues, function(tx, data) {
+          success(data.rows.length);
+        }, function(tx, err) {
+          error(err);
+        });
+      });
+    });
+  };
+  IDBObjectStore.prototype.openCursor = function(range, direction) {
+    var cursorRequest = new idbModules.IDBRequest();
+    var cursor = new idbModules.IDBCursor(range, direction, this, cursorRequest, "key", "value");
+    return cursorRequest;
+  };
+  IDBObjectStore.prototype.index = function(indexName) {
+    var index = new idbModules.IDBIndex(indexName, this);
+    return index;
+  };
+  IDBObjectStore.prototype.createIndex = function(indexName, keyPath, optionalParameters) {
+    var me = this;
+    optionalParameters = optionalParameters || {};
+    me.__setReadyState("createIndex", false);
+    var result = new idbModules.IDBIndex(indexName, me);
+    me.__waitForReady(function() {
+      result.__createIndex(indexName, keyPath, optionalParameters);
+    }, "createObjectStore");
+    me.indexNames.push(indexName);
+    return result;
+  };
+  IDBObjectStore.prototype.deleteIndex = function(indexName) {
+    var result = new idbModules.IDBIndex(indexName, this, false);
+    result.__deleteIndex(indexName);
+    return result;
+  };
+  idbModules.IDBObjectStore = IDBObjectStore;
+}(idbModules));
+(function(idbModules) {
+  var READ = 0;
+  var READ_WRITE = 1;
+  var VERSION_TRANSACTION = 2;
+  var IDBTransaction = function(storeNames, mode, db) {
+      if (typeof mode === "number") {
+        this.mode = mode;
+        (mode !== 2) && idbModules.DEBUG && console.log("Mode should be a string, but was specified as ", mode);
+      } else if (typeof mode === "string") {
+        switch (mode) {
+        case "readonly":
+          this.mode = READ_WRITE;
+          break;
+        case "readwrite":
+          this.mode = READ;
+          break;
+        default:
+          this.mode = READ;
+          break;
+        }
+      }
+      this.storeNames = typeof storeNames === "string" ? [storeNames] : storeNames;
+      for (var i = 0; i < this.storeNames.length; i++) {
+        if (!db.objectStoreNames.contains(this.storeNames[i])) {
+          idbModules.util.throwDOMException(0, "The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.", this.storeNames[i]);
+        }
+      }
+      this.__active = true;
+      this.__running = false;
+      this.__requests = [];
+      this.__aborted = false;
+      this.db = db;
+      this.error = null;
+      this.onabort = this.onerror = this.oncomplete = null;
+      var me = this;
+    };
+  IDBTransaction.prototype.__executeRequests = function() {
+    if (this.__running && this.mode !== VERSION_TRANSACTION) {
+      idbModules.DEBUG && console.log("Looks like the request set is already running", this.mode);
+      return;
+    }
+    this.__running = true;
+    var me = this;
+    window.setTimeout(function() {
+      if (me.mode !== 2 && !me.__active) {
+        idbModules.util.throwDOMException(0, "A request was placed against a transaction which is currently not active, or which is finished", me.__active);
+      }
+      me.db.__db.transaction(function(tx) {
+        me.__tx = tx;
+        var q = null,
+          i = 0;
+
+        function success(result, req) {
+          if (req) {
+            q.req = req;
+          }
+          q.req.readyState = "done";
+          q.req.result = result;
+          delete q.req.error;
+          var e = idbModules.Event("success");
+          idbModules.util.callback("onsuccess", q.req, e);
+          i++;
+          executeRequest();
+        }
+
+        function error(errorVal) {
+          q.req.readyState = "done";
+          q.req.error = "DOMError";
+          var e = idbModules.Event("error", arguments);
+          idbModules.util.callback("onerror", q.req, e);
+          i++;
+          executeRequest();
+        }
+        try {
+          function executeRequest() {
+            if (i >= me.__requests.length) {
+              me.__active = false;
+              me.__requests = [];
+              return;
+            }
+            q = me.__requests[i];
+            q.op(tx, q.args, success, error);
+          }
+          executeRequest();
+        } catch (e) {
+          idbModules.DEBUG && console.log("An exception occured in transaction", arguments);
+          typeof me.onerror === "function" && me.onerror();
+        }
+      }, function() {
+        idbModules.DEBUG && console.log("An error in transaction", arguments);
+        typeof me.onerror === "function" && me.onerror();
+      }, function() {
+        idbModules.DEBUG && console.log("Transaction completed", arguments);
+        typeof me.oncomplete === "function" && me.oncomplete();
+      });
+    }, 1);
+  };
+  IDBTransaction.prototype.__addToTransactionQueue = function(callback, args) {
+    if (!this.__active && this.mode !== VERSION_TRANSACTION) {
+      idbModules.util.throwDOMException(0, "A request was placed against a transaction which is currently not active, or which is finished.", this.__mode);
+    }
+    var request = new idbModules.IDBRequest();
+    request.source = this.db;
+    this.__requests.push({
+      "op": callback,
+      "args": args,
+      "req": request
+    });
+    this.__executeRequests();
+    return request;
+  };
+  IDBTransaction.prototype.objectStore = function(objectStoreName) {
+    return new idbModules.IDBObjectStore(objectStoreName, this);
+  };
+  IDBTransaction.prototype.abort = function() {
+    !this.__active && idbModules.util.throwDOMException(0, "A request was placed against a transaction which is currently not active, or which is finished", this.__active);
+  };
+  IDBTransaction.prototype.READ_ONLY = 0;
+  IDBTransaction.prototype.READ_WRITE = 1;
+  IDBTransaction.prototype.VERSION_CHANGE = 2;
+  idbModules.IDBTransaction = IDBTransaction;
+}(idbModules));
+(function(idbModules) {
+  var IDBDatabase = function(db, name, version, storeProperties) {
+      this.__db = db;
+      this.version = version;
+      this.__storeProperties = storeProperties;
+      this.objectStoreNames = new idbModules.util.StringList();
+      for (var i = 0; i < storeProperties.rows.length; i++) {
+        this.objectStoreNames.push(storeProperties.rows.item(i).name);
+      }
+      this.name = name;
+      this.onabort = this.onerror = this.onversionchange = null;
+    };
+  IDBDatabase.prototype.createObjectStore = function(storeName, createOptions) {
+    var me = this;
+    createOptions = createOptions || {};
+    createOptions.keyPath = createOptions.keyPath || null;
+    var result = new idbModules.IDBObjectStore(storeName, me.__versionTransaction, false);
+    var transaction = me.__versionTransaction;
+    transaction.__addToTransactionQueue(function(tx, args, success, failure) {
+      function error() {
+        idbModules.util.throwDOMException(0, "Could not create new object store", arguments);
+      }
+      if (!me.__versionTransaction) {
+        idbModules.util.throwDOMException(0, "Invalid State error", me.transaction);
+      }
+      var sql = ["CREATE TABLE", idbModules.util.quote(storeName), "(key BLOB", createOptions.autoIncrement ? ", inc INTEGER PRIMARY KEY AUTOINCREMENT" : "PRIMARY KEY", ", value BLOB)"].join(" ");
+      idbModules.DEBUG && console.log(sql);
+      tx.executeSql(sql, [], function(tx, data) {
+        tx.executeSql("INSERT INTO __sys__ VALUES (?,?,?,?)", [storeName, createOptions.keyPath, createOptions.autoIncrement ? true : false, "{}"], function() {
+          result.__setReadyState("createObjectStore", true);
+          success(result);
+        }, error);
+      }, error);
+    });
+    me.objectStoreNames.push(storeName);
+    return result;
+  };
+  IDBDatabase.prototype.deleteObjectStore = function(storeName) {
+    var error = function() {
+        idbModules.util.throwDOMException(0, "Could not delete ObjectStore", arguments);
+      };
+    var me = this;
+    !me.objectStoreNames.contains(storeName) && error("Object Store does not exist");
+    me.objectStoreNames.splice(me.objectStoreNames.indexOf(storeName), 1);
+    var transaction = me.__versionTransaction;
+    transaction.__addToTransactionQueue(function(tx, args, success, failure) {
+      if (!me.__versionTransaction) {
+        idbModules.util.throwDOMException(0, "Invalid State error", me.transaction);
+      }
+      me.__db.transaction(function(tx) {
+        tx.executeSql("SELECT * FROM __sys__ where name = ?", [storeName], function(tx, data) {
+          if (data.rows.length > 0) {
+            tx.executeSql("DROP TABLE " + idbModules.util.quote(storeName), [], function() {
+              tx.executeSql("DELETE FROM __sys__ WHERE name = ?", [storeName], function() {}, error);
+            }, error);
+          }
+        });
+      });
+    });
+  };
+  IDBDatabase.prototype.close = function() {};
+  IDBDatabase.prototype.transaction = function(storeNames, mode) {
+    var transaction = new idbModules.IDBTransaction(storeNames, mode || 1, this);
+    return transaction;
+  };
+  idbModules.IDBDatabase = IDBDatabase;
+}(idbModules));
+(function(idbModules) {
+  var DEFAULT_DB_SIZE = 4 * 1024 * 1024;
+  if (!window.openDatabase) {
+    return;
+  }
+  var sysdb = window.openDatabase("__sysdb__", 1, "System Database", DEFAULT_DB_SIZE);
+  sysdb.transaction(function(tx) {
+    tx.executeSql("SELECT * FROM dbVersions", [], function(t, data) {}, function() {
+      sysdb.transaction(function(tx) {
+        tx.executeSql("CREATE TABLE IF NOT EXISTS dbVersions (name VARCHAR(255), version INT);", [], function() {}, function() {
+          idbModules.util.throwDOMException("Could not create table __sysdb__ to save DB versions");
+        });
+      });
+    });
+  }, function() {
+    idbModules.DEBUG && console.log("Error in sysdb transaction - when selecting from dbVersions", arguments);
+  });
+  var shimIndexedDB = {
+    open: function(name, version) {
+      var req = new idbModules.IDBOpenRequest();
+      var calledDbCreateError = false;
+
+      function dbCreateError() {
+        if (calledDbCreateError) {
+          return;
+        }
+        var e = idbModules.Event("error", arguments);
+        req.readyState = "done";
+        req.error = "DOMError";
+        idbModules.util.callback("onerror", req, e);
+        calledDbCreateError = true;
+      }
+
+      function openDB(oldVersion) {
+        var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
+        req.readyState = "done";
+        if (typeof version === "undefined") {
+          version = oldVersion || 1;
+        }
+        if (version <= 0 || oldVersion > version) {
+          idbModules.util.throwDOMException(0, "An attempt was made to open a database using a lower version than the existing version.", version);
+        }
+        db.transaction(function(tx) {
+          tx.executeSql("CREATE TABLE IF NOT EXISTS __sys__ (name VARCHAR(255), keyPath VARCHAR(255), autoInc BOOLEAN, indexList BLOB)", [], function() {
+            tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
+              var e = idbModules.Event("success");
+              req.source = req.result = new idbModules.IDBDatabase(db, name, version, data);
+              if (oldVersion < version) {
+                sysdb.transaction(function(systx) {
+                  systx.executeSql("UPDATE dbVersions set version = ? where name = ?", [version, name], function() {
+                    var e = idbModules.Event("upgradeneeded");
+                    e.oldVersion = oldVersion;
+                    e.newVersion = version;
+                    req.transaction = req.result.__versionTransaction = new idbModules.IDBTransaction([], 2, req.source);
+                    idbModules.util.callback("onupgradeneeded", req, e, function() {
+                      var e = idbModules.Event("success");
+                      idbModules.util.callback("onsuccess", req, e);
+                    });
+                  }, dbCreateError);
+                }, dbCreateError);
+              } else {
+                idbModules.util.callback("onsuccess", req, e);
+              }
+            }, dbCreateError);
+          }, dbCreateError);
+        }, dbCreateError);
+      }
+      sysdb.transaction(function(tx) {
+        tx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
+          if (data.rows.length === 0) {
+            tx.executeSql("INSERT INTO dbVersions VALUES (?,?)", [name, version || 1], function() {
+              openDB(0);
+            }, dbCreateError);
+          } else {
+            openDB(data.rows.item(0).version);
+          }
+        }, dbCreateError);
+      }, dbCreateError);
+      return req;
+    },
+    "deleteDatabase": function(name) {
+      var req = new idbModules.IDBOpenRequest();
+      var calledDBError = false;
+
+      function dbError(msg) {
+        if (calledDBError) {
+          return;
+        }
+        req.readyState = "done";
+        req.error = "DOMError";
+        var e = idbModules.Event("error");
+        e.message = msg;
+        e.debug = arguments;
+        idbModules.util.callback("onerror", req, e);
+        calledDBError = true;
+      }
+      var version = null;
+
+      function deleteFromDbVersions() {
+        sysdb.transaction(function(systx) {
+          systx.executeSql("DELETE FROM dbVersions where name = ? ", [name], function() {
+            req.result = undefined;
+            var e = idbModules.Event("success");
+            e.newVersion = null;
+            e.oldVersion = version;
+            idbModules.util.callback("onsuccess", req, e);
+          }, dbError);
+        }, dbError);
+      }
+      sysdb.transaction(function(systx) {
+        systx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
+          if (data.rows.length === 0) {
+            req.result = undefined;
+            var e = idbModules.Event("success");
+            e.newVersion = null;
+            e.oldVersion = version;
+            idbModules.util.callback("onsuccess", req, e);
+            return;
+          }
+          version = data.rows.item(0).version;
+          var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
+          db.transaction(function(tx) {
+            tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
+              var tables = data.rows;
+              (function deleteTables(i) {
+                if (i >= tables.length) {
+                  tx.executeSql("DROP TABLE __sys__", [], function() {
+                    deleteFromDbVersions();
+                  }, dbError);
+                } else {
+                  tx.executeSql("DROP TABLE " + idbModules.util.quote(tables.item(i).name), [], function() {
+                    deleteTables(i + 1);
+                  }, function() {
+                    deleteTables(i + 1);
+                  });
+                }
+              }(0));
+            }, function(e) {
+              deleteFromDbVersions();
+            });
+          }, dbError);
+        });
+      }, dbError);
+      return req;
+    },
+    "cmp": function(key1, key2) {
+      return idbModules.Key.encode(key1) > idbModules.Key.encode(key2) ? 1 : key1 === key2 ? 0 : -1;
+    }
+  };
+  idbModules.shimIndexedDB = shimIndexedDB;
+}(idbModules));
+(function(window, idbModules) {
+  if (typeof window.openDatabase !== "undefined") {
+    window.shimIndexedDB = idbModules.shimIndexedDB;
+    if (window.shimIndexedDB) {
+      window.shimIndexedDB.__useShim = function() {
+        window.indexedDB = idbModules.shimIndexedDB;
+        window.IDBDatabase = idbModules.IDBDatabase;
+        window.IDBTransaction = idbModules.IDBTransaction;
+        window.IDBCursor = idbModules.IDBCursor;
+        window.IDBKeyRange = idbModules.IDBKeyRange;
+      };
+      window.shimIndexedDB.__debug = function(val) {
+        idbModules.DEBUG = val;
+      };
+    }
+  }
+  window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+  if (typeof window.indexedDB === "undefined" && typeof window.openDatabase !== "undefined") {
+    window.shimIndexedDB.__useShim();
+  } else {
+    window.IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase;
+    window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction;
+    window.IDBCursor = window.IDBCursor || window.webkitIDBCursor;
+    window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+    window.IDBTransaction.READ_ONLY = window.IDBTransaction.READ_ONLY || "readonly";
+    window.IDBTransaction.READ_WRITE = window.IDBTransaction.READ_WRITE || "readwrite";
+  }
+}(window, idbModules));
+
+
 /* -*- Mode: Javascript; -*- */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -5041,6 +6057,20 @@ fdjt.State=
             else return false;}
         fdjtState.getParam=getParam;
 
+        function urlBase(href){
+            if (!(href)) href=location.href;
+            var qmark=href.indexOf('?'), hash=href.indexOf('#');
+            if ((qmark<0)&&(hash<0))
+                return href;
+            else if (qmark<0)
+                return href.slice(0,hash);
+            else if (hash<0) 
+                return href.slice(0,hash);
+            else if (qmark<hash)
+                return href.slice(qmark);
+            else return href.slice(hash);}
+        fdjtState.urlBase=urlBase;
+
         function getQuery(name,multiple,matchcase,verbatim){
             if (!(location.search))
                 if (multiple) return [];
@@ -5050,6 +6080,34 @@ fdjt.State=
             return getParam(from,name,multiple,matchcase,verbatim);}
         fdjtState.getQuery=getQuery;
         
+        function setQuery(name,value){
+            if (typeof value !== 'string') value=value.toString();
+            var newq=false;
+            var ename=encodeURIComponent(name);
+            var evalue=encodeURIComponent(value);
+            if (!(location.search)) {
+                newq="?"+ename+"="+evalue;}
+            else {
+                var qstring=location.search;
+                var exists=qstring.search("&"+ename+"=");
+                if (exists<0) exists=qstring.search("?"+ename+"=");
+                if (exists>=0) {
+                    var vstart=exists+2+ename.length;
+                    var before=qstring.slice(0,vstart);
+                    var vend=qstring.indexOf('&',vstart);
+                    var after=(vend<0)?(""):(qstring.slice(vend));
+                    if (qstring.slice(vstart,vend)!==evalue) {
+                        newq=before+evalue+after;}}
+                else {
+                    var sep=(qstring.search(/[&]$/)<0)?("&"):("");
+                    newq=qstring+sep+ename+"="+evalue;}}
+            if (history) {
+                var base=urlBase();
+                history.replaceState(history.state,window.title,
+                                     base+newq+location.hash);}
+            else location.search=newq;}
+        fdjtState.setQuery=setQuery;
+
         function getHash(name,multiple,matchcase,verbatim){
             if (!(location.hash))
                 if (multiple) return [];
@@ -5219,9 +6277,9 @@ fdjt.State=
 
 fdjt.iDB=(function(){
     "use strict";
-    var iDB={}, device=fdjt.device;
-    if ((!(window.indexedDB))||
-        ((device.ios)&&(device.standalone))) {
+    var iDB={};
+    if ((idbModules)&&
+        ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
         iDB.IDBDatabase = idbModules.IDBDatabase;
         iDB.IDBTransaction = idbModules.IDBTransaction;
@@ -16631,2006 +17689,6 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 */
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
-/* ##################### knodules/knodules.js ####################### */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file provides a Javascript/ECMAScript of KNODULES, 
-   a lightweight knowledge representation facility.
-
-   For more information on knodules, visit www.knodules.net
-   For more information about beingmeta, visit www.beingmeta.com
-
-   This library is built on the FDJT (www.fdjt.org) toolkit.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   Use, modification and redistribution of this program is permitted
-   under the GNU General Public License (GPL) Version 2:
-
-   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-
-   Use and redistribution (especially embedding in other
-   CC licensed content) is permitted under the terms of the
-   Creative Commons "Attribution-NonCommercial" license:
-
-   http://creativecommons.org/licenses/by-nc/3.0/ 
-
-   Other uses may be allowed based on prior agreement with
-   beingmeta, inc.  Inquiries can be addressed to:
-
-   licensing@biz.beingmeta.com
-
-   Enjoy!
-
-*/
-
-//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
-
-var Knodule=(function(){
-    "use strict";
-    var fdjtString=fdjt.String;
-    var fdjtTime=fdjt.Time;
-    var fdjtLog=fdjt.Log;
-    var RefDB=fdjt.RefDB;
-    var Ref=fdjt.Ref;
-    var warn=fdjtLog.warn;
-
-    var ObjectMap=RefDB.ObjectMap;
-
-    var trace_parsing=0;
-
-    var lang_pat=/^(([A-Za-z]{2,3}\$)|([A-Za-z]{2,3}_[A-Za-z]{2,3}\$))/;
-
-    function Knodule(id,inits) {
-        // Using as a prototype
-        if (arguments.length===0) return this;
-        if (!(inits)) inits={};
-        if (inits.indices)
-            inits.indices=inits.indices.concat(
-                ["terms","hooks","genls","specls","allgenls"]);
-        else inits.indices=["terms","hooks","genls","specls","allgenls"];
-        var lang=inits.language;
-        var knodule=RefDB.call(this,id,inits);
-        if ((lang)&&(knodule.language!==lang))
-            throw { error: "language mismatch" };
-        // The default language for this knodule
-        if ((inits.language)&&(knodule.language)&&
-            (inits.language!==knodule.language))
-            throw { error: "language mismatch" };
-        else if (inits.language)
-            knodule.language=inits.language;
-        else knodule.language='EN';
-        // Mapping dterms (univocal references) to KNode objects
-        // (many-to-one).  This redundantly combines refs and altrefs
-        // from the underlying ref objects.
-        knodule.dterms={};
-        // A vector of all dterms local to this knodule
-        knodule.alldterms=[];
-        // Prime (important) dterms
-        knodule.prime=[]; knodule.primescores={};
-        // Whether to validate asserted relations
-        knodule.validate=true;
-        // Whether the knodule is 'strict'
-        // (requiring dterm definitions for all references)
-        knodule.strict=false;
-        // Whether the knodule is 'finished' (all references declared)
-        knodule.finished=false;
-        // Terms which are assumed unique.  This is used in non-strict
-        // knodules to catch terms that become ambiguous.
-        knodule.assumed_dterms=[];
-        // Mapping external dterms to their knodes
-        knodule.xdterms={};
-        // A vector of all foreign knode references
-        knodule.allxdterms=[];
-        // Inverted index for genls in particular (useful for
-        // faster search, inferences, etc)
-        knodule.allwaysIndex=new ObjectMap();
-        // This maps external OIDs to knodes
-        knodule.oidmap={};
-        // DRULES (disambiguation rules)
-        knodule.drules={};
-        return knodule;}
-    Knodule.prototype=new RefDB();
-    Knodule.prototype.language=
-        Knodule.prototype.dterms=Knodule.prototype.alldterms=
-        Knodule.prototype.prime=Knodule.prototype.primescores=
-        Knodule.prototype.validate=Knodule.prototype.strict=
-        Knodule.prototype.finished=Knodule.prototype.assumed_dterms=
-        Knodule.prototype.xdterms=Knodule.prototype.allxdterms=
-        Knodule.prototype.allwaysIndex=Knodule.prototype.oidmap=
-        Knodule.prototype.drules=false;
-    
-    Knodule.prototype.toString=function(){
-        return "Knodule("+this.name+")";};
-
-    var stdcap=fdjtString.stdcap;
-
-    function KNode(string,knodule,lang){
-        if (arguments.length===0) return this;
-        var weak=false; var prime=
-            ((string[0]==='*')&&(string.search(/[^*]/)));
-        var newprime=false, knode=this, notword=false;
-        if (string[0]==='~') {weak=true; string=string.slice(1);}
-        else if (prime) {
-            string=string.slice(prime);
-            if (!(knodule.primescores[string])) {
-                if (prime>(knodule.primescores[string]))
-                    knodule.primescores[string]=prime;
-                newprime=true;}}
-        var atpos=string.indexOf('@');
-        if ((atpos===0)||((atpos===1)&&(string[0]===':'))) notword=true;
-        else if ((atpos>2)&&(string[atpos-1]!=='\\')) {
-            var domain=string.slice(atpos+1);
-            if ((domain!==knodule.name)&&
-                (knodule.aliases.indexOf(domain)<0))
-                warn("Reference %s in %s is being handled by %s",
-                     string,domain,knodule);
-            string=string.slice(0,atpos);}
-        if (notword) {}
-        else if (string.search(lang_pat)===0) {
-            var dollar=string.indexOf('$');
-            lang=string.slice(0,dollar).toUpperCase();
-            string=string.slice(dollar+1);}
-        else if (lang) lang=lang.toUpperCase();
-        else lang=knodule.language||"EN";
-        // Normalize capitalization
-        string=stdcap(string);
-        var refterm=(lang===knodule.language)?(string):lang+"$"+string;
-        knode=Ref.call(this,refterm,knodule);
-        if (knode===this) {
-            if (!(knode.dterm)) knode.dterm=refterm;
-            knode.add('dterms',refterm);
-            if (!(knodule.dterms.hasOwnProperty(refterm))) {
-                knodule.dterms[refterm]=knode;
-                knodule.alldterms.push(refterm);}
-            knode.allways=fdjt.Set();
-            if (lang) knode.add(lang,string);
-            knode._live=fdjtTime();}
-        if (weak) knode.weak=true;
-        if (prime) knode.prime=prime;
-        if ((prime)&&(newprime)) knodule.prime.push(knode);
-        if ((lang)&&(lang!==knodule.language)) knode.language=lang;
-        return knode;}
-    KNode.prototype=new RefDB.Ref();
-    KNode.prototype.dterms=false;
-    Knodule.refclass=Knodule.prototype.refclass=KNode;
-
-    Knodule.KNode=KNode;
-    Knodule.Knode=KNode;
-    Knodule.prototype.KNode=Knodule.prototype.Knode=function(arg,inits) {
-        if (arg instanceof KNode) {
-            if (arg._db===this)
-                // Should this do some kind of import?
-                return arg;
-            else return arg;}
-        else return new KNode(arg,this,inits);};
-    Knodule.prototype.cons=function(string,lang) {
-        return new KNode(string,this,lang);};
-    Knodule.prototype.probe=function(string,langid) {
-        var refs=this.refs, aliases=this.aliases;
-        // Normalize string for knodules
-        string=stdcap(string);
-        if ((this.language===langid)||(!(langid)))
-            return ((refs.hasOwnProperty(string))&&(refs[string]))||
-            ((aliases.hasOwnProperty(string))&&(aliases[string]))||
-            false;
-        else string=langid.toUpperCase()+"$"+string;
-        return this.dterms[langid+"$"+string]||false;};
-    
-    KNode.prototype.add=function(prop,val){
-        var ai=this._db.allwaysIndex;
-        if ((Ref.prototype.add.call(this,prop,val))&&
-            (prop==='genls')) {
-            this.allways.push(val);
-            this.allways=RefDB.merge(this.allways,val.allways);
-            var allways=this.allways, i=0, lim=allways.length;
-            while (i<lim) ai.add(allways[i++],this);
-            var examples=ai.get(this);
-            if (examples) {
-                var e=0, n_examples=examples.length;
-                while (e<n_examples) {
-                    var example=examples[e++];
-                    example.allways=RefDB.merge(example.allways,this.allways);
-                    var j=0, jlim=allways.length;
-                    while (j<jlim) ai.add(allways[j++],example);}}
-            return true;}
-        else return false;};
-    KNode.prototype.addTerm=function(val,field,inlang){
-        if ((typeof val === 'string')&&(val.search(lang_pat)===0)) {
-            var dollar=val.indexOf('$');
-            var langspec=val.slice(0,dollar).toUpperCase();
-            var term=val.slice(dollar+1);
-            if (langspec===this._db.language) {
-                if (field) this.add(field,term);
-                else {
-                    this.add(langspec,term);
-                    this.add('terms',term);}}
-            else if (field)
-                this.add(field,langspec+"$"+term);
-            else {
-                this.add(langspec,term);
-                this.add('terms',val);}}
-        else if (inlang) {
-            inlang=inlang.toUpperCase();
-            if (inlang===this._db.language) {
-                if (field) this.add(field,val);
-                else this.add('terms',val);}
-            else if (field) 
-                this.add(field,inlang+"$"+val);
-            else this.add('terms',inlang+"$"+val);}
-        else if (field)
-            this.add(field,val);
-        else {
-            this.add(this._db.language,val);
-            this.add('terms',val);}};
-    KNode.prototype.tagString=function(kno) {
-        if (this.oid) return this.oid;
-        else if (this.uuid) return this.uuid;
-        else if (this._qid) return this._qid;
-        if (!(kno)) kno=Knodule.current||false;
-        if (kno===this._db) return this._id;
-        else if (this._db.absrefs) return this._id;
-        else if (this._domain)
-            return this._id+"@"+this._domain;
-        else return this._id+"@"+this._db.name;};
-    
-    KNode.prototype.toPlaintext=function() {
-        var result="";
-        var variants=this[this._db.language||'EN']; var n=0;
-        if (typeof variants==="string") variants=[variants];
-        var i=0; while (i<variants.length) {
-            result=result+((n>0)?"|":"")+variants[i++]; n++;}
-        var genls=this.genls;
-        if (typeof genls==="string") genls=[genls];
-        if ((genls)&&(genls.length)) {
-            i=0; while (i<genls.length) {
-                result=result+((n>0)?"|^":"^")+genls[i++].dterm; n++;}}
-        var specls=this.specls;
-        if (typeof specls==="string") specls=[specls];
-        if ((specls)&&(specls.length)) {
-            i=0; while (i<specls.length) {
-                result=result+((n>0)?"|_":"_")+specls[i++].dterm; n++;}}
-        return result;};
-
-    function findBreak(string,brk,start) {
-        var pos=string.indexOf(brk,start||0);
-        while (pos>0)
-            if (string[pos-1]!=="\\")
-                return pos;
-        else pos=string.indexOf(brk,pos+1);
-        return pos;}
-
-    var segment=fdjtString.segment;
-
-    /* Processing the PLAINTEXT microformat */
-    Knodule.prototype.handleClause=function handleClause(clause,subject) {
-        var object=false, role=false, value=false;
-        if (clause.indexOf('\\')>=0) clause=fdjtString.unEscape(clause);
-        if (trace_parsing>2)
-            fdjtLog("Handling clause '%s' for %o",clause,subject);
-        if ((clause.length===0)||(clause.search(/[^\n\t ]/g)<0))
-            return;
-        switch (clause[0]) {
-        case '^':
-            if (clause[1]==='~') 
-                subject.add('sometimes',this.KNode(clause.slice(2)));
-            else if (clause[2]==='*') 
-                subject.add('commonly',this.KNode(clause.slice(2)));
-            else {
-                var pstart=findBreak(clause,"(");
-                if (pstart>0) {
-                    var pend=findBreak(clause,")",pstart);
-                    if (pend<0) {
-                        fdjtLog.warn(
-                            "Invalid Knodule clause '%s' for %o (%s)",
-                            clause,subject,subject.dterm);}
-                    else {
-                        role=this.KNode(clause.slice(1,pstart));
-                        object=this.KNode(clause.slice(pstart+1,pend));
-                        object.add(role.dterm,subject);
-                        subject.add('genls',role);}}
-                else subject.add('genls',this.KNode(clause.slice(1)));}
-            break;
-        case '_': {
-            object=this.KNode(clause.slice(1));
-            subject.add('examples',object);
-            object.add('genls',subject);}
-            break;
-        case '-':
-            subject.add('never',this.KNode(clause.slice(1)));
-            break;
-        case '&': {
-            value=clause.slice((clause[1]==="-") ? (2) : (1));
-            var assoc=this.KNode(value);
-            if (clause[1]==="-")
-                subject.add('antiassocs',assoc);
-            else subject.add('assocs',assoc);}
-            break;
-        case '@': 
-            if (clause[1]==="#") 
-                subject.add('tags',clause.slice(2));
-            else subject.add('uri',clause.slice(1));
-            break;
-        case '=':
-            if (clause[1]==='@')
-                subject.oid=clause.slice(1);
-            else if (clause[1]==='*')
-                subject.add('equiv',this.KNode(clause.slice(2)));
-            else if (clause[1]==='~')
-                subject.add('kinda',this.KNode(clause.slice(2)));
-            else if (clause[1]==='=')
-                subject.add('identical',this.KNode(clause.slice(1)));
-            else {
-                var term=clause.slice(1), db=subject._db;
-                if (!(db.dterms.hasOwnProperty(term))) {
-                    subject.add('dterms',term);
-                    db.alldterms.push(term);
-                    db.dterms[term]=subject;}}
-            break;
-        case '+': {
-            if (clause[1]==="*") {
-                subject.gloss=clause.slice(2);
-                subject.addTerm(subject.gloss,'glosses');}
-            else if (clause[1]==="~") {
-                subject.gloss=clause.slice(2);
-                subject.addTerm(subject.gloss,'glosses');}
-            else {
-                subject.gloss=clause.slice(1);
-                subject.addTerm(subject.gloss,"glosses");}}
-            break;
-        case '%': {
-            var mirror=this.KNode(clause.slice(1)), omirror;
-            if (subject.mirror===mirror) break;
-            else {
-                omirror=subject.mirror;
-                fdjtLog.warn("Inconsistent mirrors for %s: +%s and -%s",
-                             subject,mirror,omirror);
-                omirror.mirror=false;}
-            if (mirror.mirror) {
-                var oinvmirror=mirror.mirror;
-                fdjtLog.warn("Inconsistent mirrors for %s: +%s and -%s",
-                             mirror,subject,oinvmirror);
-                omirror.mirror=false;}
-            subject.mirror=mirror; mirror.mirror=subject;}
-            break;
-        case '.': {
-            var brk=findBreak(clause,'=');
-            if (!(brk))
-                throw {name: 'InvalidClause', irritant: clause};
-            role=this.KNode(clause.slice(1,brk));
-            object=this.KNode(clause.slice(brk+1));
-            subject.add(role.dterm,object);
-            object.add('genls',role);}
-            break;
-        case '~': {
-            var hook=clause.slice(1);
-            subject.addTerm(hook,'hooks');}
-            break;
-        case ':': {
-            var equals=findBreak(clause,'=');
-            if (equals>0) {
-                var field=clause.slice(1,equals);
-                var multi=(clause[equals+1]==='+');
-                value=((multi)?(clause.slice(equals+2)):
-                       (clause.slice(equals+1)));
-                if (value[0]==='\\') value=value.slice(1);
-                else if (/\d/.exec(value[0])) {
-                    var number=parseFloat(value);
-                    if ((typeof number === "number")&&((number)||(number===0)))
-                        value=number;}
-                else {}
-                if (multi) subject.add(field,value);
-                else subject.store(field,value);}
-            subject.add('flags',clause.slice(1));}
-            break;
-        default: {
-            var eqbrk=findBreak(clause,'=');
-            if (eqbrk>0) {
-                role=this.KNode(clause.slice(0,eqbrk));
-                object=this.KNode(clause.slice(eqbrk+1));
-                subject.add(role.dterm,object);
-                object.add('genls',role);}
-            else subject.addTerm(clause);}}
-        return subject;};
-
-    function getSubject(knodule,clauses){
-        var ref=stdcap(clauses[0]);
-        var probe=knodule.probe(ref);
-        if (probe) return probe;
-        else {
-            var i=1, lim=clauses.length; while (i<lim) {
-                var clause=clauses[i++];
-                if (clause[0]==='=') {
-                    probe=knodule.probe(stdcap(clause.slice(1)));
-                    if (probe) return probe;}}
-            return knodule.KNode(clauses[0]);}}
-
-    Knodule.prototype.handleSubjectEntry=function handleSubjectEntry(entry){
-        var clauses=segment(entry,/[|]/g);
-        var subject=getSubject(this,clauses);
-        if (this.trace_parsing>2)
-            fdjtLog("Processing subject entry %s %o %o",
-                    entry,subject,clauses);
-        var i=1; while (i<clauses.length)
-            this.handleClause(clauses[i++],subject);
-        if (this.trace_parsing>2)
-            fdjtLog("Processed subject entry %o",subject);
-        return subject;};
-
-    Knodule.prototype.handleEntry=function handleEntry(entry){
-        entry=entry.trim();
-        if (entry.length===0) return false;
-        var starpower=entry.search(/[^*]/);
-        if (starpower>0) entry=entry.slice(starpower);
-        var bar=fdjtString.findSplit(entry,'|');
-        var atsign=fdjtString.findSplit(entry,'@');
-        var subject;
-        if ((atsign>0) && ((bar<0)||(atsign<bar))) {
-            // This is a foreign dterm reference (+def), e.g.
-            //  dog@beingmeta.com|doggy|^mammal
-            var term=entry.slice(0,atsign);
-            var knostring=((bar<0) ? (entry.slice(atsign+1)) :
-                           (entry.slice(atsign+1,bar)));
-            var knodule=new Knodule(knostring);
-            if (knodule instanceof Knodule)
-                subject=((bar<0)?(knodule.KNode(term)):
-                         (knodule.handleEntry(term+entry.slice(bar))));
-            else {
-                warn("Resolved %s to non-knodule %o",entry,knodule);
-                subject=knodule.ref(term);}}
-        else subject=this.handleSubjectEntry(entry);
-        if (starpower) {
-            var id=subject._id;
-            var prime=this.prime; var scores=this.primescores;
-            var score=scores[id];
-            if (score) {
-                if (starpower>score) {
-                    scores[id]=starpower;
-                    subject.prime=starpower;}}
-            else {
-                prime.push(id);
-                scores[id]=starpower;
-                subject.prime=starpower;}}
-        return subject;};
-
-    function stripComments(string) {
-        return string.replace(/^\s*#.*$/g,"").
-            replace(/^\s*\/\/.*$/g,"");}
-    
-    Knodule.prototype.handleEntries=function handleEntries(block){
-        if (typeof block === "string") {
-            var nocomment=stripComments(block);
-            var segmented=segment(nocomment,/(?:\s*[\n;]\s*)+/g);
-            if (this.trace_parsing>1)
-                fdjtLog("Handling %d entries",segmented.length);
-            return this.handleEntries(segmented);}
-        else if (block instanceof Array) {
-            var results=[];
-            var i=0; while (i<block.length) {
-                var entry=block[i++]; var len=entry.length;
-                if (entry[len-1]===';') entry=entry.slice(0,len-1);
-                results[i]=this.handleEntry(entry);}
-            return results;}
-        else throw {name: 'TypeError', irritant: block};};
-
-    Knodule.prototype.def=Knodule.prototype.handleSubjectEntry;
-
-    Knodule.def=function(string,kno){
-        if (!(kno)) kno=Knodule.knodule;
-        return kno.def(string);};
-    Knodule.ref=RefDB.ref;
-
-    Knodule.prototype.trace_parsing=0;
-
-    return Knodule;})();
-
-var KNode=Knodule.KNode;
-var Knode=KNode;
-// Suppress never-used warning
-if (KNode!==Knode) fdjt.Log("Weird stuff");
-
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-*/
-/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
-
-/* ##################### knodules/knodules.js ####################### */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file provides a Javascript/ECMAScript of KNODULES, 
-   a lightweight knowledge representation facility.
-
-   For more information on knodules, visit www.knodules.net
-   For more information about beingmeta, visit www.beingmeta.com
-
-   This library is built on the FDJT (www.fdjt.org) toolkit.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   Use, modification and redistribution of this program is permitted
-   under the GNU General Public License (GPL) Version 2:
-
-   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-
-   Use and redistribution (especially embedding in other
-   CC licensed content) is permitted under the terms of the
-   Creative Commons "Attribution-NonCommercial" license:
-
-   http://creativecommons.org/licenses/by-nc/3.0/ 
-
-   Other uses may be allowed based on prior agreement with
-   beingmeta, inc.  Inquiries can be addressed to:
-
-   licensing@biz.beingmeta.com
-
-   Enjoy!
-
-*/
-/* global Knodule: false */
-
-//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
-//var Knodule=window.Knodule;
-
-(function(){
-    "use strict";
-
-    var RefDB=fdjt.RefDB;
-    var Ref=fdjt.Ref;
-    var Query=RefDB.Query;
-    var KNode=Knodule.KNode;
-    var fdjtLog=fdjt.Log;
-    var warn=fdjtLog.warn;
-
-    var fdjtSet=fdjt.Set;
-
-    var slotpat_weights=
-        {"~%": 1,"~%*": 1,"%": 4,"%*": 4,"^%": 2,"^%*": 2,
-         "*%": 8, "*%*": 6,"**%": 12, "**%*": 8};
-
-    Knodule.addTags=function addTags(refs,tags,refdb,tagdb,base_slot,tagscores){
-        if (!(base_slot)) base_slot="tags";
-        if (typeof tags === "string") tags=[tags];
-        else if (tags instanceof Ref) tags=[tags];
-        else if (!(tags.length)) tags=[tags];
-        else if (tags instanceof Array) {}
-        else tags=[].concat(tags);
-        if (typeof refs === "string") refs=[refs];
-        else if (refs instanceof Ref) refs=[refs];
-        else if (refs instanceof Array) {}
-        else if (!(refs.length)) refs=[refs];
-        else refs=[].concat(refs);
-        var slots=new Array(tags.length);
-        var i=0, ntags=tags.length, tag, slot, ref;
-        while (i<ntags) {
-            tag=tags[i]; slot=base_slot; var weak=false;
-            if (typeof tag === "string") {
-                if (tag[0]==="*") {
-                    var tagstart=tag.search(/[^*]/);
-                    slot=tag.slice(0,tagstart)+base_slot;
-                    tag=tag.slice(tagstart);}
-                else if (tag[0]==="~") {
-                    slot="~"+base_slot;
-                    tag=tag.slice(1);
-                    weak=true;}
-                else {}
-                if (tag.indexOf('|')>0) {
-                    if (tagdb) tag=tagdb.handleEntry(tag);
-                    else if (Knodule.current)
-                        tag=Knodule.current.handleEntry(tag);
-                    else {}}
-                else if ((weak)&&(tagdb))
-                    tag=tagdb.probe(tag)||tag;
-                else if (weak) {}
-                else if (tagdb) tag=tagdb.ref(tag);
-                else {}}
-            slots[i]=slot; tags[i]=tag; i++;}
-        var j=0, nrefs=refs.length;
-        while (j<nrefs) {
-            var refstring=refs[j]; ref=false;
-            if ((refdb)&&(typeof refstring === "string"))
-                ref=refdb.ref(refstring);
-            else ref=RefDB.resolve(refstring,false,Knodule,true);
-            if (!(ref)) {
-                warn("Couldn't resolve %s to a reference",refstring);
-                j++; continue;}
-            refs[j++]=ref;}
-        i=0; while (i<ntags) {
-            tag=tags[i]; slot=slots[i];
-            if (tagscores) {
-                var slotpat=slot.replace(base_slot,"%");
-                var slotweight=slotpat_weights[slotpat];
-                if (!(slotweight)) slotweight=3;
-                tagscores.increment(tag,nrefs*slotweight);}
-            j=0; while (j<nrefs) {
-                ref=refs[j++];
-                if (!(ref)) continue;
-                ref.add(slot,tag,true);
-                if (ref.alltags) ref.alltags.push(tag);
-                else ref.alltags=[tag];
-                if (tag instanceof KNode) {
-                    ref.add('knodes',tag);
-                    ref.add(slot+"*",tag,true);}
-                if ((tag instanceof KNode)&&(tag.allways)) 
-                    ref.add(slot+"*",tag.allways,true);}
-            i++;}};
-
-    function exportTagSlot(tags,slotid,exported){
-        if (!(tags instanceof Array)) tags=[tags];
-        var extags=((exported.tags)||(exported.tags=[]));
-        var start=slotid.search(/[^*~]+/);
-        var end=slotid.search(/[*]*$/);
-        var prefix=((start)&&(slotid.slice(0,start)));
-        if (end) slotid=slotid.slice(start,end);
-        else if (start) slotid=slotid.slice(start);
-        var i=0, lim=tags.length; while (i<lim) {
-            var tag=tags[i++];
-            if (!(tag)) continue;
-            var tagstring=((typeof tag === "string")?(tag):(tag._qid||tag.getQID()));
-            if (start) extags.push(prefix+tagstring);
-            else extags.push(tagstring);}
-        return undefined;}
-    Knodule.exportTagSlot=exportTagSlot;
-            
-    function importTagSlot(ref,slotid,tags,data,indexing){
-        var keep=[]; var alltags=[], tagref;
-        var knodule=ref.tag_knodule||ref._db.tag_knodule||
-            Knodule.tag_knodule||Knodule.current;
-        if (!(tags instanceof Array)) tags=[tags];
-        var i=0, lim=tags.length; while (i<lim) {
-            var tag=tags[i++];
-            if (!(tag)) continue;
-            else if (tag instanceof Ref) keep.push(tag);
-            else if ((typeof tag === "object")&&(tag._id)) {
-                tagref=ref.resolve(tag,knodule,Knodule,true)||tag._id;
-                keep.push(tagref);}
-            else if (typeof tag === "string") {
-                var tag_start=tag.search(/[^*~]/);
-                var tagstring=tag, slot=slotid, tagterm=tag;
-                if (tag_start>0) {
-                    slot=tag.slice(0,tag_start)+slotid;
-                    tagstring=tag.slice(tag_start);}
-                var bar=tagstring.indexOf('|');
-                if (bar>0) tagterm=tagstring.slice(0,bar);
-                else tagterm=tagstring;
-                tagref=RefDB.resolve(tagterm,knodule,Knodule,true)||
-                    ((knodule)&&(knodule.ref(tagterm)))||
-                    tagterm;
-                if (bar>0) {
-                    if (tagref instanceof KNode) 
-                        tagref._db.handleEntry(tagstring);
-                    else warn("No knodule for %s",tagstring);}
-                alltags.push(tagref);
-                if (tagref instanceof KNode) ref.add('knodes',tagref,indexing);
-                if (slot!==slotid) ref.add(slot,tagref,indexing);
-                else keep.push(tagref);}
-            else keep.push(tag);}
-        ref["all"+slotid]=fdjtSet(alltags.concat(keep));
-        if (keep.length) return keep;
-        else return undefined;}
-    Knodule.importTagSlot=importTagSlot;
-
-    function TagQuery(tags,dbs,weights){
-        if (arguments.length===0) return this;
-        var clauses=[], slots=this.slots=[];
-        if (!(dbs)) dbs=TagQuery.default_dbs||false;
-        if (!(weights)) weights=this.weights||{"tags": 1};
-        if (!(tags instanceof Array)) tags=[tags];
-        for (var sl in weights) {
-            if (weights.hasOwnProperty(sl)) slots.push(sl);}
-        var i_tag=0, n_tags=tags.length;
-        while (i_tag<n_tags) {
-            var tagval=tags[i_tag++];
-            if (typeof tagval === "string")
-                clauses.push({fields: 'strings',values: [tagval]});
-            else if ((tagval._db)&&(tagval._db.slots)) 
-                clauses.push({fields: tagval._db.slots,values: [tagval]});
-            else clauses.push({fields: slots,values: [tagval]});}
-        
-        this.tags=tags;
-
-        return Query.call(this,dbs,clauses,weights);}
-
-    TagQuery.prototype=new Query();
-    
-    var TagMap=fdjt.Map;
-    
-    TagQuery.prototype.getCoTags=function getCoTags(results){
-        if (this.cotags) return this.cotags;
-        else if (this.execute()) {
-            if (!(results)) results=this.results;
-            var scores=this.scores;
-            var slots=this.slots, n_slots=slots.length;
-            var alltags=this.cotags=[];
-            var tagscores=this.tagscores=new TagMap();
-            var tagfreqs=this.tagfreqs=new TagMap();
-            var weights=this._weights||this.weights;
-            var max_score=0, max_freq=0;
-            var r=0, n_results=results.length;
-            while (r<n_results) {
-                var result=results[r++], seen={};
-                var score=((scores)&&(scores[result._id]))||1;
-                var s=0; while (s<n_slots) {
-                    var slot=slots[s];
-                    if (result.hasOwnProperty(slot)) {
-                        var tags=result[slot];
-                        var weight=weights[slot]||1;
-                        if (!(tags)) tags=[];
-                        else if (!(tags instanceof Array)) tags=[tags];
-                        else {}
-                        var v=0, n_tags=tags.length;
-                        while (v<n_tags) {
-                            var tag=tags[v++];
-                            if (!(tagscores.get(tag)))
-                                alltags.push(tag);
-                            if (!(seen[tag])) {
-                                var new_freq=tagfreqs.increment(tag,1);
-                                if (new_freq>max_freq) max_freq=new_freq;
-                                seen[tag]=true;}
-                            var new_score=
-                                tagscores.increment(tag,weight*score);
-                            if (new_score>max_score)
-                                max_score=new_score;}}
-                    s++;}}
-            this.max_tagfreq=max_freq;
-            this.max_tagscore=max_score;
-            return alltags;}
-        else return false;};
-    TagQuery.prototype.getString=function TagQueryString(){
-        var tags=fdjt.Set(this.tags); var qstring="";
-        var i=0, lim=tags.length;
-        while (i<lim) {
-            if (i>0) qstring=qstring+";";
-            var tag=tags[i++];
-            if (typeof tag === "string")
-                qstring=qstring+tag;
-            else qstring=qstring+((tag._qid)||(tag.getQID()));}
-        return qstring;};
-    
-    Knodule.TagQuery=TagQuery;
-
-})();
-         
-
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-*/
-/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
-
-/* ##################### knodules/html.js ####################### */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file provides for HTML documents using KNODULES, including
-   the extraction and processing of embedded KNODULE definitions
-   or references and interaction with interactive parts of the
-   FDJT library.
-
-   For more information on knodules, visit www.knodules.net
-   This library is built on the FDJT (www.fdjt.org) toolkit.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   Use, modification and redistribution of this program is permitted
-   under the GNU General Public License (GPL) Version 2:
-
-   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-
-   Use and redistribution (especially embedding in other
-   CC licensed content) is permitted under the terms of the
-   Creative Commons "Attribution-NonCommercial" license:
-
-   http://creativecommons.org/licenses/by-nc/3.0/ 
-
-   Other uses may be allowed based on prior agreement with
-   beingmeta, inc.  Inquiries can be addressed to:
-
-   licensing@biz.beingmeta.com
-
-   Enjoy!
-
-*/
-/* jshint browser: true */
-/* global Knodule: false */
-
-//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
-//var Knodule=window.Knodule;
-
-(function(){
-    "use strict";
-
-    var fdjtString=fdjt.String;
-    var fdjtLog=fdjt.Log;
-    var fdjtDOM=fdjt.DOM;
-    var fdjtAjax=fdjt.Ajax;
-    
-    var addClass=fdjtDOM.addClass;
-
-    /* Getting knowdes into HTML */
-
-    var KNode=Knodule.KNode;
-    Knodule.KNode.prototype.toDOM=
-        Knodule.KNode.prototype.toHTML=function(){
-            var spec=((this.prime)?("span.dterm.prime"):
-                      (this.weak)?("span.dterm.weak"):
-                      "span.dterm");
-            var span=fdjtDOM(spec,this.dterm);
-            if (this.gloss) 
-                span.title=fdjtString.strip_markup(this.gloss);
-            span.dterm=this.dterm;
-            return span;};
-    
-    /* Making DTERM descriptions */
-
-    function KNode2HTML(arg,knodule,varname,cloud,lang){
-        if (cloud===true) {
-            if (typeof lang !== "string") lang=(Knodule.language)||"EN";
-            cloud=false;}
-        else if ((cloud)&&(typeof lang !== "string"))
-            lang=(Knodule.language)||"EN";
-        else {}
-        
-        var valstring=((typeof arg === "string")&&(arg))||(arg._qid)||
-            ((arg.getQID)&&(arg.getQID()))||(arg.toString());
-        var checkbox=((varname)&&
-                      (fdjtDOM({tagName: "INPUT",type: "CHECKBOX",
-                                name: varname,value: valstring})));
-        var text=((typeof arg === "string")&&(arg))||
-            fdjtDOM("span.term",valstring);
-        var variations=((arg instanceof KNode)&&(fdjtDOM("span.variations")));
-        var israw=(typeof arg === "string");
-        var span=fdjtDOM(((israw)?("span.rawterm"):("span.dterm")),
-                         checkbox," ",variations,
-                         ((israw)?
-                          (fdjtDOM("span.termtext","\u201c"+text+"\u201d")):
-                          (text)));
-        if ((lang)||(cloud)) {
-            addClass(span,"completion");
-            span.setAttribute("data-value",valstring);}
-        function init(){
-            if (arg instanceof KNode) {
-                var knode=arg, dterm=knode.dterm;
-                text.innerHTML=dterm;
-                span.setAttribute("data-key",dterm);
-                span.setAttribute("data-dterm",knode);
-                if ((lang)||(cloud)) {
-                    var synonyms=knode[lang];
-                    if ((synonyms)&&(typeof synonyms === 'string'))
-                        synonyms=[synonyms];
-                    if (synonyms) {
-                        var i=0; while (i<synonyms.length) {
-                            var synonym=synonyms[i++];
-                            if (synonym===dterm) continue;
-                            var variation=fdjtDOM("span.variation",synonym,"=");
-                            variation.setAttribute("data-key",synonym);
-                            variations.appendChild(variation);}}
-                    if (knode.about) span.title=knode.about;
-                    // This should try to get a dterm in the right language
-                    span.setAttribute("data-key",knode.dterm);}
-                else span.setAttribute("data-key",knode.dterm);}
-            else {
-                if (arg.name) {
-                    span.setAttribute("data-key",arg.name);
-                    span.innerHTML=arg.name;}}
-            if (cloud) cloud.addCompletion(span);}
-        if (typeof arg === "string") {
-            span.setAttribute("data-key",arg);
-            if (cloud) cloud.addCompletion(span);
-            return span;}
-        else if (arg._live) {init(); return span;}
-        else {arg.onLoad(init); return span;}}
-
-    Knodule.HTML=KNode2HTML;
-    Knodule.KNode2HTML=KNode2HTML;
-    Knodule.Knode2HTML=KNode2HTML;
-    Knodule.knode2HTML=KNode2HTML;
-
-    /* Adding Kodes to datalists */
-    function knodeToOption(arg){
-        var option;
-        if (typeof arg === "string") {
-            option=fdjtDOM("OPTION",arg);
-            option.setAttribute("value",arg);
-            return option;}
-        var dterm=arg.dterm;
-        var valstring=((typeof arg === "string")&&(arg))||(arg._qid)||
-            ((arg.getQID)&&(arg.getQID()))||(arg.toString());
-        var options=document.createDocumentFragment();
-        option=fdjtDOM("option",dterm);
-        option.setAttribute("value",valstring);
-        options.appendChild(option);
-        return options;}
-    Knodule.knodeToOption=knodeToOption;
-
-    /* Getting Knodules out of HTML */
-
-    function knoduleLoad(elt,knodule){
-        var src=((typeof elt === 'string')?(elt):(elt.src));
-        var text=fdjtAjax.getText(src);
-        var knowdes=knodule.handleEntries(text);
-        if ((knodule.trace_load)||(Knodule.trace_load))
-            fdjtLog("Parsed %d entries from %s",knowdes.length,elt.src);}
-
-    function knoduleSetupHTML(knodule){
-        if (!(knodule)) knodule=new Knodule(document.location.href);
-        var start=new Date();
-        var elts=fdjtDOM.getLinks("{http://knodules.org/}knodule",true,true);
-        var i=0, lim, elt;
-        if (!((elts)&&(elts.length)))
-            elts=fdjtDOM.getLinks("knodule",true,true);
-        if (!((elts)&&(elts.length)))
-            elts=fdjtDOM.getLinks("*.knodule",true,true);
-        i=0; lim=elts.length; while (i<lim) knoduleLoad(elts[i++],knodule);
-        elts=fdjtDOM.getMeta("knodef");
-        i=0; lim=elts.length; while (i<elts.length) {
-            knodule.handleEntry(elts[i++].content);}
-        elts=document.getElementsByTagName("META");
-        i=0; lim=elts.length; while (i<lim) {
-            elt=elts[i++];
-            if (elt.name==="KNODEF") knodule.handleEntry(elt.content);}
-        elts=document.getElementsByTagName("SCRIPT");
-        i=0; lim=elts.length; while (i<lim) {
-            elt=elts[i++];
-            var lang=elt.getAttribute("language");
-            var type=elt.type;
-            if ((type==="text/knodule")||(type==="application/knodule")||
-                ((lang) &&
-                 ((lang==="knodule") ||(lang==="KNODULE")||
-                  (lang==="knowlet"||(lang==="KNOWLET"))))) {
-                if (elt.src) knoduleLoad(elt,knodule);
-                else if (elt.text) {
-                    var txt=elt.text;
-                    var cdata=txt.search("<!\\[CDATA\\[");
-                    if (cdata>=0) {
-                        var cdend=txt.search("]]>");
-                        txt=txt.slice(cdata+9,cdend);}
-                    var dterms=knodule.handleEntries(txt);
-                    if ((knodule.trace_load)||(Knodule.trace_load))
-                        fdjtLog("Parsed %d inline knodule entries",
-                                dterms.length);}
-                else {}}}
-        var finished=new Date();
-        if ((knodule.trace_load)||(Knodule.trace_load))
-            fdjtLog("Processed knodules in %fs",
-                    ((finished.getTime()-start.getTime())/1000));}
-    Knodule.HTML.Setup=knoduleSetupHTML;
-
-})();
-
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-*/
-/* From https://github.com/axemclion/IndexedDBShim, BSD License */
-/* jshint strict: false, evil: true, expr: true, browser: true */
-/* globals console: false, DOMException: false */
-var idbModules = {};
-(function(idbModules) {
-  function callback(fn, context, event, func) {
-    event.target = context;
-    (typeof context[fn] === "function") && context[fn].apply(context, [event]);
-    (typeof func === "function") && func();
-  }
-
-  function throwDOMException(name, message, error) {
-    var e = new DOMException.constructor(0, message);
-    e.name = name;
-    e.message = message;
-    e.stack = arguments.callee.caller;
-    idbModules.DEBUG && console.log(name, message, error, e);
-    throw e;
-  }
-  var StringList = function() {
-      this.length = 0;
-      this._items = [];
-    };
-  StringList.prototype = {
-    contains: function(str) {
-      return -1 !== this._items.indexOf(str);
-    },
-    item: function(key) {
-      return this._items[key];
-    },
-    indexOf: function(str) {
-      return this._items.indexOf(str);
-    },
-    push: function(item) {
-      this._items.push(item);
-      this.length += 1;
-    },
-    splice: function() {
-      this._items.splice.apply(this._items, arguments);
-      this.length = this._items.length;
-    }
-  };
-  idbModules.util = {
-    "throwDOMException": throwDOMException,
-    "callback": callback,
-    "quote": function(arg) {
-      return "'" + arg + "'";
-    },
-    "StringList": StringList
-  };
-}(idbModules));
-(function(idbModules) {
-  var Sca = (function() {
-    return {
-      "encode": function(val) {
-        return JSON.stringify(val);
-      },
-      "decode": function(val) {
-        return JSON.parse(val);
-      }
-    };
-  }());
-  idbModules.Sca = Sca;
-}(idbModules));
-(function(idbModules) {
-  var collations = ["", "number", "string", "boolean", "object", "undefined"];
-  var getGenericEncoder = function() {
-      return {
-        "encode": function(key) {
-          return collations.indexOf(typeof key) + "-" + JSON.stringify(key);
-        },
-        "decode": function(key) {
-          if (typeof key === "undefined") {
-            return undefined;
-          } else {
-            return JSON.parse(key.substring(2));
-          }
-        }
-      };
-    };
-  var types = {
-    "number": getGenericEncoder("number"),
-    "boolean": getGenericEncoder(),
-    "object": getGenericEncoder(),
-    "string": {
-      "encode": function(key) {
-        return collations.indexOf("string") + "-" + key;
-      },
-      "decode": function(key) {
-        return "" + key.substring(2);
-      }
-    },
-    "undefined": {
-      "encode": function(key) {
-        return collations.indexOf("undefined") + "-undefined";
-      },
-      "decode": function(key) {
-        return undefined;
-      }
-    }
-  };
-  var Key = (function() {
-    return {
-      encode: function(key) {
-        return types[typeof key].encode(key);
-      },
-      decode: function(key) {
-        return types[collations[key.substring(0, 1)]].decode(key);
-      }
-    };
-  }());
-  idbModules.Key = Key;
-}(idbModules));
-(function(idbModules, undefined) {
-  var Event = function(type, debug) {
-      return {
-        "type": type,
-        debug: debug,
-        bubbles: false,
-        cancelable: false,
-        eventPhase: 0,
-        timeStamp: new Date()
-      };
-    };
-  idbModules.Event = Event;
-}(idbModules));
-(function(idbModules) {
-  var IDBRequest = function() {
-      this.onsuccess = this.onerror = this.result = this.error = this.source = this.transaction = null;
-      this.readyState = "pending";
-    };
-  var IDBOpenRequest = function() {
-      this.onblocked = this.onupgradeneeded = null;
-    };
-  IDBOpenRequest.prototype = IDBRequest;
-  idbModules.IDBRequest = IDBRequest;
-  idbModules.IDBOpenRequest = IDBOpenRequest;
-}(idbModules));
-(function(idbModules, undefined) {
-  var IDBKeyRange = function(lower, upper, lowerOpen, upperOpen) {
-      this.lower = lower;
-      this.upper = upper;
-      this.lowerOpen = lowerOpen;
-      this.upperOpen = upperOpen;
-    };
-  IDBKeyRange.only = function(value) {
-    return new IDBKeyRange(value, value, true, true);
-  };
-  IDBKeyRange.lowerBound = function(value, open) {
-    return new IDBKeyRange(value, undefined, open, undefined);
-  };
-  IDBKeyRange.upperBound = function(value) {
-    return new IDBKeyRange(undefined, value, undefined, open);
-  };
-  IDBKeyRange.bound = function(lower, upper, lowerOpen, upperOpen) {
-    return new IDBKeyRange(lower, upper, lowerOpen, upperOpen);
-  };
-  idbModules.IDBKeyRange = IDBKeyRange;
-}(idbModules));
-(function(idbModules, undefined) {
-  function IDBCursor(range, direction, idbObjectStore, cursorRequest, keyColumnName, valueColumnName) {
-    this.__range = range;
-    this.source = this.__idbObjectStore = idbObjectStore;
-    this.__req = cursorRequest;
-    this.key = undefined;
-    this.direction = direction;
-    this.__keyColumnName = keyColumnName;
-    this.__valueColumnName = valueColumnName;
-    if (!this.source.transaction.__active) {
-      idbModules.util.throwDOMException("TransactionInactiveError - The transaction this IDBObjectStore belongs to is not active.");
-    }
-    this.__offset = -1;
-    this.__lastKeyContinued = undefined;
-    this["continue"]();
-  }
-  IDBCursor.prototype.__find = function(key, tx, success, error) {
-    var me = this;
-    var sql = ["SELECT * FROM ", idbModules.util.quote(me.__idbObjectStore.name)];
-    var sqlValues = [];
-    sql.push("WHERE ", me.__keyColumnName, " NOT NULL");
-    if (me.__range && (me.__range.lower || me.__range.upper)) {
-      sql.push("AND");
-      if (me.__range.lower) {
-        sql.push(me.__keyColumnName + (me.__range.lowerOpen ? " >=" : " >") + " ?");
-        sqlValues.push(idbModules.Key.encode(me.__range.lower));
-      }
-      (me.__range.lower && me.__range.upper) && sql.push("AND");
-      if (me.__range.upper) {
-        sql.push(me.__keyColumnName + (me.__range.upperOpen ? " <= " : " < ") + " ?");
-        sqlValues.push(idbModules.Key.encode(me.__range.upper));
-      }
-    }
-    if (typeof key !== "undefined") {
-      me.__lastKeyContinued = key;
-      me.__offset = 0;
-    }
-    if (me.__lastKeyContinued !== undefined) {
-      sql.push("AND " + me.__keyColumnName + " >= ?");
-      sqlValues.push(idbModules.Key.encode(me.__lastKeyContinued));
-    }
-    sql.push("ORDER BY ", me.__keyColumnName);
-    sql.push("LIMIT 1 OFFSET " + me.__offset);
-    idbModules.DEBUG && console.log(sql.join(" "), sqlValues);
-    tx.executeSql(sql.join(" "), sqlValues, function(tx, data) {
-      if (data.rows.length === 1) {
-        var key = idbModules.Key.decode(data.rows.item(0)[me.__keyColumnName]);
-        var val = me.__valueColumnName === "value" ? idbModules.Sca.decode(data.rows.item(0)[me.__valueColumnName]) : idbModules.Key.decode(data.rows.item(0)[me.__valueColumnName]);
-        success(key, val);
-      } else {
-        idbModules.DEBUG && console.log("Reached end of cursors");
-        success(undefined, undefined);
-      }
-    }, function(tx, data) {
-      idbModules.DEBUG && console.log("Could not execute Cursor.continue");
-      error(data);
-    });
-  };
-  IDBCursor.prototype["continue"] = function(key) {
-    var me = this;
-    this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__offset++;
-      me.__find(key, tx, function(key, val) {
-        me.key = key;
-        me.value = val;
-        success(typeof me.key !== "undefined" ? me : undefined, me.__req);
-      }, function(data) {
-        error(data);
-      });
-    });
-  };
-  IDBCursor.prototype.advance = function(count) {
-    if (count <= 0) {
-      idbModules.util.throwDOMException("Type Error - Count is invalid - 0 or negative", count);
-    }
-    var me = this;
-    this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__offset += count;
-      me.__find(undefined, tx, function(key, value) {
-        me.key = key;
-        me.value = value;
-        success(typeof me.key !== "undefined" ? me : undefined, me.__req);
-      }, function(data) {
-        error(data);
-      });
-    });
-  };
-  IDBCursor.prototype.update = function(valueToUpdate) {
-    var me = this;
-    return this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__find(undefined, tx, function(key, value) {
-        var sql = "UPDATE " + idbModules.util.quote(me.__idbObjectStore.name) + " SET value = ? WHERE key = ?";
-        idbModules.DEBUG && console.log(sql, valueToUpdate, key);
-        tx.executeSql(sql, [idbModules.Sca.encode(valueToUpdate), idbModules.Key.encode(key)], function(tx, data) {
-          if (data.rowsAffected === 1) {
-            success(key);
-          } else {
-            error("No rowns with key found" + key);
-          }
-        }, function(tx, data) {
-          error(data);
-        });
-      }, function(data) {
-        error(data);
-      });
-    });
-  };
-  IDBCursor.prototype["delete"] = function() {
-    var me = this;
-    return this.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__find(undefined, tx, function(key, value) {
-        var sql = "DELETE FROM  " + idbModules.util.quote(me.__idbObjectStore.name) + " WHERE key = ?";
-        idbModules.DEBUG && console.log(sql, key);
-        tx.executeSql(sql, [idbModules.Key.encode(key)], function(tx, data) {
-          if (data.rowsAffected === 1) {
-            success(undefined);
-          } else {
-            error("No rowns with key found" + key);
-          }
-        }, function(tx, data) {
-          error(data);
-        });
-      }, function(data) {
-        error(data);
-      });
-    });
-  };
-  idbModules.IDBCursor = IDBCursor;
-}(idbModules));
-(function(idbModules, undefined) {
-  function IDBIndex(indexName, idbObjectStore) {
-    this.indexName = indexName;
-    this.__idbObjectStore = this.source = idbObjectStore;
-  }
-  IDBIndex.prototype.__createIndex = function(indexName, keyPath, optionalParameters) {
-    var me = this;
-    var transaction = me.__idbObjectStore.transaction;
-    transaction.__addToTransactionQueue(function(tx, args, success, failure) {
-      me.__idbObjectStore.__getStoreProps(tx, function() {
-        function error() {
-          idbModules.util.throwDOMException(0, "Could not create new index", arguments);
-        }
-        if (transaction.mode !== 2) {
-          idbModules.util.throwDOMException(0, "Invalid State error, not a version transaction", me.transaction);
-        }
-        var idxList = JSON.parse(me.__idbObjectStore.__storeProps.indexList);
-        if (typeof idxList[indexName] !== "undefined") {
-          idbModules.util.throwDOMException(0, "Index already exists on store", idxList);
-        }
-        var columnName = indexName;
-        idxList[indexName] = {
-          "columnName": columnName,
-          "keyPath": keyPath,
-          "optionalParams": optionalParameters
-        };
-        me.__idbObjectStore.__storeProps.indexList = JSON.stringify(idxList);
-        var sql = ["ALTER TABLE", idbModules.util.quote(me.__idbObjectStore.name), "ADD", columnName, "BLOB"].join(" ");
-        idbModules.DEBUG && console.log(sql);
-        tx.executeSql(sql, [], function(tx, data) {
-          tx.executeSql("SELECT * FROM " + idbModules.util.quote(me.__idbObjectStore.name), [], function(tx, data) {
-            (function initIndexForRow(i) {
-              if (i < data.rows.length) {
-                try {
-                  var value = idbModules.Sca.decode(data.rows.item(i).value);
-                  var indexKey = eval("value['" + keyPath + "']");
-                  tx.executeSql("UPDATE " + idbModules.util.quote(me.__idbObjectStore.name) + " set " + columnName + " = ? where key = ?", [idbModules.Key.encode(indexKey), data.rows.item(i).key], function(tx, data) {
-                    initIndexForRow(i + 1);
-                  }, error);
-                } catch (e) {
-                  initIndexForRow(i + 1);
-                }
-              } else {
-                idbModules.DEBUG && console.log("Updating the indexes in table", me.__idbObjectStore.__storeProps);
-                tx.executeSql("UPDATE __sys__ set indexList = ? where name = ?", [me.__idbObjectStore.__storeProps.indexList, me.__idbObjectStore.name], function() {
-                  me.__idbObjectStore.__setReadyState("createIndex", true);
-                  success(me);
-                }, error);
-              }
-            }(0));
-          }, error);
-        }, error);
-      }, "createObjectStore");
-    });
-  };
-  IDBIndex.prototype.openCursor = function(range, direction) {
-    var cursorRequest = new idbModules.IDBRequest();
-    var cursor = new idbModules.IDBCursor(range, direction, this.source, cursorRequest, this.indexName, "value");
-    return cursorRequest;
-  };
-  IDBIndex.prototype.openKeyCursor = function(range, direction) {
-    var cursorRequest = new idbModules.IDBRequest();
-    var cursor = new idbModules.IDBCursor(range, direction, this.source, cursorRequest, this.indexName, "key");
-    return cursorRequest;
-  };
-  IDBIndex.prototype.__fetchIndexData = function(key, opType) {
-    var me = this;
-    return me.__idbObjectStore.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      var sql = ["SELECT * FROM ", idbModules.util.quote(me.__idbObjectStore.name), " WHERE", me.indexName, "NOT NULL"];
-      var sqlValues = [];
-      if (typeof key !== "undefined") {
-        sql.push("AND", me.indexName, " = ?");
-        sqlValues.push(idbModules.Key.encode(key));
-      }
-      idbModules.DEBUG && console.log("Trying to fetch data for Index", sql.join(" "), sqlValues);
-      tx.executeSql(sql.join(" "), sqlValues, function(tx, data) {
-        var d;
-        if (typeof opType === "count") {
-          d = data.rows.length;
-        } else if (data.rows.length === 0) {
-          d = undefined;
-        } else if (opType === "key") {
-          d = idbModules.Key.decode(data.rows.item(0).key);
-        } else {
-          d = idbModules.Sca.decode(data.rows.item(0).value);
-        }
-        success(d);
-      }, error);
-    });
-  };
-  IDBIndex.prototype.get = function(key) {
-    return this.__fetchIndexData(key, "value");
-  };
-  IDBIndex.prototype.getKey = function(key) {
-    return this.__fetchIndexData(key, "key");
-  };
-  IDBIndex.prototype.count = function(key) {
-    return this.__fetchIndexData(key, "count");
-  };
-  idbModules.IDBIndex = IDBIndex;
-}(idbModules));
-(function(idbModules) {
-  var IDBObjectStore = function(name, idbTransaction, ready) {
-      this.name = name;
-      this.transaction = idbTransaction;
-      this.__ready = {};
-      this.__setReadyState("createObjectStore", typeof ready === "undefined" ? true : ready);
-      this.indexNames = new idbModules.util.StringList();
-    };
-  IDBObjectStore.prototype.__setReadyState = function(key, val) {
-    this.__ready[key] = val;
-  };
-  IDBObjectStore.prototype.__waitForReady = function(callback, key) {
-    var ready = true;
-    if (typeof key !== "undefined") {
-      ready = (typeof this.__ready[key] === "undefined") ? true : this.__ready[key];
-    } else {
-      for (var x in this.__ready) {
-        if (!this.__ready[x]) {
-          ready = false;
-        }
-      }
-    }
-    if (ready) {
-      callback();
-    } else {
-      idbModules.DEBUG && console.log("Waiting for to be ready", key);
-      var me = this;
-      window.setTimeout(function() {
-        me.__waitForReady(callback, key);
-      }, 100);
-    }
-  };
-  IDBObjectStore.prototype.__getStoreProps = function(tx, callback, waitOnProperty) {
-    var me = this;
-    this.__waitForReady(function() {
-      if (me.__storeProps) {
-        idbModules.DEBUG && console.log("Store properties - cached", me.__storeProps);
-        callback(me.__storeProps);
-      } else {
-        tx.executeSql("SELECT * FROM __sys__ where name = ?", [me.name], function(tx, data) {
-          if (data.rows.length !== 1) {
-            callback();
-          } else {
-            me.__storeProps = {
-              "name": data.rows.item(0).name,
-              "indexList": data.rows.item(0).indexList,
-              "autoInc": data.rows.item(0).autoInc,
-              "keyPath": data.rows.item(0).keyPath
-            };
-            idbModules.DEBUG && console.log("Store properties", me.__storeProps);
-            callback(me.__storeProps);
-          }
-        }, function() {
-          callback();
-        });
-      }
-    }, waitOnProperty);
-  };
-  IDBObjectStore.prototype.__deriveKey = function(tx, value, key, callback) {
-    function getNextAutoIncKey() {
-      tx.executeSql("SELECT * FROM sqlite_sequence where name like ?", [me.name], function(tx, data) {
-        if (data.rows.length !== 1) {
-          callback(0);
-        } else {
-          callback(data.rows.item(0).seq);
-        }
-      }, function(tx, error) {
-        idbModules.util.throwDOMException(0, "Data Error - Could not get the auto increment value for key", error);
-      });
-    }
-    var me = this;
-    me.__getStoreProps(tx, function(props) {
-      if (!props) {
-        idbModules.util.throwDOMException(0, "Data Error - Could not locate defination for this table", props);
-      }
-      if (props.keyPath) {
-        if (typeof key !== "undefined") {
-          idbModules.util.throwDOMException(0, "Data Error - The object store uses in-line keys and the key parameter was provided", props);
-        }
-        if (value) {
-          try {
-            var primaryKey = eval("value['" + props.keyPath + "']");
-            if (!primaryKey) {
-              if (props.autoInc === "true") {
-                getNextAutoIncKey();
-              } else {
-                idbModules.util.throwDOMException(0, "Data Error - Could not eval key from keyPath");
-              }
-            } else {
-              callback(primaryKey);
-            }
-          } catch (e) {
-            idbModules.util.throwDOMException(0, "Data Error - Could not eval key from keyPath", e);
-          }
-        } else {
-          idbModules.util.throwDOMException(0, "Data Error - KeyPath was specified, but value was not");
-        }
-      } else {
-        if (typeof key !== "undefined") {
-          callback(key);
-        } else {
-          if (props.autoInc === "false") {
-            idbModules.util.throwDOMException(0, "Data Error - The object store uses out-of-line keys and has no key generator and the key parameter was not provided. ", props);
-          } else {
-            getNextAutoIncKey();
-          }
-        }
-      }
-    });
-  };
-  IDBObjectStore.prototype.__insertData = function(tx, value, primaryKey, success, error) {
-    var paramMap = {};
-    if (typeof primaryKey !== "undefined") {
-      paramMap.key = idbModules.Key.encode(primaryKey);
-    }
-    var indexes = JSON.parse(this.__storeProps.indexList);
-    for (var key in indexes) {
-      try {
-        paramMap[indexes[key].columnName] = idbModules.Key.encode(eval("value['" + indexes[key].keyPath + "']"));
-      } catch (e) {
-        error(e);
-      }
-    }
-    var sqlStart = ["INSERT INTO ", idbModules.util.quote(this.name), "("];
-    var sqlEnd = [" VALUES ("];
-    var sqlValues = [];
-    for (key in paramMap) {
-      sqlStart.push(key + ",");
-      sqlEnd.push("?,");
-      sqlValues.push(paramMap[key]);
-    }
-    sqlStart.push("value )");
-    sqlEnd.push("?)");
-    sqlValues.push(idbModules.Sca.encode(value));
-    var sql = sqlStart.join(" ") + sqlEnd.join(" ");
-    idbModules.DEBUG && console.log("SQL for adding", sql, sqlValues);
-    tx.executeSql(sql, sqlValues, function(tx, data) {
-      success(primaryKey);
-    }, function(tx, err) {
-      error(err);
-    });
-  };
-  IDBObjectStore.prototype.add = function(value, key) {
-    var me = this;
-    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__deriveKey(tx, value, key, function(primaryKey) {
-        me.__insertData(tx, value, primaryKey, success, error);
-      });
-    });
-  };
-  IDBObjectStore.prototype.put = function(value, key) {
-    var me = this;
-    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__deriveKey(tx, value, key, function(primaryKey) {
-        var sql = "DELETE FROM " + idbModules.util.quote(me.name) + " where key = ?";
-        tx.executeSql(sql, [idbModules.Key.encode(primaryKey)], function(tx, data) {
-          idbModules.DEBUG && console.log("Did the row with the", primaryKey, "exist? ", data.rowsAffected);
-          me.__insertData(tx, value, primaryKey, success, error);
-        }, function(tx, err) {
-          error(err);
-        });
-      });
-    });
-  };
-  IDBObjectStore.prototype.get = function(key) {
-    var me = this;
-    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__waitForReady(function() {
-        var primaryKey = idbModules.Key.encode(key);
-        idbModules.DEBUG && console.log("Fetching", me.name, primaryKey);
-        tx.executeSql("SELECT * FROM " + idbModules.util.quote(me.name) + " where key = ?", [primaryKey], function(tx, data) {
-          idbModules.DEBUG && console.log("Fetched data", data);
-          try {
-            if (0 === data.rows.length) {
-              return success();
-            }
-            success(idbModules.Sca.decode(data.rows.item(0).value));
-          } catch (e) {
-            idbModules.DEBUG && console.log(e);
-            success(undefined);
-          }
-        }, function(tx, err) {
-          error(err);
-        });
-      });
-    });
-  };
-  IDBObjectStore.prototype["delete"] = function(key) {
-    var me = this;
-    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__waitForReady(function() {
-        var primaryKey = idbModules.Key.encode(key);
-        idbModules.DEBUG && console.log("Fetching", me.name, primaryKey);
-        tx.executeSql("DELETE FROM " + idbModules.util.quote(me.name) + " where key = ?", [primaryKey], function(tx, data) {
-          idbModules.DEBUG && console.log("Deleted from database", data.rowsAffected);
-          success();
-        }, function(tx, err) {
-          error(err);
-        });
-      });
-    });
-  };
-  IDBObjectStore.prototype.clear = function() {
-    var me = this;
-    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__waitForReady(function() {
-        tx.executeSql("DELETE FROM " + idbModules.util.quote(me.name), [], function(tx, data) {
-          idbModules.DEBUG && console.log("Cleared all records from database", data.rowsAffected);
-          success();
-        }, function(tx, err) {
-          error(err);
-        });
-      });
-    });
-  };
-  IDBObjectStore.prototype.count = function(key) {
-    var me = this;
-    return me.transaction.__addToTransactionQueue(function(tx, args, success, error) {
-      me.__waitForReady(function() {
-        var sql = "SELECT * FROM " + idbModules.util.quote(me.name) + ((typeof key !== "undefined") ? " WHERE key = ?" : "");
-        var sqlValues = [];
-        (typeof key !== "undefined") && sqlValues.push(idbModules.Key.encode(key));
-        tx.executeSql(sql, sqlValues, function(tx, data) {
-          success(data.rows.length);
-        }, function(tx, err) {
-          error(err);
-        });
-      });
-    });
-  };
-  IDBObjectStore.prototype.openCursor = function(range, direction) {
-    var cursorRequest = new idbModules.IDBRequest();
-    var cursor = new idbModules.IDBCursor(range, direction, this, cursorRequest, "key", "value");
-    return cursorRequest;
-  };
-  IDBObjectStore.prototype.index = function(indexName) {
-    var index = new idbModules.IDBIndex(indexName, this);
-    return index;
-  };
-  IDBObjectStore.prototype.createIndex = function(indexName, keyPath, optionalParameters) {
-    var me = this;
-    optionalParameters = optionalParameters || {};
-    me.__setReadyState("createIndex", false);
-    var result = new idbModules.IDBIndex(indexName, me);
-    me.__waitForReady(function() {
-      result.__createIndex(indexName, keyPath, optionalParameters);
-    }, "createObjectStore");
-    me.indexNames.push(indexName);
-    return result;
-  };
-  IDBObjectStore.prototype.deleteIndex = function(indexName) {
-    var result = new idbModules.IDBIndex(indexName, this, false);
-    result.__deleteIndex(indexName);
-    return result;
-  };
-  idbModules.IDBObjectStore = IDBObjectStore;
-}(idbModules));
-(function(idbModules) {
-  var READ = 0;
-  var READ_WRITE = 1;
-  var VERSION_TRANSACTION = 2;
-  var IDBTransaction = function(storeNames, mode, db) {
-      if (typeof mode === "number") {
-        this.mode = mode;
-        (mode !== 2) && idbModules.DEBUG && console.log("Mode should be a string, but was specified as ", mode);
-      } else if (typeof mode === "string") {
-        switch (mode) {
-        case "readonly":
-          this.mode = READ_WRITE;
-          break;
-        case "readwrite":
-          this.mode = READ;
-          break;
-        default:
-          this.mode = READ;
-          break;
-        }
-      }
-      this.storeNames = typeof storeNames === "string" ? [storeNames] : storeNames;
-      for (var i = 0; i < this.storeNames.length; i++) {
-        if (!db.objectStoreNames.contains(this.storeNames[i])) {
-          idbModules.util.throwDOMException(0, "The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.", this.storeNames[i]);
-        }
-      }
-      this.__active = true;
-      this.__running = false;
-      this.__requests = [];
-      this.__aborted = false;
-      this.db = db;
-      this.error = null;
-      this.onabort = this.onerror = this.oncomplete = null;
-      var me = this;
-    };
-  IDBTransaction.prototype.__executeRequests = function() {
-    if (this.__running && this.mode !== VERSION_TRANSACTION) {
-      idbModules.DEBUG && console.log("Looks like the request set is already running", this.mode);
-      return;
-    }
-    this.__running = true;
-    var me = this;
-    window.setTimeout(function() {
-      if (me.mode !== 2 && !me.__active) {
-        idbModules.util.throwDOMException(0, "A request was placed against a transaction which is currently not active, or which is finished", me.__active);
-      }
-      me.db.__db.transaction(function(tx) {
-        me.__tx = tx;
-        var q = null,
-          i = 0;
-
-        function success(result, req) {
-          if (req) {
-            q.req = req;
-          }
-          q.req.readyState = "done";
-          q.req.result = result;
-          delete q.req.error;
-          var e = idbModules.Event("success");
-          idbModules.util.callback("onsuccess", q.req, e);
-          i++;
-          executeRequest();
-        }
-
-        function error(errorVal) {
-          q.req.readyState = "done";
-          q.req.error = "DOMError";
-          var e = idbModules.Event("error", arguments);
-          idbModules.util.callback("onerror", q.req, e);
-          i++;
-          executeRequest();
-        }
-        try {
-          function executeRequest() {
-            if (i >= me.__requests.length) {
-              me.__active = false;
-              me.__requests = [];
-              return;
-            }
-            q = me.__requests[i];
-            q.op(tx, q.args, success, error);
-          }
-          executeRequest();
-        } catch (e) {
-          idbModules.DEBUG && console.log("An exception occured in transaction", arguments);
-          typeof me.onerror === "function" && me.onerror();
-        }
-      }, function() {
-        idbModules.DEBUG && console.log("An error in transaction", arguments);
-        typeof me.onerror === "function" && me.onerror();
-      }, function() {
-        idbModules.DEBUG && console.log("Transaction completed", arguments);
-        typeof me.oncomplete === "function" && me.oncomplete();
-      });
-    }, 1);
-  };
-  IDBTransaction.prototype.__addToTransactionQueue = function(callback, args) {
-    if (!this.__active && this.mode !== VERSION_TRANSACTION) {
-      idbModules.util.throwDOMException(0, "A request was placed against a transaction which is currently not active, or which is finished.", this.__mode);
-    }
-    var request = new idbModules.IDBRequest();
-    request.source = this.db;
-    this.__requests.push({
-      "op": callback,
-      "args": args,
-      "req": request
-    });
-    this.__executeRequests();
-    return request;
-  };
-  IDBTransaction.prototype.objectStore = function(objectStoreName) {
-    return new idbModules.IDBObjectStore(objectStoreName, this);
-  };
-  IDBTransaction.prototype.abort = function() {
-    !this.__active && idbModules.util.throwDOMException(0, "A request was placed against a transaction which is currently not active, or which is finished", this.__active);
-  };
-  IDBTransaction.prototype.READ_ONLY = 0;
-  IDBTransaction.prototype.READ_WRITE = 1;
-  IDBTransaction.prototype.VERSION_CHANGE = 2;
-  idbModules.IDBTransaction = IDBTransaction;
-}(idbModules));
-(function(idbModules) {
-  var IDBDatabase = function(db, name, version, storeProperties) {
-      this.__db = db;
-      this.version = version;
-      this.__storeProperties = storeProperties;
-      this.objectStoreNames = new idbModules.util.StringList();
-      for (var i = 0; i < storeProperties.rows.length; i++) {
-        this.objectStoreNames.push(storeProperties.rows.item(i).name);
-      }
-      this.name = name;
-      this.onabort = this.onerror = this.onversionchange = null;
-    };
-  IDBDatabase.prototype.createObjectStore = function(storeName, createOptions) {
-    var me = this;
-    createOptions = createOptions || {};
-    createOptions.keyPath = createOptions.keyPath || null;
-    var result = new idbModules.IDBObjectStore(storeName, me.__versionTransaction, false);
-    var transaction = me.__versionTransaction;
-    transaction.__addToTransactionQueue(function(tx, args, success, failure) {
-      function error() {
-        idbModules.util.throwDOMException(0, "Could not create new object store", arguments);
-      }
-      if (!me.__versionTransaction) {
-        idbModules.util.throwDOMException(0, "Invalid State error", me.transaction);
-      }
-      var sql = ["CREATE TABLE", idbModules.util.quote(storeName), "(key BLOB", createOptions.autoIncrement ? ", inc INTEGER PRIMARY KEY AUTOINCREMENT" : "PRIMARY KEY", ", value BLOB)"].join(" ");
-      idbModules.DEBUG && console.log(sql);
-      tx.executeSql(sql, [], function(tx, data) {
-        tx.executeSql("INSERT INTO __sys__ VALUES (?,?,?,?)", [storeName, createOptions.keyPath, createOptions.autoIncrement ? true : false, "{}"], function() {
-          result.__setReadyState("createObjectStore", true);
-          success(result);
-        }, error);
-      }, error);
-    });
-    me.objectStoreNames.push(storeName);
-    return result;
-  };
-  IDBDatabase.prototype.deleteObjectStore = function(storeName) {
-    var error = function() {
-        idbModules.util.throwDOMException(0, "Could not delete ObjectStore", arguments);
-      };
-    var me = this;
-    !me.objectStoreNames.contains(storeName) && error("Object Store does not exist");
-    me.objectStoreNames.splice(me.objectStoreNames.indexOf(storeName), 1);
-    var transaction = me.__versionTransaction;
-    transaction.__addToTransactionQueue(function(tx, args, success, failure) {
-      if (!me.__versionTransaction) {
-        idbModules.util.throwDOMException(0, "Invalid State error", me.transaction);
-      }
-      me.__db.transaction(function(tx) {
-        tx.executeSql("SELECT * FROM __sys__ where name = ?", [storeName], function(tx, data) {
-          if (data.rows.length > 0) {
-            tx.executeSql("DROP TABLE " + idbModules.util.quote(storeName), [], function() {
-              tx.executeSql("DELETE FROM __sys__ WHERE name = ?", [storeName], function() {}, error);
-            }, error);
-          }
-        });
-      });
-    });
-  };
-  IDBDatabase.prototype.close = function() {};
-  IDBDatabase.prototype.transaction = function(storeNames, mode) {
-    var transaction = new idbModules.IDBTransaction(storeNames, mode || 1, this);
-    return transaction;
-  };
-  idbModules.IDBDatabase = IDBDatabase;
-}(idbModules));
-(function(idbModules) {
-  var DEFAULT_DB_SIZE = 4 * 1024 * 1024;
-  if (!window.openDatabase) {
-    return;
-  }
-  var sysdb = window.openDatabase("__sysdb__", 1, "System Database", DEFAULT_DB_SIZE);
-  sysdb.transaction(function(tx) {
-    tx.executeSql("SELECT * FROM dbVersions", [], function(t, data) {}, function() {
-      sysdb.transaction(function(tx) {
-        tx.executeSql("CREATE TABLE IF NOT EXISTS dbVersions (name VARCHAR(255), version INT);", [], function() {}, function() {
-          idbModules.util.throwDOMException("Could not create table __sysdb__ to save DB versions");
-        });
-      });
-    });
-  }, function() {
-    idbModules.DEBUG && console.log("Error in sysdb transaction - when selecting from dbVersions", arguments);
-  });
-  var shimIndexedDB = {
-    open: function(name, version) {
-      var req = new idbModules.IDBOpenRequest();
-      var calledDbCreateError = false;
-
-      function dbCreateError() {
-        if (calledDbCreateError) {
-          return;
-        }
-        var e = idbModules.Event("error", arguments);
-        req.readyState = "done";
-        req.error = "DOMError";
-        idbModules.util.callback("onerror", req, e);
-        calledDbCreateError = true;
-      }
-
-      function openDB(oldVersion) {
-        var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
-        req.readyState = "done";
-        if (typeof version === "undefined") {
-          version = oldVersion || 1;
-        }
-        if (version <= 0 || oldVersion > version) {
-          idbModules.util.throwDOMException(0, "An attempt was made to open a database using a lower version than the existing version.", version);
-        }
-        db.transaction(function(tx) {
-          tx.executeSql("CREATE TABLE IF NOT EXISTS __sys__ (name VARCHAR(255), keyPath VARCHAR(255), autoInc BOOLEAN, indexList BLOB)", [], function() {
-            tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
-              var e = idbModules.Event("success");
-              req.source = req.result = new idbModules.IDBDatabase(db, name, version, data);
-              if (oldVersion < version) {
-                sysdb.transaction(function(systx) {
-                  systx.executeSql("UPDATE dbVersions set version = ? where name = ?", [version, name], function() {
-                    var e = idbModules.Event("upgradeneeded");
-                    e.oldVersion = oldVersion;
-                    e.newVersion = version;
-                    req.transaction = req.result.__versionTransaction = new idbModules.IDBTransaction([], 2, req.source);
-                    idbModules.util.callback("onupgradeneeded", req, e, function() {
-                      var e = idbModules.Event("success");
-                      idbModules.util.callback("onsuccess", req, e);
-                    });
-                  }, dbCreateError);
-                }, dbCreateError);
-              } else {
-                idbModules.util.callback("onsuccess", req, e);
-              }
-            }, dbCreateError);
-          }, dbCreateError);
-        }, dbCreateError);
-      }
-      sysdb.transaction(function(tx) {
-        tx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
-          if (data.rows.length === 0) {
-            tx.executeSql("INSERT INTO dbVersions VALUES (?,?)", [name, version || 1], function() {
-              openDB(0);
-            }, dbCreateError);
-          } else {
-            openDB(data.rows.item(0).version);
-          }
-        }, dbCreateError);
-      }, dbCreateError);
-      return req;
-    },
-    "deleteDatabase": function(name) {
-      var req = new idbModules.IDBOpenRequest();
-      var calledDBError = false;
-
-      function dbError(msg) {
-        if (calledDBError) {
-          return;
-        }
-        req.readyState = "done";
-        req.error = "DOMError";
-        var e = idbModules.Event("error");
-        e.message = msg;
-        e.debug = arguments;
-        idbModules.util.callback("onerror", req, e);
-        calledDBError = true;
-      }
-      var version = null;
-
-      function deleteFromDbVersions() {
-        sysdb.transaction(function(systx) {
-          systx.executeSql("DELETE FROM dbVersions where name = ? ", [name], function() {
-            req.result = undefined;
-            var e = idbModules.Event("success");
-            e.newVersion = null;
-            e.oldVersion = version;
-            idbModules.util.callback("onsuccess", req, e);
-          }, dbError);
-        }, dbError);
-      }
-      sysdb.transaction(function(systx) {
-        systx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
-          if (data.rows.length === 0) {
-            req.result = undefined;
-            var e = idbModules.Event("success");
-            e.newVersion = null;
-            e.oldVersion = version;
-            idbModules.util.callback("onsuccess", req, e);
-            return;
-          }
-          version = data.rows.item(0).version;
-          var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
-          db.transaction(function(tx) {
-            tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
-              var tables = data.rows;
-              (function deleteTables(i) {
-                if (i >= tables.length) {
-                  tx.executeSql("DROP TABLE __sys__", [], function() {
-                    deleteFromDbVersions();
-                  }, dbError);
-                } else {
-                  tx.executeSql("DROP TABLE " + idbModules.util.quote(tables.item(i).name), [], function() {
-                    deleteTables(i + 1);
-                  }, function() {
-                    deleteTables(i + 1);
-                  });
-                }
-              }(0));
-            }, function(e) {
-              deleteFromDbVersions();
-            });
-          }, dbError);
-        });
-      }, dbError);
-      return req;
-    },
-    "cmp": function(key1, key2) {
-      return idbModules.Key.encode(key1) > idbModules.Key.encode(key2) ? 1 : key1 === key2 ? 0 : -1;
-    }
-  };
-  idbModules.shimIndexedDB = shimIndexedDB;
-}(idbModules));
-(function(window, idbModules) {
-  if (typeof window.openDatabase !== "undefined") {
-    window.shimIndexedDB = idbModules.shimIndexedDB;
-    if (window.shimIndexedDB) {
-      window.shimIndexedDB.__useShim = function() {
-        window.indexedDB = idbModules.shimIndexedDB;
-        window.IDBDatabase = idbModules.IDBDatabase;
-        window.IDBTransaction = idbModules.IDBTransaction;
-        window.IDBCursor = idbModules.IDBCursor;
-        window.IDBKeyRange = idbModules.IDBKeyRange;
-      };
-      window.shimIndexedDB.__debug = function(val) {
-        idbModules.DEBUG = val;
-      };
-    }
-  }
-  window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-  if (typeof window.indexedDB === "undefined" && typeof window.openDatabase !== "undefined") {
-    window.shimIndexedDB.__useShim();
-  } else {
-    window.IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase;
-    window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction;
-    window.IDBCursor = window.IDBCursor || window.webkitIDBCursor;
-    window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
-    window.IDBTransaction.READ_ONLY = window.IDBTransaction.READ_ONLY || "readonly";
-    window.IDBTransaction.READ_WRITE = window.IDBTransaction.READ_WRITE || "readwrite";
-  }
-}(window, idbModules));
-
-
-/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
-
 /* ######################### fdjt/codexlayout.js ###################### */ 
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -21493,6 +20551,990 @@ if ((typeof window !== "undefined")&&(window.fdjt))
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ##################### knodules/knodules.js ####################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file provides a Javascript/ECMAScript of KNODULES, 
+   a lightweight knowledge representation facility.
+
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library is built on the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification and redistribution of this program is permitted
+   under the GNU General Public License (GPL) Version 2:
+
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@biz.beingmeta.com
+
+   Enjoy!
+
+*/
+
+//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
+
+var Knodule=(function(){
+    "use strict";
+    var fdjtString=fdjt.String;
+    var fdjtTime=fdjt.Time;
+    var fdjtLog=fdjt.Log;
+    var RefDB=fdjt.RefDB;
+    var Ref=fdjt.Ref;
+    var warn=fdjtLog.warn;
+
+    var ObjectMap=RefDB.ObjectMap;
+
+    var trace_parsing=0;
+
+    var lang_pat=/^(([A-Za-z]{2,3}\$)|([A-Za-z]{2,3}_[A-Za-z]{2,3}\$))/;
+
+    function Knodule(id,inits) {
+        // Using as a prototype
+        if (arguments.length===0) return this;
+        if (!(inits)) inits={};
+        if (inits.indices)
+            inits.indices=inits.indices.concat(
+                ["terms","hooks","genls","specls","allgenls"]);
+        else inits.indices=["terms","hooks","genls","specls","allgenls"];
+        var lang=inits.language;
+        var knodule=RefDB.call(this,id,inits);
+        if ((lang)&&(knodule.language!==lang))
+            throw { error: "language mismatch" };
+        // The default language for this knodule
+        if ((inits.language)&&(knodule.language)&&
+            (inits.language!==knodule.language))
+            throw { error: "language mismatch" };
+        else if (inits.language)
+            knodule.language=inits.language;
+        else knodule.language='EN';
+        // Mapping dterms (univocal references) to KNode objects
+        // (many-to-one).  This redundantly combines refs and altrefs
+        // from the underlying ref objects.
+        knodule.dterms={};
+        // A vector of all dterms local to this knodule
+        knodule.alldterms=[];
+        // Prime (important) dterms
+        knodule.prime=[]; knodule.primescores={};
+        // Whether to validate asserted relations
+        knodule.validate=true;
+        // Whether the knodule is 'strict'
+        // (requiring dterm definitions for all references)
+        knodule.strict=false;
+        // Whether the knodule is 'finished' (all references declared)
+        knodule.finished=false;
+        // Terms which are assumed unique.  This is used in non-strict
+        // knodules to catch terms that become ambiguous.
+        knodule.assumed_dterms=[];
+        // Mapping external dterms to their knodes
+        knodule.xdterms={};
+        // A vector of all foreign knode references
+        knodule.allxdterms=[];
+        // Inverted index for genls in particular (useful for
+        // faster search, inferences, etc)
+        knodule.allwaysIndex=new ObjectMap();
+        // This maps external OIDs to knodes
+        knodule.oidmap={};
+        // DRULES (disambiguation rules)
+        knodule.drules={};
+        return knodule;}
+    Knodule.prototype=new RefDB();
+    Knodule.prototype.language=
+        Knodule.prototype.dterms=Knodule.prototype.alldterms=
+        Knodule.prototype.prime=Knodule.prototype.primescores=
+        Knodule.prototype.validate=Knodule.prototype.strict=
+        Knodule.prototype.finished=Knodule.prototype.assumed_dterms=
+        Knodule.prototype.xdterms=Knodule.prototype.allxdterms=
+        Knodule.prototype.allwaysIndex=Knodule.prototype.oidmap=
+        Knodule.prototype.drules=false;
+    
+    Knodule.prototype.toString=function(){
+        return "Knodule("+this.name+")";};
+
+    var stdcap=fdjtString.stdcap;
+
+    function KNode(string,knodule,lang){
+        if (arguments.length===0) return this;
+        var weak=false; var prime=
+            ((string[0]==='*')&&(string.search(/[^*]/)));
+        var newprime=false, knode=this, notword=false;
+        if (string[0]==='~') {weak=true; string=string.slice(1);}
+        else if (prime) {
+            string=string.slice(prime);
+            if (!(knodule.primescores[string])) {
+                if (prime>(knodule.primescores[string]))
+                    knodule.primescores[string]=prime;
+                newprime=true;}}
+        var atpos=string.indexOf('@');
+        if ((atpos===0)||((atpos===1)&&(string[0]===':'))) notword=true;
+        else if ((atpos>2)&&(string[atpos-1]!=='\\')) {
+            var domain=string.slice(atpos+1);
+            if ((domain!==knodule.name)&&
+                (knodule.aliases.indexOf(domain)<0))
+                warn("Reference %s in %s is being handled by %s",
+                     string,domain,knodule);
+            string=string.slice(0,atpos);}
+        if (notword) {}
+        else if (string.search(lang_pat)===0) {
+            var dollar=string.indexOf('$');
+            lang=string.slice(0,dollar).toUpperCase();
+            string=string.slice(dollar+1);}
+        else if (lang) lang=lang.toUpperCase();
+        else lang=knodule.language||"EN";
+        // Normalize capitalization
+        string=stdcap(string);
+        var refterm=(lang===knodule.language)?(string):lang+"$"+string;
+        knode=Ref.call(this,refterm,knodule);
+        if (knode===this) {
+            if (!(knode.dterm)) knode.dterm=refterm;
+            knode.add('dterms',refterm);
+            if (!(knodule.dterms.hasOwnProperty(refterm))) {
+                knodule.dterms[refterm]=knode;
+                knodule.alldterms.push(refterm);}
+            knode.allways=fdjt.Set();
+            if (lang) knode.add(lang,string);
+            knode._live=fdjtTime();}
+        if (weak) knode.weak=true;
+        if (prime) knode.prime=prime;
+        if ((prime)&&(newprime)) knodule.prime.push(knode);
+        if ((lang)&&(lang!==knodule.language)) knode.language=lang;
+        return knode;}
+    KNode.prototype=new RefDB.Ref();
+    KNode.prototype.dterms=false;
+    Knodule.refclass=Knodule.prototype.refclass=KNode;
+
+    Knodule.KNode=KNode;
+    Knodule.Knode=KNode;
+    Knodule.prototype.KNode=Knodule.prototype.Knode=function(arg,inits) {
+        if (arg instanceof KNode) {
+            if (arg._db===this)
+                // Should this do some kind of import?
+                return arg;
+            else return arg;}
+        else return new KNode(arg,this,inits);};
+    Knodule.prototype.cons=function(string,lang) {
+        return new KNode(string,this,lang);};
+    Knodule.prototype.probe=function(string,langid) {
+        var refs=this.refs, aliases=this.aliases;
+        // Normalize string for knodules
+        string=stdcap(string);
+        if ((this.language===langid)||(!(langid)))
+            return ((refs.hasOwnProperty(string))&&(refs[string]))||
+            ((aliases.hasOwnProperty(string))&&(aliases[string]))||
+            false;
+        else string=langid.toUpperCase()+"$"+string;
+        return this.dterms[langid+"$"+string]||false;};
+    
+    KNode.prototype.add=function(prop,val){
+        var ai=this._db.allwaysIndex;
+        if ((Ref.prototype.add.call(this,prop,val))&&
+            (prop==='genls')) {
+            this.allways.push(val);
+            this.allways=RefDB.merge(this.allways,val.allways);
+            var allways=this.allways, i=0, lim=allways.length;
+            while (i<lim) ai.add(allways[i++],this);
+            var examples=ai.get(this);
+            if (examples) {
+                var e=0, n_examples=examples.length;
+                while (e<n_examples) {
+                    var example=examples[e++];
+                    example.allways=RefDB.merge(example.allways,this.allways);
+                    var j=0, jlim=allways.length;
+                    while (j<jlim) ai.add(allways[j++],example);}}
+            return true;}
+        else return false;};
+    KNode.prototype.addTerm=function(val,field,inlang){
+        if ((typeof val === 'string')&&(val.search(lang_pat)===0)) {
+            var dollar=val.indexOf('$');
+            var langspec=val.slice(0,dollar).toUpperCase();
+            var term=val.slice(dollar+1);
+            if (langspec===this._db.language) {
+                if (field) this.add(field,term);
+                else {
+                    this.add(langspec,term);
+                    this.add('terms',term);}}
+            else if (field)
+                this.add(field,langspec+"$"+term);
+            else {
+                this.add(langspec,term);
+                this.add('terms',val);}}
+        else if (inlang) {
+            inlang=inlang.toUpperCase();
+            if (inlang===this._db.language) {
+                if (field) this.add(field,val);
+                else this.add('terms',val);}
+            else if (field) 
+                this.add(field,inlang+"$"+val);
+            else this.add('terms',inlang+"$"+val);}
+        else if (field)
+            this.add(field,val);
+        else {
+            this.add(this._db.language,val);
+            this.add('terms',val);}};
+    KNode.prototype.tagString=function(kno) {
+        if (this.oid) return this.oid;
+        else if (this.uuid) return this.uuid;
+        else if (this._qid) return this._qid;
+        if (!(kno)) kno=Knodule.current||false;
+        if (kno===this._db) return this._id;
+        else if (this._db.absrefs) return this._id;
+        else if (this._domain)
+            return this._id+"@"+this._domain;
+        else return this._id+"@"+this._db.name;};
+    
+    KNode.prototype.toPlaintext=function() {
+        var result="";
+        var variants=this[this._db.language||'EN']; var n=0;
+        if (typeof variants==="string") variants=[variants];
+        var i=0; while (i<variants.length) {
+            result=result+((n>0)?"|":"")+variants[i++]; n++;}
+        var genls=this.genls;
+        if (typeof genls==="string") genls=[genls];
+        if ((genls)&&(genls.length)) {
+            i=0; while (i<genls.length) {
+                result=result+((n>0)?"|^":"^")+genls[i++].dterm; n++;}}
+        var specls=this.specls;
+        if (typeof specls==="string") specls=[specls];
+        if ((specls)&&(specls.length)) {
+            i=0; while (i<specls.length) {
+                result=result+((n>0)?"|_":"_")+specls[i++].dterm; n++;}}
+        return result;};
+
+    function findBreak(string,brk,start) {
+        var pos=string.indexOf(brk,start||0);
+        while (pos>0)
+            if (string[pos-1]!=="\\")
+                return pos;
+        else pos=string.indexOf(brk,pos+1);
+        return pos;}
+
+    var segment=fdjtString.segment;
+
+    /* Processing the PLAINTEXT microformat */
+    Knodule.prototype.handleClause=function handleClause(clause,subject) {
+        var object=false, role=false, value=false;
+        if (clause.indexOf('\\')>=0) clause=fdjtString.unEscape(clause);
+        if (trace_parsing>2)
+            fdjtLog("Handling clause '%s' for %o",clause,subject);
+        if ((clause.length===0)||(clause.search(/[^\n\t ]/g)<0))
+            return;
+        switch (clause[0]) {
+        case '^':
+            if (clause[1]==='~') 
+                subject.add('sometimes',this.KNode(clause.slice(2)));
+            else if (clause[2]==='*') 
+                subject.add('commonly',this.KNode(clause.slice(2)));
+            else {
+                var pstart=findBreak(clause,"(");
+                if (pstart>0) {
+                    var pend=findBreak(clause,")",pstart);
+                    if (pend<0) {
+                        fdjtLog.warn(
+                            "Invalid Knodule clause '%s' for %o (%s)",
+                            clause,subject,subject.dterm);}
+                    else {
+                        role=this.KNode(clause.slice(1,pstart));
+                        object=this.KNode(clause.slice(pstart+1,pend));
+                        object.add(role.dterm,subject);
+                        subject.add('genls',role);}}
+                else subject.add('genls',this.KNode(clause.slice(1)));}
+            break;
+        case '_': {
+            object=this.KNode(clause.slice(1));
+            subject.add('examples',object);
+            object.add('genls',subject);}
+            break;
+        case '-':
+            subject.add('never',this.KNode(clause.slice(1)));
+            break;
+        case '&': {
+            value=clause.slice((clause[1]==="-") ? (2) : (1));
+            var assoc=this.KNode(value);
+            if (clause[1]==="-")
+                subject.add('antiassocs',assoc);
+            else subject.add('assocs',assoc);}
+            break;
+        case '@': 
+            if (clause[1]==="#") 
+                subject.add('tags',clause.slice(2));
+            else subject.add('uri',clause.slice(1));
+            break;
+        case '=':
+            if (clause[1]==='@')
+                subject.oid=clause.slice(1);
+            else if (clause[1]==='*')
+                subject.add('equiv',this.KNode(clause.slice(2)));
+            else if (clause[1]==='~')
+                subject.add('kinda',this.KNode(clause.slice(2)));
+            else if (clause[1]==='=')
+                subject.add('identical',this.KNode(clause.slice(1)));
+            else {
+                var term=clause.slice(1), db=subject._db;
+                if (!(db.dterms.hasOwnProperty(term))) {
+                    subject.add('dterms',term);
+                    db.alldterms.push(term);
+                    db.dterms[term]=subject;}}
+            break;
+        case '+': {
+            if (clause[1]==="*") {
+                subject.gloss=clause.slice(2);
+                subject.addTerm(subject.gloss,'glosses');}
+            else if (clause[1]==="~") {
+                subject.gloss=clause.slice(2);
+                subject.addTerm(subject.gloss,'glosses');}
+            else {
+                subject.gloss=clause.slice(1);
+                subject.addTerm(subject.gloss,"glosses");}}
+            break;
+        case '%': {
+            var mirror=this.KNode(clause.slice(1)), omirror;
+            if (subject.mirror===mirror) break;
+            else {
+                omirror=subject.mirror;
+                fdjtLog.warn("Inconsistent mirrors for %s: +%s and -%s",
+                             subject,mirror,omirror);
+                omirror.mirror=false;}
+            if (mirror.mirror) {
+                var oinvmirror=mirror.mirror;
+                fdjtLog.warn("Inconsistent mirrors for %s: +%s and -%s",
+                             mirror,subject,oinvmirror);
+                omirror.mirror=false;}
+            subject.mirror=mirror; mirror.mirror=subject;}
+            break;
+        case '.': {
+            var brk=findBreak(clause,'=');
+            if (!(brk))
+                throw {name: 'InvalidClause', irritant: clause};
+            role=this.KNode(clause.slice(1,brk));
+            object=this.KNode(clause.slice(brk+1));
+            subject.add(role.dterm,object);
+            object.add('genls',role);}
+            break;
+        case '~': {
+            var hook=clause.slice(1);
+            subject.addTerm(hook,'hooks');}
+            break;
+        case ':': {
+            var equals=findBreak(clause,'=');
+            if (equals>0) {
+                var field=clause.slice(1,equals);
+                var multi=(clause[equals+1]==='+');
+                value=((multi)?(clause.slice(equals+2)):
+                       (clause.slice(equals+1)));
+                if (value[0]==='\\') value=value.slice(1);
+                else if (/\d/.exec(value[0])) {
+                    var number=parseFloat(value);
+                    if ((typeof number === "number")&&((number)||(number===0)))
+                        value=number;}
+                else {}
+                if (multi) subject.add(field,value);
+                else subject.store(field,value);}
+            subject.add('flags',clause.slice(1));}
+            break;
+        default: {
+            var eqbrk=findBreak(clause,'=');
+            if (eqbrk>0) {
+                role=this.KNode(clause.slice(0,eqbrk));
+                object=this.KNode(clause.slice(eqbrk+1));
+                subject.add(role.dterm,object);
+                object.add('genls',role);}
+            else subject.addTerm(clause);}}
+        return subject;};
+
+    function getSubject(knodule,clauses){
+        var ref=stdcap(clauses[0]);
+        var probe=knodule.probe(ref);
+        if (probe) return probe;
+        else {
+            var i=1, lim=clauses.length; while (i<lim) {
+                var clause=clauses[i++];
+                if (clause[0]==='=') {
+                    probe=knodule.probe(stdcap(clause.slice(1)));
+                    if (probe) return probe;}}
+            return knodule.KNode(clauses[0]);}}
+
+    Knodule.prototype.handleSubjectEntry=function handleSubjectEntry(entry){
+        var clauses=segment(entry,/[|]/g);
+        var subject=getSubject(this,clauses);
+        if (this.trace_parsing>2)
+            fdjtLog("Processing subject entry %s %o %o",
+                    entry,subject,clauses);
+        var i=1; while (i<clauses.length)
+            this.handleClause(clauses[i++],subject);
+        if (this.trace_parsing>2)
+            fdjtLog("Processed subject entry %o",subject);
+        return subject;};
+
+    Knodule.prototype.handleEntry=function handleEntry(entry){
+        entry=entry.trim();
+        if (entry.length===0) return false;
+        var starpower=entry.search(/[^*]/);
+        if (starpower>0) entry=entry.slice(starpower);
+        var bar=fdjtString.findSplit(entry,'|');
+        var atsign=fdjtString.findSplit(entry,'@');
+        var subject;
+        if ((atsign>0) && ((bar<0)||(atsign<bar))) {
+            // This is a foreign dterm reference (+def), e.g.
+            //  dog@beingmeta.com|doggy|^mammal
+            var term=entry.slice(0,atsign);
+            var knostring=((bar<0) ? (entry.slice(atsign+1)) :
+                           (entry.slice(atsign+1,bar)));
+            var knodule=new Knodule(knostring);
+            if (knodule instanceof Knodule)
+                subject=((bar<0)?(knodule.KNode(term)):
+                         (knodule.handleEntry(term+entry.slice(bar))));
+            else {
+                warn("Resolved %s to non-knodule %o",entry,knodule);
+                subject=knodule.ref(term);}}
+        else subject=this.handleSubjectEntry(entry);
+        if (starpower) {
+            var id=subject._id;
+            var prime=this.prime; var scores=this.primescores;
+            var score=scores[id];
+            if (score) {
+                if (starpower>score) {
+                    scores[id]=starpower;
+                    subject.prime=starpower;}}
+            else {
+                prime.push(id);
+                scores[id]=starpower;
+                subject.prime=starpower;}}
+        return subject;};
+
+    function stripComments(string) {
+        return string.replace(/^\s*#.*$/g,"").
+            replace(/^\s*\/\/.*$/g,"");}
+    
+    Knodule.prototype.handleEntries=function handleEntries(block){
+        if (typeof block === "string") {
+            var nocomment=stripComments(block);
+            var segmented=segment(nocomment,/(?:\s*[\n;]\s*)+/g);
+            if (this.trace_parsing>1)
+                fdjtLog("Handling %d entries",segmented.length);
+            return this.handleEntries(segmented);}
+        else if (block instanceof Array) {
+            var results=[];
+            var i=0; while (i<block.length) {
+                var entry=block[i++]; var len=entry.length;
+                if (entry[len-1]===';') entry=entry.slice(0,len-1);
+                results[i]=this.handleEntry(entry);}
+            return results;}
+        else throw {name: 'TypeError', irritant: block};};
+
+    Knodule.prototype.def=Knodule.prototype.handleSubjectEntry;
+
+    Knodule.def=function(string,kno){
+        if (!(kno)) kno=Knodule.knodule;
+        return kno.def(string);};
+    Knodule.ref=RefDB.ref;
+
+    Knodule.prototype.trace_parsing=0;
+
+    return Knodule;})();
+
+var KNode=Knodule.KNode;
+var Knode=KNode;
+// Suppress never-used warning
+if (KNode!==Knode) fdjt.Log("Weird stuff");
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ##################### knodules/knodules.js ####################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file provides a Javascript/ECMAScript of KNODULES, 
+   a lightweight knowledge representation facility.
+
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library is built on the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification and redistribution of this program is permitted
+   under the GNU General Public License (GPL) Version 2:
+
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@biz.beingmeta.com
+
+   Enjoy!
+
+*/
+/* global Knodule: false */
+
+//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
+//var Knodule=window.Knodule;
+
+(function(){
+    "use strict";
+
+    var RefDB=fdjt.RefDB;
+    var Ref=fdjt.Ref;
+    var Query=RefDB.Query;
+    var KNode=Knodule.KNode;
+    var fdjtLog=fdjt.Log;
+    var warn=fdjtLog.warn;
+
+    var fdjtSet=fdjt.Set;
+
+    var slotpat_weights=
+        {"~%": 1,"~%*": 1,"%": 4,"%*": 4,"^%": 2,"^%*": 2,
+         "*%": 8, "*%*": 6,"**%": 12, "**%*": 8};
+
+    Knodule.addTags=function addTags(refs,tags,refdb,tagdb,base_slot,tagscores){
+        if (!(base_slot)) base_slot="tags";
+        if (typeof tags === "string") tags=[tags];
+        else if (tags instanceof Ref) tags=[tags];
+        else if (!(tags.length)) tags=[tags];
+        else if (tags instanceof Array) {}
+        else tags=[].concat(tags);
+        if (typeof refs === "string") refs=[refs];
+        else if (refs instanceof Ref) refs=[refs];
+        else if (refs instanceof Array) {}
+        else if (!(refs.length)) refs=[refs];
+        else refs=[].concat(refs);
+        var slots=new Array(tags.length);
+        var i=0, ntags=tags.length, tag, slot, ref;
+        while (i<ntags) {
+            tag=tags[i]; slot=base_slot; var weak=false;
+            if (typeof tag === "string") {
+                if (tag[0]==="*") {
+                    var tagstart=tag.search(/[^*]/);
+                    slot=tag.slice(0,tagstart)+base_slot;
+                    tag=tag.slice(tagstart);}
+                else if (tag[0]==="~") {
+                    slot="~"+base_slot;
+                    tag=tag.slice(1);
+                    weak=true;}
+                else {}
+                if (tag.indexOf('|')>0) {
+                    if (tagdb) tag=tagdb.handleEntry(tag);
+                    else if (Knodule.current)
+                        tag=Knodule.current.handleEntry(tag);
+                    else {}}
+                else if ((weak)&&(tagdb))
+                    tag=tagdb.probe(tag)||tag;
+                else if (weak) {}
+                else if (tagdb) tag=tagdb.ref(tag);
+                else {}}
+            slots[i]=slot; tags[i]=tag; i++;}
+        var j=0, nrefs=refs.length;
+        while (j<nrefs) {
+            var refstring=refs[j]; ref=false;
+            if ((refdb)&&(typeof refstring === "string"))
+                ref=refdb.ref(refstring);
+            else ref=RefDB.resolve(refstring,false,Knodule,true);
+            if (!(ref)) {
+                warn("Couldn't resolve %s to a reference",refstring);
+                j++; continue;}
+            refs[j++]=ref;}
+        i=0; while (i<ntags) {
+            tag=tags[i]; slot=slots[i];
+            if (tagscores) {
+                var slotpat=slot.replace(base_slot,"%");
+                var slotweight=slotpat_weights[slotpat];
+                if (!(slotweight)) slotweight=3;
+                tagscores.increment(tag,nrefs*slotweight);}
+            j=0; while (j<nrefs) {
+                ref=refs[j++];
+                if (!(ref)) continue;
+                ref.add(slot,tag,true);
+                if (ref.alltags) ref.alltags.push(tag);
+                else ref.alltags=[tag];
+                if (tag instanceof KNode) {
+                    ref.add('knodes',tag);
+                    ref.add(slot+"*",tag,true);}
+                if ((tag instanceof KNode)&&(tag.allways)) 
+                    ref.add(slot+"*",tag.allways,true);}
+            i++;}};
+
+    function exportTagSlot(tags,slotid,exported){
+        if (!(tags instanceof Array)) tags=[tags];
+        var extags=((exported.tags)||(exported.tags=[]));
+        var start=slotid.search(/[^*~]+/);
+        var end=slotid.search(/[*]*$/);
+        var prefix=((start)&&(slotid.slice(0,start)));
+        if (end) slotid=slotid.slice(start,end);
+        else if (start) slotid=slotid.slice(start);
+        var i=0, lim=tags.length; while (i<lim) {
+            var tag=tags[i++];
+            if (!(tag)) continue;
+            var tagstring=((typeof tag === "string")?(tag):(tag._qid||tag.getQID()));
+            if (start) extags.push(prefix+tagstring);
+            else extags.push(tagstring);}
+        return undefined;}
+    Knodule.exportTagSlot=exportTagSlot;
+            
+    function importTagSlot(ref,slotid,tags,data,indexing){
+        var keep=[]; var alltags=[], tagref;
+        var knodule=ref.tag_knodule||ref._db.tag_knodule||
+            Knodule.tag_knodule||Knodule.current;
+        if (!(tags instanceof Array)) tags=[tags];
+        var i=0, lim=tags.length; while (i<lim) {
+            var tag=tags[i++];
+            if (!(tag)) continue;
+            else if (tag instanceof Ref) keep.push(tag);
+            else if ((typeof tag === "object")&&(tag._id)) {
+                tagref=ref.resolve(tag,knodule,Knodule,true)||tag._id;
+                keep.push(tagref);}
+            else if (typeof tag === "string") {
+                var tag_start=tag.search(/[^*~]/);
+                var tagstring=tag, slot=slotid, tagterm=tag;
+                if (tag_start>0) {
+                    slot=tag.slice(0,tag_start)+slotid;
+                    tagstring=tag.slice(tag_start);}
+                var bar=tagstring.indexOf('|');
+                if (bar>0) tagterm=tagstring.slice(0,bar);
+                else tagterm=tagstring;
+                tagref=RefDB.resolve(tagterm,knodule,Knodule,true)||
+                    ((knodule)&&(knodule.ref(tagterm)))||
+                    tagterm;
+                if (bar>0) {
+                    if (tagref instanceof KNode) 
+                        tagref._db.handleEntry(tagstring);
+                    else warn("No knodule for %s",tagstring);}
+                alltags.push(tagref);
+                if (tagref instanceof KNode) ref.add('knodes',tagref,indexing);
+                if (slot!==slotid) ref.add(slot,tagref,indexing);
+                else keep.push(tagref);}
+            else keep.push(tag);}
+        ref["all"+slotid]=fdjtSet(alltags.concat(keep));
+        if (keep.length) return keep;
+        else return undefined;}
+    Knodule.importTagSlot=importTagSlot;
+
+    function TagQuery(tags,dbs,weights){
+        if (arguments.length===0) return this;
+        var clauses=[], slots=this.slots=[];
+        if (!(dbs)) dbs=TagQuery.default_dbs||false;
+        if (!(weights)) weights=this.weights||{"tags": 1};
+        if (!(tags instanceof Array)) tags=[tags];
+        for (var sl in weights) {
+            if (weights.hasOwnProperty(sl)) slots.push(sl);}
+        var i_tag=0, n_tags=tags.length;
+        while (i_tag<n_tags) {
+            var tagval=tags[i_tag++];
+            if (typeof tagval === "string")
+                clauses.push({fields: 'strings',values: [tagval]});
+            else if ((tagval._db)&&(tagval._db.slots)) 
+                clauses.push({fields: tagval._db.slots,values: [tagval]});
+            else clauses.push({fields: slots,values: [tagval]});}
+        
+        this.tags=tags;
+
+        return Query.call(this,dbs,clauses,weights);}
+
+    TagQuery.prototype=new Query();
+    
+    var TagMap=fdjt.Map;
+    
+    TagQuery.prototype.getCoTags=function getCoTags(results){
+        if (this.cotags) return this.cotags;
+        else if (this.execute()) {
+            if (!(results)) results=this.results;
+            var scores=this.scores;
+            var slots=this.slots, n_slots=slots.length;
+            var alltags=this.cotags=[];
+            var tagscores=this.tagscores=new TagMap();
+            var tagfreqs=this.tagfreqs=new TagMap();
+            var weights=this._weights||this.weights;
+            var max_score=0, max_freq=0;
+            var r=0, n_results=results.length;
+            while (r<n_results) {
+                var result=results[r++], seen={};
+                var score=((scores)&&(scores[result._id]))||1;
+                var s=0; while (s<n_slots) {
+                    var slot=slots[s];
+                    if (result.hasOwnProperty(slot)) {
+                        var tags=result[slot];
+                        var weight=weights[slot]||1;
+                        if (!(tags)) tags=[];
+                        else if (!(tags instanceof Array)) tags=[tags];
+                        else {}
+                        var v=0, n_tags=tags.length;
+                        while (v<n_tags) {
+                            var tag=tags[v++];
+                            if (!(tagscores.get(tag)))
+                                alltags.push(tag);
+                            if (!(seen[tag])) {
+                                var new_freq=tagfreqs.increment(tag,1);
+                                if (new_freq>max_freq) max_freq=new_freq;
+                                seen[tag]=true;}
+                            var new_score=
+                                tagscores.increment(tag,weight*score);
+                            if (new_score>max_score)
+                                max_score=new_score;}}
+                    s++;}}
+            this.max_tagfreq=max_freq;
+            this.max_tagscore=max_score;
+            return alltags;}
+        else return false;};
+    TagQuery.prototype.getString=function TagQueryString(){
+        var tags=fdjt.Set(this.tags); var qstring="";
+        var i=0, lim=tags.length;
+        while (i<lim) {
+            if (i>0) qstring=qstring+";";
+            var tag=tags[i++];
+            if (typeof tag === "string")
+                qstring=qstring+tag;
+            else qstring=qstring+((tag._qid)||(tag.getQID()));}
+        return qstring;};
+    
+    Knodule.TagQuery=TagQuery;
+
+})();
+         
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ##################### knodules/html.js ####################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file provides for HTML documents using KNODULES, including
+   the extraction and processing of embedded KNODULE definitions
+   or references and interaction with interactive parts of the
+   FDJT library.
+
+   For more information on knodules, visit www.knodules.net
+   This library is built on the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use, modification and redistribution of this program is permitted
+   under the GNU General Public License (GPL) Version 2:
+
+   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@biz.beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+/* global Knodule: false */
+
+//var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
+//var Knodule=window.Knodule;
+
+(function(){
+    "use strict";
+
+    var fdjtString=fdjt.String;
+    var fdjtLog=fdjt.Log;
+    var fdjtDOM=fdjt.DOM;
+    var fdjtAjax=fdjt.Ajax;
+    
+    var addClass=fdjtDOM.addClass;
+
+    /* Getting knowdes into HTML */
+
+    var KNode=Knodule.KNode;
+    Knodule.KNode.prototype.toDOM=
+        Knodule.KNode.prototype.toHTML=function(){
+            var spec=((this.prime)?("span.dterm.prime"):
+                      (this.weak)?("span.dterm.weak"):
+                      "span.dterm");
+            var span=fdjtDOM(spec,this.dterm);
+            if (this.gloss) 
+                span.title=fdjtString.strip_markup(this.gloss);
+            span.dterm=this.dterm;
+            return span;};
+    
+    /* Making DTERM descriptions */
+
+    function KNode2HTML(arg,knodule,varname,cloud,lang){
+        if (cloud===true) {
+            if (typeof lang !== "string") lang=(Knodule.language)||"EN";
+            cloud=false;}
+        else if ((cloud)&&(typeof lang !== "string"))
+            lang=(Knodule.language)||"EN";
+        else {}
+        
+        var valstring=((typeof arg === "string")&&(arg))||(arg._qid)||
+            ((arg.getQID)&&(arg.getQID()))||(arg.toString());
+        var checkbox=((varname)&&
+                      (fdjtDOM({tagName: "INPUT",type: "CHECKBOX",
+                                name: varname,value: valstring})));
+        var text=((typeof arg === "string")&&(arg))||
+            fdjtDOM("span.term",valstring);
+        var variations=((arg instanceof KNode)&&(fdjtDOM("span.variations")));
+        var israw=(typeof arg === "string");
+        var span=fdjtDOM(((israw)?("span.rawterm"):("span.dterm")),
+                         checkbox," ",variations,
+                         ((israw)?
+                          (fdjtDOM("span.termtext","\u201c"+text+"\u201d")):
+                          (text)));
+        if ((lang)||(cloud)) {
+            addClass(span,"completion");
+            span.setAttribute("data-value",valstring);}
+        function init(){
+            if (arg instanceof KNode) {
+                var knode=arg, dterm=knode.dterm;
+                text.innerHTML=dterm;
+                span.setAttribute("data-key",dterm);
+                span.setAttribute("data-dterm",knode);
+                if ((lang)||(cloud)) {
+                    var synonyms=knode[lang];
+                    if ((synonyms)&&(typeof synonyms === 'string'))
+                        synonyms=[synonyms];
+                    if (synonyms) {
+                        var i=0; while (i<synonyms.length) {
+                            var synonym=synonyms[i++];
+                            if (synonym===dterm) continue;
+                            var variation=fdjtDOM("span.variation",synonym,"=");
+                            variation.setAttribute("data-key",synonym);
+                            variations.appendChild(variation);}}
+                    if (knode.about) span.title=knode.about;
+                    // This should try to get a dterm in the right language
+                    span.setAttribute("data-key",knode.dterm);}
+                else span.setAttribute("data-key",knode.dterm);}
+            else {
+                if (arg.name) {
+                    span.setAttribute("data-key",arg.name);
+                    span.innerHTML=arg.name;}}
+            if (cloud) cloud.addCompletion(span);}
+        if (typeof arg === "string") {
+            span.setAttribute("data-key",arg);
+            if (cloud) cloud.addCompletion(span);
+            return span;}
+        else if (arg._live) {init(); return span;}
+        else {arg.onLoad(init); return span;}}
+
+    Knodule.HTML=KNode2HTML;
+    Knodule.KNode2HTML=KNode2HTML;
+    Knodule.Knode2HTML=KNode2HTML;
+    Knodule.knode2HTML=KNode2HTML;
+
+    /* Adding Kodes to datalists */
+    function knodeToOption(arg){
+        var option;
+        if (typeof arg === "string") {
+            option=fdjtDOM("OPTION",arg);
+            option.setAttribute("value",arg);
+            return option;}
+        var dterm=arg.dterm;
+        var valstring=((typeof arg === "string")&&(arg))||(arg._qid)||
+            ((arg.getQID)&&(arg.getQID()))||(arg.toString());
+        var options=document.createDocumentFragment();
+        option=fdjtDOM("option",dterm);
+        option.setAttribute("value",valstring);
+        options.appendChild(option);
+        return options;}
+    Knodule.knodeToOption=knodeToOption;
+
+    /* Getting Knodules out of HTML */
+
+    function knoduleLoad(elt,knodule){
+        var src=((typeof elt === 'string')?(elt):(elt.src));
+        var text=fdjtAjax.getText(src);
+        var knowdes=knodule.handleEntries(text);
+        if ((knodule.trace_load)||(Knodule.trace_load))
+            fdjtLog("Parsed %d entries from %s",knowdes.length,elt.src);}
+
+    function knoduleSetupHTML(knodule){
+        if (!(knodule)) knodule=new Knodule(document.location.href);
+        var start=new Date();
+        var elts=fdjtDOM.getLinks("{http://knodules.org/}knodule",true,true);
+        var i=0, lim, elt;
+        if (!((elts)&&(elts.length)))
+            elts=fdjtDOM.getLinks("knodule",true,true);
+        if (!((elts)&&(elts.length)))
+            elts=fdjtDOM.getLinks("*.knodule",true,true);
+        i=0; lim=elts.length; while (i<lim) knoduleLoad(elts[i++],knodule);
+        elts=fdjtDOM.getMeta("knodef");
+        i=0; lim=elts.length; while (i<elts.length) {
+            knodule.handleEntry(elts[i++].content);}
+        elts=document.getElementsByTagName("META");
+        i=0; lim=elts.length; while (i<lim) {
+            elt=elts[i++];
+            if (elt.name==="KNODEF") knodule.handleEntry(elt.content);}
+        elts=document.getElementsByTagName("SCRIPT");
+        i=0; lim=elts.length; while (i<lim) {
+            elt=elts[i++];
+            var lang=elt.getAttribute("language");
+            var type=elt.type;
+            if ((type==="text/knodule")||(type==="application/knodule")||
+                ((lang) &&
+                 ((lang==="knodule") ||(lang==="KNODULE")||
+                  (lang==="knowlet"||(lang==="KNOWLET"))))) {
+                if (elt.src) knoduleLoad(elt,knodule);
+                else if (elt.text) {
+                    var txt=elt.text;
+                    var cdata=txt.search("<!\\[CDATA\\[");
+                    if (cdata>=0) {
+                        var cdend=txt.search("]]>");
+                        txt=txt.slice(cdata+9,cdend);}
+                    var dterms=knodule.handleEntries(txt);
+                    if ((knodule.trace_load)||(Knodule.trace_load))
+                        fdjtLog("Parsed %d inline knodule entries",
+                                dterms.length);}
+                else {}}}
+        var finished=new Date();
+        if ((knodule.trace_load)||(Knodule.trace_load))
+            fdjtLog("Processed knodules in %fs",
+                    ((finished.getTime()-start.getTime())/1000));}
+    Knodule.HTML.Setup=knoduleSetupHTML;
+
+})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
 var Markdown;
 
 if (typeof exports === "object" && typeof require === "function") // we're in a CommonJS (e.g. Node.js) module
@@ -23873,74 +23915,6 @@ fdjt.DOM.noautofontadjust=true;
             if (!(fdjtDOM.isVisible(metaBook.target))) {
                 metaBook.setMode(false); metaBook.setMode(true);}};
 
-    /* A Kludge For iOS */
-
-    /* This is a kludge to handle the fact that saving an iOS app
-       to the home screen loses any authentication information
-       (cookies, etc) that the original page might have had.  To
-       avoid forcing the user to login again, we store the current
-       BOOKHUB:AUTH- token (the encrypted authentication token that
-       can travel in the clear) in the .search (query string) of the
-       current location.  This IS passed to the homescreen
-       standalone app, so we can use it to get a real authentication
-       token.*/
-    function iosAuthKludge(){
-        if ((!(metaBook.user))||(fdjt.device.standalone)||
-            (!(fdjt.device.mobilesafari)))
-            return;
-        var auth=mB.mycopyid;
-        if (!(auth)) return;
-        if (mB.iOSKludge===auth) return; else mB.iOSKludge=auth;
-        var eauth=encodeURIComponent(auth);
-        var url=location.href, qmark=url.indexOf('?'), hashmark=url.indexOf('#');
-        var base=((qmark<0)?((hashmark<0)?(url):(url.slice(0,hashmark))):
-                  (url.slice(0,qmark)));
-        var query=((qmark<0)?(""):(hashmark<0)?(url.slice(qmark)):
-                   (url.slice(qmark+1,hashmark)));
-        var hash=((hashmark<0)?(""):(url.slice(hashmark)));
-        var old_query=false, new_query="MYCOPYID="+eauth;
-        if (query.length<=2) query="?"+new_query;
-        else if (query.search("MYCOPYID=")>=0) {
-            var auth_start=query.search("MYCOPYID=");
-            var before=query.slice(0,auth_start);
-            var auth_len=query.slice(auth_start).search('&');
-            var after=((auth_len<0)?(""):(query.slice(auth_start+auth_len)));
-            old_query=((auth_len<0)?(query.slice(auth_start)):
-                       (query.slice(auth_start,auth_start+auth_len)));
-            query=before+new_query+after;}
-        else query=query+"&"+new_query;
-        if ((!(old_query))||(old_query!==new_query))
-            history.replaceState(history.state,window.title,
-                                 base+qstring(query)+hashstring(hash));}
-    function qstring(s){
-        if (s[0]==='?') return s; else return "?"+s;}
-    function hashstring(s){
-        if (s[0]==='#') return s; else return "#"+s;}
-
-    var ios_kludge_timer=false;
-    function updateKludgeTimer(){
-        if (document[fdjtDOM.isHidden]) {
-            if (ios_kludge_timer) {
-                clearInterval(ios_kludge_timer);
-                ios_kludge_timer=false;}}
-        else if (ios_kludge_timer) {}
-        else ios_kludge_timer=
-            setInterval(function(){
-                if ((metaBook.user)&&(!(fdjt.device.standalone))&&
-                    (!(document[fdjtDOM.isHidden]))&&
-                    (fdjt.device.mobilesafari))
-                    iosAuthKludge();},
-                        300000);}
-    function setupKludgeTimer(){
-        updateKludgeTimer();
-        if (fdjtDOM.isHidden)
-            fdjtDOM.addListener(document,fdjtDOM.vischange,
-                                updateKludgeTimer);
-        metaBook.iosAuthKludge=iosAuthKludge;
-        updateKludgeTimer();}
-    if ((!(fdjt.device.standalone))&&(fdjt.device.mobilesafari))
-        fdjt.addInit(setupKludgeTimer,"setupKludgeTimer");
-    
     /* Utility functions */
 
     var isEmpty=fdjtString.isEmpty;
@@ -27387,12 +27361,22 @@ metaBook.DOMScan=(function(){
         mB.mycopyid_expires=expires;
         mB.saveLocal("mB("+mB.refuri+").mycopyid",string);
         mB.saveLocal("mB("+mB.docid+").mycopyid",string);
+        if ((fdjt.device.mobilesafari)&&(!(fdjt.device.standalone))) {
+            addMyCopyToURI();}
         var waiting=need_mycopyid; need_mycopyid=[];
         var i=0, lim=waiting.length; while (i<lim) {
             waiting[i++](string);}
         return string;}
     metaBook.setMyCopyId=setMyCopyId;
             
+    function addMyCopyToURI(){
+        var auth=mB.mycopyid;
+        if (!(auth)) return;
+        var v=fdjtState.getQuery("MYCOPYID");
+        if (v===auth) return;
+        fdjtState.setQuery("MYCOPYID",auth);}
+    fdjtState.addMyCopyToUri=addMyCopyToURI;
+
     var good_origin=/https:\/\/[^\/]+.(bookhub\.io|metabooks\.net)/;
     function myCopyMessage(evt){
         var origin=evt.origin, data=evt.data;
@@ -41524,20 +41508,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1578-ga4f947a';
-fdjt.buildhost='dev.beingmeta.com';
-fdjt.buildtime='Mon Apr 11 12:59:23 UTC 2016';
-fdjt.builduuid='e1c9235f-b05d-4c74-b026-d7acb7dfa09e';
+fdjt.revision='1.5-1585-gac64a15';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Thu Apr 28 14:01:46 EDT 2016';
+fdjt.builduuid='fbb1c126-bace-4b24-86ed-f974b30002e4';
 
 fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-352-g233c1b1';
-metaBook.buildid='f69a2f35-3086-4d9f-bd6e-992492785762';
-metaBook.buildtime='Sat Apr 23 08:44:20 UTC 2016';
-metaBook.buildhost='dev.beingmeta.com';
+metaBook.version='v0.8-353-g38d12e9';
+metaBook.buildid='353b997b-cbae-49ca-9d19-59f50a35a4a8';
+metaBook.buildtime='Thu Apr 28 14:01:52 EDT 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
