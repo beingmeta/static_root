@@ -27031,6 +27031,7 @@ metaBook.DOMScan=(function(){
                 ((metaBook.target)&&(metaBook.getRefURI(metaBook.target)))||
                 (metaBook.refuri);
             var sync_uri="https://sync.bookhub.io/v1/sync?";
+            if (typeof state.location !== "number") return;
             if (mB.docref)
                 sync_uri=sync_uri+"DOC="+encodeURIComponent(mB.docref);
             else sync_uri=sync_uri+"REFURI="+encodeURIComponent(refuri);
@@ -27049,7 +27050,7 @@ metaBook.DOMScan=(function(){
             if (state) {
                 if (state.target) sync_uri=sync_uri+
                     "&TARGET="+encodeURIComponent(state.target);
-                if ((state.location)||(state.hasOwnProperty('location')))
+                if (typeof state.location === "number")
                     sync_uri=sync_uri+
                     "&LOCATION="+encodeURIComponent(state.location);
                 if (state.changed) sync_uri=sync_uri+
@@ -41518,9 +41519,9 @@ fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-355-g89c0aab';
-metaBook.buildid='B5B1C96E-68D4-432F-B885-8498927C8F70';
-metaBook.buildtime='Fri Apr 29 15:43:33 EDT 2016';
+metaBook.version='v0.8-356-g1b3418a';
+metaBook.buildid='AF282E56-AB69-4212-BDDC-53366540E404';
+metaBook.buildtime='Fri Apr 29 16:15:57 EDT 2016';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
