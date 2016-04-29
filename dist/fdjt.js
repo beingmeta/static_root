@@ -5015,7 +5015,7 @@ fdjt.State=
 
         function urlBase(href){
             if (!(href)) href=location.href;
-            var qmark=href.indexOf('?'), hash=href.indexOf('#');
+            var qmark=href.search('?'), hash=href.search('#');
             if ((qmark<0)&&(hash<0))
                 return href;
             else if (qmark<0)
@@ -5231,9 +5231,9 @@ fdjt.State=
 
         return fdjtState;})();
 
-fdjt.iDB=(function(){
+fdjt.iDB=(function(idbModules){
     "use strict";
-    var iDB={};
+    var iDB={}, device=fdjt.device;
     if ((idbModules)&&
         ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
@@ -5249,7 +5249,7 @@ fdjt.iDB=(function(){
         iDB.IDBKeyRange=window.IDBKeyRange;
         iDB.IDBTransaction=window.IDBTransaction;
         iDB.IDBTransaction=window.IDBTransaction;}
-    return iDB;})();
+    return iDB;})(window.idbModules);
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -16876,8 +16876,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1585-gac64a15';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Thu Apr 28 14:01:46 EDT 2016';
-fdjt.builduuid='fbb1c126-bace-4b24-86ed-f974b30002e4';
+fdjt.revision='1.5-1586-g2e32b32';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Fri Apr 29 15:43:28 EDT 2016';
+fdjt.builduuid='E7B5364E-9130-4057-B68B-FA8EB5094174';
 
