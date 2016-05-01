@@ -5697,7 +5697,6 @@ fdjt.Log=(function(){
 
 */
 /* jshint browser: true, sub: true */
-/* global idbModules */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -6059,7 +6058,7 @@ fdjt.State=
 
         function urlBase(href){
             if (!(href)) href=location.href;
-            var qmark=href.search('?'), hash=href.search('#');
+            var qmark=href.indexOf('?'), hash=href.indexOf('#');
             if ((qmark<0)&&(hash<0))
                 return href;
             else if (qmark<0)
@@ -6277,7 +6276,7 @@ fdjt.State=
 
 fdjt.iDB=(function(idbModules){
     "use strict";
-    var iDB={}, device=fdjt.device;
+    var iDB={};
     if ((idbModules)&&
         ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
@@ -18084,7 +18083,7 @@ fdjt.CodexLayout=
                 if ((baseclass)&&(typeof baseclass !== "string"))
                     weird=true;}
             else if (node.nodeType===3) {
-                if (node.nodeValue.search(/\w/g)>=0) {
+                if (node.nodeValue.search(/\S/g)>=0) {
                     // Wrap non-empty text nodes in elements before
                     // moving
                     var wrapnode=fdjtDOM(
@@ -27031,14 +27030,14 @@ metaBook.DOMScan=(function(){
                 ((metaBook.target)&&(metaBook.getRefURI(metaBook.target)))||
                 (metaBook.refuri);
             var sync_uri="https://sync.bookhub.io/v1/sync?";
-            if (typeof state.location !== "number") return;
             if (mB.docref)
                 sync_uri=sync_uri+"DOC="+encodeURIComponent(mB.docref);
             else sync_uri=sync_uri+"REFURI="+encodeURIComponent(refuri);
             if (mB.docuri!==refuri)
                 sync_uri=sync_uri+"&DOCURI="+encodeURIComponent(metaBook.docuri);
             sync_uri=sync_uri+"&NOW="+fdjtTime.tick();
-            metaBook.last_sync=last_sync=fdjtTime.tick(); syncing=state;
+            metaBook.last_sync=last_sync=fdjtTime.tick(); 
+            if (state) syncing=state; else syncing={};
             if (metaBook.user) sync_uri=sync_uri+
                 "&SYNCUSER="+encodeURIComponent(metaBook.user._id);
             if (mycopyid) sync_uri=sync_uri+
@@ -27057,7 +27056,6 @@ metaBook.DOMScan=(function(){
                     "&CHANGED="+encodeURIComponent(state.changed);
                 if (state.reset) sync_uri=sync_uri+"&RESET=true";}
             var req=new XMLHttpRequest();
-            syncing=state;
             req.onreadystatechange=freshState;
             req.ontimeout=syncTimeout;
             req.withCredentials=true;
@@ -27222,8 +27220,8 @@ metaBook.DOMScan=(function(){
         var latest=xstate.location, farthest=xstate.maxloc, loclen=xstate.loclen;
         var prefer_current=
             ((state.location>17)&&((now-state.changed)<(3600*24)));
-        var prefer_latest=((farthest-loclen)<80);
-        if (farthest>state.location)
+        var prefer_latest=((loclen-farthest)>100);
+        if ((farthest)&&(farthest>state.location)&&((loclen-farthest)>20))
             choices.push(
                 {label: "farthest @"+loc2pct(farthest,loclen),
                  title: "your farthest location on any device/app",
@@ -27233,7 +27231,7 @@ metaBook.DOMScan=(function(){
                      state=metaBook.state; state.changed=fdjtTime.tick();
                      metaBook.saveState(state,true,true);
                      metaBook.hideCover();}});
-        if ((latest!==state.location)&&(latest!==farthest))
+        if ((latest)&&(latest!==state.location)&&(latest!==farthest))
             choices.push(
                 {label: ("latest @"+loc2pct(latest,loclen)),
                  title: "the most recent location on any device/app",
@@ -32257,7 +32255,7 @@ metaBook.setMode=
                     dropClass(skimmer,"transanimate");
                     fdjtDOM.removeListener(
                         skimmer,"transitionend",dropTransAnimate);};
-                if ((false)&&(skimpoint)&&(pct)) {
+                if ((skimpoint)&&(pct)) {
                     skimmer.style[fdjtDOM.transform]="translate3d(0,-110%,0)";
                     setTimeout(function(){
                         addClass(skimmer,"transanimate");
@@ -36593,7 +36591,7 @@ metaBook.setMode=
             choices.push({label: "Copy content",
                           handler: function(){copyContent(passage);}});}
         */
-        if (true) choices.push(
+        choices.push(
             {label: "Zoom content",
              classname: "zoomcontent",
              handler: function(){
@@ -38515,15 +38513,17 @@ metaBook.setMode=
         if ((evt.touches.length===2)&&(typeof d_last === 'number')) {
             var touch2=touches[1];
             var x2=touch2.clientX, y2=touch2.clientY;
-            var ncg_x=(x1+x2)/2, ncg_y=(y1+y2)/2;
+            var ncg_x=((x1+x2)/2), ncg_y=((y1+y2)/2);
             var dx=x2-x1, dy=y2-y1, d=Math.sqrt((dx*dx)+(dy*dy));
             var scale=((d/d_start)*(zoomscale));
-            off_x=off_x+((ncg_x*zoomscale)-(ncg_x*scale));
+            off_x=off_x+((ncg_x*scale)-(ncg_x*zoomscale));
             off_y=off_y+((ncg_y*zoomscale)-(ncg_y*scale));
             if ((Trace.zoom)||(Trace.gestures>1))
                 fdjtLog("zoom_touchmove(2) %o: d=%o->%o@[%o,%o] [%o,%o] [%o,%o]",
                         evt,d_last,d,ncg_x,ncg_y,x1,y1,x2,y2);
-            zbs[transform]="translate3d("+off_x+"px,"+off_y+"px) "+"scale("+scale+",0)";
+            zbs[transform]=
+                "translate3d("+off_x+"px,"+off_y+"px,0px) "+
+                "scale("+scale+") ";
             if (Trace.zoom) fdjtLog("%s %o: %s",transform,zb,zbs[transform]);
             cg_x=ncg_x; cg_y=ncg_y; d_last=d;
             cancel(evt);}
@@ -38535,7 +38535,7 @@ metaBook.setMode=
                         evt,off_x,off_y,mB.zoomX,mB.zoomY,pan_dx,pan_dy,
                         x1,y1,panstart_x,panstart_y);
             zbs[transform]=
-                "translate3d("+off_x+"px,"+off_y+"px) "+"scale("+zoomscale+",0)";
+                "translate3d("+off_x+"px,"+off_y+"px,0px) "+"scale("+zoomscale+")";
             if (Trace.zoom) fdjtLog("%s %o: %s",transform,zb,zbs[transform]);
             cancel(evt);}
         else {}}
@@ -38790,7 +38790,8 @@ metaBook.Paginate=
         function layoutWait(){
             if (!(layout_waiting)) layout_waiting=[];
             layout_preview_next=fdjtTime();
-            fdjtLog("Waiting for layout to finish");
+            if ((Trace.layout)||(Trace.startup)||(Trace.nav)||(Trace.flips)||(Trace.resize))
+                fdjtLog("Waiting for layout to finish");
             setTimeout(function(){addClass("MBLAYOUTWAIT","live");},
                        100);}
         function stopLayoutWait(){
@@ -38799,7 +38800,8 @@ metaBook.Paginate=
                 dropClass(layout_previewing,"curpage");
                 layout_previewing=false;}
             if (!(layout_waiting)) return;
-            fdjtLog("Done with layout wait");
+            if ((Trace.layout)||(Trace.startup)||(Trace.nav)||(Trace.flips)||(Trace.resize))
+                fdjtLog("Done with layout wait");
             var readyfns=layout_waiting;
             layout_waiting=false;
             layout_preview_next=false;
@@ -39945,11 +39947,15 @@ metaBook.Paginate=
                        (false)));
             var page=((node)&&(getParent(node,".codexpage")));
             if ((page)&&(layout.pages.indexOf(page)<0)) page=false;
-            if ((!(location))||(!(page))) return page;
-            var loc=parseInt(page.getAttribute("data-mbloc"),10);
+            if (!(location)) return page;
+            else if (page) {}
+            else page=layout.pages[0];
+            var loc=(page)?(parseInt(page.getAttribute("data-mbloc"),10)):-1;
             if (loc===location) return page;
             var pages=layout.pages, npages=pages.length;
-            var i=((page)?(parseInt(page.getAttribute("data-pagenum"),10)):(1)); i--;
+            var i=((page)?
+                   (parseInt(page.getAttribute("data-pagenum"),10)):
+                   (1)); i--;
             var prev=page; while (i<npages) {
                 var next=pages[i++];
                 loc=parseInt(next.getAttribute("data-mbloc"),10);
@@ -41509,20 +41515,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1586-g2e32b32';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Apr 29 15:43:28 EDT 2016';
-fdjt.builduuid='E7B5364E-9130-4057-B68B-FA8EB5094174';
+fdjt.revision='1.5-1590-g17397a4';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Sun May 1 13:52:50 EDT 2016';
+fdjt.builduuid='05990d1a-3da4-458e-8303-cbb2fcd4ab67';
 
-fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
+fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-356-g1b3418a';
-metaBook.buildid='AF282E56-AB69-4212-BDDC-53366540E404';
-metaBook.buildtime='Fri Apr 29 16:15:57 EDT 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-362-g85419ee';
+metaBook.buildid='3bd23233-f95b-498f-951e-56a481587ef9';
+metaBook.buildtime='Sun May  1 15:24:28 EDT 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
@@ -41538,4 +41544,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
+fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
