@@ -2838,15 +2838,17 @@ body.mbCOVER #METABOOKHUD, body.hudup.mbCOVER #METABOOKHUD {
     overflow-x: scroll; overflow-y: scroll;
     display: none; }
 #METABOOKZOOMBOX {
-    transform-origin: top center;
+    transform-origin: top left;
     z-index: 50;}
 #METABOOKZOOMTARGET {
     display: inline-block; 
     font-size: 2em; font-size: 2rem;}
-div#METABOOKZOOMTARGET, p#METABOOKZOOMTARGET {
+div#METABOOKZOOMTARGET, p#METABOOKZOOMTARGET,
+blockquote#METABOOKZOOMTARGET, ul#METABOOKZOOMTARGET {
     margin-top: 2em; margin-bottom: 2em;
     margin-left: 100px; margin-right: 100px;
     padding-left: 1em; padding-right: 1em;
+    width: 100%; box-sizing: border-box;
     border: solid gray 3px;}
 
 body.mbZOOM #METABOOKZOOM {

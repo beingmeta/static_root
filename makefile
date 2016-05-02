@@ -187,8 +187,8 @@ default: root ssc alltags allhints index.html
 
 root: ${ROOT_FDJT} ${ROOT_METABOOK}
 
-${ROOT_METABOOK} ${DIST_METABOOK}: fdjt metabook knodules webfontloader
-${ROOT_FDJT} ${DIST_FDJT}: fdjt
+#${ROOT_METABOOK} ${DIST_METABOOK}: fdjt metabook knodules webfontloader
+#${ROOT_FDJT} ${DIST_FDJT}: fdjt
 dist: ${DIST_FDJT} ${DIST_METABOOK}
 
 ssc: showsomeclass/app.js showsomeclass/app.css

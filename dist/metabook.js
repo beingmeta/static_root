@@ -38380,6 +38380,7 @@ metaBook.setMode=
 
     var fdjtDOM=fdjt.DOM;
     var fdjtLog=fdjt.Log;
+    var fdjtTime=fdjt.Time;
     var cancel=fdjtDOM.cancel;
     var getTarget=fdjtDOM.T;
     var hasParent=fdjtDOM.hasParent;
@@ -38398,6 +38399,8 @@ metaBook.setMode=
         if (metaBook.zoomtarget===node) {
             metaBook.zoomed=node;
             addClass(document.body,"mbZOOM");}
+        else {
+            mB.zoomX=mB.zoomY=mB.zoomscale=false;}
         metaBook.zoomtarget=node;
         if (!(metaBook.layout)) {}
         else {
@@ -38414,13 +38417,14 @@ metaBook.setMode=
         copy.id="METABOOKZOOMTARGET";
         fdjt.DOM.replace(zoom_target,copy);
         addClass(document.body,"mbZOOM");
-        var mz=$ID("METABOOKZOOM");
-        var zb=$ID("METABOOKZOOM");
-        var xscale=((0.9*mz.clientWidth)/mz.scrollWidth);
-        var yscale=((0.9*mz.clientHeight)/mz.scrollHeight);
-        mB.zoomscale=1; zb.style[fdjt.DOM.transform]="";
-        if (xscale<yscale) setZoom(xscale);
-        else setZoom(yscale);}
+        if (!(mB.zoomscale)) {
+            var mz=$ID("METABOOKZOOM");
+            var zb=$ID("METABOOKZOOM");
+            var xscale=((0.9*mz.clientWidth)/mz.scrollWidth);
+            var yscale=((0.9*mz.clientHeight)/mz.scrollHeight);
+            mB.zoomscale=1; zb.style[fdjt.DOM.transform]="";
+            if (xscale<yscale) setZoom(xscale);
+            else setZoom(yscale);}}
     metaBook.startZoom=startZoom;
 
     function stopZoom(evt){
@@ -38454,7 +38458,7 @@ metaBook.setMode=
             metaBook.zoomscale=scale;
             if (typeof zx === 'number') {
                 zb.style[fdjt.DOM.transform]=
-                    "transform("+zx+"px,"+zy+"px) "+
+                    "translate3d("+zx+"px,"+zy+"px,0px) "+
                     "scale("+scale+")";}
             else zb.style[fdjt.DOM.transform]="scale("+scale+")";
             if (Trace.zoom)
@@ -38477,17 +38481,20 @@ metaBook.setMode=
         evt=evt||window.event; zoom(false); fdjt.UI.cancel(evt);}
 
     var d_start, d_last, cg_x, cg_y;
-    var panstart_x, panstart_y, pan_dx, pan_dy;
+    var panstart_x, panstart_y, panstart_t, pan_dx, pan_dy;
     function zoom_touchstart(evt){
         if (!((evt)&&(evt.touches)&&(evt.touches.length>=1))) return;
         var zc=$ID("METABOOKZOOMCONTROLS"), target=getTarget(evt);
         if (hasParent(target,zc)) return;
         var touches=evt.touches, touch1=touches[0];
-        var x1=touch1.clientX, y1=touch1.clientY;
+        var zoomscale=mB.zoomscale||1;
+        var cx1=touch1.clientX, x1=(cx1-(mB.zoomX||0))/zoomscale;
+        var cy1=touch1.clientY, y1=(cy1-(mB.zoomY||0))/zoomscale;
         if (evt.touches.length===2) {
             var touch2=touches[1];
-            var x2=touch2.clientX, y2=touch2.clientY;
-            var dx=x2-x1, dy=y2-y1;
+            var cx2=touch2.clientX, x2=(cx2-(mB.zoomX||0))/zoomscale;
+            var cy2=touch2.clientY, y2=(cy2-(mB.zoomY||0))/zoomscale;
+            var dx=cx2-cx1, dy=cy2-cy1;
             var d=Math.sqrt((dx*dx)+(dy*dy));
             cg_x=(x1+x2)/2; cg_y=(y1+y2)/2;
             if ((Trace.zoom)||(Trace.gestures))
@@ -38497,7 +38504,9 @@ metaBook.setMode=
             panstart_x=panstart_y=pan_dx=pan_dy=false;
             cancel(evt);}
         else if (evt.touches.length===1) {
-            panstart_x=x1; panstart_y=y1;
+            panstart_x=x1;
+            panstart_y=y1;
+            panstart_t=fdjtTime();
             if ((Trace.zoom)||(Trace.gestures))
                 fdjtLog("zoom_touchstart(1) %o: [%o,%o]",evt,x1,y1);
             cancel(evt);}
@@ -38505,30 +38514,30 @@ metaBook.setMode=
     function zoom_touchmove(evt){
         if (!((evt)&&(evt.touches)&&(evt.touches.length>=1))) return;
         var zb=$ID("METABOOKZOOMBOX"); var zbs=zb.style;
+        var off_x=(mB.zoomX||0), off_y=(mB.zoomY||0);
         var zoomscale=mB.zoomscale||1; 
         var transform=fdjtDOM.transform;
         var touches=evt.touches, touch1=touches[0];
-        var x1=touch1.clientX, y1=touch1.clientY;
-        var off_x=(mB.zoomX||0), off_y=(mB.zoomY||0);
+        var cx1=touch1.clientX, x1=(cx1-off_x)/zoomscale;
+        var cy1=touch1.clientY, y1=(cy1-off_y)/zoomscale;
         if ((evt.touches.length===2)&&(typeof d_last === 'number')) {
             var touch2=touches[1];
-            var x2=touch2.clientX, y2=touch2.clientY;
-            var ncg_x=((x1+x2)/2), ncg_y=((y1+y2)/2);
-            var dx=x2-x1, dy=y2-y1, d=Math.sqrt((dx*dx)+(dy*dy));
+            var cx2=touch2.clientX, x2=(cx2-off_x)/zoomscale;
+            var cy2=touch2.clientY, y2=(cy2-off_y)/zoomscale;
+            var ncg_x=(x1+x2)/2, ncg_y=(y1+y2)/2;
+            var dx=cx2-cx1, dy=cy2-cy1, d=Math.sqrt((dx*dx)+(dy*dy));
             var scale=((d/d_start)*(zoomscale));
-            off_x=off_x+((ncg_x*scale)-(ncg_x*zoomscale));
+            off_x=off_x+((ncg_x*zoomscale)-(ncg_x*scale));
             off_y=off_y+((ncg_y*zoomscale)-(ncg_y*scale));
             if ((Trace.zoom)||(Trace.gestures>1))
-                fdjtLog("zoom_touchmove(2) %o: d=%o->%o@[%o,%o] [%o,%o] [%o,%o]",
-                        evt,d_last,d,ncg_x,ncg_y,x1,y1,x2,y2);
-            zbs[transform]=
-                "translate3d("+off_x+"px,"+off_y+"px,0px) "+
-                "scale("+scale+") ";
+                fdjtLog("zoom_touchmove(2) %o: d=%o->%o@[%o,%o] [%o,%o] [%o,%o], z=%o=>%o",
+                        evt,d_last,d,ncg_x,ncg_y,x1,y1,x2,y2,zoomscale,scale);
+            zbs[transform]="translate3d("+off_x+"px,"+off_y+"px,0px) "+"scale("+scale+")";
             if (Trace.zoom) fdjtLog("%s %o: %s",transform,zb,zbs[transform]);
             cg_x=ncg_x; cg_y=ncg_y; d_last=d;
             cancel(evt);}
         else if ((evt.touches.length===1)&&(typeof panstart_x === 'number')) {
-            pan_dx=(x1-panstart_x); pan_dy=(y1-panstart_y);
+            pan_dx=(x1-panstart_x)*zoomscale; pan_dy=(y1-panstart_y)*zoomscale;
             off_x=off_x+pan_dx; off_y=off_y+pan_dy; 
             if ((Trace.zoom)||(Trace.gestures>1))
                 fdjtLog("zoom_touchmove(1) %o: [%o,%o]=[%o,%o]+([%o,%o]=[%o,%o]-[%o,%o])",
@@ -38552,12 +38561,20 @@ metaBook.setMode=
             setZoom((scale)*(zoomscale),off_x,off_y);
             off_x=off_y=d_last=d_start=false;}
         else if (typeof panstart_x === 'number') {
-            var new_x=(mB.zoomX||0), new_y=(mB.zoomY||0);
+            var new_x=(mB.zoomX||0), new_y=(mB.zoomY||0), now=fdjtTime();
             if ((Trace.zoom)||(Trace.gestures))
                 fdjtLog("zoom_touchend(2) %o: [%o,%o]=[%o,%o] start [%o,%o]",
                         evt,new_x+pan_dx,new_y+pan_dy,pan_dx,pan_dy,
                         panstart_x,panstart_y);
-            mB.zoomX=new_x+pan_dx; mB.zoomY=new_y+pan_dy;
+            if ((now-panstart_t)<500) {
+                if ((Trace.zoom)||(Trace.gestures))
+                    fdjtLog("tapzoom_touchend(2) %o: [%o,%o]=[%o,%o] start [%o,%o]",
+                            evt,new_x+pan_dx,new_y+pan_dy,pan_dx,pan_dy,
+                            panstart_x,panstart_y);
+                mB.zoomX=panstart_x; mB.zoomY=panstart_y;
+                setZoom(1.1*zoomscale,mB.zoomX,mB.zoomY);}
+            else {
+                mB.zoomX=new_x+pan_dx; mB.zoomY=new_y+pan_dy;}
             pan_dx=pan_dy=panstart_x=panstart_y=false;}
         else {}}
 
@@ -41525,9 +41542,9 @@ fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-362-g85419ee';
-metaBook.buildid='3bd23233-f95b-498f-951e-56a481587ef9';
-metaBook.buildtime='Sun May  1 15:24:28 EDT 2016';
+metaBook.version='v0.8-366-gc2efc80';
+metaBook.buildid='78a38c2a-00a7-458e-a685-3dea4c02f0cd';
+metaBook.buildtime='Mon May  2 12:03:56 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
