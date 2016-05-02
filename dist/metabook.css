@@ -2635,7 +2635,7 @@ div.fdjtdialog.savegloss.closing button[value="DISCARD"] {
 ;;;  End: ***
 */
 
-/* -*- Mode: CSS; character-encoding: utf-8; -*- */
+ /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
@@ -2759,6 +2759,10 @@ body.mbSKIMMING #METABOOKSKIMMER,
 
 /* Page controls */
 
+#METABOOKPAGECONTROLS {
+    position: fixed; z-index: 50;
+    width: 100%; height: 100%; left: 0; top: 0;
+    pointer-events: none;}
 div.mbpagecontrol {
     position: absolute; bottom: 50%;
     background-size: contain;  background-repeat: no-repeat;
@@ -2766,6 +2770,8 @@ div.mbpagecontrol {
     font-size: 24px; font-weight: bold; padding-top: 20px;
     cursor: pointer; 
     opacity: 0;}
+#METABOOKPAGECONTROLS .mbpagecontrol {
+    pointer-events: all;}
 div.mbpagecontrol > span { visibility: hidden; }
 body._ANIMATE div.mbpagecontrol {
     transition-property: opacity,background-color;

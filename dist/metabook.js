@@ -32635,6 +32635,7 @@ metaBook.setMode=
 (function (){
     "use strict";
     var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log, $ID=fdjt.ID;
+    var hasClass=fdjtDOM.hasClass;
     var addClass=fdjtDOM.addClass;
     var showPage=fdjt.showPage;
     var fdjtUI=fdjt.UI;
@@ -32682,13 +32683,10 @@ metaBook.setMode=
 
     function metabookResize(){
         var layout=mB.layout;
-        if (Trace.resize)
-            fdjtLog("Real resize w/layout=%o",layout);
         if (resizing) {
             clearTimeout(resizing); resizing=false;}
         updateSizeClasses();
         mB.resizeUI();
-        mB.sizeContent();
         // Unscale the layout
         if (layout) mB.scaleLayout(false);
         if ((mB.touch)&&
@@ -32707,6 +32705,13 @@ metaBook.setMode=
             if (layout) metaBook.scaleLayout(true);
             if (Trace.resize) fdjtLog("Resize to norm, ignoring");
             return;}
+        if ((hasClass(document.body,"mbZOOM"))||
+            (hasClass(document.body,"mbMEDIA"))) {
+            resizing=setTimeout(metabookResize,1000);
+            return;}
+        if (Trace.resize)
+            fdjtLog("Real resize w/layout=%o",layout);
+        mB.sizeContent();
         resizePagers();
         // Set these values to the new one
         outer_width=window.outerWidth;
@@ -41543,8 +41548,8 @@ fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-366-gc2efc80';
-metaBook.buildid='78a38c2a-00a7-458e-a685-3dea4c02f0cd';
-metaBook.buildtime='Mon May  2 12:03:56 EDT 2016';
+metaBook.buildid='0dcd7269-08d4-4e00-b1aa-39831fff3b1a';
+metaBook.buildtime='Mon May  2 14:54:42 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
