@@ -8,6 +8,8 @@
 	"postcss-reporter",
 	"cssnano"
     ],
-    "map": {"inline": false}
+    "map": {"inline": false},
+    "cssnano": {
+	"zindex": false}
 }
 
