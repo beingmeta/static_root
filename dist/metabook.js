@@ -23107,7 +23107,7 @@ var metaBook={
     default_config: {
         layout: 'bypage',
         bodysize: 'normal',bodyfamily: 'serif',
-        bodycontrast: 'high', textjustify: false,
+        bodycontrast: 'high', justify: true,
         linespacing: 'normal',
         uisize: 'normal',dyslexical: false,
         animatecontent: true,animatehud: true,
@@ -26245,7 +26245,7 @@ metaBook.DOMScan=(function(){
         if (!(metaBook.body)) {
             var cxbody=metaBook.body=
                 fdjtDOM("div#METABOOKBODY.metabookbody",content,page);
-            if (metaBook.textjustify) addClass(cxbody,"metabookjustify");
+            if (metaBook.justify) addClass(cxbody,"metabookjustify");
             if (metaBook.bodycontrast)
                 addClass(cxbody,"metabookcontrast"+metaBook.bodycontrast);
             if (metaBook.bodysize)
@@ -38941,7 +38941,7 @@ metaBook.Paginate=
             var forced=((init)&&(init.forced));
             var geom=getGeometry($ID("CODEXPAGE"),false,true);
             var height=geom.inner_height, width=geom.width;
-            var justify=mB.textjustify;
+            var justify=mB.justify;
             var spacing=mB.bodyspacing;
             var size=mB.bodysize||"normal";
             var family=(mB.dyslexical)?("opendyslexic"):
@@ -39295,6 +39295,7 @@ metaBook.Paginate=
                     addClass(document.body,"_SCROLL");
                     fdjt.DOM.adjustFonts(mB.content);}});
 
+        var layout_flags=/justify/;
         function updateLayoutProperty(name,val){
             // This updates layout properties
             if (val===true) 
@@ -39302,6 +39303,10 @@ metaBook.Paginate=
             else if (!(val))
                 fdjtDOM.dropClass(
                     mB.body,new RegExp("metabook"+name+"\\w*"));
+            else if (name.search(layout_flags)>=0) {
+                fdjtDOM.swapClass(
+                    mB.body,new RegExp("metabook"+name+"\\w*"),
+                    "metabook"+name);}
             else fdjtDOM.swapClass(
                 mB.body,new RegExp("metabook"+name+"\\w*"),
                 "metabook"+name+val);
@@ -39324,7 +39329,7 @@ metaBook.Paginate=
         mB.addConfig("bodysize",updateLayoutProperty);
         mB.addConfig("bodyfamily",updateLayoutProperty);
         mB.addConfig("bodyspacing",updateLayoutProperty);
-        mB.addConfig("textjustify",updateLayoutProperty);
+        mB.addConfig("justify",updateLayoutProperty);
         
         function getLayoutID(width,height,family,size,spacing,
                              justify,source_id){
@@ -39340,7 +39345,7 @@ metaBook.Paginate=
             if (!(size)) size=mB.bodysize||"normal";
             if (!(source_id))
                 source_id=mB.sourceid||fdjtHash.hex_md5(mB.docuri);
-            if (!(justify)) justify=mB.textjustify;
+            if (!(justify)) justify=mB.justify;
             if (!(spacing)) spacing=mB.linespacing;
             page.style.left=left; page.style.right=right;
             return fdjtString(
@@ -39390,7 +39395,7 @@ metaBook.Paginate=
             var bodysize=mB.bodysize||"normal";
             var docref=mB.docref;
             var sourceid=mB.sourceid;
-            var justify=mB.textjustify;
+            var justify=mB.justify;
             var spacing=mB.linespacing;
             var sourcehash=fdjt.CodexLayout.sourcehash;
             var layout_id=fdjtString(
@@ -41438,7 +41443,7 @@ metaBook.HTML.settings=
     "    <span class=\"sep\">//</span>\n"+
     "    <span class=\"checkspan justify\"\n"+
     "          title=\"left/right justify paragraphs of body text\">\n"+
-    "      <input TYPE=\"CHECKBOX\" NAME=\"textjustify\" VALUE=\"yes\"/>\n"+
+    "      <input TYPE=\"CHECKBOX\" NAME=\"justify\" VALUE=\"yes\"/>\n"+
     "      Justify paragraphs</span>\n"+
     "  </div>\n"+
     "  <div class=\"clearfloats\"></div>\n"+
@@ -41547,9 +41552,9 @@ fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-366-gc2efc80';
-metaBook.buildid='0dcd7269-08d4-4e00-b1aa-39831fff3b1a';
-metaBook.buildtime='Mon May  2 14:54:42 EDT 2016';
+metaBook.version='v0.8-369-g3664fa6';
+metaBook.buildid='e617d9a4-ef4d-4861-857f-7dd21dd41d0e';
+metaBook.buildtime='Wed May  4 15:11:50 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
