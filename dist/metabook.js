@@ -1405,8 +1405,8 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=getnow();
             var timer=false;
-            if (!(slice)) slice=100;
-            if (!(space)) space=slice;
+            if (!(slice)) slice=20;
+            if (!(space)) space=10;
             if (!(watch_slice)) watch_slice=0;
             function slowmap_stepfn(){
                 try {
@@ -5697,6 +5697,7 @@ fdjt.Log=(function(){
 
 */
 /* jshint browser: true, sub: true */
+/* global idbModules */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -6058,7 +6059,7 @@ fdjt.State=
 
         function urlBase(href){
             if (!(href)) href=location.href;
-            var qmark=href.indexOf('?'), hash=href.indexOf('#');
+            var qmark=href.search('?'), hash=href.search('#');
             if ((qmark<0)&&(hash<0))
                 return href;
             else if (qmark<0)
@@ -6276,7 +6277,7 @@ fdjt.State=
 
 fdjt.iDB=(function(idbModules){
     "use strict";
-    var iDB={};
+    var iDB={}, device=fdjt.device;
     if ((idbModules)&&
         ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
@@ -18083,7 +18084,7 @@ fdjt.CodexLayout=
                 if ((baseclass)&&(typeof baseclass !== "string"))
                     weird=true;}
             else if (node.nodeType===3) {
-                if (node.nodeValue.search(/\S/g)>=0) {
+                if (node.nodeValue.search(/\w/g)>=0) {
                     // Wrap non-empty text nodes in elements before
                     // moving
                     var wrapnode=fdjtDOM(
@@ -24760,7 +24761,7 @@ fdjt.CodexLayout.dbname="metaBook";
     } metaBook.resolveLocation=resolveLocation;
 
     // This moves within the document in a persistent way
-    function metabookGoTo(arg,caller,istarget,savestate,skiphist){
+    function metabookGoTo(arg,caller,istarget,savestate,skiphist,forgetcur){
         if (typeof istarget === 'undefined') istarget=true;
         if (typeof savestate === 'undefined') savestate=true;
         var target, location, locinfo;
@@ -24791,6 +24792,8 @@ fdjt.CodexLayout.dbname="metaBook";
         else {
             fdjtLog.warn("Bad metabookGoTo %o",arg);
             return;}
+        // Save the current state
+        if ((mB.state)&&(!(forgetcur))) setHistory(mB.state);
         if ((istarget)&&(istarget.nodeType)) target=istarget;
         else if ((typeof istarget === "string")&&(mbID(istarget)))
             target=mbID(istarget);
@@ -24877,7 +24880,9 @@ fdjt.CodexLayout.dbname="metaBook";
             if (target.href) break; else target=target.parentNode;
         if ((target)&&(target.href)&&(target.href[0]==='#')) {
             var elt=mbID(target.href.slice(1));
-            if (elt) {metaBook.GoTo(elt,"anchorFn"); fdjtUI.cancel(evt);}}}
+            if (elt) {
+                metaBook.GoTo(elt,"anchorFn"); 
+                fdjtUI.cancel(evt);}}}
     metaBook.anchorFn=anchorFn;
 
     // This jumps and disables the HUD at the same time
@@ -26513,7 +26518,7 @@ metaBook.DOMScan=(function(){
         fdjtAsync.slowmap(function(string){
             searchlist.appendChild(knodeToOption(string));},
                          metaBook.textindex.allterms,
-                         {slice: 100,space: 20});
+                         {slice: 50,space: 20});
         metaBook.sortCloud(empty_cloud);
         metaBook.sortCloud(gloss_cloud);
         metaBook.sizeCloud(empty_cloud,metaBook.tagfreqs,[]);
@@ -26620,7 +26625,7 @@ metaBook.DOMScan=(function(){
         fdjtAsync.slowmap(
             handleIndexEntry,alltags,
             {watchfn: ((alltags.length>100)&&(tracelevel>1)&&(indexProgress)),
-             slice: 200,space: 10})
+             slice: 50,space: 5})
             .then(function(state){
                 fdjtLog("Book index links %d keys to %d refs",ntags,nitems);
                 dropClass(document.body,"mbINDEXING");
@@ -26736,7 +26741,7 @@ metaBook.DOMScan=(function(){
             handle_inline_tags,
             tohandle,
             {watchfn: ((tohandle.length>100)&&(index_progress)),
-             done: index_done,slice: 200, space: 5});}
+             done: index_done,slice: 50, space: 5});}
     metaBook.applyTagAttributes=applyTagAttributes;
     
     function handle_inline_tags(info){
@@ -41542,20 +41547,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1590-g17397a4';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun May 1 13:52:50 EDT 2016';
-fdjt.builduuid='05990d1a-3da4-458e-8303-cbb2fcd4ab67';
+fdjt.revision='1.5-1587-g7c67f54';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Tue May 10 07:38:58 CEST 2016';
+fdjt.builduuid='A93FFC28-4B5E-4143-B626-7C58F8547D67';
 
-fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
+fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-369-g3664fa6';
-metaBook.buildid='e617d9a4-ef4d-4861-857f-7dd21dd41d0e';
-metaBook.buildtime='Wed May  4 15:11:50 EDT 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-371-g899845b';
+metaBook.buildid='FC23A850-D12E-42BE-A1A7-87209529BEA7';
+metaBook.buildtime='Tue May 10 07:39:08 CEST 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
@@ -41571,4 +41576,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='5D4F0D1701EFC8742A0D95ADC5A696F5E3FFA2D6';
+fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
