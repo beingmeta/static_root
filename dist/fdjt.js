@@ -361,8 +361,8 @@ fdjt.Async=fdjt.ASync=fdjt.async=
             var i=0; var lim=vec.length; var chunks=0;
             var used=0; var zerostart=getnow();
             var timer=false;
-            if (!(slice)) slice=100;
-            if (!(space)) space=slice;
+            if (!(slice)) slice=20;
+            if (!(space)) space=10;
             if (!(watch_slice)) watch_slice=0;
             function slowmap_stepfn(){
                 try {
@@ -4653,6 +4653,7 @@ fdjt.Log=(function(){
 
 */
 /* jshint browser: true, sub: true */
+/* global idbModules */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -5014,7 +5015,7 @@ fdjt.State=
 
         function urlBase(href){
             if (!(href)) href=location.href;
-            var qmark=href.indexOf('?'), hash=href.indexOf('#');
+            var qmark=href.search('?'), hash=href.search('#');
             if ((qmark<0)&&(hash<0))
                 return href;
             else if (qmark<0)
@@ -5232,7 +5233,7 @@ fdjt.State=
 
 fdjt.iDB=(function(idbModules){
     "use strict";
-    var iDB={};
+    var iDB={}, device=fdjt.device;
     if ((idbModules)&&
         ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
@@ -16875,8 +16876,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1590-g17397a4';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Sun May 1 13:52:50 EDT 2016';
-fdjt.builduuid='05990d1a-3da4-458e-8303-cbb2fcd4ab67';
+fdjt.revision='1.5-1587-g7c67f54';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Tue May 10 07:38:58 CEST 2016';
+fdjt.builduuid='A93FFC28-4B5E-4143-B626-7C58F8547D67';
 
