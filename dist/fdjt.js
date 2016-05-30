@@ -5015,7 +5015,7 @@ fdjt.State=
 
         function urlBase(href){
             if (!(href)) href=location.href;
-            var qmark=href.indexOf('?'), hash=href.indexOf('#');
+            var qmark=href.search('?'), hash=href.search('#');
             if ((qmark<0)&&(hash<0))
                 return href;
             else if (qmark<0)
@@ -16876,8 +16876,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1588-g5f10f41';
+fdjt.revision='1.5-1587-g7c67f54';
 fdjt.buildhost='Shiny';
-fdjt.buildtime='Sun May 29 13:37:37 EDT 2016';
-fdjt.builduuid='C3C8F0C6-90D1-42B6-889A-A518780A5C27';
+fdjt.buildtime='Tue May 10 07:38:58 CEST 2016';
+fdjt.builduuid='A93FFC28-4B5E-4143-B626-7C58F8547D67';
 
