@@ -5697,7 +5697,6 @@ fdjt.Log=(function(){
 
 */
 /* jshint browser: true, sub: true */
-/* global idbModules */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -6277,7 +6276,7 @@ fdjt.State=
 
 fdjt.iDB=(function(idbModules){
     "use strict";
-    var iDB={}, device=fdjt.device;
+    var iDB={};
     if ((idbModules)&&
         ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
@@ -15057,7 +15056,7 @@ function makeChoice(spec,close_choice,i){
                     remove_dialog(box);
                     clearTimeout(timeout);
                     timeout=false;},
-                                       500);}}
+                                       50);}}
         if (typeof spec === "function") 
             choices=[{label: "Cancel"},
                      {label: "OK",handler: spec,isdefault: true}];
@@ -16987,10 +16986,10 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
         TextSelect.prototype.prefix=TextSelect.prototype.traced=0;
         TextSelect.prototype.nodes=TextSelect.prototype.orig=
             TextSelect.prototype.wrapped=TextSelect.prototype.wrappers=
-            TextSelect.prototype.words=TextSelect.prototype.tapholds=
-            TextSelect.prototype.loupe=[];
+            TextSelect.prototype.words=TextSelect.prototype.tapholds=[];
         TextSelect.prototype.onchange=TextSelect.prototype.wordnum=
-            TextSelect.prototype.startEvent=false;
+            TextSelect.prototype.startEvent=
+            TextSelect.prototype.loupe=false;
 
         TextSelect.prototype.toString=function(){
             var wrappers=this.wrappers; 
@@ -18017,6 +18016,7 @@ fdjt.CodexLayout=
             var lastclass=((last_dup)&&(last_dup.className)&&
                            (last_dup.className.search)&&
                            (last_dup.className));
+            dropClass(copy,"codexrelocated");
             if (baseid) copy.codexbaseid=baseid;
             // Jigger the class name
             if (!(duplist)) {
@@ -18034,9 +18034,9 @@ fdjt.CodexLayout=
                 stripBottomStyles(last_dup,true);}
             // if (copy.getAttribute("style")) 
             // If the original had an ID, save it in various ways
-            if (id) {
-                copy.codexbaseid=id;
-                copy.setAttribute("data-baseid",id);
+            if (node.id) {
+                if (!(baseid))
+                    copy.setAttribute("data-baseid",id);
                 copy.removeAttribute("id");}
             // Record the copy you've made (to avoid recreation)
             if (duplist) duplist.push(copy);
@@ -18084,7 +18084,7 @@ fdjt.CodexLayout=
                 if ((baseclass)&&(typeof baseclass !== "string"))
                     weird=true;}
             else if (node.nodeType===3) {
-                if (node.nodeValue.search(/\w/g)>=0) {
+                if (node.nodeValue.search(/\S/g)>=0) {
                     // Wrap non-empty text nodes in elements before
                     // moving
                     var wrapnode=fdjtDOM(
@@ -18266,9 +18266,9 @@ fdjt.CodexLayout=
                 layout.logfn(
                     "Reverting layout of %d nodes and %d split texts",
                     moved.length,RefDB.countKeys(textsplits));
-                i=0; lim=moved.length;
-                while (i<lim) {
-                    restoreNode(moved[i++],layout,crumbs);}}
+                var j=moved.length;
+                while (j>0) {
+                    restoreNode(moved[--j],layout,crumbs);}}
             var restyled=fdjtDOM.$("[data-savedstyle]");
             i=0; lim=restyled.length;
             while (i<lim) {
@@ -19181,8 +19181,10 @@ fdjt.CodexLayout=
                         newPage(node);
                         return node;}
                     if ((node.id)&&(node.id.search("CODEXTMP")!==0)) {
-                        if (!(splits[node.id]))
-                            splits[node.id]=node.cloneNode(true);}
+                        if (!(splits[node.id])) {
+                            var clone=node.cloneNode(true);
+                            splits[node.id]=clone;
+                            clone.removeAttribute("id");}}
                     // Otherwise, we remove all of the node's children
                     // and then add back just enough to reach the
                     // edge, potentially splitting some children to
@@ -19459,13 +19461,15 @@ fdjt.CodexLayout=
                             text_parent=node;
                             pushnode=page_break.cloneNode(true);
                             addClass(page_break,"codexraggedsplit");
-                            pushnode.id="";}
+                            dropClass(pushnode,"codexrelocated");
+                            pushnode.removeAttribute("id");}
                         else {
                             keepnode=fdjtDOM("span.codexsplitstart");
                             pushnode=page_break.cloneNode(true);
                             if (!(keepnode.id))
                                 id=keepnode.id="CODEXTMPID"+(tmpid_count++);
-                            else pushnode.id="";}
+                            dropClass(pushnode,"codexrelocated");
+                            pushnode.removeAttribute("id");}
                         keepnode.appendChild(document.createTextNode(keeptext));
                         pushnode.innerHTML="";
                         pushnode.appendChild(document.createTextNode(pushtext));
@@ -36616,9 +36620,7 @@ metaBook.setMode=
         cancel(evt);
         choices.push(
             {label: "Cancel",
-             classname: "cancel",
-             handler: function(){
-                 metaBook.cancelGloss();}});
+             classname: "cancel"});
         var spec={choices: choices,
                   spec: "div.fdjtdialog.metabooktaptap"};
         metaBook.passage_menu=fdjtUI.choose(spec);}
@@ -41554,20 +41556,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1588-g5f10f41';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Sun May 29 13:37:37 EDT 2016';
-fdjt.builduuid='C3C8F0C6-90D1-42B6-889A-A518780A5C27';
+fdjt.revision='1.5-1595-g4646723';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Fri Jun 10 18:22:19 EDT 2016';
+fdjt.builduuid='8aac1c23-bf00-4554-b0c2-c2ba5533495a';
 
-fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
+fdjt.CodexLayout.sourcehash='62CDF7BD7A876847957C627A399FEC207EB17F69';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-376-gd32927c';
-metaBook.buildid='8E39AEFE-0B04-4016-8031-FD3CFA22BAAB';
-metaBook.buildtime='Sun May 29 13:37:40 EDT 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-379-g07f7ebb';
+metaBook.buildid='3ba24de9-572b-4684-b24a-242728941c12';
+metaBook.buildtime='Fri Jun 10 21:33:38 EDT 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
@@ -41583,4 +41585,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='97270F93A03966AAAF053C82E5EB0AB59E5DD93B';
+fdjt.CodexLayout.sourcehash='62CDF7BD7A876847957C627A399FEC207EB17F69';
