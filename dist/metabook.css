@@ -3409,7 +3409,7 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
 
 #METABOOKCOVER div.flap {
     position: absolute;
-    top: 40px; top: 5vh; bottom: 120px; left: 10%; right: 10%;
+    top: 40px; top: 6vh; bottom: 120px; left: 10%; right: 10%;
     box-sizing: border-box; padding: 1em; padding-top: 2px;
     height: auto; width: auto; overflow: hidden;
     z-index: -50; opacity: 0.0;
@@ -3427,7 +3427,7 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
 #METABOOKCOVERMESSAGE {
     position: absolute; 
     width: 100%; left: 0; right: 0; border: 0; 
-    top: 0; height: 40px; height: 5vh; bottom: auto;
+    top: 0; height: 40px; height: 6vh; bottom: auto;
     font-size: 36px; font-size: 5vh;
     font-variant: small-caps; white-space: nowrap;
     text-align: center; overflow: visible; 
@@ -3435,7 +3435,7 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
     cursor: pointer; display: block; opacity: 1.0;
     z-index: 50;}
 #METABOOKCOVERMESSAGE > div {
-    font-weight: bold; line-height: 1.2ex;
+    font-weight: bold; line-height: 1.25;
     margin-left: 10%; margin-right: 10%; width: 80%;
     color: silver;}
 
@@ -3563,10 +3563,6 @@ html._USER #METABOOKCOVER div.userbox {
 #METABOOKCOVER.aboutbook div.flap#METABOOKBLURB,
 #METABOOKCOVER.aboutbook div.flap#METABOOKABOUTBOOK {
     opacity: 1.0; z-index: 20; display: block;}
-
-body.mbREADY #METABOOKCOVER.bookcover #METABOOKOPENTAB,
-body.mbREADY #METABOOKCOVER.coverpage #METABOOKOPENTAB {
-  display: none;}
 
 #METABOOKCOVER.bookcover .control[data-mode='coverpage'],
 #METABOOKCOVER.coverpage .control[data-mode='coverpage'],
@@ -3719,32 +3715,6 @@ html._TOUCH #METABOOKCONSOLELOG {
 
 #METABOOKCOVER > .sbookslogo em {color: steelblue;}
 
-div#METABOOKOPENTAB {
-    height: 40px; width: 7em; font-size: 38px; line-height: 1.0; white-space: nowrap;
-    box-sizing: border-box;
-    font-style: normal;
-    margin: 0; margin-left: auto; margin-right: auto;
-    padding:  0 1em 0 1em; 
-    border: solid transparent 2px; border-top: 0;
-    background-color: gray; color: white;
-    font-variant: small-caps; font-weight: bold;
-    border-bottom-left-radius: 1ex; border-bottom-right-radius: 1ex;
-    cursor: pointer;}
-body.mbSTARTUP div#METABOOKOPENTAB { display: none; }
-html._MOUSE #METABOOKOPENTAB:hover, #METABOOKOPENTAB.tapholdtarget {
-    border-color: blue; border-style: dotted;}
-html._TOUCH div#METABOOKOPENTAB {
-    font-size: 36px; height: 40px;}
-html._TOUCH div#METABOOKOPENTAB {
-    width: 5em; }
-
-body.mbREADY #METABOOKCOVERMESSAGE  #METABOOKOPENTAB {
-    display: block;}
-body.mbLAYOUT #METABOOKCOVERMESSAGE #METABOOKOPENTAB,
-body.mbSTARTUP #METABOOKCOVERMESSAGE #METABOOKOPENTAB,
-body.mbBUSY #METABOOKCOVERMESSAGE #METABOOKOPENTAB {
-    display: none;}
-
 #METABOOKCOVERMESSAGE div.message {
     color: silver; font-size: 24px; font-size: 2rem;
     padding-left: 0; padding-right: 0;
@@ -3792,8 +3762,6 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
             (max-width: 480px) {
     html._NOUSER #METABOOKCOVER div.flap { bottom: 150px; }
     #METABOOKCOVERMESSAGE div.message { font-size: 0.7em;}
-    #METABOOKCOVERMESSAGE div#METABOOKOPENTAB {
-        font-size: 30px; height: 40px;}
     #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE { font-size: 30px;}
 
     #METABOOKCOVER div.flap { left: 10px; right: 10px;}
