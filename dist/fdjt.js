@@ -4653,7 +4653,6 @@ fdjt.Log=(function(){
 
 */
 /* jshint browser: true, sub: true */
-/* global idbModules */
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
@@ -5015,7 +5014,7 @@ fdjt.State=
 
         function urlBase(href){
             if (!(href)) href=location.href;
-            var qmark=href.search('?'), hash=href.search('#');
+            var qmark=href.indexOf('?'), hash=href.indexOf('#');
             if ((qmark<0)&&(hash<0))
                 return href;
             else if (qmark<0)
@@ -5233,7 +5232,7 @@ fdjt.State=
 
 fdjt.iDB=(function(idbModules){
     "use strict";
-    var iDB={}, device=fdjt.device;
+    var iDB={};
     if ((idbModules)&&
         ((!(window.indexedDB)))) { // ||((device.ios)&&(device.standalone))
         iDB.indexedDB = idbModules.shimIndexedDB;
@@ -14013,7 +14012,7 @@ function makeChoice(spec,close_choice,i){
                     remove_dialog(box);
                     clearTimeout(timeout);
                     timeout=false;},
-                                       500);}}
+                                       50);}}
         if (typeof spec === "function") 
             choices=[{label: "Cancel"},
                      {label: "OK",handler: spec,isdefault: true}];
@@ -15943,10 +15942,10 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
         TextSelect.prototype.prefix=TextSelect.prototype.traced=0;
         TextSelect.prototype.nodes=TextSelect.prototype.orig=
             TextSelect.prototype.wrapped=TextSelect.prototype.wrappers=
-            TextSelect.prototype.words=TextSelect.prototype.tapholds=
-            TextSelect.prototype.loupe=[];
+            TextSelect.prototype.words=TextSelect.prototype.tapholds=[];
         TextSelect.prototype.onchange=TextSelect.prototype.wordnum=
-            TextSelect.prototype.startEvent=false;
+            TextSelect.prototype.startEvent=
+            TextSelect.prototype.loupe=false;
 
         TextSelect.prototype.toString=function(){
             var wrappers=this.wrappers; 
@@ -16876,8 +16875,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1587-g7c67f54';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Tue May 10 07:38:58 CEST 2016';
-fdjt.builduuid='A93FFC28-4B5E-4143-B626-7C58F8547D67';
+fdjt.revision='1.5-1595-g4646723';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Fri Jun 10 18:22:19 EDT 2016';
+fdjt.builduuid='8aac1c23-bf00-4554-b0c2-c2ba5533495a';
 
