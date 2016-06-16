@@ -3972,16 +3972,16 @@ form.metabooksettings div.fontsizes button {
 form.metabooksettings div.fontsizes span.checkspan {
     border-bottom: transparent solid 3px;}
 form.metabooksettings div.fontsizes span.checkspan span.sample {
-    vertical-align: baseline; padding-right: 0.7rem;}
+    vertical-align: baseline; padding-right: 0.25em;}
 form.metabooksettings div.fontsizes
   span.checkspan input[TYPE="RADIO"] { display: none; }
 form.metabooksettings div.fontsizes span.checkspan.ischecked {
     border-color: blue; }
-form.metabooksettings div.fontsizes span.sample.xlarge { font-size: 4vw; }
-form.metabooksettings div.fontsizes span.sample.large { font-size: 3vw; }
-form.metabooksettings div.fontsizes span.sample.normal { font-size: 2vw; }
-form.metabooksettings div.fontsizes span.sample.small { font-size: 1.25vw; }
-form.metabooksettings div.fontsizes span.sample.tiny { font-size: 0.8vw; }
+form.metabooksettings div.fontsizes span.sample.xlarge { font-size: 7vw; }
+form.metabooksettings div.fontsizes span.sample.large { font-size: 5vw; }
+form.metabooksettings div.fontsizes span.sample.normal { font-size: 3vw; }
+form.metabooksettings div.fontsizes span.sample.small { font-size: 2vw; }
+form.metabooksettings div.fontsizes span.sample.tiny { font-size: 1vw; }
 
 form.metabooksettings > div.checkspan {
     white-space: normal; margin-top: 0.5ex;}
@@ -4047,7 +4047,7 @@ div.fdjtdialog.fdjtconfirm.mbsettings div.message {
     form.metabooksettings>div.fontsizes span.samples {
         font-size: 100%;}
     form.metabooksettings div.fontsizes span.checkspan span.sample {
-        padding-right: 0.3rem;}
+        padding-right: 0.2em;}
     form.metabooksettings .button, form.metabooksettings button {
         font-size: 0.8rem;}
     form.metabooksettings .label { font-size: 5vw;}
@@ -5162,17 +5162,17 @@ body.mbMEDIA #METABOOKBODY, body.mbZOOM #METABOOKBODY {
     box-sizing: border-box;}
 
 #METABOOKBODY {
-    font-size: 2vw;}
-#METABOOKBODY.metabookbodysizexlarge {
-    font-size: 4vw;}
-#METABOOKBODY.metabookbodysizelarge {
     font-size: 3vw;}
+#METABOOKBODY.metabookbodysizelarge {
+    font-size: 5vw;}
+#METABOOKBODY.metabookbodysizexlarge {
+    font-size: 7vw;}
 #METABOOKBODY.metabookbodysizenormal {
-    font-size: 2vw;}
+    font-size: 3vw;}
 #METABOOKBODY.metabookbodysizesmall {
-    font-size: 1.25vw;}
+    font-size: 2vw;}
 #METABOOKBODY.metabookbodysizetiny {
-    font-size: 0.8vw;}
+    font-size: 1vw;}
 .metabookbody.metabooklinespacingsingle {
     line-height: 100%;}
 .metabookbody.metabooklinespacingdouble {
