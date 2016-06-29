@@ -5635,7 +5635,8 @@ fdjt.DOM=
                     elt.classList.add(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
+                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                  (elt.className)) || null);
             if ((classinfo)&&(typeof classinfo !== "string")) {
                 fdjtLog.warn("Non string classname for %o",elt);
                 return false;}
@@ -5678,7 +5679,8 @@ fdjt.DOM=
                     elt.classList.remove(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                (((attrib) ? 
+                  (elt.getAttribute(attrib)||"") :
                   (elt.className))||null);
             if ((typeof classinfo !== "string")||(classinfo===""))
                 return false;
@@ -5741,7 +5743,8 @@ fdjt.DOM=
                 elt.classList.toggle(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                (((attrib) ? 
+                  (elt.getAttribute(attrib)||"") :
                   (elt.className))||null);
             if ((typeof classinfo !== "string")||(classinfo==="")) {
                 if (attrib) elt.setAttribute(attrib,classname);
@@ -12310,7 +12313,8 @@ fdjt.UI.ProgressBar=(function(){
         var target=fdjtDOM.T(evt);
         while (target)
             if ((target.nodeType===1) &&
-                ((target.tagName === 'INPUT') || (target.tagName === 'TEXTAREA')) &&
+                ((target.tagName === 'INPUT') || 
+                 (target.tagName === 'TEXTAREA')) &&
                 (target.getAttribute('HELPTEXT'))) {
                 var helptext=fdjtID(target.getAttribute('HELPTEXT'));
                 if (helptext) dropClass(helptext,"showhelp");
@@ -14204,7 +14208,8 @@ if (!(fdjt.UI)) fdjt.UI={};
     
     // The key is either stored as a DOM property, attribute, 
     function getKey(node){
-        return node.key||(node.getAttribute("data-key"))||(node.getAttribute("key"))||
+        return node.key||(node.getAttribute("data-key"))||
+            (node.getAttribute("key"))||
             ((hasClass(node,"variation"))&&(fdjtDOM.textify(node)))||
             ((hasClass(node,"completion"))&&(completionText(node,"")));}
     Completions.getKey=getKey;
@@ -16876,7 +16881,7 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
 */
 // FDJT build information
 fdjt.revision='1.5-1596-g0340e3c';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Jun 10 23:00:49 EDT 2016';
-fdjt.builduuid='A5C37ED1-491A-4193-82FA-DD78FE8E0FFA';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Wed Jun 29 10:12:33 EDT 2016';
+fdjt.builduuid='2ac14b27-cdc9-44a7-b07c-e685fecbd224';
 

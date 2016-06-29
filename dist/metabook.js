@@ -6679,7 +6679,8 @@ fdjt.DOM=
                     elt.classList.add(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :(elt.className))||null);
+                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                  (elt.className)) || null);
             if ((classinfo)&&(typeof classinfo !== "string")) {
                 fdjtLog.warn("Non string classname for %o",elt);
                 return false;}
@@ -6722,7 +6723,8 @@ fdjt.DOM=
                     elt.classList.remove(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                (((attrib) ? 
+                  (elt.getAttribute(attrib)||"") :
                   (elt.className))||null);
             if ((typeof classinfo !== "string")||(classinfo===""))
                 return false;
@@ -6785,7 +6787,8 @@ fdjt.DOM=
                 elt.classList.toggle(classname);
                 return;}
             var classinfo=
-                (((attrib) ? (elt.getAttribute(attrib)||"") :
+                (((attrib) ? 
+                  (elt.getAttribute(attrib)||"") :
                   (elt.className))||null);
             if ((typeof classinfo !== "string")||(classinfo==="")) {
                 if (attrib) elt.setAttribute(attrib,classname);
@@ -13354,7 +13357,8 @@ fdjt.UI.ProgressBar=(function(){
         var target=fdjtDOM.T(evt);
         while (target)
             if ((target.nodeType===1) &&
-                ((target.tagName === 'INPUT') || (target.tagName === 'TEXTAREA')) &&
+                ((target.tagName === 'INPUT') || 
+                 (target.tagName === 'TEXTAREA')) &&
                 (target.getAttribute('HELPTEXT'))) {
                 var helptext=fdjtID(target.getAttribute('HELPTEXT'));
                 if (helptext) dropClass(helptext,"showhelp");
@@ -15248,7 +15252,8 @@ if (!(fdjt.UI)) fdjt.UI={};
     
     // The key is either stored as a DOM property, attribute, 
     function getKey(node){
-        return node.key||(node.getAttribute("data-key"))||(node.getAttribute("key"))||
+        return node.key||(node.getAttribute("data-key"))||
+            (node.getAttribute("key"))||
             ((hasClass(node,"variation"))&&(fdjtDOM.textify(node)))||
             ((hasClass(node,"completion"))&&(completionText(node,"")));}
     Completions.getKey=getKey;
@@ -17900,6 +17905,9 @@ fdjt.CodexLayout=
                     if (psv.length===2) {
                         psw=parseScale(psv[0]);
                         psh=parseScale(psv[1]);}
+                    else if (psv.length!==1) {
+                        fdjtLog.warn("Bad page scale value %s for %o",ps,elt);
+                        return;}
                     else psh=psw=parseScale(psv[0]);}
                 // Target width and height
                 var tw=width*psw, th=height*psh;
@@ -26929,9 +26937,6 @@ metaBook.DOMScan=(function(){
         if (Trace.state)
             fdjtLog("saveState skiphist=%o force=%o state=%j",
                     skiphist,force,state);
-        metaBook.state=state;
-        var statestring=JSON.stringify(state);
-        saveLocal("mB("+mB.docid+").state",statestring);
         if ((!(syncing))&&(metaBook.locsync)&&(metaBook.user)&&
             ((!(metaBook.xstate))||(state.changed>metaBook.xstate.changed)))
             syncState(true);
@@ -26939,6 +26944,13 @@ metaBook.DOMScan=(function(){
             (window.history)&&(window.history.pushState))
             setHistory(state,frag,title);
     } metaBook.saveState=saveState;
+
+    function saveStateLocal(state){
+        metaBook.state=state;
+        var statestring=JSON.stringify(state);
+        saveLocal("mB("+mB.docid+").state",statestring);
+    } metaBook.saveStateLocal=saveStateLocal;
+
 
     // This sets the browser history from a particular state
     function setHistory(state,hash,title){
@@ -26985,7 +26997,7 @@ metaBook.DOMScan=(function(){
                 setTarget(mbID(state.target));}
         if (!(state.refuri)) state.refuri=metaBook.refuri;
         if (!(state.docuri)) state.docuri=metaBook.docuri;
-        saveState(state);
+        saveStateLocal(state);
     } metaBook.restoreState=restoreState;
 
     function clearState(){
@@ -27246,7 +27258,7 @@ metaBook.DOMScan=(function(){
                  title: "the most recent location on any device/app",
                  isdefault: ((prefer_latest)&&(!(prefer_current))),
                  handler: function(){
-                     metaBook.restoreState(xstate); state=metaBook.state;
+                     metaBook.restoreState(xstate);
                      state.changed=fdjtTime.tick();
                      metaBook.saveState(state,true,true);
                      metaBook.hideCover();}});
@@ -27258,6 +27270,7 @@ metaBook.DOMScan=(function(){
                  isdefault: prefer_current,
                  handler: function(){
                      state.changed=fdjtTime.tick();
+                     metaBook.restoreState(state);
                      metaBook.saveState(state,true,true);
                      metaBook.hideCover();}});
         if (choices.length)
@@ -29298,8 +29311,8 @@ metaBook.Startup=
             if ((elt.toclevel)||
                 ((elt.getAttributeNS)&&
                  (elt.getAttributeNS('toclevel','http://beingmeta.com/TOC/')))||
-                (elt.getAttribute('toclevel'))||
                 (elt.getAttribute('data-toclevel'))||
+                (elt.getAttribute('toclevel'))||
                 ((elt.className)&&(elt.className.search)&&
                  ((elt.className.search(/\b(sbook|pubtool)\dhead\b/)>=0)||
                   (elt.className.search(/\b(sbook|pubtool)notoc\b/)>=0)||
@@ -30622,7 +30635,8 @@ metaBook.Slice=(function () {
                     return;}}
             else skimpoint=mB.skimming.skimpoint;
             if (!(skimpoint)) mB.setMode(false);
-            var curname=skim.getAttribute("name"), newname=skimpoint.getAttribute("name");
+            var curname=skim.getAttribute("name");
+            var newname=skimpoint.getAttribute("name");
             if (curname===newname) return;
             var clone=skimpoint.cloneNode(true);
             if (clone.id) clone.id="METABOOKSKIM";
@@ -33349,12 +33363,15 @@ metaBook.setMode=
         var cotags=query.getCoTags();
         var showtags=query.getRefiners();
         var input=getChild(box,".searchinput");
-        var cloudid=input.getAttribute("completions");
-        var infoid=input.getAttribute("info");
+        var cloudid=input.getAttribute("data-completions")||
+            input.getAttribute("completions");
+        var infoid=input.getAttribute("data-searchinfo")||
+            input.getAttribute("info");
         var qtags=getChild(box,".qtags")||$ID("METABOOKSEARCHTAGS");
         /* These should possibly be used in initializing the .listing
          * field of the query */
-        //var resultsid=input.getAttribute("results");
+        //var resultsid=input.getAttribute("data-results")
+        //    ||input.getAttribute("results");
         //var results=((resultsid)&&($ID(resultsid)));
         var info=((infoid)&&($ID(infoid)));
         var resultcount=getChild(info,".resultcount");
@@ -38830,7 +38847,8 @@ metaBook.Paginate=
         function layoutWait(){
             if (!(layout_waiting)) layout_waiting=[];
             layout_preview_next=fdjtTime();
-            if ((Trace.layout)||(Trace.startup)||(Trace.nav)||(Trace.flips)||(Trace.resize))
+            if ((Trace.layout)||(Trace.startup)||(Trace.nav)||
+                (Trace.flips)||(Trace.resize))
                 fdjtLog("Waiting for layout to finish");
             setTimeout(function(){addClass("MBLAYOUTWAIT","live");},
                        100);}
@@ -38840,7 +38858,8 @@ metaBook.Paginate=
                 dropClass(layout_previewing,"curpage");
                 layout_previewing=false;}
             if (!(layout_waiting)) return;
-            if ((Trace.layout)||(Trace.startup)||(Trace.nav)||(Trace.flips)||(Trace.resize))
+            if ((Trace.layout)||(Trace.startup)||(Trace.nav)||
+                (Trace.flips)||(Trace.resize))
                 fdjtLog("Done with layout wait");
             var readyfns=layout_waiting;
             layout_waiting=false;
@@ -38864,9 +38883,12 @@ metaBook.Paginate=
                 if (typeof pct==="number")
                     fdjt.UI.ProgressBar.setProgress(pb,pct);}
             var fpb=$ID("METABOOKLAYOUTADJUST");
+            var rpct=((typeof pct === 'number')&&
+                      (!(Number.isNaN(pct)))&&
+                      (Math.round(pct)));
             if (layout_waiting) {
                 var layout=mB.layout, now=fdjtTime();
-                if (fpb) fpb.innerHTML="Layout ("+Math.round(pct)+"%)";
+                if ((fpb)&&(rpct)) fpb.innerHTML="Layout: "+rpct+"%";
                 if (now>layout_preview_next) {
                     var pages=layout.pages, latest=pages[pages.length-2];
                     dropClass(layout_previewing,"curpage");
@@ -38876,7 +38898,7 @@ metaBook.Paginate=
                         addClass(latest,"previewcurpage");}
                     layout_previewing=latest;
                     layout_preview_next=now+layout_preview_interval;}}
-            else if (fpb) fpb.innerHTML="Finishing @"+Math.round(pct)+"%";
+            else if ((fpb)&&(rpct)) fpb.innerHTML="Layout @"+rpct+"%";
             else {}}
 
         var layout_next_report=false;
@@ -38984,7 +39006,8 @@ metaBook.Paginate=
                 // Repaginating, start with reversion
                 if (Trace.layout) fdjtLog("Reverting current layout");
                 mB.layout.Revert();
-                mB.layout=false;}
+                mB.layout=false;
+                mB.curpage=false;}
 
             // Resize the content
             if (Trace.layout) fdjtLog("Sizing the content");
@@ -39080,7 +39103,8 @@ metaBook.Paginate=
                     setLocal(key,saved,true);}}
 
             function finishPageInfo(page,layout){
-                var pages=layout.pages, pagenum=atoi(page.getAttribute("data-pagenum"),10);
+                var pages=layout.pages;
+                var pagenum=atoi(page.getAttribute("data-pagenum"),10);
                 var docinfo=mB.docinfo, curloc=false;
                 var lastid=getPageLastID(page);
                 var prevpage=
@@ -39461,7 +39485,7 @@ metaBook.Paginate=
                     page.setAttribute("data-mbloc",curloc);}
                 if ((mB.state)&&(layout_waiting)) {
                     var state=mB.state, target=state.target, loc=state.location;
-                    var resolved=(target)?(getPage(target,loc)):
+                    var resolved=(target)?(getPage(target,loc,"beprecise")):
                         ((curloc)&&(loc<curloc)&&(loc2page(loc,layout)));
                     if (Trace.layout) fdjtLog("Checking state %j, resolved=%o",state,resolved);
                     if (resolved) {
@@ -39984,17 +40008,18 @@ metaBook.Paginate=
             if (typeof newpage === "number") mB.GoToPage(newpage);}
         metaBook.stopPagePreview=stopPagePreview;
         
-        function getPage(arg,location,layout){
+        function getPage(arg,location,exact,layout){
             if (!(layout)) layout=mB.layout;
             var node=((arg)&&
                       ((arg.nodeType)?(arg):
                        (typeof arg === "string")?(mbID(arg)):
                        (false)));
             var page=((node)&&(getParent(node,".codexpage")));
+            // Ignore pages not in the layout
             if ((page)&&(layout.pages.indexOf(page)<0)) page=false;
             if (!(location)) return page;
-            else if (page) {}
-            else page=layout.pages[0];
+            else if ((!(page))&&(!(arg))) page=layout.pages[0];
+            else if (!(page)) return false; 
             var loc=(page)?(parseInt(page.getAttribute("data-mbloc"),10)):-1;
             if (loc===location) return page;
             var pages=layout.pages, npages=pages.length;
@@ -40008,7 +40033,8 @@ metaBook.Paginate=
                 else if (loc===location) return next;
                 else if (loc>location) return prev;
                 else prev=next;}
-            return page;}
+            if (exact) return false;
+            else return page;}
         metaBook.getPage=getPage;
         
         function loc2page(loc,layout){
@@ -40071,11 +40097,10 @@ metaBook.HTML.searchbox=
     "         onkeydown=\"metaBook.UI.handlers.search_keydown(event);\"\n"+
     "         onkeyup=\"metaBook.UI.handlers.search_keyup(event);\"\n"+
     "         onkeypress=\"metaBook.UI.handlers.search_keypress(event);\"\n"+
-    "         completeopts=\"anywhere cloud\" enterchars=\";\" maxcomplete=\"45\"\n"+
     "         placeholder=\"type or tap tags or terms\"\n"+
-    "         completions=\"METABOOKSEARCHCLOUD\"\n"+
-    "         results=\"METABOOKSEARCHRESULTS\"\n"+
-    "         info=\"METABOOKSEARCHINFO\"/>\n"+
+    "         data-completions=\"METABOOKSEARCHCLOUD\"\n"+
+    "         data-results=\"METABOOKSEARCHRESULTS\"\n"+
+    "         data-searchinfo=\"METABOOKSEARCHINFO\"/>\n"+
     "  <img class=\"metabookclearsearch\" alt=\"X\" title=\"clear search\"\n"+
     "       src=\"{{bmg}}metabook/redx.svgz\"\n"+
     "       onerror=\"this.src='{{bmg}}metabook/redx64x64.png\"/'>\n"+
@@ -41561,19 +41586,19 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1595-g4646723';
+fdjt.revision='1.5-1596-g0340e3c';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Fri Jun 10 18:22:19 EDT 2016';
-fdjt.builduuid='8aac1c23-bf00-4554-b0c2-c2ba5533495a';
+fdjt.buildtime='Wed Jun 29 10:12:33 EDT 2016';
+fdjt.builduuid='2ac14b27-cdc9-44a7-b07c-e685fecbd224';
 
-fdjt.CodexLayout.sourcehash='62CDF7BD7A876847957C627A399FEC207EB17F69';
+fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-382-g771de1b';
-metaBook.buildid='2241abd3-d009-4a3a-8c33-e5a63cc62bee';
-metaBook.buildtime='Thu Jun 16 08:21:26 EDT 2016';
+metaBook.version='v0.8-385-gf6deb4d';
+metaBook.buildid='776c6b26-589c-4ce9-82c8-aca5efa435c5';
+metaBook.buildtime='Wed Jun 29 10:47:13 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
@@ -41590,4 +41615,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='62CDF7BD7A876847957C627A399FEC207EB17F69';
+fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
