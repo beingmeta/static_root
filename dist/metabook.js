@@ -32186,6 +32186,10 @@ metaBook.setMode=
         function initIFrameApp(){
             if (iframe_app_init) return;
             if (mB.appinit) return;
+            var server=fdjtState.getLocal('BOOKHUB.flyleaf')||
+                fdjtState.getCookie('BOOKHUB.flyleaf')||
+                mB.server;
+            if (server==="sourcedomain") server=location.hostname;
             var query="";
             if (document.location.search) {
                 if (document.location.search[0]==="?")
@@ -32194,19 +32198,11 @@ metaBook.setMode=
             if ((query.length)&&(query[query.length-1]!=="&"))
                 query=query+"&";
             var refuri=mB.refuri;
-            var appuri="https://"+mB.server+"/flyleaf?"+query;
+            var appuri="https://"+server+"/flyleaf?"+query;
             if (query.search("REFURI=")<0)
                 appuri=appuri+"REFURI="+encodeURIComponent(refuri);
-            if (query.search("TOPURI=")<0)
-                appuri=appuri+"&TOPURI="+
-                encodeURIComponent(document.location.href);
-            if (document.title) {
-                appuri=appuri+"&DOCTITLE="+encodeURIComponent(document.title);}
-            if (mB.user) {
-                appuri=appuri+"&BOOKUSER="+encodeURIComponent(mB.user._id);}
-            if (document.location.hash) {
-                appuri=appuri+"&HASH="+document.location.hash.slice(1);}
-
+            if (mB.mycopyid)
+                appuri=appuri+"&MYCOPYID="+encodeURIComponent(mB.mycopyid);
             var app=$ID("BOOKHUBAPP");
             app.src=appuri;
             iframe_app_init=true;}
@@ -41596,9 +41592,9 @@ fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-385-gf6deb4d';
-metaBook.buildid='776c6b26-589c-4ce9-82c8-aca5efa435c5';
-metaBook.buildtime='Wed Jun 29 10:47:13 EDT 2016';
+metaBook.version='v0.8-388-g42a1cc3';
+metaBook.buildid='97d3f931-6ea8-4a09-9a83-c33a5b23fb04';
+metaBook.buildtime='Sun Jul  3 17:37:43 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
