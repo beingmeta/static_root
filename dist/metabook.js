@@ -26898,6 +26898,12 @@ metaBook.DOMScan=(function(){
                 state.location=false;
                 state.changed=fdjtTime.tick();
                 saveLocal("mB("+mB.docid+").state",state,true);}}
+        else if ((hash)&&(hash.search("MBLOC")===0)) {
+            var loc=parseInt(hash.slice(5));
+            if ((!(state))||(state.location!==loc)) {
+                state={refuri: mB.refuri, docuri: mB.docuri,
+                       location: loc, change: fdjtTime.tick()};
+                saveLocal("mB("+mB.docid+").state",state,true);}}
         if (state) metaBook.state=state;};
     
     // This records the current state of the app, bundled into an
@@ -26943,6 +26949,7 @@ metaBook.DOMScan=(function(){
         if ((!(skiphist))&&(frag)&&
             (window.history)&&(window.history.pushState))
             setHistory(state,frag,title);
+        saveStateLocal(state);
     } metaBook.saveState=saveState;
 
     function saveStateLocal(state){
@@ -26968,14 +26975,16 @@ metaBook.DOMScan=(function(){
                 metaBook.docinfo[hash].head.title;}
         if ((!(hash))&&(state.location)&&
             (typeof state.location === "number"))
-            hash="SBOOKLOC"+state.location;
+            hash="MBLOC"+state.location;
         if (Trace.state)
             fdjtLog("Pushing history %j %s (%s) '%s'",
                     state,href,title);
         if ((!(window.history.state))||
             (window.history.state.target!==state.target)||
             (window.history.state.location!==state.location)) {
-            window.history.pushState(state,title,href+"#"+hash);}
+            if (hash)
+                window.history.pushState(state,title,href+"#"+hash);
+            else window.history.pushState(state,title,href);}
     }
     metaBook.setHistory=setHistory;
 
@@ -28665,12 +28674,14 @@ metaBook.Startup=
             if (!(_head_ready)) return;
             metaBook._starting=_head_processing=fdjtTime();
             /* Cleanup, save initial hash location */
-            if ((location.hash==="null")||(location.hash==="#null"))
+            if ((location.hash==="null")||
+                (location.hash==="#null")||
+                (location.hash==="#undefined"))
                 location.hash="";
             if ((location.hash)&&(location.hash!=="#")) {
                 var hash=location.hash;
                 if (hash[0]==='#') hash=hash.slice(1);
-                if (glosshash_pat.exec(location.hash))
+                if (glosshash_pat.exec(hash))
                     metaBook.glosshash=hash;
                 else metaBook.inithash=location.hash;}
             addClass(document.body,"mbSTARTUP");
@@ -41592,9 +41603,9 @@ fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-388-g42a1cc3';
-metaBook.buildid='97d3f931-6ea8-4a09-9a83-c33a5b23fb04';
-metaBook.buildtime='Sun Jul  3 17:37:43 EDT 2016';
+metaBook.version='v0.8-389-g746743d';
+metaBook.buildid='b21373d5-5907-4eee-96f5-64ab9faca729';
+metaBook.buildtime='Sat Jul  9 16:11:22 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
