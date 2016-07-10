@@ -3769,9 +3769,11 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
     html._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
     html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
     
-    #METABOOKCOVER div.userbox a.bookplate__bookref { float: left;}
-    #METABOOKCOVER div.userbox span.bookplate__username { float: right;}
-    #METABOOKCOVER div.userbox span.bookplate__text { display: none;}
+/*
+    #METABOOKCOVER div.userbox .booklink { float: left;}
+    #METABOOKCOVER div.userbox .bookplate__username { float: right;}
+    #METABOOKCOVER div.userbox .bookplate__text { display: none;}
+*/
 
     #METABOOKCOVER > #METABOOKCOVERCONTROLS {
         height: 60px; white-space: normal; }

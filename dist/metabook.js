@@ -41289,10 +41289,10 @@ metaBook.HTML.cover=
     "     data-maxfont=\"120%\" id=\"METABOOKUSERBOX\">\n"+
     "  <span class=\"bookplate\">\n"+
     "    <a href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
-    "       class=\"bookplate__bookref metabookref\"\n"+
+    "       class=\"booklink\"\n"+
     "       title=\"Learn more about the metaBook reader and bookhub.io\" tabindex=\"9\">\n"+
-    "      This book</a>\n"+
-    "    <span class=\"bookplate__text\">is personalized for</span>\n"+
+    "      Personalized</a>\n"+
+    "    for\n"+
     "    <a href=\"https://my.bookhub.io/profile/\"\n"+
     "       class=\"bookplate__username metabookusername\"\n"+
     "       title=\"Edit your profile, add social networks, etc\"\n"+
@@ -41603,9 +41603,9 @@ fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-389-g746743d';
-metaBook.buildid='b21373d5-5907-4eee-96f5-64ab9faca729';
-metaBook.buildtime='Sat Jul  9 16:11:22 EDT 2016';
+metaBook.version='v0.8-391-g726ce54';
+metaBook.buildid='0723d92e-abf7-43f8-a927-2418745dc73b';
+metaBook.buildtime='Sat Jul  9 21:03:39 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
