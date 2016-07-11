@@ -16880,8 +16880,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1596-g0340e3c';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Jun 29 10:12:33 EDT 2016';
-fdjt.builduuid='2ac14b27-cdc9-44a7-b07c-e685fecbd224';
+fdjt.revision='1.5-1598-gfddc555';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Thu Jul 7 08:29:38 EDT 2016';
+fdjt.builduuid='08203679-B5CA-4846-8853-DBF2C31CCAB0';
 
