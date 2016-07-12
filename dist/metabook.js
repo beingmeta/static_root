@@ -23239,6 +23239,9 @@ fdjt.DOM.noautofontadjust=true;
 
     var getLocal=fdjtState.getLocal;
     var setLocal=fdjtState.setLocal;
+    var dropLocal=fdjtState.dropLocal;
+    var setSession=fdjtState.setSession;
+    var dropSession=fdjtState.dropSession;
     var existsLocal=fdjtState.existsLocal;
     
     var mB=metaBook;
@@ -23273,7 +23276,7 @@ fdjt.DOM.noautofontadjust=true;
     function saveLocal(key,value,unparse){
         if (unparse) value=unparser(value);
         if (mB.persist) setLocal(key,value,false);
-        else fdjtState.setSession(key,value,false);}
+        else setSession(key,value,false);}
     metaBook.saveLocal=saveLocal;
 
     function readLocal(key,parse){
@@ -23288,27 +23291,27 @@ fdjt.DOM.noautofontadjust=true;
     metaBook.readLocal=readLocal;
 
     function clearLocal(key){
-        fdjtState.dropLocal(key);
-        fdjtState.dropSession(key);}
+        dropLocal(key);
+        dropSession(key);}
     metaBook.clearLocal=clearLocal;
 
     function dropVal(key,val){
-        var local=fdjtState.getLocal(key,true);
-        var session=fdjtState.getSession(key,true);
+        var local=fdjtState.getLocal(key,(!(!(val))));
+        var session=fdjtState.getSession(key,(!(!(val))));
         if (local) {
-            if (!(val)) fdjtState.dropLocal(key);
+            if (!(val)) dropLocal(key);
             else if (local.indexOf(val)>=0) {
                 local=RefDB.remove(local,val);
                 if (local.length)
-                    fdjtState.setLocal(key,local);
-                else fdjtState.dropLocal(key,local);}}
+                    setLocal(key,local,true);
+                else dropLocal(key,local);}}
         if (session) {
-            if (!(val)) fdjtState.dropSession(key);
+            if (!(val)) dropSession(key);
             else if (session.indexOf(val)>=0) {
                 session=RefDB.remove(session,val);
                 if (session.length) 
-                    fdjtState.setSession(key,session);
-                else fdjtState.dropSession(key);}}}
+                    setSession(key,session,true);
+                else dropSession(key);}}}
 
     metaBook.focusBody=function(){
         // document.body.focus();
@@ -23583,7 +23586,7 @@ fdjt.DOM.noautofontadjust=true;
                 metaBook.cacheglosses=true;}
             else {
                 clearOffline(metaBook.docuri);
-                if (docid) fdjtState.dropLocal("mB("+docid+").queued");
+                if (docid) dropLocal("mB("+docid+").queued");
                 metaBook.queued=[];
                 metaBook.cacheglosses=false;}}
         metaBook.setCacheGlosses=setCacheGlosses;
@@ -23634,7 +23637,6 @@ fdjt.DOM.noautofontadjust=true;
         /* Clearing offline data */
 
         function clearOffline(docid){
-            var dropLocal=fdjtState.dropLocal;
             if (!(docid)) {
                 var books=readLocal("mB.docids",true);
                 if (books) {
@@ -41595,10 +41597,10 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1598-gfddc555';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Thu Jul 7 08:29:38 EDT 2016';
-fdjt.builduuid='08203679-B5CA-4846-8853-DBF2C31CCAB0';
+fdjt.revision='1.5-1596-g0340e3c';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Wed Jun 29 10:12:33 EDT 2016';
+fdjt.builduuid='2ac14b27-cdc9-44a7-b07c-e685fecbd224';
 
 fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
 
@@ -41606,9 +41608,9 @@ fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-392-gdfdd533';
-metaBook.buildid='DFA6FBF3-D9C1-4D63-8F54-4A103F27E197';
-metaBook.buildtime='Mon Jul 11 19:13:45 EDT 2016';
-metaBook.buildhost='Shiny';
+metaBook.buildid='9baadc05-d921-40f3-8987-57718ad89c9c';
+metaBook.buildtime='Tue Jul 12 06:59:22 EDT 2016';
+metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
