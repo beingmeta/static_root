@@ -52,8 +52,9 @@ SSC_HTML=showsomeclass/bigtextedit.html showsomeclass/savedialog.html \
 SSC_BUNDLE=${SSC_FILES} ${SSC_CSS} ${SSC_HTML}
 
 METABOOK_FILES=\
-	metabook/root.js metabook/core.js metabook/config.js \
-	metabook/nav.js metabook/domscan.js metabook/glossdata.js \
+	metabook/root.js metabook/config.js metabook/mycopyid.js \
+	metabook/core.js metabook/nav.js \
+	metabook/domscan.js metabook/glossdata.js \
 	metabook/cover.js metabook/body.js metabook/tagindex.js \
 	metabook/syncstate.js metabook/mycopyid.js \
 	metabook/user.js metabook/getglosses.js \
