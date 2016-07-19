@@ -1,31 +1,37 @@
 ;;; -*- Mode: Scheme; -*-
 
-(use-module '{fdweb xhtml texttools xhtml/tableout bugjar})
+(use-module '{fdweb xhtml texttools xhtml/tableout samplefns bugjar})
+
+(define curhost "static.beingmeta.com")
 
 (config! 'bugjar "/tmp/bugs/")
 (config! 'bugjar "http://static.beingmeta.com/bugs/")
 
-(define (main)
+(config! 'webdebug #f)
+
+(define (main (n 10) (HTTP_HOST #f))
+  (unless (equal? http_host curhost)
+    (set! curhost http_host)
+    (config! 'bugjar 
+	     (glom "http://" http_host "/bugs/")))
   (title! "Trying")
-  (h1 "Testing")
+  (h1 "Testing squares up to " (square n))
   (req/call showsquares))
 
 (define (showsquares (n 10))
   (table* ((class "fdjt"))
-    (dotimes (i (getnum n)) (tr (th i) (td (* i i))))))
+    (dotimes (i n) (tr (th i) (td (square i i))))))
 
-(define (getnum arg) (+ arg 5))
-
-(define (errorpage (error #f) (n #f))
+(define (errorpage (reqerror #f) (n #f))
   (req/set! 'content-type "text/html; charset=utf-8")
   (title! "Unexpected problem!")
   (h1 "Whoops!")
   (p "Sorry, our computer has gotten confused somehow.")
   (when n (p "The argument passed for N was " (write n)))
-  (when error
+  (when reqerror
     (let* ((bugid (getuuid))
-	   (bugurl (bugjar! bugid error)))
-      (p "The error was " (error-condition error) " with UUID " bugid)
+	   (bugurl (bugjar! bugid reqerror)))
+      (p "The error was " (error-condition reqerror) " with UUID " bugid)
       (p "You can see a full report "
 	(anchor* bugurl ((target "_blank")) "here")))))
 
