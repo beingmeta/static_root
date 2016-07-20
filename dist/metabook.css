@@ -2177,7 +2177,7 @@ div.locbar hr {
     /* float: right; text-align: right; */
     margin: 0; padding: 0; text-indent: 0; 
     border: 0;
-    border-right: solid rgba(70,130,180,0.70) 6px;
+    border-right: solid rgba(70,130,180,0.20) 6px;
     width: 0; overflow: visible;
     width: 56px; height: 50px;
     box-sizing: border-box; 
@@ -3064,7 +3064,7 @@ div#MBLAYOUTWAIT div.fdjtprogress {
     top: 0; left: 0; right: 0; height: 60px; z-index: 20;
     text-align: center; padding: 0; max-height: 60px;}
 
-#METABOOKMENU { opacity: 0.1;}
+#METABOOKMENU { opacity: 0.05;}
 
 body.hudup #METABOOKMENU, 
 #METABOOKMENU.tapholding,
@@ -3758,22 +3758,17 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 }
 
 /* Phone */
-@media only screen and /* (min-width: 320px) and */
-            (max-width: 480px) {
+@media only screen and (max-width: 480px) {
     html._NOUSER #METABOOKCOVER div.flap { bottom: 150px; }
     #METABOOKCOVERMESSAGE div.message { font-size: 0.7em;}
     #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE { font-size: 30px;}
 
-    #METABOOKCOVER div.flap { left: 10px; right: 10px;}
+    #METABOOKUSERBOX span.text { display: none; }
+    #METABOOKUSERBOX a.booklink { float: left; }
+    #METABOOKUSERBOX a.userlink { float: right; }
 
     html._TOUCH #METABOOKSETTINGS {  font-size: 0.9em; }
     html._TOUCH #METABOOKSETTINGS table.settings {  font-size: 1em; }
-    
-/*
-    #METABOOKCOVER div.userbox .booklink { float: left;}
-    #METABOOKCOVER div.userbox .bookplate__username { float: right;}
-    #METABOOKCOVER div.userbox .bookplate__text { display: none;}
-*/
 
     #METABOOKCOVER > #METABOOKCOVERCONTROLS {
         height: 60px; white-space: normal; }
@@ -5007,6 +5002,11 @@ html._TOUCH #METABOOKFOOT.tapholding #METABOOKPAGEBAR {
     padding: 2px; padding-bottom: 0;}
 #METABOOKHUD .metabookgoto input {
     width: 4em; text-align: right; padding-right: 2px;}
+body.mbPAGEPREVIEW #METABOOKPAGEBAR,
+#METABOOKHUD.gotoloc #METABOOKPAGEBAR,
+#METABOOKHUD.gotopage #METABOOKPAGEBAR,
+#METABOOKHUD.gotoref #METABOOKPAGEBAR {
+    opacity: 1.0;}
 #METABOOKHUD.gotoloc  .metabookgoto#METABOOKGOTOLOC,
 #METABOOKHUD.gotopage .metabookgoto#METABOOKGOTOPAGE,
 #METABOOKHUD.gotoref .metabookgoto#METABOOKGOTOREF {
@@ -5090,9 +5090,13 @@ body._FULLHEIGHT #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT > span > span {
 @media screen and (max-width: 500px) {
     #METABOOKFOOT #METABOOKPAGEBAR {
         margin-left: 2px; margin-right: 2px;
-        left: 0; right: 0;}
+        left: 0; right: 0;
+        opacity: 0.4;}
     #METABOOKFOOT #METABOOKPAGEBAR .metabooksectmarker { 
         border: solid blue 1px; border-bottom: 0; opacity: 0.7; }
+
+    html._MOUSE #METABOOKFOOT #METABOOKPAGEBAR:hover {
+        opacity: 0.8;}
 
     #METABOOKFOOT .hudbutton { bottom: 30px;}
     body.hudup #METABOOKFOOT .hudbutton { bottom: 0;}
@@ -5418,35 +5422,26 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 
 /* Custom media rules */
 
-/* Phone */
-@media only screen and /* (min-width: 320px) and */
-            (max-width: 480px) {
-    #CODEXPAGE {
-        top: 25px; bottom: 0px;
-        left: 5px; right: 5px;}}
 /* Tablet */
 @media only screen and
-            (min-width: 480px) and
+            (min-width: 500px) and
             (max-width: 800px) {
     #CODEXPAGE {
-        top: 25px; bottom: 0px;
         left: 25px; right: 25px;}
 }
-@media only screen and
-            (min-width: 800px) and
-            (max-width: 1024px) and
-            (orientation: portrait) {
+@media only screen and (max-height: 1024px) {
     #CODEXPAGE {
-        top: 25px; bottom: 5px;
-        left: 40px; right: 40px;}
+        top: 35px; bottom: 5px;}
 }
-@media only screen and
-            (min-width: 768px) and
-            (max-width: 1024px) and
-            (orientation: landscape) {
+@media only screen and (max-height: 800px) {
     #CODEXPAGE {
-        top: 25px; bottom: 5px;
-        left: 50px; right: 50px;}}
+        top: 20px; bottom: 0px;}
+}
+/* Phone */
+@media only screen and (max-device-width: 500px) {
+    #CODEXPAGE {
+        top: 20px; bottom: 0px;
+        left: 5px; right: 5px;}}
 
 /* Handheld media rules */
 

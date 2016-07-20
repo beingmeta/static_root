@@ -861,185 +861,189 @@ var idbModules = {};
   };
   idbModules.IDBDatabase = IDBDatabase;
 }(idbModules));
-(function(idbModules) {
-  var DEFAULT_DB_SIZE = 4 * 1024 * 1024;
-  if (!window.openDatabase) {
-    return;
-  }
-  var sysdb = window.openDatabase("__sysdb__", 1, "System Database", DEFAULT_DB_SIZE);
-  sysdb.transaction(function(tx) {
-    tx.executeSql("SELECT * FROM dbVersions", [], function(t, data) {}, function() {
-      sysdb.transaction(function(tx) {
-        tx.executeSql("CREATE TABLE IF NOT EXISTS dbVersions (name VARCHAR(255), version INT);", [], function() {}, function() {
-          idbModules.util.throwDOMException("Could not create table __sysdb__ to save DB versions");
-        });
-      });
-    });
-  }, function() {
-    idbModules.DEBUG && console.log("Error in sysdb transaction - when selecting from dbVersions", arguments);
-  });
-  var shimIndexedDB = {
-    open: function(name, version) {
-      var req = new idbModules.IDBOpenRequest();
-      var calledDbCreateError = false;
+try {
+    (function(idbModules) {
+	var DEFAULT_DB_SIZE = 4 * 1024 * 1024;
+	if (!window.openDatabase) {
+	    return;
+	}
+	var sysdb = window.openDatabase("__sysdb__", 1, "System Database", DEFAULT_DB_SIZE);
+	sysdb.transaction(function(tx) {
+	    tx.executeSql("SELECT * FROM dbVersions", [], function(t, data) {}, function() {
+		sysdb.transaction(function(tx) {
+		    tx.executeSql("CREATE TABLE IF NOT EXISTS dbVersions (name VARCHAR(255), version INT);", [], function() {}, function() {
+			idbModules.util.throwDOMException("Could not create table __sysdb__ to save DB versions");
+		    });
+		});
+	    });
+	}, function() {
+	    idbModules.DEBUG && console.log("Error in sysdb transaction - when selecting from dbVersions", arguments);
+	});
+	var shimIndexedDB = {
+	    open: function(name, version) {
+		var req = new idbModules.IDBOpenRequest();
+		var calledDbCreateError = false;
 
-      function dbCreateError() {
-        if (calledDbCreateError) {
-          return;
-        }
-        var e = idbModules.Event("error", arguments);
-        req.readyState = "done";
-        req.error = "DOMError";
-        idbModules.util.callback("onerror", req, e);
-        calledDbCreateError = true;
-      }
+		function dbCreateError() {
+		    if (calledDbCreateError) {
+			return;
+		    }
+		    var e = idbModules.Event("error", arguments);
+		    req.readyState = "done";
+		    req.error = "DOMError";
+		    idbModules.util.callback("onerror", req, e);
+		    calledDbCreateError = true;
+		}
 
-      function openDB(oldVersion) {
-        var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
-        req.readyState = "done";
-        if (typeof version === "undefined") {
-          version = oldVersion || 1;
-        }
-        if (version <= 0 || oldVersion > version) {
-          idbModules.util.throwDOMException(0, "An attempt was made to open a database using a lower version than the existing version.", version);
-        }
-        db.transaction(function(tx) {
-          tx.executeSql("CREATE TABLE IF NOT EXISTS __sys__ (name VARCHAR(255), keyPath VARCHAR(255), autoInc BOOLEAN, indexList BLOB)", [], function() {
-            tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
-              var e = idbModules.Event("success");
-              req.source = req.result = new idbModules.IDBDatabase(db, name, version, data);
-              if (oldVersion < version) {
-                sysdb.transaction(function(systx) {
-                  systx.executeSql("UPDATE dbVersions set version = ? where name = ?", [version, name], function() {
-                    var e = idbModules.Event("upgradeneeded");
-                    e.oldVersion = oldVersion;
-                    e.newVersion = version;
-                    req.transaction = req.result.__versionTransaction = new idbModules.IDBTransaction([], 2, req.source);
-                    idbModules.util.callback("onupgradeneeded", req, e, function() {
-                      var e = idbModules.Event("success");
-                      idbModules.util.callback("onsuccess", req, e);
-                    });
-                  }, dbCreateError);
-                }, dbCreateError);
-              } else {
-                idbModules.util.callback("onsuccess", req, e);
-              }
-            }, dbCreateError);
-          }, dbCreateError);
-        }, dbCreateError);
-      }
-      sysdb.transaction(function(tx) {
-        tx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
-          if (data.rows.length === 0) {
-            tx.executeSql("INSERT INTO dbVersions VALUES (?,?)", [name, version || 1], function() {
-              openDB(0);
-            }, dbCreateError);
-          } else {
-            openDB(data.rows.item(0).version);
-          }
-        }, dbCreateError);
-      }, dbCreateError);
-      return req;
-    },
-    "deleteDatabase": function(name) {
-      var req = new idbModules.IDBOpenRequest();
-      var calledDBError = false;
+		function openDB(oldVersion) {
+		    var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
+		    req.readyState = "done";
+		    if (typeof version === "undefined") {
+			version = oldVersion || 1;
+		    }
+		    if (version <= 0 || oldVersion > version) {
+			idbModules.util.throwDOMException(0, "An attempt was made to open a database using a lower version than the existing version.", version);
+		    }
+		    db.transaction(function(tx) {
+			tx.executeSql("CREATE TABLE IF NOT EXISTS __sys__ (name VARCHAR(255), keyPath VARCHAR(255), autoInc BOOLEAN, indexList BLOB)", [], function() {
+			    tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
+				var e = idbModules.Event("success");
+				req.source = req.result = new idbModules.IDBDatabase(db, name, version, data);
+				if (oldVersion < version) {
+				    sysdb.transaction(function(systx) {
+					systx.executeSql("UPDATE dbVersions set version = ? where name = ?", [version, name], function() {
+					    var e = idbModules.Event("upgradeneeded");
+					    e.oldVersion = oldVersion;
+					    e.newVersion = version;
+					    req.transaction = req.result.__versionTransaction = new idbModules.IDBTransaction([], 2, req.source);
+					    idbModules.util.callback("onupgradeneeded", req, e, function() {
+						var e = idbModules.Event("success");
+						idbModules.util.callback("onsuccess", req, e);
+					    });
+					}, dbCreateError);
+				    }, dbCreateError);
+				} else {
+				    idbModules.util.callback("onsuccess", req, e);
+				}
+			    }, dbCreateError);
+			}, dbCreateError);
+		    }, dbCreateError);
+		}
+		sysdb.transaction(function(tx) {
+		    tx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
+			if (data.rows.length === 0) {
+			    tx.executeSql("INSERT INTO dbVersions VALUES (?,?)", [name, version || 1], function() {
+				openDB(0);
+			    }, dbCreateError);
+			} else {
+			    openDB(data.rows.item(0).version);
+			}
+		    }, dbCreateError);
+		}, dbCreateError);
+		return req;
+	    },
+	    "deleteDatabase": function(name) {
+		var req = new idbModules.IDBOpenRequest();
+		var calledDBError = false;
 
-      function dbError(msg) {
-        if (calledDBError) {
-          return;
-        }
-        req.readyState = "done";
-        req.error = "DOMError";
-        var e = idbModules.Event("error");
-        e.message = msg;
-        e.debug = arguments;
-        idbModules.util.callback("onerror", req, e);
-        calledDBError = true;
-      }
-      var version = null;
+		function dbError(msg) {
+		    if (calledDBError) {
+			return;
+		    }
+		    req.readyState = "done";
+		    req.error = "DOMError";
+		    var e = idbModules.Event("error");
+		    e.message = msg;
+		    e.debug = arguments;
+		    idbModules.util.callback("onerror", req, e);
+		    calledDBError = true;
+		}
+		var version = null;
 
-      function deleteFromDbVersions() {
-        sysdb.transaction(function(systx) {
-          systx.executeSql("DELETE FROM dbVersions where name = ? ", [name], function() {
-            req.result = undefined;
-            var e = idbModules.Event("success");
-            e.newVersion = null;
-            e.oldVersion = version;
-            idbModules.util.callback("onsuccess", req, e);
-          }, dbError);
-        }, dbError);
-      }
-      sysdb.transaction(function(systx) {
-        systx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
-          if (data.rows.length === 0) {
-            req.result = undefined;
-            var e = idbModules.Event("success");
-            e.newVersion = null;
-            e.oldVersion = version;
-            idbModules.util.callback("onsuccess", req, e);
-            return;
-          }
-          version = data.rows.item(0).version;
-          var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
-          db.transaction(function(tx) {
-            tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
-              var tables = data.rows;
-              (function deleteTables(i) {
-                if (i >= tables.length) {
-                  tx.executeSql("DROP TABLE __sys__", [], function() {
-                    deleteFromDbVersions();
-                  }, dbError);
-                } else {
-                  tx.executeSql("DROP TABLE " + idbModules.util.quote(tables.item(i).name), [], function() {
-                    deleteTables(i + 1);
-                  }, function() {
-                    deleteTables(i + 1);
-                  });
-                }
-              }(0));
-            }, function(e) {
-              deleteFromDbVersions();
-            });
-          }, dbError);
-        });
-      }, dbError);
-      return req;
-    },
-    "cmp": function(key1, key2) {
-      return idbModules.Key.encode(key1) > idbModules.Key.encode(key2) ? 1 : key1 === key2 ? 0 : -1;
-    }
-  };
-  idbModules.shimIndexedDB = shimIndexedDB;
-}(idbModules));
-(function(window, idbModules) {
-  if (typeof window.openDatabase !== "undefined") {
-    window.shimIndexedDB = idbModules.shimIndexedDB;
-    if (window.shimIndexedDB) {
-      window.shimIndexedDB.__useShim = function() {
-        window.indexedDB = idbModules.shimIndexedDB;
-        window.IDBDatabase = idbModules.IDBDatabase;
-        window.IDBTransaction = idbModules.IDBTransaction;
-        window.IDBCursor = idbModules.IDBCursor;
-        window.IDBKeyRange = idbModules.IDBKeyRange;
-      };
-      window.shimIndexedDB.__debug = function(val) {
-        idbModules.DEBUG = val;
-      };
-    }
-  }
-  window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-  if (typeof window.indexedDB === "undefined" && typeof window.openDatabase !== "undefined") {
-    window.shimIndexedDB.__useShim();
-  } else {
-    window.IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase;
-    window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction;
-    window.IDBCursor = window.IDBCursor || window.webkitIDBCursor;
-    window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
-    window.IDBTransaction.READ_ONLY = window.IDBTransaction.READ_ONLY || "readonly";
-    window.IDBTransaction.READ_WRITE = window.IDBTransaction.READ_WRITE || "readwrite";
-  }
-}(window, idbModules));
+		function deleteFromDbVersions() {
+		    sysdb.transaction(function(systx) {
+			systx.executeSql("DELETE FROM dbVersions where name = ? ", [name], function() {
+			    req.result = undefined;
+			    var e = idbModules.Event("success");
+			    e.newVersion = null;
+			    e.oldVersion = version;
+			    idbModules.util.callback("onsuccess", req, e);
+			}, dbError);
+		    }, dbError);
+		}
+		sysdb.transaction(function(systx) {
+		    systx.executeSql("SELECT * FROM dbVersions where name = ?", [name], function(tx, data) {
+			if (data.rows.length === 0) {
+			    req.result = undefined;
+			    var e = idbModules.Event("success");
+			    e.newVersion = null;
+			    e.oldVersion = version;
+			    idbModules.util.callback("onsuccess", req, e);
+			    return;
+			}
+			version = data.rows.item(0).version;
+			var db = window.openDatabase(name, 1, name, DEFAULT_DB_SIZE);
+			db.transaction(function(tx) {
+			    tx.executeSql("SELECT * FROM __sys__", [], function(tx, data) {
+				var tables = data.rows;
+				(function deleteTables(i) {
+				    if (i >= tables.length) {
+					tx.executeSql("DROP TABLE __sys__", [], function() {
+					    deleteFromDbVersions();
+					}, dbError);
+				    } else {
+					tx.executeSql("DROP TABLE " + idbModules.util.quote(tables.item(i).name), [], function() {
+					    deleteTables(i + 1);
+					}, function() {
+					    deleteTables(i + 1);
+					});
+				    }
+				}(0));
+			    }, function(e) {
+				deleteFromDbVersions();
+			    });
+			}, dbError);
+		    });
+		}, dbError);
+		return req;
+	    },
+	    "cmp": function(key1, key2) {
+		return idbModules.Key.encode(key1) > idbModules.Key.encode(key2) ? 1 : key1 === key2 ? 0 : -1;
+	    }
+	};
+	idbModules.shimIndexedDB = shimIndexedDB;
+    }(idbModules));}
+catch (ex) {
+    console.log("Error in idbshim: %s",ex);};
+if (idbModules.shimIndexedDB) 
+    (function(window, idbModules) {
+	if (typeof window.openDatabase !== "undefined") {
+	    window.shimIndexedDB = idbModules.shimIndexedDB;
+	    if (window.shimIndexedDB) {
+		window.shimIndexedDB.__useShim = function() {
+		    window.indexedDB = idbModules.shimIndexedDB;
+		    window.IDBDatabase = idbModules.IDBDatabase;
+		    window.IDBTransaction = idbModules.IDBTransaction;
+		    window.IDBCursor = idbModules.IDBCursor;
+		    window.IDBKeyRange = idbModules.IDBKeyRange;
+		};
+		window.shimIndexedDB.__debug = function(val) {
+		    idbModules.DEBUG = val;
+		};
+	    }
+	}
+	window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+	if (typeof window.indexedDB === "undefined" && typeof window.openDatabase !== "undefined") {
+	    window.shimIndexedDB.__useShim();
+	} else {
+	    window.IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase;
+	    window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction;
+	    window.IDBCursor = window.IDBCursor || window.webkitIDBCursor;
+	    window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+	    window.IDBTransaction.READ_ONLY = window.IDBTransaction.READ_ONLY || "readonly";
+	    window.IDBTransaction.READ_WRITE = window.IDBTransaction.READ_WRITE || "readwrite";
+	}
+    }(window, idbModules));
 
 
 /* -*- Mode: Javascript; -*- */
@@ -5597,6 +5601,7 @@ fdjt.Log=(function(){
         var isTouch = iPhone || iPad || isAndroid || isTouchPad;
         var isIOS=((iPhone)||(iPad))&&
             ((getMatch(ua,/\bVersion\/(\d+\.\d+)\b/gi,1))||(true));
+        var isFixedFrame = iPhone || iPad || isAndroid || isTouchPad || isIOS;
         
         var opt_string=stdspace(
             ((isAndroid)?(" Android/"+isAndroid):(""))+
@@ -5613,7 +5618,8 @@ fdjt.Log=(function(){
                 ((iPhone)?(" iPhone"):(""))+
                 ((iPad)?(" iPad"):(""))+
                 ((isTouchPad)?(" TouchPad"):(""))+
-                ((isTouch)?(" touch"):(" mouse")));
+                ((isTouch)?(" touch"):(" mouse"))+
+                ((isFixedFrame)?(" fixedframe"):("")));
         if (navigator.vendor) device.vendor=navigator.vendor;
         if (navigator.platform) device.platform=navigator.platform;
         if (navigator.oscpu) device.oscpu=navigator.oscpu;
@@ -5657,8 +5663,10 @@ fdjt.Log=(function(){
         if (isLinux) device.linux=true;
         if (isTouch) device.touch=true;
         else device.mouse=true;
+        if (isFixedFrame) device.fixedframe=true;
         fdjtLog("Device: %j",device);}
     
+    // Run this right away
     (function(){
         /* global window: false */
         if ((typeof window !=="undefined")&&(window.navigator)&&
@@ -20387,15 +20395,19 @@ fdjt.CodexLayout=
                 if (ondone) ondone();};}
         function cacheLayout(layout_id,content){
             function caching(resolve,reject){
-                if (layoutDB)
-                    return cacheLayoutIDB(layoutDB,layout_id,content,resolve,reject);
+                if (layoutDB) {
+                    if (layoutDB === window.localStorage) {
+                        setLocal(layout_id,content);
+                        if (resolve) resolve(layoutDB);}
+                    else return cacheLayoutIDB(
+                        layoutDB,layout_id,content,resolve,reject);}
                 else {
                     return useIndexedDB()
                         .then(function layoutCached(db){
-                            layoutDB=CodexLayout.layoutDB=window.LocalStorage;
+                            layoutDB=CodexLayout.layoutDB=window.localStorage;
                             cacheLayoutIDB(db,layout_id,content,resolve,reject);})
                         .catch(function noLayoutIDB(){
-                            layoutDB=CodexLayout.layoutDB=window.LocalStorage;
+                            layoutDB=CodexLayout.layoutDB=window.localStorage;
                             setLocal(layout_id,content);
                             if (resolve) resolve(layoutDB);});}}
             return new Promise(caching);}
@@ -23180,6 +23192,539 @@ fdjt.DOM.noautofontadjust=true;
 */
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
+/* ###################### metabook/config.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file implements a Javascript/DHTML web application for reading
+   large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+
+// config.js
+(function(){
+    "use strict";
+    var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log, fdjtUI=fdjt.UI;
+    var fdjtState=fdjt.State, fdjtTime=fdjt.Time, fdjtString=fdjt.String;
+
+    var getChildren=fdjtDOM.getChildren;
+
+    var getMeta=fdjtDOM.getMeta;
+
+    var isEmpty=fdjtString.isEmpty;
+
+    var getLocal=fdjtState.getLocal;
+    var getQuery=fdjtState.getQuery;
+    
+    var mB=metaBook, Trace=metaBook.Trace;
+    var saveLocal=mB.saveLocal;
+    
+    /* Configuration information */
+
+    var config_handlers={};
+    var default_config=metaBook.default_config;
+    var current_config={};
+    var saved_config={};
+
+    function addConfig(name,handler){
+        if (Trace.config>1)
+            fdjtLog("Adding config handler for %s: %s",name,handler);
+        config_handlers[name]=handler;
+        if (current_config.hasOwnProperty(name)) {
+            if (Trace.config>1)
+                fdjtLog("Applying config handler to current %s=%s",
+                        name,current_config[name]);
+            handler(name,current_config[name]);}}
+    metaBook.addConfig=addConfig;
+
+    function getConfig(name){
+        if (!(name)) return current_config;
+        else return current_config[name];}
+    metaBook.getConfig=getConfig;
+
+    function setConfig(name,value,save,cxt){
+        if (cxt) cxt=" ("+cxt+")";
+        else cxt="";
+        if (arguments.length===1) {
+            var config=name;
+            metaBook.postconfig=[];
+            if (Trace.config)
+                fdjtLog("batch setConfig %s: %s",cxt,config);
+            for (var setting in config) {
+                if (config.hasOwnProperty(setting))
+                    setConfig(setting,config[setting]);}
+            var dopost=metaBook.postconfig;
+            metaBook.postconfig=false;
+            if ((Trace.config>1)&&(!((dopost)||(dopost.length===0))))
+                fdjtLog("batch setConfig, no post processing %s",
+                        config,cxt);
+            var post_i=0; var post_lim=dopost.length;
+            while (post_i<post_lim) {
+                if (Trace.config>1)
+                    fdjtLog("batch setConfig%s, post processing %s",
+                            dopost[post_i]);
+                dopost[post_i++]();}
+            return;}
+        if (Trace.config) fdjtLog("setConfig%s %o=%o",cxt,name,value);
+        if (!((current_config.hasOwnProperty(name))&&
+              (current_config[name]===value))) {
+            if (config_handlers[name]) {
+                if (Trace.config)
+                    fdjtLog("setConfig%s (handler=%s) %o=%o",
+                            cxt,config_handlers[name],name,value);
+                config_handlers[name](name,value);}
+            else if (Trace.config)
+                fdjtLog("setConfig%s (no handler) %o=%o",cxt,name,value);
+            else {}
+            current_config[name]=value;}
+        else if (Trace.config)
+            fdjtLog("Redundant setConfig%s %o=%o",cxt,name,value);
+        else {}
+        if ((save)&&(saved_config[name]!==value)) {
+            saved_config[name]=value;
+            saveConfig(saved_config);}}
+    metaBook.setConfig=setConfig;
+    metaBook.resetConfig=function(){setConfig(saved_config);};
+
+    function saveConfig(config){
+        if (Trace.config) {
+            fdjtLog("saveConfig %o",config);
+            fdjtLog("saved_config=%o",saved_config);}
+        if (!(config)) config=saved_config;
+        // Save automatically applies (seems only fair)
+        else setConfig(config);
+        var saved={};
+        for (var setting in config) {
+            if ((default_config.hasOwnProperty(setting))&&
+                (config[setting]!==default_config[setting])&&
+                (!(getQuery(setting)))) {
+                saved[setting]=config[setting];}}
+        if (Trace.config) fdjtLog("Saving config %o",saved);
+        saveLocal("mB("+mB.docid+").config",JSON.stringify(saved));
+        saved_config=saved;}
+    metaBook.saveConfig=saveConfig;
+
+    var config_initialized=false;
+    function initConfig(){
+        if (config_initialized) return; else config_initialized=true;
+        var setting, value, source, started=fdjtTime(); // changed=false;
+        var config=getLocal("mB("+mB.docid+").config",true)||
+            fdjtState.getSession("mB("+mB.docid+").config",
+                                 true);
+        metaBook.postconfig=[];
+        if (config) {
+            if (Trace.config) fdjtLog("initConfig local=%j",config);
+            for (setting in config) {
+                if (config.hasOwnProperty(setting)) {
+                    // if ((!(default_config.hasOwnProperty(setting)))||
+                    //    (config[setting]!==default_config[setting]))
+                    //    changed=true;
+                    if (getQuery(setting)) {
+                        value=getQuery(setting); source="initConfig/QUERY";}
+                    else {
+                        value=config[setting]; source="initConfig/local";}
+                    setConfig(setting,value,false,source);
+                    metaBook.updateSettings(setting,value);}}}
+        else config={};
+        if (Trace.config) fdjtLog("initConfig default=%j",default_config);
+
+        var devicename=current_config.devicename;
+        if ((devicename)&&(!(isEmpty(devicename))))
+            metaBook.deviceName=devicename;
+        if (Trace.startup>1)
+            fdjtLog("initConfig took %dms",fdjtTime()-started);}
+    metaBook.initConfig=initConfig;
+    
+    function bookConfig(){
+        var started=fdjtTime();
+        var config=current_config;
+        for (var setting in default_config) {
+            var value, source;
+            if ((default_config.hasOwnProperty(setting))&&
+                (!((config.hasOwnProperty(setting))||(getQuery(setting))))) {
+                if (getMeta("METABOOK."+setting)) {
+                    value=getMeta("METABOOK."+setting);
+                    source="initConfig/HTML";}
+                else {
+                    value=default_config[setting];
+                    source="initConfig/appdefaults";}
+                setConfig(setting,value,false,"initConfig/HTML");
+                setConfig(setting,value,false,source);
+                metaBook.updateSettings(setting,value);}}
+        var dopost=metaBook.postconfig;
+        metaBook.postconfig=false;
+        var i=0; var lim=dopost.length;
+        while (i<lim) dopost[i++]();
+        if (Trace.config) fdjtLog("bookConfig took %dms",fdjtTime()-started);}
+    metaBook.bookConfig=bookConfig;
+
+    var getParent=fdjtDOM.getParent;
+    var getChild=fdjtDOM.getChild;
+
+    function updateConfig(name,id,save){
+        if (typeof save === 'undefined') save=false;
+        var elt=((typeof id === 'string')&&(document.getElementById(id)))||
+            ((id.nodeType)&&(getParent(id,'input')))||
+            ((id.nodeType)&&(getChild(id,'input')))||
+            ((id.nodeType)&&(getChild(id,'textarea')))||
+            ((id.nodeType)&&(getChild(id,'select')))||
+            (id);
+        if (Trace.config) fdjtLog("Update config %s",name);
+        if ((elt.type==='radio')||(elt.type==='checkbox'))
+            setConfig(name,elt.checked||false,save,"updateConfig/checked");
+        else setConfig(name,elt.value,save,"updateConfig/input");}
+    metaBook.updateConfig=updateConfig;
+
+    function metabookPropConfig(name,value){
+        metaBook[name]=value;}
+    metaBook.propConfig=metabookPropConfig;
+
+    metaBook.addConfig("keyboardhelp",function(name,value){
+        metaBook.keyboardhelp=value;
+        fdjtUI.CheckSpan.set(
+            document.getElementsByName("METABOOKKEYBOARDHELP"),
+            value);});
+    metaBook.addConfig("devicename",function(name,value){
+        if (isEmpty(value)) metaBook.deviceName=false;
+        else metaBook.deviceName=value;});
+
+    metaBook.addConfig("holdmsecs",function(name,value){
+        metaBook.holdmsecs=value;
+        fdjtUI.TapHold.default_opts.holdmsecs=value;});
+    metaBook.addConfig("wandermsecs",function(name,value){
+        metaBook.wandermsecs=value;
+        fdjtUI.TapHold.default_opts.wanderthresh=value;});
+    metaBook.addConfig("taptapmsecs",function(name,value){
+        metaBook.taptapmsecs=value;
+        fdjtUI.TapHold.default_opts.taptapmsecs=value;});
+
+    metaBook.addConfig("dont_rAF",function(name,value){
+        fdjt.CodexLayout.dont_rAF=value;});
+
+    metaBook.addConfig("checksync",function(name,value){
+        metaBook.sync_interval=value;
+        if (metaBook.synctock) {
+            clearInterval(metaBook.synctock);
+            metaBook.synctock=false;}
+        if ((value)&&(metaBook.locsync))
+            metaBook.synctock=setInterval(metaBook.syncState,value*1000);});
+    metaBook.addConfig("synctimeout",function(name,value){
+        metaBook.sync_timeout=value;});
+    metaBook.addConfig("syncpause",function(name,value){
+        metaBook.sunc_pause=value;});
+
+    metaBook.addConfig("locsync",function(name,value){
+        // Start or clear the sync check interval timer
+        if ((!(value))&&(metaBook.synctock)) {
+            clearInterval(metaBook.synctock);
+            metaBook.synctock=false;}
+        else if ((value)&&(!(metaBook.synctock))&&
+                 (metaBook.sync_interval))
+            metaBook.synctock=setInterval(
+                metaBook.syncState,(metaBook.sync_interval)*1000);
+        else {}
+        metaBook.locsync=value;
+        fdjt.Async(function(){metaBook.updateSettings(name,value);});});
+    
+    function configChange(evt){
+        evt=evt||window.event;
+        var target=fdjtUI.T(evt);
+        var setting=target.name, val=target.value;
+        var cur=current_config[setting];
+        if ((target.checked)&&(cur===val)) return;
+        else if (target.checked)
+            setConfig(setting,val,true,"configChange");
+        else if (target.type==="checkbox")
+            setConfig(setting,"",true,"configChange");
+        else {}}
+    metaBook.configChange=configChange;
+
+    function applyMetaClass(name,metaname){
+        if (!(metaname)) metaname=name;
+        var meta=getMeta(metaname,true);
+        var i=0; var lim=meta.length;
+        while (i<lim) fdjtDOM.addClass(fdjtDOM.$(meta[i++]),name);}
+    metaBook.applyMetaClass=applyMetaClass;
+
+    function updateSettings(setting,value){
+        var forms=fdjtDOM.$(".metabooksettings");
+        var i=0, n_forms=forms.length; while (i<n_forms) {
+            var form=forms[i++];
+            var inputs=getChildren(
+                form,"input[type='CHECKBOX'],input[type='RADIO']");
+            var toset=[], toclear=[];
+            var j=0, n_inputs=inputs.length, input=false;
+            while (j<n_inputs) {
+                input=inputs[j++];
+                if (input.name===setting) {
+                    if ((value===true)?
+                        (/(yes|on|true)/i.exec(input.value)):
+                        (input.value===value))
+                        toset.push(input);
+                    else toclear.push(input);}}
+            j=0; n_inputs=toset.length; while (j<n_inputs) {
+                input=toset[j++];
+                if (input.checked) continue;
+                if (getParent(input,".checkspan")) 
+                    fdjt.UI.CheckSpan.set(input,true);
+                else input.checked=true;}
+            j=0; n_inputs=toclear.length; while (j<n_inputs) {
+                input=toclear[j++];
+                if ((!(input.checked))&&
+                    (typeof input.checked !== "undefined"))
+                    continue;
+                if (getParent(input,".checkspan"))
+                    fdjt.UI.CheckSpan.set(input,false);
+                else input.checked=false;}
+            j=0; n_inputs=toset.length; while (j<n_inputs) {
+                input=toset[j++];
+                if (input.checked) continue;
+                if (getParent(input,".checkspan")) 
+                    fdjt.UI.CheckSpan.set(input,true);
+                else input.checked=true;}}}
+    metaBook.updateSettings=updateSettings;
+
+    function initSettings(){
+        var started=fdjtTime();
+        for (var setting in current_config) {
+            if (current_config.hasOwnProperty(setting))
+                updateSettings(setting,current_config[setting]);}
+        if (Trace.startup>1)
+            fdjtLog("Finished initSettings in %dms",fdjtTime()-started);}
+    metaBook.initSettings=initSettings;
+
+})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
+/* ###################### metabook/mycopyid.js ###################### */
+
+/* Copyright (C) 2009-2015 beingmeta, inc.
+   This file implements a Javascript/DHTML web application for reading
+   large structured documents (sBooks).
+
+   For more information on sbooks, visit www.sbooks.net
+   For more information on knodules, visit www.knodules.net
+   For more information about beingmeta, visit www.beingmeta.com
+
+   This library uses the FDJT (www.fdjt.org) toolkit.
+
+   This program comes with absolutely NO WARRANTY, including implied
+   warranties of merchantability or fitness for any particular
+   purpose.
+
+   Use and redistribution (especially embedding in other
+   CC licensed content) is permitted under the terms of the
+   Creative Commons "Attribution-NonCommercial" license:
+
+   http://creativecommons.org/licenses/by-nc/3.0/ 
+
+   Other uses may be allowed based on prior agreement with
+   beingmeta, inc.  Inquiries can be addressed to:
+
+   licensing@beingmeta.com
+
+   Enjoy!
+
+*/
+/* jshint browser: true */
+/* globals Promise */
+
+// mycopyid.js
+(function(){
+    "use strict";
+    var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log;
+    var fdjtTime=fdjt.Time, fdjtAjax=fdjt.Ajax;
+    var fdjtState=fdjt.State;
+
+    var mB=metaBook, Trace=mB.Trace;
+
+    var getSession=fdjtState.getSession, getLocal=fdjtState.getLocal;
+
+    var need_mycopyid=[];
+
+    function setMyCopyId(string,origin){
+        var trace=(((Trace.startup)||(Trace.creds)||(Trace.mycopy)));
+        var fmt="Got "+
+            ((mB.mycopyid===string)?("redundant "):(""))+
+            "myCopyID"+((origin)?("from "+origin):(""))+": %s";
+        if (!(string)) return;
+        if (trace) fdjtLog(fmt,string);
+        if (mB.mycopyid===string) 
+            return string;
+        var parts=string.split('.'), payload=false, doc;
+        try {
+            payload=JSON.parse(atob(parts[1]));
+            if (trace) fdjtLog("myCopyID (%s) = %j",origin||"",payload);}
+        catch (ex) {
+            payload=false;}
+        if (!(payload)) {
+            fdjtLog.warn("Bad mycopyid JWT %s from %s",string,origin);
+            return false;}
+        else if ((doc=payload.doc)) {
+            doc=(doc.replace(/^:/,"")).toLowerCase();
+            if (doc!==mB.docid) {
+                fdjtLog.warn(
+                    "wrong mycopyid (%s) for %s; doc=%s, payload=%j",
+                    origin||"",doc,mB.docid,payload);
+                return false;}}
+        else {}
+        var now=new Date();
+        var expstring=payload.exp;
+        var expires=(expstring)&&(new Date(expstring));
+        if (now>expires) {
+            fdjtLog.warn("Expired (%s) mycopyid %j",expires,payload);
+            return false;}
+        if ((Trace.startup>1)||(Trace.creds)) {
+            fdjtLog("Setting myCopyID to %s payload=%j",string,payload);}
+        mB.mycopyid=string;
+        mB.mycopyid_payload=payload;
+        mB.mycopyid_expires=expires;
+        mB.saveLocal("mB("+mB.refuri+").mycopyid",string);
+        mB.saveLocal("mB("+mB.docid+").mycopyid",string);
+        if ((fdjt.device.mobilesafari)&&(!(fdjt.device.standalone))) {
+            addMyCopyToURI();}
+        var waiting=need_mycopyid; need_mycopyid=[];
+        var i=0, lim=waiting.length; while (i<lim) {
+            waiting[i++](string);}
+        return string;}
+    metaBook.setMyCopyId=setMyCopyId;
+            
+    function addMyCopyToURI(){
+        var auth=mB.mycopyid;
+        if (!(auth)) return;
+        var v=fdjtState.getQuery("MYCOPYID");
+        if (v===auth) return;
+        fdjtState.setQuery("MYCOPYID",auth);}
+    fdjtState.addMyCopyToUri=addMyCopyToURI;
+
+    var good_origin=/https:\/\/[^\/]+.(bookhub\.io|metabooks\.net)/;
+    function myCopyMessage(evt){
+        var origin=evt.origin, data=evt.data;
+        if ((Trace.messages)||(Trace.creds))
+            fdjtLog("Got a message from %s with payload %s",
+                    origin,data);
+        if (origin.search(good_origin)!==0) {
+            fdjtLog.warn("Rejecting insecure message from %s: %s",
+                         origin,evt.data);
+            return;}
+        if (!(data)) {
+            fdjtLog.warn("No data provided for message from %s",origin);
+            return;}
+        else if ((data.search)&&(data.search(/^mycopyid=/)===0)) {
+            var mycopyid=data.slice(9);
+            setMyCopyId(mycopyid,"myCopyMessage");
+            return;}
+        else {
+            fdjtLog.warn("Not a mycopy message from %s: %s",origin,data);
+            return;}}
+    fdjtDOM.addListener(window,"message",myCopyMessage);
+
+    var getting_mycopyid=false;
+
+    function getMyCopyId(){
+        var now=new Date();
+        if ((mB.mycopyid)&&
+            ((!(mB.mycopyid_expires))||(now>mB.mycopyid_expires)))
+            return Promise.resolve(mB.mycopyid);
+        else return fetchMyCopyId();}
+    metaBook.getMyCopyId=getMyCopyId;
+
+    function readMyCopyId(){
+        var mycopyid=(fdjtState.getQuery("MYCOPYID"));
+        if (mycopyid) 
+            return mB.setMyCopyId(mycopyid,"getQuery");
+        else if ((mycopyid=fdjtState.getCookie("MYCOPYID")))
+            return mB.setMyCopyId(mycopyid,"getCookie");
+        else if ((mB.docid)&&(mycopyid=getSession("mB("+mB.docid+").mycopyid")))
+            return mB.setMyCopyId(mycopyid,"session(docid).mycopyid");
+        else if ((mB.refuri)&&
+                 (mycopyid=getSession("mB("+mB.refuri+").mycopyid")))
+            return mB.setMyCopyId(mycopyid,"session(refuri).mycopyid");
+        else if ((mB.docid)&&(mycopyid=getLocal("mB("+mB.docid+").mycopyid")))
+            return mB.setMyCopyId(mycopyid,"local(docid).mycopyid");
+        else if ((mB.refuri)&&(mycopyid=getLocal("mB("+mB.refuri+").mycopyid")))
+            return mB.setMyCopyId(mycopyid,"local(refuri).mycopyid");
+        else return false;}
+    metaBook.readMyCopyId=readMyCopyId;
+
+    function fetchMyCopyId(){
+        function fetching_mycopyid(resolve,reject){
+            need_mycopyid.push(resolve);
+            if (getting_mycopyid) return;
+            getting_mycopyid=fdjtTime();
+            fdjtAjax.fetchText(
+                "https://auth.bookhub.io/getmycopyid?DOC="+mB.docref).
+                then(function(mycopyid,alt){
+                    if (typeof mycopyid === 'undefined') {
+                        if (Trace.creds)
+                            fdjtLog("Failed call to fetch remote creds");
+                        return reject(alt);}
+                    getting_mycopyid=false;
+                    if (Trace.creds)
+                        fdjtLog("Fetched myCopyId from network");
+                    setMyCopyId(mycopyid,"ajax");});}
+        return new Promise(fetching_mycopyid);}
+
+    function checkMyCopyId(){
+        return (fdjtState.getQuery("MYCOPYID"))||
+            (fdjtState.getCookie("MYCOPYID"))||
+            ((mB.docid)&&(getSession("mB("+mB.docid+").mycopyid")))||
+            ((mB.refuri)&&(getSession("mB("+mB.refuri+").mycopyid")))||
+            ((mB.docid)&&(getLocal("mB("+mB.docid+").mycopyid")))||
+            ((mB.refuri)&&(getLocal("mB("+mB.refuri+").mycopyid")))||
+            false;}
+    metaBook.checkMyCopyId=checkMyCopyId;
+
+    var body=document.body;
+    var hasClass=fdjtDOM.hasClass;
+    var addClass=fdjtDOM.addClass;
+    var dropClass=fdjtDOM.dropClass;
+
+    if ((body)&&(checkMyCopyId())&&
+        (!(hasClass(body,"_USER")))) {
+        dropClass(body,"_NOUSER");
+        addClass(body,"_USER");}
+
+})();
+
+/* Emacs local variables
+   ;;;  Local variables: ***
+   ;;;  compile-command: "cd ..; make" ***
+   ;;;  indent-tabs-mode: nil ***
+   ;;;  End: ***
+*/
+/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
+
 /* ###################### metabook/core.js ###################### */
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
@@ -24161,345 +24706,23 @@ fdjt.DOM.noautofontadjust=true;
         else return false;}
     metaBook.mediaTypeClass=mediaTypeClass;
 
+    /* Debugging support */
+
+    function reload(root){
+        if (!(root))
+            window.location.reload();
+        else if (root.search(/https?:/)===0) 
+            location.href=root+location.pathname+location.search+location.hash;
+        else if (root.search(".html")>=0)
+            location.href=location.href.replace(/[A-Za-z0-9]+\.html/,root);
+        else fdjtLog.warn("Couldn't understand reload argument '%s'",root);}
+    metaBook.reload=reload;
+
 })();
 
 fdjt.DOM.noautofontadjust=true;
 fdjt.CodexLayout.dbname="metaBook";
 
-
-/* Emacs local variables
-   ;;;  Local variables: ***
-   ;;;  compile-command: "cd ..; make" ***
-   ;;;  indent-tabs-mode: nil ***
-   ;;;  End: ***
-*/
-/* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
-
-/* ###################### metabook/config.js ###################### */
-
-/* Copyright (C) 2009-2015 beingmeta, inc.
-   This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
-
-   For more information on sbooks, visit www.sbooks.net
-   For more information on knodules, visit www.knodules.net
-   For more information about beingmeta, visit www.beingmeta.com
-
-   This library uses the FDJT (www.fdjt.org) toolkit.
-
-   This program comes with absolutely NO WARRANTY, including implied
-   warranties of merchantability or fitness for any particular
-   purpose.
-
-   Use and redistribution (especially embedding in other
-   CC licensed content) is permitted under the terms of the
-   Creative Commons "Attribution-NonCommercial" license:
-
-   http://creativecommons.org/licenses/by-nc/3.0/ 
-
-   Other uses may be allowed based on prior agreement with
-   beingmeta, inc.  Inquiries can be addressed to:
-
-   licensing@beingmeta.com
-
-   Enjoy!
-
-*/
-/* jshint browser: true */
-
-// config.js
-(function(){
-    "use strict";
-    var fdjtDOM=fdjt.DOM, fdjtLog=fdjt.Log, fdjtUI=fdjt.UI;
-    var fdjtState=fdjt.State, fdjtTime=fdjt.Time, fdjtString=fdjt.String;
-
-    var getChildren=fdjtDOM.getChildren;
-
-    var getMeta=fdjtDOM.getMeta;
-
-    var isEmpty=fdjtString.isEmpty;
-
-    var getLocal=fdjtState.getLocal;
-    var getQuery=fdjtState.getQuery;
-    
-    var mB=metaBook, Trace=metaBook.Trace;
-    var saveLocal=mB.saveLocal;
-    
-    /* Configuration information */
-
-    var config_handlers={};
-    var default_config=metaBook.default_config;
-    var current_config={};
-    var saved_config={};
-
-    function addConfig(name,handler){
-        if (Trace.config>1)
-            fdjtLog("Adding config handler for %s: %s",name,handler);
-        config_handlers[name]=handler;
-        if (current_config.hasOwnProperty(name)) {
-            if (Trace.config>1)
-                fdjtLog("Applying config handler to current %s=%s",
-                        name,current_config[name]);
-            handler(name,current_config[name]);}}
-    metaBook.addConfig=addConfig;
-
-    function getConfig(name){
-        if (!(name)) return current_config;
-        else return current_config[name];}
-    metaBook.getConfig=getConfig;
-
-    function setConfig(name,value,save,cxt){
-        if (cxt) cxt=" ("+cxt+")";
-        else cxt="";
-        if (arguments.length===1) {
-            var config=name;
-            metaBook.postconfig=[];
-            if (Trace.config)
-                fdjtLog("batch setConfig %s: %s",cxt,config);
-            for (var setting in config) {
-                if (config.hasOwnProperty(setting))
-                    setConfig(setting,config[setting]);}
-            var dopost=metaBook.postconfig;
-            metaBook.postconfig=false;
-            if ((Trace.config>1)&&(!((dopost)||(dopost.length===0))))
-                fdjtLog("batch setConfig, no post processing %s",
-                        config,cxt);
-            var post_i=0; var post_lim=dopost.length;
-            while (post_i<post_lim) {
-                if (Trace.config>1)
-                    fdjtLog("batch setConfig%s, post processing %s",
-                            dopost[post_i]);
-                dopost[post_i++]();}
-            return;}
-        if (Trace.config) fdjtLog("setConfig%s %o=%o",cxt,name,value);
-        if (!((current_config.hasOwnProperty(name))&&
-              (current_config[name]===value))) {
-            if (config_handlers[name]) {
-                if (Trace.config)
-                    fdjtLog("setConfig%s (handler=%s) %o=%o",
-                            cxt,config_handlers[name],name,value);
-                config_handlers[name](name,value);}
-            else if (Trace.config)
-                fdjtLog("setConfig%s (no handler) %o=%o",cxt,name,value);
-            else {}
-            current_config[name]=value;}
-        else if (Trace.config)
-            fdjtLog("Redundant setConfig%s %o=%o",cxt,name,value);
-        else {}
-        if ((save)&&(saved_config[name]!==value)) {
-            saved_config[name]=value;
-            saveConfig(saved_config);}}
-    metaBook.setConfig=setConfig;
-    metaBook.resetConfig=function(){setConfig(saved_config);};
-
-    function saveConfig(config){
-        if (Trace.config) {
-            fdjtLog("saveConfig %o",config);
-            fdjtLog("saved_config=%o",saved_config);}
-        if (!(config)) config=saved_config;
-        // Save automatically applies (seems only fair)
-        else setConfig(config);
-        var saved={};
-        for (var setting in config) {
-            if ((default_config.hasOwnProperty(setting))&&
-                (config[setting]!==default_config[setting])&&
-                (!(getQuery(setting)))) {
-                saved[setting]=config[setting];}}
-        if (Trace.config) fdjtLog("Saving config %o",saved);
-        saveLocal("mB("+mB.docid+").config",JSON.stringify(saved));
-        saved_config=saved;}
-    metaBook.saveConfig=saveConfig;
-
-    var config_initialized=false;
-    function initConfig(){
-        if (config_initialized) return; else config_initialized=true;
-        var setting, value, source, started=fdjtTime(); // changed=false;
-        var config=getLocal("mB("+mB.docid+").config",true)||
-            fdjtState.getSession("mB("+mB.docid+").config",
-                                 true);
-        metaBook.postconfig=[];
-        if (config) {
-            if (Trace.config) fdjtLog("initConfig local=%j",config);
-            for (setting in config) {
-                if (config.hasOwnProperty(setting)) {
-                    // if ((!(default_config.hasOwnProperty(setting)))||
-                    //    (config[setting]!==default_config[setting]))
-                    //    changed=true;
-                    if (getQuery(setting)) {
-                        value=getQuery(setting); source="initConfig/QUERY";}
-                    else {
-                        value=config[setting]; source="initConfig/local";}
-                    setConfig(setting,value,false,source);
-                    metaBook.updateSettings(setting,value);}}}
-        else config={};
-        if (Trace.config) fdjtLog("initConfig default=%j",default_config);
-
-        var devicename=current_config.devicename;
-        if ((devicename)&&(!(isEmpty(devicename))))
-            metaBook.deviceName=devicename;
-        if (Trace.startup>1)
-            fdjtLog("initConfig took %dms",fdjtTime()-started);}
-    metaBook.initConfig=initConfig;
-    
-    function bookConfig(){
-        var started=fdjtTime();
-        var config=current_config;
-        for (var setting in default_config) {
-            var value, source;
-            if ((default_config.hasOwnProperty(setting))&&
-                (!((config.hasOwnProperty(setting))||(getQuery(setting))))) {
-                if (getMeta("METABOOK."+setting)) {
-                    value=getMeta("METABOOK."+setting);
-                    source="initConfig/HTML";}
-                else {
-                    value=default_config[setting];
-                    source="initConfig/appdefaults";}
-                setConfig(setting,value,false,"initConfig/HTML");
-                setConfig(setting,value,false,source);
-                metaBook.updateSettings(setting,value);}}
-        var dopost=metaBook.postconfig;
-        metaBook.postconfig=false;
-        var i=0; var lim=dopost.length;
-        while (i<lim) dopost[i++]();
-        if (Trace.config) fdjtLog("bookConfig took %dms",fdjtTime()-started);}
-    metaBook.bookConfig=bookConfig;
-
-    var getParent=fdjtDOM.getParent;
-    var getChild=fdjtDOM.getChild;
-
-    function updateConfig(name,id,save){
-        if (typeof save === 'undefined') save=false;
-        var elt=((typeof id === 'string')&&(document.getElementById(id)))||
-            ((id.nodeType)&&(getParent(id,'input')))||
-            ((id.nodeType)&&(getChild(id,'input')))||
-            ((id.nodeType)&&(getChild(id,'textarea')))||
-            ((id.nodeType)&&(getChild(id,'select')))||
-            (id);
-        if (Trace.config) fdjtLog("Update config %s",name);
-        if ((elt.type==='radio')||(elt.type==='checkbox'))
-            setConfig(name,elt.checked||false,save,"updateConfig/checked");
-        else setConfig(name,elt.value,save,"updateConfig/input");}
-    metaBook.updateConfig=updateConfig;
-
-    function metabookPropConfig(name,value){
-        metaBook[name]=value;}
-    metaBook.propConfig=metabookPropConfig;
-
-    metaBook.addConfig("keyboardhelp",function(name,value){
-        metaBook.keyboardhelp=value;
-        fdjtUI.CheckSpan.set(
-            document.getElementsByName("METABOOKKEYBOARDHELP"),
-            value);});
-    metaBook.addConfig("devicename",function(name,value){
-        if (isEmpty(value)) metaBook.deviceName=false;
-        else metaBook.deviceName=value;});
-
-    metaBook.addConfig("holdmsecs",function(name,value){
-        metaBook.holdmsecs=value;
-        fdjtUI.TapHold.default_opts.holdmsecs=value;});
-    metaBook.addConfig("wandermsecs",function(name,value){
-        metaBook.wandermsecs=value;
-        fdjtUI.TapHold.default_opts.wanderthresh=value;});
-    metaBook.addConfig("taptapmsecs",function(name,value){
-        metaBook.taptapmsecs=value;
-        fdjtUI.TapHold.default_opts.taptapmsecs=value;});
-
-    metaBook.addConfig("dont_rAF",function(name,value){
-        fdjt.CodexLayout.dont_rAF=value;});
-
-    metaBook.addConfig("checksync",function(name,value){
-        metaBook.sync_interval=value;
-        if (metaBook.synctock) {
-            clearInterval(metaBook.synctock);
-            metaBook.synctock=false;}
-        if ((value)&&(metaBook.locsync))
-            metaBook.synctock=setInterval(metaBook.syncState,value*1000);});
-    metaBook.addConfig("synctimeout",function(name,value){
-        metaBook.sync_timeout=value;});
-    metaBook.addConfig("syncpause",function(name,value){
-        metaBook.sunc_pause=value;});
-
-    metaBook.addConfig("locsync",function(name,value){
-        // Start or clear the sync check interval timer
-        if ((!(value))&&(metaBook.synctock)) {
-            clearInterval(metaBook.synctock);
-            metaBook.synctock=false;}
-        else if ((value)&&(!(metaBook.synctock))&&
-                 (metaBook.sync_interval))
-            metaBook.synctock=setInterval(
-                metaBook.syncState,(metaBook.sync_interval)*1000);
-        else {}
-        metaBook.locsync=value;
-        fdjt.Async(function(){metaBook.updateSettings(name,value);});});
-    
-    function configChange(evt){
-        evt=evt||window.event;
-        var target=fdjtUI.T(evt);
-        var setting=target.name, val=target.value;
-        var cur=current_config[setting];
-        if ((target.checked)&&(cur===val)) return;
-        else if (target.checked)
-            setConfig(setting,val,true,"configChange");
-        else if (target.type==="checkbox")
-            setConfig(setting,"",true,"configChange");
-        else {}}
-    metaBook.configChange=configChange;
-
-    function applyMetaClass(name,metaname){
-        if (!(metaname)) metaname=name;
-        var meta=getMeta(metaname,true);
-        var i=0; var lim=meta.length;
-        while (i<lim) fdjtDOM.addClass(fdjtDOM.$(meta[i++]),name);}
-    metaBook.applyMetaClass=applyMetaClass;
-
-    function updateSettings(setting,value){
-        var forms=fdjtDOM.$(".metabooksettings");
-        var i=0, n_forms=forms.length; while (i<n_forms) {
-            var form=forms[i++];
-            var inputs=getChildren(
-                form,"input[type='CHECKBOX'],input[type='RADIO']");
-            var toset=[], toclear=[];
-            var j=0, n_inputs=inputs.length, input=false;
-            while (j<n_inputs) {
-                input=inputs[j++];
-                if (input.name===setting) {
-                    if ((value===true)?
-                        (/(yes|on|true)/i.exec(input.value)):
-                        (input.value===value))
-                        toset.push(input);
-                    else toclear.push(input);}}
-            j=0; n_inputs=toset.length; while (j<n_inputs) {
-                input=toset[j++];
-                if (input.checked) continue;
-                if (getParent(input,".checkspan")) 
-                    fdjt.UI.CheckSpan.set(input,true);
-                else input.checked=true;}
-            j=0; n_inputs=toclear.length; while (j<n_inputs) {
-                input=toclear[j++];
-                if ((!(input.checked))&&
-                    (typeof input.checked !== "undefined"))
-                    continue;
-                if (getParent(input,".checkspan"))
-                    fdjt.UI.CheckSpan.set(input,false);
-                else input.checked=false;}
-            j=0; n_inputs=toset.length; while (j<n_inputs) {
-                input=toset[j++];
-                if (input.checked) continue;
-                if (getParent(input,".checkspan")) 
-                    fdjt.UI.CheckSpan.set(input,true);
-                else input.checked=true;}}}
-    metaBook.updateSettings=updateSettings;
-
-    function initSettings(){
-        var started=fdjtTime();
-        for (var setting in current_config) {
-            if (current_config.hasOwnProperty(setting))
-                updateSettings(setting,current_config[setting]);}
-        if (Trace.startup>1)
-            fdjtLog("Finished initSettings in %dms",fdjtTime()-started);}
-    metaBook.initSettings=initSettings;
-
-})();
 
 /* Emacs local variables
    ;;;  Local variables: ***
@@ -25967,6 +26190,15 @@ metaBook.DOMScan=(function(){
             if (existing_cover)
                 existing_cover.parentNode.removeChild(existing_cover);}
         
+        if (mB.docid) {
+            var docid=mB.docid;
+            var catlink=$ID("METABOOKCATALOGLINK");
+            if (catlink) {
+                var slash=docid.indexOf('/');
+                if (slash>0)
+                    catlink.href="https://catalog.bookhub.io/T"+
+                    docid.slice(slash+1)+"/";}}
+
         var hidden_refuri=fdjt.ID("BHLOGIN_REFURI");
         var hidden_docid=fdjt.ID("BHLOGIN_DOCID");
         var hidden_origin=fdjt.ID("BHLOGIN_ORIGIN");
@@ -27486,6 +27718,26 @@ metaBook.DOMScan=(function(){
                     setMyCopyId(mycopyid,"ajax");});}
         return new Promise(fetching_mycopyid);}
 
+    function checkMyCopyId(){
+        return (fdjtState.getQuery("MYCOPYID"))||
+            (fdjtState.getCookie("MYCOPYID"))||
+            ((mB.docid)&&(getSession("mB("+mB.docid+").mycopyid")))||
+            ((mB.refuri)&&(getSession("mB("+mB.refuri+").mycopyid")))||
+            ((mB.docid)&&(getLocal("mB("+mB.docid+").mycopyid")))||
+            ((mB.refuri)&&(getLocal("mB("+mB.refuri+").mycopyid")))||
+            false;}
+    metaBook.checkMyCopyId=checkMyCopyId;
+
+    var body=document.body;
+    var hasClass=fdjtDOM.hasClass;
+    var addClass=fdjtDOM.addClass;
+    var dropClass=fdjtDOM.dropClass;
+
+    if ((body)&&(checkMyCopyId())&&
+        (!(hasClass(body,"_USER")))) {
+        dropClass(body,"_NOUSER");
+        addClass(body,"_USER");}
+
 })();
 
 /* Emacs local variables
@@ -27605,9 +27857,10 @@ metaBook.DOMScan=(function(){
         if (Trace.startup>1) fdjtLog("Starting UI setup for user");
         var startui=fdjtTime();
         if (!(metaBook.user)) {
+            fdjtDOM.dropClass(root,"_USER");
             fdjtDOM.addClass(root,"_NOUSER");
             return;}
-        fdjtDOM.addClass(root,"_NOUSER");
+        fdjtDOM.addClass(root,"_USER");
         fdjtDOM.dropClass(root,"_NOUSER");
         var username=metaBook.user.name||metaBook.user.handle||metaBook.user.email;
         if (username) {
@@ -28393,6 +28646,7 @@ metaBook.Startup=
                 metaBook.docid=docid;}
             if (refuri) {
                 metaBook.refuri=refuri;
+                metaBook.refuris.push(refuri);
                 mB.createDatabases(refuri);}
 
             var done=Timeline.app_init_done=app_init_done=fdjtTime();
@@ -28939,8 +29193,8 @@ metaBook.Startup=
             if (Trace.startup>1) fdjtLog("metaBook startup done");
             metaBook.resizeUI(); // Just in case
             metaBook.displaySync();
-            fdjtDOM.dropClass(document.body,"mbSTARTUP");
-            fdjtDOM.addClass(document.body,"mbREADY");
+            dropClass(document.body,"mbSTARTUP");
+            addClass(document.body,"mbREADY");
             if ($ID("METABOOKSPLASHPAGE"))
                 setTimeout(function(){
                     addClass("METABOOKSPLASHPAGE","startupdone");},
@@ -29009,6 +29263,8 @@ metaBook.Startup=
             metaBook.topuri=document.location.href;
             metaBook.docuri=docuri;
             
+            // These are all the refuris and docuris and docids on the "device"
+            //  (which means available to getLocal() )
             var refuris=getLocal("mB.refuris",true)||[];
             var docuris=getLocal("mB.docuris",true)||[];
             var docids=getLocal("mB.docids",true)||[];
@@ -29063,7 +29319,7 @@ metaBook.Startup=
                 docuris.push(docuri);
                 saveLocal("mB.docuris",docuris,true);}
 
-            var docref=getMeta("BOOKHUB.docref"), docid;
+            var docref=getMeta("BOOKHUB.docref")||getMeta("METABOOK.docref"), docid;
             if (docref) metaBook.docid=metaBook.docref=docid=docref;
             else metaBook.docid=docid=docuri;
             fdjtState.setCookie("MB:DOCID",docid,3600*24*42,false,false,true);
@@ -29089,6 +29345,18 @@ metaBook.Startup=
             var icon=getRelLink("PUBTOOL.icon")||getRelLink("icon")||
                 getRelLink("*.icon");
             if (icon) metaBook.icon=icon;
+            
+            // Getting alternate refuris
+            var alturis=metaBook.refuris;
+            var alturi_types=["METABOOK.refuri","BOOKHUB.refuri","PUBTOOL.refuri",
+                              "METABOOK.alturi","BOOKHUB.alturi","PUBTOOL.alturi",
+                              "MYCOPYID.refuri","MYCOPYID.alturi","MYCOPYID.uri",
+                              "canonical"];
+            var type_i=0, n_types=alturi_types.length; while (type_i<n_types) {
+                var alturi_type=alturi_types[type_i++];
+                var uris=getLink(alturi_type,true,true,false);
+                var link_j=0, n_links=uris.length; while (link_j<n_links) {
+                    alturis.push(uris[link_j++]);}}
             
             var baseid=getMeta("BOOKHUB.id")||
                 getMeta("*.prefix")||getMeta("*.baseid");
@@ -29148,7 +29416,7 @@ metaBook.Startup=
             fdjt.TapHold.default_opts.bubble=false;
             
             if (device.touch) {
-                fdjtDOM.addClass(root,"_TOUCH");
+                addClass(root,"_TOUCH");
                 fdjt.TapHold.default_opts.fortouch=true;
                 metaBook.ui="touch";
                 metaBook.touch=true;
@@ -29168,14 +29436,16 @@ metaBook.Startup=
                 // Have fdjtLog do it's own format conversion for the log
                 fdjtLog.doformat=true;}
             else if (device.touch) {
-                fdjtDOM.addClass(root,"_TOUCH");
+                addClass(root,"_TOUCH");
                 metaBook.ui="touch";}
             else if (!(metaBook.ui)) {
                 // Assume desktop or laptop
-                fdjtDOM.addClass(root,"_MOUSE");
+                addClass(root,"_MOUSE");
                 metaBook.ui="mouse";}
             else {}
             
+            if (device.fixedframe) addClass(root,"_FIXEDFRAME");
+
             if (Trace.startup>1) {
                 fdjtLog("setupDevice done in %dms: %s/%dx%d %s",
                         fdjtTime()-started,
@@ -32691,8 +32961,8 @@ metaBook.setMode=
 
     // This is the window outer dimensions, which is stable across
     // most chrome changes, especially on-screen keyboards.  We
-    // track so that we can avoid resizes which shouldn't force
-    // layout updates.
+    // track so that we can avoid layout updates for resizes which
+    // don't really require them.
     var outer_height=window.outerHeight, outer_width=window.outerWidth;
 
     /* Whether to resize by default */
@@ -32728,22 +32998,32 @@ metaBook.setMode=
     metaBook.resizeUI=resizeUI;
 
     function metabookResize(){
-        var layout=mB.layout;
+        if ((hasClass(document.body,"mbZOOM"))||
+            (hasClass(document.body,"mbMEDIA"))) {
+            resizing=setTimeout(metabookResize,1000);
+            return;}
         if (resizing) {
             clearTimeout(resizing); resizing=false;}
         updateSizeClasses();
         mB.resizeUI();
+        resizePagers();
+        if ((mB.layout)&&(fdjt.device.fixedframe)) {
+            // On fixed frame devices (phones, tablets, etc), only
+            // resize the layout if there's been an orientation
+            // change.
+            var orientation=Math.abs(window.orientation)%180;
+            var layout_orientation=
+                ((mB.layout.orientation)&&
+                 (Math.abs(mB.layout.orientation)%180));
+            if (orientation !== layout_orientation)
+                resizeLayout();}
+        else resizeLayout();}
+    metaBook.resize=metabookResize;
+
+    function resizeLayout() {
+        var layout=mB.layout;
         // Unscale the layout
         if (layout) mB.scaleLayout(false);
-        if ((mB.touch)&&
-            ((mB.textinput)||
-             ((document.activeElement)&&
-              ((document.activeElement.tagName==="INPUT")||
-               (document.activeElement.tagName==="TEXTAREA")||
-               (document.activeElement.isContentEditable))))) {
-            if (Trace.resize)
-                fdjtLog("Resize for soft keyboard, mostly ignoring");
-            return;}
         if ((window.outerWidth===outer_width)&&
             (window.outerHeight===outer_height)) {
             // Not a real change (we think), so just scale the
@@ -32751,14 +33031,8 @@ metaBook.setMode=
             if (layout) metaBook.scaleLayout(true);
             if (Trace.resize) fdjtLog("Resize to norm, ignoring");
             return;}
-        if ((hasClass(document.body,"mbZOOM"))||
-            (hasClass(document.body,"mbMEDIA"))) {
-            resizing=setTimeout(metabookResize,1000);
-            return;}
         if (Trace.resize)
             fdjtLog("Real resize w/layout=%o",layout);
-        mB.sizeContent();
-        resizePagers();
         // Set these values to the new one
         outer_width=window.outerWidth;
         outer_height=window.outerHeight;
@@ -32775,10 +33049,10 @@ metaBook.setMode=
             // cached (metaBook.layoutCached()).
             if ((metaBook.long_layout_thresh)&&(layout.started)&&
                 ((layout.done-layout.started)<=metaBook.long_layout_thresh))
-                resizing=setTimeout(resizeNow,50);
+                resizing=setTimeout(resizeLayoutNow,50);
             else if (choosing_resize) {}
             else if (metaBook.layoutCached())
-                resizing=setTimeout(resizeNow,50);
+                resizing=setTimeout(resizeLayoutNow,50);
             else {
                 // This prompts for updating the layout
                 var msg=fdjtDOM("div.title","Update layout?");
@@ -32794,7 +33068,7 @@ metaBook.setMode=
                          choosing_resize=false;
                          resize_default=true;
                          metaBook.layout_choice_timeout=10;
-                         resizing=setTimeout(resizeNow,50);},
+                         resizing=setTimeout(resizeLayoutNow,50);},
                      isdefault: resize_default},
                     {label: "No",
                      handler: function(){
@@ -32807,9 +33081,8 @@ metaBook.setMode=
                                     metaBook.choice_timeout||20),
                           spec: "div.fdjtdialog.fdjtconfirm.updatelayout"};
                 choosing_resize=fdjtUI.choose(spec,msg);}}}
-    metaBook.resize=metabookResize;
 
-    function resizeNow(evt){
+    function resizeLayoutNow(evt){
         if (resizing) clearTimeout(resizing);
         resizing=false;
         metaBook.layout.onresize(evt);}
@@ -38999,6 +39272,7 @@ metaBook.Paginate=
             var forced=((init)&&(init.forced));
             var geom=getGeometry($ID("CODEXPAGE"),false,true);
             var height=geom.inner_height, width=geom.width;
+            var orientation=window.orientation;
             var justify=mB.justify;
             var spacing=mB.bodyspacing;
             var size=mB.bodysize||"normal";
@@ -39039,6 +39313,7 @@ metaBook.Paginate=
             if (Trace.layout) fdjtLog("Starting content layout");
             var layout=new CodexLayout(layout_args);
             layout.bodysize=size; layout.bodyfamily=family;
+            layout.orientation=orientation;
             mB.layout=layout;
 
             var timeslice=
@@ -41302,12 +41577,12 @@ metaBook.HTML.cover=
     "     data-maxfont=\"120%\" id=\"METABOOKUSERBOX\">\n"+
     "  <span class=\"bookplate\">\n"+
     "    <a href=\"https://www.bookhub.io/\" target=\"_blank\"\n"+
-    "       class=\"booklink\"\n"+
+    "       class=\"booklink\" id=\"METABOOKCATALOGLINK\"\n"+
     "       title=\"Learn more about the metaBook reader and bookhub.io\" tabindex=\"9\">\n"+
-    "      Personalized</a>\n"+
-    "    for\n"+
+    "      This book</a>\n"+
+    "    <span class=\"text\">is personalized for</span>\n"+
     "    <a href=\"https://my.bookhub.io/profile/\"\n"+
-    "       class=\"bookplate__username metabookusername\"\n"+
+    "       class=\"bookplate__username metabookusername userlink\"\n"+
     "       title=\"Edit your profile, add social networks, etc\"\n"+
     "       target=\"_blank\" tabindex=\"10\">\n"+
     "      you</a></span>\n"+
@@ -41606,19 +41881,19 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1596-g0340e3c';
+fdjt.revision='1.5-1600-g351ce39';
 fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Jun 29 10:12:33 EDT 2016';
-fdjt.builduuid='2ac14b27-cdc9-44a7-b07c-e685fecbd224';
+fdjt.buildtime='Wed Jul 20 16:22:20 EDT 2016';
+fdjt.builduuid='0963c94f-aa24-4b44-bf63-7e99b79c9354';
 
-fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
+fdjt.CodexLayout.sourcehash='9CA96835851CC0ED792321248C0AC82D6B831CF8';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-394-g4c1cf5e';
-metaBook.buildid='01cfb99e-b404-4c44-9c4d-d6bd71e3c1e7';
-metaBook.buildtime='Sun Jul 17 16:23:32 EDT 2016';
+metaBook.version='v0.8-404-g492e9c6';
+metaBook.buildid='e83d27a1-265b-4c1b-a1cd-a21118030bb3';
+metaBook.buildtime='Wed Jul 20 17:18:45 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
@@ -41635,4 +41910,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='7339714306F15A142CD107B66C1A0359B20D5C14';
+fdjt.CodexLayout.sourcehash='9CA96835851CC0ED792321248C0AC82D6B831CF8';

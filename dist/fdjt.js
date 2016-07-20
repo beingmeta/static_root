@@ -4553,6 +4553,7 @@ fdjt.Log=(function(){
         var isTouch = iPhone || iPad || isAndroid || isTouchPad;
         var isIOS=((iPhone)||(iPad))&&
             ((getMatch(ua,/\bVersion\/(\d+\.\d+)\b/gi,1))||(true));
+        var isFixedFrame = iPhone || iPad || isAndroid || isTouchPad || isIOS;
         
         var opt_string=stdspace(
             ((isAndroid)?(" Android/"+isAndroid):(""))+
@@ -4569,7 +4570,8 @@ fdjt.Log=(function(){
                 ((iPhone)?(" iPhone"):(""))+
                 ((iPad)?(" iPad"):(""))+
                 ((isTouchPad)?(" TouchPad"):(""))+
-                ((isTouch)?(" touch"):(" mouse")));
+                ((isTouch)?(" touch"):(" mouse"))+
+                ((isFixedFrame)?(" fixedframe"):("")));
         if (navigator.vendor) device.vendor=navigator.vendor;
         if (navigator.platform) device.platform=navigator.platform;
         if (navigator.oscpu) device.oscpu=navigator.oscpu;
@@ -4613,8 +4615,10 @@ fdjt.Log=(function(){
         if (isLinux) device.linux=true;
         if (isTouch) device.touch=true;
         else device.mouse=true;
+        if (isFixedFrame) device.fixedframe=true;
         fdjtLog("Device: %j",device);}
     
+    // Run this right away
     (function(){
         /* global window: false */
         if ((typeof window !=="undefined")&&(window.navigator)&&
@@ -16880,8 +16884,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1598-gfddc555';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Thu Jul 7 08:29:38 EDT 2016';
-fdjt.builduuid='08203679-B5CA-4846-8853-DBF2C31CCAB0';
+fdjt.revision='1.5-1600-g351ce39';
+fdjt.buildhost='moby.dc.beingmeta.com';
+fdjt.buildtime='Wed Jul 20 16:22:20 EDT 2016';
+fdjt.builduuid='0963c94f-aa24-4b44-bf63-7e99b79c9354';
 
