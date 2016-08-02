@@ -5187,15 +5187,15 @@ body.mbMEDIA #METABOOKBODY, body.mbZOOM #METABOOKBODY {
     font-size: calc( 1ex + 1vmin );}
 #METABOOKBODY.metabookbodysizetiny {
     font-size: calc ( 1ex + 1vmin );}
-.metabookbody.metabooklinespacingsingle {
+.metabooklinespacingsingle {
     line-height: 1.2;}
-.metabookbody.metabooklinespacingdouble {
+.metabooklinespacingdouble {
     line-height: 2.0;}
-.metabookbody.metabooklinespacingnormal {}
-.metabookbody.metabooklinespacingonefive {
+.metabooklinespacingnormal {}
+.metabooklinespacingonefive {
     line-height: 1.5;}
 
-.metabookbody.metabookjustify p, .metabookbody.metabookjustify li {
+.metabookjustify p, .metabookjustify li {
     text-align: justify;}
 
 #METABOOKBODY h1, #METABOOKBODY h2, #METABOOKBODY h3, #METABOOKBODY h4 {

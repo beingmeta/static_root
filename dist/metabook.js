@@ -32963,7 +32963,7 @@ metaBook.setMode=
     // most chrome changes, especially on-screen keyboards.  We
     // track so that we can avoid layout updates for resizes which
     // don't really require them.
-    var outer_height=window.outerHeight, outer_width=window.outerWidth;
+    var inner_height=window.innerHeight, inner_width=window.innerWidth;
 
     /* Whether to resize by default */
     var resize_default=false;
@@ -33024,8 +33024,8 @@ metaBook.setMode=
         var layout=mB.layout;
         // Unscale the layout
         if (layout) mB.scaleLayout(false);
-        if ((window.outerWidth===outer_width)&&
-            (window.outerHeight===outer_height)) {
+        if ((window.innerWidth===inner_width)&&
+            (window.innerHeight===inner_height)) {
             // Not a real change (we think), so just scale the
             // layout, don't make a new one.
             if (layout) metaBook.scaleLayout(true);
@@ -33034,8 +33034,8 @@ metaBook.setMode=
         if (Trace.resize)
             fdjtLog("Real resize w/layout=%o",layout);
         // Set these values to the new one
-        outer_width=window.outerWidth;
-        outer_height=window.outerHeight;
+        inner_width=window.innerWidth;
+        inner_height=window.innerHeight;
         // Possibly a new layout
         var width=getGeometry($ID("CODEXPAGE"),false,true).width;
         var height=getGeometry($ID("CODEXPAGE"),false,true).inner_height;
@@ -41891,9 +41891,9 @@ fdjt.CodexLayout.sourcehash='9CA96835851CC0ED792321248C0AC82D6B831CF8';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-404-g492e9c6';
-metaBook.buildid='e83d27a1-265b-4c1b-a1cd-a21118030bb3';
-metaBook.buildtime='Wed Jul 20 17:18:45 EDT 2016';
+metaBook.version='v0.8-406-gfa35f1f';
+metaBook.buildid='9c57d29b-f64c-4b57-b8cd-c68bb907204c';
+metaBook.buildtime='Tue Aug  2 11:17:45 EDT 2016';
 metaBook.buildhost='moby.dc.beingmeta.com';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
