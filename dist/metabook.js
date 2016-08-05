@@ -6562,10 +6562,14 @@ fdjt.DOM=
         function getLineHeight(node,style){
             if (!(style)) style=getStyle(node);
             var lh=style.lineHeight, fs=style.fontSize;
-            if (lh==="normal") return parsePX(fs);
+            if (!(lh)) return false;
             else if (lh.search(/px$/)>0) return parsePX(lh);
+            else if (!(fs)) return false;
+            else if (lh==="normal") return 1.2*parsePX(fs);
             else if (lh.search(/%$/)>0) 
                 return (parseFloat(lh.slice(0,-1))/100)*(parsePX(fs));
+            else if (parseFloat(lh))
+                return parseFloat(lh)*parsePX(fs);
             else return parsePX(fs);}
         fdjtDOM.getLineHeight=getLineHeight;
 
@@ -18652,11 +18656,10 @@ fdjt.CodexLayout=
                         // it's big enough and far down enough, we
                         // split the current block, making a slightly
                         // short page.
-                        ((next)&&(geom.height>3*lh)&&
+                        ((next)&&(lh)&&(!(info.avoidbreakinside))&&
+                         (geom.height>3*lh)&&
                          (((page_height-geom.bottom)/page_height)>0.9)&&
                          ((geom.bottom+(new Geometry(next).height))>page_height)&&
-                         (!(info.avoidbreakinside))&&
-                         (nextinfo.avoidbreakinside)&&
                          (nextinfo.avoidbreakinside))) {
                         var use_height=page_height;
                         if ((geom.bottom-padding_bottom)<=page_height)
@@ -41881,20 +41884,20 @@ metaBook.HTML.layoutwait=
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1600-g351ce39';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Jul 20 16:22:20 EDT 2016';
-fdjt.builduuid='0963c94f-aa24-4b44-bf63-7e99b79c9354';
+fdjt.revision='1.5-1603-g09af08a';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Fri Aug 5 17:31:43 EDT 2016';
+fdjt.builduuid='E45DA0FC-BC24-467A-9226-01226044E143';
 
-fdjt.CodexLayout.sourcehash='9CA96835851CC0ED792321248C0AC82D6B831CF8';
+fdjt.CodexLayout.sourcehash='488FC022021416E96F444FA339E250C5F6487577';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-406-gfa35f1f';
-metaBook.buildid='9c57d29b-f64c-4b57-b8cd-c68bb907204c';
-metaBook.buildtime='Tue Aug  2 11:17:45 EDT 2016';
-metaBook.buildhost='moby.dc.beingmeta.com';
+metaBook.version='v0.8-407-gd7272b2';
+metaBook.buildid='B7CB25B1-3771-4E8F-946E-8F3FAA9575B6';
+metaBook.buildtime='Fri Aug  5 17:31:49 EDT 2016';
+metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
@@ -41910,4 +41913,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='9CA96835851CC0ED792321248C0AC82D6B831CF8';
+fdjt.CodexLayout.sourcehash='488FC022021416E96F444FA339E250C5F6487577';

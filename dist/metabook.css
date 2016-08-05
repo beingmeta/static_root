@@ -6060,6 +6060,8 @@ div.metabookslice div.mbcard.fdjtstartofpage div.mbcard_tochead {
     border-bottom: solid transparent 0.1em;
     box-sizing: border-box;}
 .mbtoc { height: 1.3em; }
+.mbtoc.fdjtstartofpage { 
+    overflow: hidden;}
 div.metabookslice .mbtoc.mblivetoc {
     border-bottom-color: red;
     border-bottom-style: dotted;}
@@ -6085,7 +6087,8 @@ div.mbtoc_posbar {
 .mbtoc1 .context { display: none;}
 .mbtocslice .mbtoc .context { display: none;}
 .mbtocslice .mbtoc.fdjtstartofpage .context {
-    display: inline-block;}
+    display: inline-block;
+    overflow: visible;}
 #METABOOKSKIMMER .mbtoc1 .context,
 .mbtocslice .mbtoc.mbtoc1.fdjtstartofpage .context {
     display: none;}
@@ -6114,13 +6117,13 @@ a.mbtoc_showsize {
     box-sizing: border-box;
     height: 1.2em; }
 .mbtoc.mbtoc1 { font-size: 120%;}
-.mbtoc.mbtoc1.fdjtoversize { font-size: 105%;}
+.mbtoc.fdjtoversize .mbtoc_text { font-size: 80%; }
 .mbtoc.mbtoc2 { margin-left: 2em; font-size: 110%;}
-.mbtoc.mbtoc2.fdjtoversize { font-size: 100%;}
 .mbtoc.mbtoc3 { margin-left: 4em; font-size: 100%;}
-.mbtoc.mbtoc3.fdjtoversize { font-size: 80%;}
 .mbtoc.mbtoc4 { margin-left: 6em; font-size: 80%;}
-.mbtoc.mbtoc4.fdjtoversize { font-size: 70%;}
+.mbtoc.mbtoc5 { margin-left: 7.5em; font-size: 70%;}
+.mbtoc.mbtoc6 { margin-left: 8em; font-size: 60%;}
+.mbtoc { margin-left: 8em; font-size: 60%;}
 
 .mbtoc a.mbtoc_sectbrick { display: none; }
 

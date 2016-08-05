@@ -5514,10 +5514,14 @@ fdjt.DOM=
         function getLineHeight(node,style){
             if (!(style)) style=getStyle(node);
             var lh=style.lineHeight, fs=style.fontSize;
-            if (lh==="normal") return parsePX(fs);
+            if (!(lh)) return false;
             else if (lh.search(/px$/)>0) return parsePX(lh);
+            else if (!(fs)) return false;
+            else if (lh==="normal") return 1.2*parsePX(fs);
             else if (lh.search(/%$/)>0) 
                 return (parseFloat(lh.slice(0,-1))/100)*(parsePX(fs));
+            else if (parseFloat(lh))
+                return parseFloat(lh)*parsePX(fs);
             else return parsePX(fs);}
         fdjtDOM.getLineHeight=getLineHeight;
 
@@ -16884,8 +16888,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1600-g351ce39';
-fdjt.buildhost='moby.dc.beingmeta.com';
-fdjt.buildtime='Wed Jul 20 16:22:20 EDT 2016';
-fdjt.builduuid='0963c94f-aa24-4b44-bf63-7e99b79c9354';
+fdjt.revision='1.5-1603-g09af08a';
+fdjt.buildhost='Shiny';
+fdjt.buildtime='Fri Aug 5 17:31:43 EDT 2016';
+fdjt.builduuid='E45DA0FC-BC24-467A-9226-01226044E143';
 
