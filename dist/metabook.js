@@ -33026,17 +33026,7 @@ metaBook.setMode=
         updateSizeClasses();
         mB.resizeUI();
         resizePagers();
-        if ((mB.layout)&&(fdjt.device.fixedframe)) {
-            // On fixed frame devices (phones, tablets, etc), only
-            // resize the layout if there's been an orientation
-            // change.
-            var orientation=Math.abs(window.orientation)%180;
-            var layout_orientation=
-                ((mB.layout.orientation)&&
-                 (Math.abs(mB.layout.orientation)%180));
-            if (orientation !== layout_orientation)
-                resizeLayout();}
-        else resizeLayout();}
+        resizeLayout();}
     metaBook.resize=metabookResize;
 
     function resizeLayout() {
@@ -33061,6 +33051,17 @@ metaBook.setMode=
         if ((layout)&&(layout.width===width)&&(layout.height===height)) {
             if (Trace.resize) fdjtLog("Layout size unchanged, ignoring");
             return;}
+        if ((mB.layout)&&(fdjt.device.fixedframe)) {
+            // On fixed frame devices (phones, tablets, etc), only
+            // resize the layout if there's been an orientation
+            // change.
+            var orientation=Math.abs(window.orientation)%180;
+            var layout_orientation=
+                ((mB.layout.orientation)&&
+                 (Math.abs(mB.layout.orientation)%180));
+            if (orientation === layout_orientation) {
+                mB.scaleLayout(true);
+                return;}}
         if ((layout)&&(layout.onresize)&&(!(metaBook.freezelayout))) {
             // This handles prompting for whether or not to update
             // the layout.  We don't prompt if the layout didn't
@@ -33076,7 +33077,7 @@ metaBook.setMode=
                 // This prompts for updating the layout
                 var msg=fdjtDOM("div.title","Update layout?");
                 // This should be fast, so we do it right away.
-                metaBook.scaleLayout(true);
+                mB.scaleLayout(true);
                 choosing_resize=true;
                 // When a choice is made, it becomes the default
                 // When a choice is made to not resize, the
@@ -41910,9 +41911,9 @@ fdjt.CodexLayout.sourcehash='38EDCF851CB9BD5A486EA44042B5E1D61CF35AE4';
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-407-gd7272b2';
-metaBook.buildid='362186B1-F5C4-4127-BC72-286BD03E320E';
-metaBook.buildtime='Sun Aug  7 18:04:08 EDT 2016';
+metaBook.version='v0.8-408-g0bfab98';
+metaBook.buildid='CABDD1C2-3332-4F34-BA1C-E3E37C141E82';
+metaBook.buildtime='Sun Aug  7 18:47:10 EDT 2016';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
