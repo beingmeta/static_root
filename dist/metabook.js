@@ -18969,19 +18969,27 @@ fdjt.CodexLayout=
                     return edge;}
 
                 function findInfo(node,info){
-                    var i=info.length-1; while (i>=0) {
-                        var nodeinfo=info[i--];
-                        if (nodeinfo.node===node) return info;}
-                    return false;}
+                    var results=[];
+                    var nodes=(node.nodeType)?[node]:(node);
+                    var j=0, lim=nodes.length; while (j<lim) {
+                        node=nodes[j++];
+                        var i=info.length-1; while (i>=0) {
+                            var nodeinfo=info[i--];
+                            if (nodeinfo.node===node) results.push(info);}}
+                    return results;}
 
+                // checkTerminal propagates pagebreak constraints up
+                // or down the DOM.  An 'edge' of the DOM based on a
+                // node are all the parents (containers) for which the
+                // node is the first or last content-bearing child (or
+                // n-child).
                 function checkTerminal(node,root,info){
+                    // This means its been visited before
                     if (hasClass(node,"codexterminal")) return;
                     var front_edge=getFrontEdge(node,root);
                     var back_edge=getBackEdge(node,root);
                     var avoid_before=false, force_before=false;
                     var avoid_after=false, force_after=false;
-                    var front_info=(front_edge)&&(findInfo(front_edge,info));
-                    var back_info=(back_edge)&&(findInfo(back_edge,info));
                     var i=0, lim=front_edge.length; if (lim>1) {
                         while (i<lim) {
                             if (avoidBreakAfter(front_edge[i]))
@@ -18998,22 +19006,32 @@ fdjt.CodexLayout=
                             i++;}}
                     if ((avoid_after)&&(force_after)) {
                         /* Avoid brain exploding */}
-                    else if (avoid_after) {
-                        if (front_info) front_info.avoidbreakafter=true;
-                        addClass(front_edge,"AVOIDBREAKAFTER");}
-                    else if (force_after) {
-                        if (front_info) front_info.forcebreakafter=true;
-                        addClass(front_edge,"FORCEBREAKAFTER");}
-                    else {}
+                    else if (!((avoid_after)||(force_after))) {
+                        /* Nothing to see here */ }
+                    else {
+                        var front_info=findInfo(front_edge,info);
+                        var fi=0, fi_lim=front_info.length;
+                        if (avoid_after) {
+                            addClass(front_edge,"AVOIDBREAKAFTER");
+                            while (fi<fi_lim) {front_info[fi++].avoidbreakafter=true;}}
+                        else if (force_after) {
+                            addClass(front_edge,"FORCEBREAKAFTER");
+                            while (fi<fi_lim) {front_info[fi++].forcebreakafter=true;}}
+                        else {}}
                     if ((avoid_before)&&(force_before)) {
                         /* Avoid brain exploding */}
-                    else if (avoid_before) {
-                        if (back_info) back_info.avoidbreakbefore=true;
-                        addClass(back_edge,"AVOIDBREAKBEFORE");}
-                    else if (force_before) {
-                        if (back_info) back_info.forcebreakbefore=true;
-                        addClass(back_edge,"FORCEBREAKBEFORE");}
-                    else {}
+                    else if (!((avoid_before)||(force_before))) {
+                        /* Nothing to see here */ }
+                    else {
+                        var back_info=findInfo(back_edge,info);
+                        var bi=0, bi_lim=back_info.length;
+                        if (avoid_before) {
+                            addClass(back_edge,"AVOIDBREAKBEFORE");
+                            while (bi<bi_lim) back_info[bi++].avoidbreakbefore=true;}
+                        else if (force_before) {
+                            addClass(back_edge,"FORCEBREAKBEFORE");
+                            while (bi<bi_lim) back_info[bi++].forcebreakbefore=true;}
+                        else {}}
                     addClass(node,"codexterminal");}
                 
                 function emptyNode(node){
@@ -32443,9 +32461,7 @@ metaBook.setMode=
                 if ((mode_input)&&
                     ((!(mB.touch))||
                      (hasParent(mode_input,mB.DOM.foot)))) {
-                    setTimeout(function(){
-                        mB.setFocus(mode_input);},
-                               50);}}
+                    mB.setFocus(mode_input);}}
             else if ((mode==="addgloss")&&(mB.glossform)) {
                 var glossform=mB.glossform;
                 var curglossmode=mB.getGlossMode(glossform);
@@ -41889,14 +41905,14 @@ fdjt.buildhost='Shiny';
 fdjt.buildtime='Fri Aug 5 17:31:43 EDT 2016';
 fdjt.builduuid='E45DA0FC-BC24-467A-9226-01226044E143';
 
-fdjt.CodexLayout.sourcehash='488FC022021416E96F444FA339E250C5F6487577';
+fdjt.CodexLayout.sourcehash='38EDCF851CB9BD5A486EA44042B5E1D61CF35AE4';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-407-gd7272b2';
-metaBook.buildid='B7CB25B1-3771-4E8F-946E-8F3FAA9575B6';
-metaBook.buildtime='Fri Aug  5 17:31:49 EDT 2016';
+metaBook.buildid='362186B1-F5C4-4127-BC72-286BD03E320E';
+metaBook.buildtime='Sun Aug  7 18:04:08 EDT 2016';
 metaBook.buildhost='Shiny';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
@@ -41913,4 +41929,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='488FC022021416E96F444FA339E250C5F6487577';
+fdjt.CodexLayout.sourcehash='38EDCF851CB9BD5A486EA44042B5E1D61CF35AE4';
