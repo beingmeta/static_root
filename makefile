@@ -194,7 +194,7 @@ dist: ${DIST_FDJT} ${DIST_METABOOK}
 
 ssc: showsomeclass/app.js showsomeclass/app.css
 
-allhints: fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints
+allhints: fdjt/fdjt.hints metabook/metabook.hints knodules/knodules.hints showsomeclass/hints
 
 cleanhints:
 	rm -f fdjt/*.hint fdjt/fdjt.hints
@@ -355,6 +355,19 @@ metabook.post.css: metabook_bundle.css makefile postcss.config.json
 	@$(POSTCSS) -c postcss.config.json --map file \
 		    -o metabook.post.css \
 	            metabook_bundle.css
+
+showsomeclass_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
+	echo "/* showsomeclass CSS bundle */" > metabook_bundle.css
+	for cssfile in ssc.css dialog.css edit.css; \
+	  do echo "@import 'showsomeclass/$${cssfile}';" >> showsomeclass_bundle.css; \
+	done
+showsomeclass.css: showsomeclass_bundle.css makefile postcss.config.json
+	@echo Building ./metabook.post.css
+	@$(POSTCSS) -c postcss.config.json --map file \
+		    -o showsomeclass.post.css \
+	            showsomeclass_bundle.css
+showsomeclass.js:
+	@cd showsomeclass; make ../showsomeclass.js
 
 fresh:
 	make clean
