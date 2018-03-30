@@ -540,14 +540,14 @@ diff:
 	cd knodules; git diff
 	cd metabook; git diff
 	cd showsomeclass; git diff
-	cd g; svn diff
+#	cd g; svn diff
 status:
 	git status -uno
 	cd fdjt; git status -uno
 	cd knodules; git status -uno
 	cd metabook; git status -uno
 	cd showsomeclass; git status -uno
-	cd g; svn status -q
+#	cd g; svn status -q
 pull: fdjt knodules g showsomeclass
 	git pull
 	cd fdjt; git pull
@@ -557,7 +557,7 @@ pull: fdjt knodules g showsomeclass
 	if test -d bibliotype; then cd bibliotype; git pull; fi;
 	if test -d pagedown; then cd pagedown; hg update; fi;
 	cd webfontloader; git pull
-	cd g; svn update
+#	cd g; svn update
 update: fdjt metabook knodules g \
 	showsomeclass webfontloader
 	make pull
