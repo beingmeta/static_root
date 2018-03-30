@@ -362,7 +362,7 @@ showsomeclass_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	  do echo "@import 'showsomeclass/$${cssfile}';" >> showsomeclass_bundle.css; \
 	done
 showsomeclass.css: showsomeclass_bundle.css makefile postcss.config.json
-	@echo Building ./metabook.post.css
+	@echo Building ./showsomeclass.post.css
 	@$(POSTCSS) -c postcss.config.json --map file \
 		    -o showsomeclass.post.css \
 	            showsomeclass_bundle.css
