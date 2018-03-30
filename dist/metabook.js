@@ -1108,7 +1108,7 @@ var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
 (function() {
     "use strict";
     /* For jshint */
-    /* global global: false, window: false, 
+    /* global global: false, window: false,
               module: false, setTimeout: false */
     var root;
 
@@ -1210,7 +1210,7 @@ var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
         }
         this._deferreds = null;
     }
-    
+
     function Handler(onFulfilled, onRejected, resolve, reject){
         this.onFulfilled =
             typeof onFulfilled === 'function' ? onFulfilled : null;
@@ -1258,7 +1258,7 @@ var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
                                    resolve, reject));
             });
         };
-    
+
     PromiseFillIn.all = function () {
         var args = Array.prototype.slice.call(
             arguments.length === 1 && isArray(arguments[0]) ?
@@ -17705,7 +17705,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 */
 /* -*- Mode: Javascript; Character-encoding: utf-8; -*- */
 
-/* ######################### fdjt/codexlayout.js ###################### */ 
+/* ######################### fdjt/codex.js ###################### */ 
 
 /* Copyright (C) 2009-2015 beingmeta, inc.
    This file is a part of the FDJT web toolkit (www.fdjt.org)
@@ -17747,7 +17747,7 @@ fdjt.TextSelect=fdjt.UI.Selecting=fdjt.UI.TextSelect=
 
 // var fdjt=((window)?((window.fdjt)||(window.fdjt={})):({}));
 
-fdjt.CodexLayout=
+fdjt.Codex=
     (function(){
         "use strict";
         /* globals Promise: false */
@@ -18003,7 +18003,7 @@ fdjt.CodexLayout=
 
         // This recreates a node and it's DOM context (containers) on
         //  a new page, calling itself recursively as needed
-        function dupContext(node,page,dups,crumbs){
+        function dupContext(node,page,dups){
             if ((node===document.body)||(node.id==="CODEXCONTENT")||
                 (hasClass(node,"codexroot"))||(hasClass(node,"codexpage")))
                 return false;
@@ -18012,7 +18012,7 @@ fdjt.CodexLayout=
                      (node.className.search(/\bcodexwraptext\b/)>=0))
                 // We don't bother duplicating text wrapping convenience
                 //  classes
-                return dupContext(node.parentNode,page,dups,crumbs);
+                return dupContext(node.parentNode,page,dups);
             // Now we actually duplicate it.  
             var id=node.id, baseid=node.getAttribute("data-baseid");
             if (!(id)) id=baseid;
@@ -18030,7 +18030,7 @@ fdjt.CodexLayout=
                     else d--;}}
             // Duplicate it's parent
             var copy=node.cloneNode(false);
-            var parent=dupContext(node.parentNode,page,dups,crumbs);
+            var parent=dupContext(node.parentNode,page,dups);
             var nodeclass=((node.className)&&(node.className.search)&&
                            (node.className))||"";
             var lastclass=((last_dup)&&(last_dup.className)&&
@@ -18069,15 +18069,11 @@ fdjt.CodexLayout=
 
         function stripBottomStyles(node,keep){
             var style=node.style;
-            if ((keep)&&(!(node.hasAttribute("data-savedstyle")))) 
-                node.setAttribute("data-savedstyle",style.cssText);
             style.paddingBottom="0px";
             style.borderBottomWidth="0px";
             style.marginBottom="0px";}
         function stripTopStyles(node,keep){
             var style=node.style;
-            if ((keep)&&(!(node.hasAttribute("data-savedstyle"))))
-                node.setAttribute("data-savedstyle",style.cssText);
             style.textIndent="0px";
             style.paddingTop="0px";
             style.borderTopWidth="0px";
@@ -18096,7 +18092,7 @@ fdjt.CodexLayout=
         
         // This moves a node into another container, leaving
         // a back pointer for restoration
-        function moveNodeInto(arg,into,blockp,crumbs){
+        function moveNodeInto(arg,into,blockp){
             var baseclass; var node=arg, weird=false;
             if (hasParent(node,into)) return node;
             if (node.nodeType===1) {
@@ -18116,26 +18112,11 @@ fdjt.CodexLayout=
                     node=wrapnode;}
                 else node=node.cloneNode(true);}
             else {}
-            if (weird) {}
-            else if ((node.nodeType===1)&&(hasClass(node,"codextextsplit"))) {}
-            else if ((node.parentNode)&&((!(node.id))||(!(crumbs[node.id])))) {
-                // If the node has a parent and hasn't been moved before,
-                //  we leave a "crumb" (a placeholder) in the original
-                //  location.
-                if (!(node.id)) node.id="CODEXTMPID"+(tmpid_count++);
-                // Record origin information; we'll use this to revert
-                //  the layout if we need to (for example, before
-                //  laying out again under different constraints)
-                var crumb=document.createTextNode("");
-                crumbs[node.id]=crumb;
-                if (baseclass) node.className=baseclass+" codexrelocated";
-                else node.className="codexrelocated";
-                node.parentNode.replaceChild(crumb,node);}
             into.appendChild(node);
             return node;}
 
-        function moveNode(arg,into,blockp,crumbs){
-            var node=moveNodeInto(arg,into,blockp,crumbs);
+        function moveNode(arg,into,blockp){
+            var node=moveNodeInto(arg,into,blockp);
             if (into) {
                 var dragged=[], scan=node.nextSibling;
                 while (scan) {
@@ -18149,7 +18130,7 @@ fdjt.CodexLayout=
                 if (dragged.length) {
                     var d=0, ndrags=dragged.length;
                     while (d<ndrags)
-                        moveNodeInto(dragged[d++],node,false,crumbs);}}
+                        moveNodeInto(dragged[d++],node,false);}}
             return node;}
         
         function markPageTop(node,force){
@@ -18160,8 +18141,6 @@ fdjt.CodexLayout=
             var nodestyle=node.getAttribute("style")||"";
             var newstyle=nodestyle+((nodestyle)?("; "):(""))+
                 "margin-top: 0px !important;";
-            if (!(node.hasAttribute("data-savedstyle")))
-                node.setAttribute("data-savedstyle",nodestyle);
             node.setAttribute("style",newstyle);
             addClass(node,"codexpagetop");
             if (node.childNodes) {
@@ -18180,7 +18159,7 @@ fdjt.CodexLayout=
 
         // This moves a node onto a page, recreating (as far as
         // possible) its original DOM context on the new page.
-        function moveNodeToPage(node,page,dups,crumbs){
+        function moveNodeToPage(node,page,dups){
             if (hasParent(node,page)) {
                 if ((node.nodeType===1)&&(!(hasContent(page,true,false,node))))
                     markPageTop(node);
@@ -18205,102 +18184,19 @@ fdjt.CodexLayout=
                     // move the child.  However, the motion might modify
                     // the moved node (for example, cloning it).
                     if (move===node)
-                        node=move=moveNode(node,page,false,crumbs);
-                    else move=moveNode(move,page,false,crumbs);}
+                        node=move=moveNode(node,page,false);
+                    else move=moveNode(move,page,false);}
                 else {
                     // Otherwise duplicate the parent and move the child
-                    var dup_parent=dupContext(parent,page,dups,crumbs);
+                    var dup_parent=dupContext(parent,page,dups);
                     if (move===node)                    
-                        node=move=moveNode(node,dup_parent||page,false,crumbs);
-                    else move=moveNode(move,dup_parent||page,false,crumbs);}
+                        node=move=moveNode(node,dup_parent||page,false);
+                    else move=moveNode(move,dup_parent||page,false);}
                 if ((node)&&(node.nodeType===1)&&
                     (!hasContent(page,true,false,move)))
                     markPageTop(move);
                 return node;}}
 
-        // Reverting layout
-
-        function restoreNode(node,info,crumbs){
-            var id=node.id;
-            if (!(id)) return;
-            var origin=crumbs[id];
-            if (origin) {
-                var parent=origin.parentNode;
-                if (hasClass(node,/\bcodexwraptext\b/g)) 
-                    parent.replaceChild(node.childNodes[0],origin);
-                else origin.parentNode.replaceChild(node,origin);}
-            dropClass(node,"codexrelocated");}
-        
-        function revertLayout(layout) {
-            var crumbs=layout.crumbs; var now=fdjtTime(), i=0, lim;
-            if ((layout.reverting)&&((now-layout.reverting)<10000)) return;
-            else layout.reverting=now;
-            var textsplits=layout.textsplits;
-            var node;
-            var pagescaled=toArray(
-                layout.container.getElementsByClassName("_pagescaled"));
-            i=0; lim=pagescaled.length; while (i<lim) {
-                var elt=pagescaled[i++];
-                var wrapper=getParent(elt,".codexscalewrapper");
-                var saved=elt.getAttribute("data-savedstyle");
-                dropClass(elt,"_pagescaled");
-                if (saved) elt.setAttribute("style",saved);
-                else elt.setAttribute("style","");
-                if (wrapper) wrapper.parentNode.replaceChild(elt,wrapper);}
-            var cantsplit=toArray(
-                layout.container.getElementsByClassName("codexcantsplit"));
-            dropClass(cantsplit,"codexcantsplit");
-            var split=toArray(
-                layout.container.getElementsByClassName("codexsplitstart"));
-            i=0; lim=split.length; while (i<lim) {
-                node=split[i++];
-                var nodeid=node.id;
-                var text=textsplits[nodeid];
-                node.parentNode.replaceChild(text,node);}
-            var shards=toArray(
-                layout.container.getElementsByClassName("codextextsplit"));
-            i=0; lim=shards.length; while (i<lim) {
-                node=shards[i++];
-                node.parentNode.removeChild(node);}
-            var ragged=toArray(
-                layout.container.getElementsByClassName("codexraggedsplit"));
-            dropClass(ragged,"codexraggedsplit");
-            var leading=toArray(
-                layout.container.getElementsByClassName("codexdupleading"));
-            if ((leading)&&(leading.length)) fdjtDOM.remove(leading);
-            var moved=toArray(
-                layout.container.getElementsByClassName("codexrelocated"));
-            var dupstarts=toArray(layout.container.getElementsByClassName(
-                "codexdupstart"));
-            var dupends=toArray(layout.container.getElementsByClassName(
-                "codexdupend"));
-            var dupmiddle=toArray(layout.container.getElementsByClassName(
-                "codexdup"));
-            var pagetops=toArray(layout.container.getElementsByClassName(
-                "codexpagetop"));
-            dropClass(dupstarts,"codexdupstart");
-            dropClass(dupends,"codexdupend");
-            dropClass(dupmiddle,"codexdup");
-            dropClass(pagetops,"codexpagetop");
-            if ((moved)&&(moved.length)) {
-                layout.logfn(
-                    "Reverting layout of %d nodes and %d split texts",
-                    moved.length,RefDB.countKeys(textsplits));
-                var j=moved.length;
-                while (j>0) {
-                    restoreNode(moved[--j],layout,crumbs);}}
-            var restyled=fdjtDOM.$("[data-savedstyle]");
-            i=0; lim=restyled.length;
-            while (i<lim) {
-                var rs=restyled[i++];
-                if (rs.hasAttribute("data-savedstyle")) {
-                    var os=rs.getAttribute("data-savedstyle");
-                    if (os) rs.setAttribute("style",os);
-                    else rs.removeAttribute("style");
-                    rs.removeAttribute("data-savedstyle");}}
-            fdjtDOM.unwrapChildren("div.fdjtfontwrapper",layout.container);
-            layout.textsplits={}; layout.crumbs={};}
-        
         /* Codex trace levels */
         /* 0=notrace
            1=trace tracked nodes
@@ -18309,7 +18205,7 @@ fdjt.CodexLayout=
            4=trace every node consideration
         */
 
-        function CodexLayout(init){
+        function Codex(init){
             if (!(init)) init={};
 
             var layout=this;
@@ -18368,7 +18264,7 @@ fdjt.CodexLayout=
 
             this.dontsave=init.dontsave||false;
 
-            var use_raf=(!(CodexLayout.dont_rAF))&&
+            var use_raf=(!(Codex.dont_rAF))&&
                 ((window.requestAnimationFrame)?(true):(false));
             // use_raf=false;
 
@@ -18390,7 +18286,7 @@ fdjt.CodexLayout=
 
             function noop(){}
             var logfn=this.logfn=
-                init.logfn||CodexLayout.logfn||
+                init.logfn||Codex.logfn||
                 ((typeof fdjtLog !== 'undefined')?(fdjtLog):(noop));
 
             // STATE variables
@@ -18400,14 +18296,7 @@ fdjt.CodexLayout=
             var dups=this.dups={}; // Tracks nodes/contexts already duplicated
             // Maps IDs to text nodes left behind as placeholders when
             //  the original nodes were moved.
-            var crumbs=this.crumbs={}; 
             var cur_root=this.root=false; // The root currently being added
-
-            // Tracks text nodes which have been split, keyed by the
-            // temporary IDs assigned to them
-            var textsplits=this.textsplits={};
-            // Tracks split blocks
-            var splits=this.splits={};
 
             var page=this.page=init.page; // Contains the currently open page
 
@@ -18433,12 +18322,12 @@ fdjt.CodexLayout=
 
             this.started=false; // When we started
             var trace=this.tracelevel=  // How much to trace
-            init.tracelevel||CodexLayout.tracelevel||
-                (fdjtState.getLocal("codexlayout.trace",true))||0;
-            var track=init.track||CodexLayout.track||
-                (fdjtState.getLocal("codexlayout.track"))||false;
-            var debug_match=init.debug||CodexLayout.debug||
-                fdjtState.getLocal("codexlayout.debug")||false;
+            init.tracelevel||Codex.tracelevel||
+                (fdjtState.getLocal("codex.trace",true))||0;
+            var track=init.track||Codex.track||
+                (fdjtState.getLocal("codex.track"))||false;
+            var debug_match=init.debug||Codex.debug||
+                fdjtState.getLocal("codex.debug")||false;
             if (track) {
                 this.track=track=fdjtDOM.Selector(track);
                 if (!(trace)) trace=this.tracelevel=1;}
@@ -18446,17 +18335,17 @@ fdjt.CodexLayout=
                 this.debug=debug_match=fdjtDOM.Selector(debug_match);
                 if (!(trace)) trace=this.tracelevel=1;}
             else this.debug=false;
-            if (trace) addClass(document.body,"debugcodexlayout");
+            if (trace) addClass(document.body,"debugcodex");
             this.roots=init.roots||[]; // Where all roots can be tracked
             this.root_count=0; // Number of root nodes added
             this.block_count=0;
             this.lastid=false;
             this.timeslice=
                 ((init.hasOwnProperty('timeslice'))?(init.timeslice):
-                 (CodexLayout.timeslice));
+                 (Codex.timeslice));
             this.timeskip=
                 ((init.hasOwnProperty('timeskip'))?(init.timeskip):
-                 (CodexLayout.timeskip));
+                 (Codex.timeskip));
             
             var pagerule=this.pagerule=init.pagerule||false;
             
@@ -18465,7 +18354,7 @@ fdjt.CodexLayout=
                     if ((trace>3)||((track)&&(track.match(node))))
                         logfn("Moving node %o to page %o",node,page);}
                 // if (lastmove!==node) {allmoves.push(node); lastmove=node;}
-                return moveNodeToPage(node,page,dups,crumbs);}
+                return moveNodeToPage(node,page,dups);}
 
             function moveChildren(into,children,start,end){
                 var tomove=[];
@@ -18473,7 +18362,7 @@ fdjt.CodexLayout=
                 if (!(end)) end=children.length;
                 while (start<end) tomove.push(children[start++]);
                 start=0; end=tomove.length; while (start<end)
-                    moveNode(tomove[start++],into,false,crumbs);}
+                    moveNode(tomove[start++],into,false);}
             
             //  addContent calls loop() exactly once to set up the
             //   actual loop to be timesliced with repeated calls
@@ -19217,11 +19106,6 @@ fdjt.CodexLayout=
                         addClass(node,"codexcantsplit");
                         newPage(node);
                         return node;}
-                    if ((node.id)&&(node.id.search("CODEXTMP")!==0)) {
-                        if (!(splits[node.id])) {
-                            var clone=node.cloneNode(true);
-                            splits[node.id]=clone;
-                            clone.removeAttribute("id");}}
                     // Otherwise, we remove all of the node's children
                     // and then add back just enough to reach the
                     // edge, potentially splitting some children to
@@ -19296,10 +19180,7 @@ fdjt.CodexLayout=
                         // This (dup) is the copied parent of the page
                         // break.  We append all the remaining
                         // children to this duplicated parent on the
-                        // new page.  We want to keep backpointers
-                        // (crumbs), so we only appendChildren if the
-                        // node is already a dup; otherwise we
-                        // moveChildren to leave crumbs.
+                        // new page.
                         moveChildren(dup,push,1);
                         if (trace>1)
                             logfn("Layout/splitBlock %o @ %o into %o on %o",
@@ -19518,8 +19399,6 @@ fdjt.CodexLayout=
                         push_children[0]=pushnode;
                         // Put the children back into context for copying
                         appendChildren(node,push_children);
-                        // Save the textsplit for reverting the layout
-                        if (id) textsplits[id]=original;
                         // Return the children to be pushed to the new page
                         return push_children;}}
 
@@ -19697,7 +19576,7 @@ fdjt.CodexLayout=
                 function setting_layout(resolve,reject){
                     try {
                         var frag=document.createElement("div");
-                        var all_ids=[], saved_ids={};
+                        var all_ids=[];
                         var dupids=[], dupstarts={}, restoremap={};
                         var curnodes=[], newdups={}, pagescales=[];
                         if (trace)
@@ -19720,15 +19599,8 @@ fdjt.CodexLayout=
                         i=0; lim=all_ids.length; while (i<lim) {
                             var idkey=all_ids[i++];
                             idmap[idkey]=document.getElementById(idkey);}
-                        var bcrumb=false, ccrumb=false;
                         if (trace)
                             fdjtLog("Moving body and container out of document");
-                        if ((origin)&&(origin.parentNode)) {
-                            bcrumb=document.createTextNode("");
-                            origin.parentNode.replaceChild(bcrumb,origin);}
-                        if (container.parentNode) {
-                            ccrumb=document.createTextNode("");
-                            container.parentNode.replaceChild(ccrumb,container);}
                         if (trace) fdjtLog("Moving originals into layout");
                         i=0; lim=all_ids.length; while (i<lim) {
                             var id=all_ids[i++];
@@ -19745,22 +19617,16 @@ fdjt.CodexLayout=
                                 var oclass=original.className;
                                 var crumb=document.createTextNode("");
                                 classname=classname.replace(/\bcodexrestore\b/,"");
-                                replaceNode(original,crumb);
-                                crumbs[id]=crumb;
                                 replaceNode(restore,original);
                                 if ((classname)&&(classname!==oclass)) {
-                                    if ((oclass)&&(typeof oclass === "string"))
-                                        original.setAttribute("data-savedclass",oclass);
                                     original.className=classname;}
                                 if (style!==ostyle) {
-                                    if (ostyle) original.setAttribute(
-                                        "data-savedstyle",ostyle);
                                     original.setAttribute("style",style);}
-                                if ((classname.search)&&(classname.search(/\bcodexpagetop\b/)>=0)) {
-                                    markPageTop(original,true);}}
-                            else if (original) {
-                                saved_ids[id]=original;
-                                if (original.id) original.removeAttribute("id");}}
+                                if ((classname.search)&&
+                                    (classname.search(/\bcodexpagetop\b/)>=0)) {
+                                    markPageTop(original,true);}} 
+                            if ((original) && (original.id))
+                                original.removeAttribute("id");}
                         if (trace) fdjtLog("Gathering lostids");
                         var lostids=layout.lostids={};
                         var really_lost=lostids._all_ids=[];
@@ -19785,29 +19651,9 @@ fdjt.CodexLayout=
                             container.appendChild(addpage);}
                         layout.pages=addpages;
                         dups=layout.dups=newdups;
-                        saved_ids._all_ids=all_ids;
-                        layout.saved_ids=saved_ids;
                         layout.page=addpages[0];
                         layout.pagenum=parseInt(
-                            layout.page.getAttribute("data-pagenum"),10);
-                        if (trace)
-                            fdjtLog("Moving origin/container back to document");
-                        if (ccrumb)
-                            ccrumb.parentNode.replaceChild(container,ccrumb);
-                        if (bcrumb)
-                            bcrumb.parentNode.replaceChild(origin,bcrumb);
-                        var splits=getChildren(container,".codexsplitstart");
-                        var s=0, n_splits=splits.length; while (s<n_splits) {
-                            var split=splits[s++], splitid=split.id;
-                            var text=split.getAttribute("data-textsplit");
-                            if ((splitid)&&(text)) {
-                                textsplits[splitid]=document.createTextNode(text);
-                                split.removeAttribute("data-textsplit");}}
-                        i=0; lim=pagescales.length; while (i<lim) {
-                            var ps=pagescales[i++]; var pg=ps.page;
-                            pg.style.opacity=0; pg.style.display='block';
-                            scaleToPage(ps.toscale,page_width,page_height);
-                            pg.style.display=''; pg.style.opacity='';}}
+                            layout.page.getAttribute("data-pagenum"),10);}
                     catch (ex) {
                         if (reject) reject(ex); return;}
                     if (trace) fdjtLog("Done restoring layout");
@@ -19891,7 +19737,7 @@ fdjt.CodexLayout=
                 if (!(layout_id)) layout_id=layout.layout_id||
                     (layout.layout_id=
                      layout.width+"x"+layout.height+"("+href+")");
-                if (!(CodexLayout.cache)) return;
+                if (!(Codex.cache)) return;
                 // These will be used for per-page saved layouts
                 var copy=container.cloneNode(true);
                 var pages=copy.childNodes, i=0, npages=pages.length;
@@ -19904,12 +19750,6 @@ fdjt.CodexLayout=
                             var node=content[j++];
                             if (node.nodeType===1) {
                                 prepForRestore(node,layout.dontsave||false);}}}}
-                var splits=getChildren(copy,".codexsplitstart");
-                var s=0, n_splits=splits.length; while (s<n_splits) {
-                    var split=splits[s++], splitid=split.id;
-                    var text=(splitid)&&(textsplits[splitid]);
-                    if (text)
-                        split.setAttribute("data-textsplit",text.nodeValue);}
                 var html=copy.innerHTML;
                 cacheLayout(layout_id,html,false,false)
                     .then(function layoutSaved(){
@@ -20030,10 +19870,6 @@ fdjt.CodexLayout=
                             var dupi=0, ndups=alldups.length;
                             while (dupi<ndups) {
                                 var dup=alldups[dupi++];
-                                if (!(dup.hasAttribute(dup,"data-savedstyle"))) 
-                                    dup.setAttribute(
-                                        "data-savedstyle",
-                                        dup.getAttribute("style")||"");
                                 dup.style.listStyleType="none";}}
                         lastdup.className=lastdup.className.replace(
                                 /\bcodexdup\b/,"codexdupend");}
@@ -20271,49 +20107,14 @@ fdjt.CodexLayout=
                 addClass(newpage,"curpage");}
             this.gotoPage=gotoPage;
 
-            this.Revert=function layoutRevert(){
-                var i, lim;
-                if (this.saved_ids) {
-                    // This means that the content was explicitly set,
-                    //  so we just need to restore the saved ids and clear
-                    //  out the container to revert.
-                    var saved=this.saved_ids, allids=saved._all_ids;
-                    var crumbs=this.crumbs;
-                    i=0; lim=allids.length; while (i<lim) {
-                        var id=allids[i++], original;
-                        if (crumbs[id]) {
-                            original=document.getElementById(id);
-                            var oclass=original.getAttribute("data-savedclass");
-                            var ostyle=original.getAttribute("data-savedstyle");
-                            var crumb=crumbs[id];
-                            if (oclass) {
-                                original.className=oclass;
-                                original.removeAttribute("data-savedclass");}
-                            if (ostyle) {
-                                original.setAttribute("style",ostyle);
-                                original.removeAttribute("data-savedstyle");}
-                            crumb.parentNode.replaceChild(original,crumb);}
-                        else if (saved[id]) {
-                            original=saved[id]; if (id) original.id=id;}
-                        else {}}
-                    var lost=this.lostids, lostids=lost._all_ids;
-                    i=0; lim=lostids.length; while (i<lim) {
-                        var lostid=lostids[i++];
-                        if (lostid) lost[lostid].id=lostid;}
-                    this.saved_ids={}; this.dups={}; this.lostids={};
-                    return;}
-                // Remove any scaleboxes (save the children)
-                fdjtDOM.scaleToFit.revertAll();
-                revertLayout(this);};
-
             /* Finally return the layout */
             return this;}
 
-        CodexLayout.timeslice=50;
-        CodexLayout.timeskip=5;
+        Codex.timeslice=50;
+        Codex.timeskip=5;
 
-        CodexLayout.tracelevel=0;
-        CodexLayout.prototype.getDups=function getDups4ID(id){
+        Codex.tracelevel=0;
+        Codex.prototype.getDups=function getDups4ID(id){
             if (!(id)) return [];
             else if (id.nodeType) id=id.id;
             var base=fdjtID(id);
@@ -20321,7 +20122,7 @@ fdjt.CodexLayout=
             if (dups) return [base].concat(dups);
             else return false;};
         
-        CodexLayout.prototype.getLayoutInfo=function getLayoutInfo(){
+        Codex.prototype.getLayoutInfo=function getLayoutInfo(){
             var allblocks=this.allmoves;
             var npages=this.pages.length;
             var pages=new Array(npages+1);
@@ -20343,7 +20144,7 @@ fdjt.CodexLayout=
                 else fdjtLog.warn("Can't find page for %o",block);}
             return pages;};
 
-        CodexLayout.prototype.getLayoutBlocks=function getLayoutBlocks(){
+        Codex.prototype.getLayoutBlocks=function getLayoutBlocks(){
             var allblocks=this.allblocks;
             var blockinfo=[];
             var i=0, lim=allblocks.length;
@@ -20369,11 +20170,11 @@ fdjt.CodexLayout=
                     break_blocks: this.break_blocks};};
 
         /*
-        CodexLayout.prototype.then=function(callback){
+        Codex.prototype.then=function(callback){
             if (this.done) return callback(this);
             else this.thenfns.push(callback);}; */
 
-        CodexLayout.cache=2;
+        Codex.cache=2;
 
         function useIndexedDB(dbname){
             function getting(resolve,reject) {
@@ -20384,23 +20185,23 @@ fdjt.CodexLayout=
                         RefDB.useIndexedDB(dbname,1,function gotRootDB(db){
                             db.createObjectStore("layouts",{keyPath: "layout_id"});})
                             .then(function gotLayoutsDB(db){
-                                CodexLayout.layoutDB=layoutDB=db;
-                                CodexLayout.cache=7;
+                                Codex.layoutDB=layoutDB=db;
+                                Codex.cache=7;
                                 resolve(db);})
                             .catch(function(trouble){
                                 fdjtLog("indexedDB failed: %o",trouble);
                                 // Fall back to local storage 
-                                CodexLayout.layoutDB=layoutDB=window.localStorage;
+                                Codex.layoutDB=layoutDB=window.localStorage;
                                 resolve(layoutDB);});}
                     catch (ex) {reject(ex);}}
                 else {
-                    CodexLayout.layoutDB=layoutDB=window.localStorage;
+                    Codex.layoutDB=layoutDB=window.localStorage;
                     resolve(layoutDB);}}
             if (typeof dbname === "undefined")
-                dbname=CodexLayout.dbname;
-            else CodexLayout.dbname=dbname;
+                dbname=Codex.dbname;
+            else Codex.dbname=dbname;
             return new Promise(getting);}
-        CodexLayout.useIndexedDB=useIndexedDB;
+        Codex.useIndexedDB=useIndexedDB;
         
         function cacheLayoutIDB(db,layout_id,content,ondone,onfail){
             var txn=db.transaction(["layouts"],"readwrite");
@@ -20425,14 +20226,14 @@ fdjt.CodexLayout=
                 else {
                     return useIndexedDB()
                         .then(function layoutCached(db){
-                            layoutDB=CodexLayout.layoutDB=window.localStorage;
+                            layoutDB=Codex.layoutDB=window.localStorage;
                             cacheLayoutIDB(db,layout_id,content,resolve,reject);})
                         .catch(function noLayoutIDB(){
-                            layoutDB=CodexLayout.layoutDB=window.localStorage;
+                            layoutDB=Codex.layoutDB=window.localStorage;
                             setLocal(layout_id,content);
                             if (resolve) resolve(layoutDB);});}}
             return new Promise(caching);}
-        CodexLayout.cacheLayout=cacheLayout;
+        Codex.cacheLayout=cacheLayout;
         function dropLayout(layout_id){
             var layout=false;
             if (!(layoutDB)) {}
@@ -20458,7 +20259,7 @@ fdjt.CodexLayout=
                 req.onsuccess=function(evt){
                     layout=((evt.target)&&(evt.target.result));
                     dropRoot();};}}
-        CodexLayout.dropLayout=dropLayout;
+        Codex.dropLayout=dropLayout;
         function fetchLayout(db,layout_id,callback,onerr){
             var getLocal=fdjtState.getLocal;
             var content=false, layout_key=layout_id;
@@ -20498,7 +20299,7 @@ fdjt.CodexLayout=
                 .catch(function(ex){
                     fdjtLog("Layout DB init failed: %o",ex);
                     return fetchLayoutFrom(false,layout_id);});}
-        CodexLayout.fetchLayout=fetchLayoutHandler;
+        Codex.fetchLayout=fetchLayoutHandler;
         
         function clearLayoutsHandler(){
             var layouts=fdjtState.getLocal("fdjtCodex.layouts",true);
@@ -20506,7 +20307,7 @@ fdjt.CodexLayout=
             if (layouts) {
                 while (i<lim) dropLayout(layouts[i++]);
                 fdjtState.dropLocal("fdjtCodex.layouts");}}
-        CodexLayout.clearLayouts=clearLayoutsHandler;
+        Codex.clearLayouts=clearLayoutsHandler;
         
         function fetchAll(callback){
             if (!(layoutDB)) return false;
@@ -20520,7 +20321,7 @@ fdjt.CodexLayout=
                         layout_ids.push(cursor.key);
                         cursor['continue']();}
                     else callback(layout_ids);};}}
-        CodexLayout.fetchAll=fetchAll;
+        Codex.fetchAll=fetchAll;
         function clearAllLayouts(spec){
             fetchAll(function(layout_ids){
                 var todrop=[]; var i=0, lim=layout_ids.length;
@@ -20539,32 +20340,32 @@ fdjt.CodexLayout=
                 i=0; lim=todrop.length; while (i<lim) {
                     fdjtLog.warn("Dropping layout %s",todrop[i]);
                     dropLayout(todrop[i++]);}});}
-        CodexLayout.clearAll=clearAllLayouts;
+        Codex.clearAll=clearAllLayouts;
         function cachedLayout(layout_id){
             setLocal("fdjtCodex.layout("+layout_id+")",layout_id);
             pushLocal("fdjtCodex.layouts",layout_id);}
         function droppedLayout(layout_id){
             dropLocal("fdjtCodex.layout("+layout_id+")",layout_id);
             removeLocal("fdjtCodex.layouts",layout_id);
-            if (CodexLayout.trace) fdjtLog("Layout %s removed",layout_id);}
+            if (Codex.trace) fdjtLog("Layout %s removed",layout_id);}
         
-        CodexLayout.dbname="codexlayout";
+        Codex.dbname="codexlayout";
 
-        return CodexLayout;})();
+        return Codex;})();
 
-// Make CodexLayout 'global'
+// Make Codex 'global'
 if ((typeof window !== "undefined")&&(window.fdjt))
-    window.CodexLayout=fdjt.CodexLayout;
+    window.Codex=fdjt.Codex;
 
 
 /* Mini Manual */
 /*
-  var layout=new CodexLayout();
+  var layout=new Codex();
   layout.addContent(node);
   layout.Finish();
   layout.Revert();
 
-  var layout=new CodexLayout({
+  var layout=new Codex({
   page_width: 500, page_height: 500, // Dimensions
   // Where to add new pages; by default this creates a
   //  new div#CODEXPAGES.codexpages at the bottom of the BODY
@@ -22996,11 +22797,10 @@ else
 
 /* ###################### metabook/root.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -23064,13 +22864,13 @@ var metaBook={
     missing_nodes: [],
     // Whether to cache layouts locally; the value is a threshold
     // (in milliseconds) for when to cache
-    cache_layout_thresh: 2500,
+    cache_layout_thresh: 2000,
     // Ask about updating layouts which took longer than this
     //  many milliseconds to generate
-    long_layout_thresh: 5000,
+    long_layout_thresh: 3000,
     // How long (msecs) to wait for a resize to be 'real'
     resize_wait: 500,
-    // Whether to force new layouts
+    // Whether to force new layouts 
     forcelayout: false,
     // Whether layout is temporarily frozen, for example during text
     // input (on tablets, there may be extraneous resizes when the
@@ -23215,11 +23015,10 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/config.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -23261,7 +23060,6 @@ fdjt.DOM.noautofontadjust=true;
     var getQuery=fdjtState.getQuery;
     
     var mB=metaBook, Trace=metaBook.Trace;
-    var saveLocal=mB.saveLocal;
     
     /* Configuration information */
 
@@ -23344,7 +23142,7 @@ fdjt.DOM.noautofontadjust=true;
                 (!(getQuery(setting)))) {
                 saved[setting]=config[setting];}}
         if (Trace.config) fdjtLog("Saving config %o",saved);
-        saveLocal("mB("+mB.docid+").config",JSON.stringify(saved));
+        mB.saveLocal("mB("+mB.docid+").config",JSON.stringify(saved));
         saved_config=saved;}
     metaBook.saveConfig=saveConfig;
 
@@ -23443,7 +23241,7 @@ fdjt.DOM.noautofontadjust=true;
         fdjtUI.TapHold.default_opts.taptapmsecs=value;});
 
     metaBook.addConfig("dont_rAF",function(name,value){
-        fdjt.CodexLayout.dont_rAF=value;});
+        fdjt.Codex.dont_rAF=value;});
 
     metaBook.addConfig("checksync",function(name,value){
         metaBook.sync_interval=value;
@@ -23549,11 +23347,10 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/mycopyid.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -23748,11 +23545,10 @@ fdjt.DOM.noautofontadjust=true;
 
 /* ###################### metabook/core.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -23901,7 +23697,7 @@ fdjt.DOM.noautofontadjust=true;
     function gotDB(db){
         metaBook.metaBookDB=metaBookDB=db;
         fdjtAsync(function(){
-            fdjt.CodexLayout.useIndexedDB(db.name);});
+            fdjt.Codex.useIndexedDB(db.name);});
         var waiting=dbwait; dbwait=[]; dbfail=[];
         var i=0, len=waiting.length; while (i<len)
             waiting[i++](db);}
@@ -23933,7 +23729,7 @@ fdjt.DOM.noautofontadjust=true;
             db.createObjectStore("sources",{keyPath: "_id"});
             db.createObjectStore("docs",{keyPath: "_id"});
             db.createObjectStore("glosses",{keyPath: "glossid"});};}
-    else fdjt.CodexLayout.useIndexedDB(false);
+    else fdjt.Codex.useIndexedDB(false);
 
     /* Initialize the runtime for the core databases */
 
@@ -24033,7 +23829,7 @@ fdjt.DOM.noautofontadjust=true;
         
         var knodeToOption=Knodule.knodeToOption;
 
-        var cachelink=/^https:\/\/glossdata.(sbooks\.net|metabooks\.net|beingmeta\.com|bookhub\.io)\//;
+        var cachelink=/^https:\/\/glossdata.bookhub.io\//;
         mB.cachelink=cachelink;
         
         var knodule_name=
@@ -24069,13 +23865,6 @@ fdjt.DOM.noautofontadjust=true;
                     var links=item.links; for (var link in links) {
                         if (!(links.hasOwnProperty(link))) continue;
                         if (!(links[link])) continue;
-                        if (cachelink.exec(link)) {
-                            var newlink=link.replace(
-                                "//glossdata.sbooks.net/","//glossdata.bookhub.io/");
-                            if (link!==newlink) {
-                                links[newlink]=links[link];
-                                delete links[link];
-                                link=newlink;}}
                         if ((links.hasOwnProperty(link))&&
                             (cachelink.exec(link)))
                             metaBook.needGlossData(link);}}
@@ -24213,7 +24002,7 @@ fdjt.DOM.noautofontadjust=true;
                 dropLocal("mB.docids");
                 // We clear layouts, because they might
                 //  contain personalized information
-                fdjt.CodexLayout.clearLayouts();
+                fdjt.Codex.clearLayouts();
                 fdjtState.clearLocal();
                 fdjtState.clearSession();
                 window.location.hash="";}
@@ -24512,7 +24301,8 @@ fdjt.DOM.noautofontadjust=true;
             id=id.slice(1);
         if (!(metabook_docinfo)) metabook_docinfo=metaBook.docinfo;
         var elt=((metabook_docinfo)&&(info=metabook_docinfo[id])&&(info.elt));
-        if ((elt)&&(elt.id)) return elt;
+        if ((elt)&&(hasParent(elt,document.body))&&(elt.id)) 
+            return elt;
         else if ((elt=document.getElementById(id))) return elt;
         else {
             elts=document.getElementsByName(id);
@@ -24688,8 +24478,6 @@ fdjt.DOM.noautofontadjust=true;
     
     fdjtString.entities.beingmeta=
         "<span class='beingmeta'>being<span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span></span>";
-    fdjtString.entities.sBooks="<span class='sbooks'><em>s</em>Books</span>";
-    fdjtString.entities.sBook="<span class='sbooks'><em>s</em>Book</span>";
     fdjtString.entities.metaBooks=
         "<span class='metabook'><span class='bmm'>m<span class='bme'>e<span class='bmt'>t<span class='bma'>a</span></span></span></span>Books</span>";
     fdjtString.entities.metaBook=
@@ -24742,7 +24530,7 @@ fdjt.DOM.noautofontadjust=true;
 })();
 
 fdjt.DOM.noautofontadjust=true;
-fdjt.CodexLayout.dbname="metaBook";
+fdjt.Codex.dbname="metaBook";
 
 
 /* Emacs local variables
@@ -24755,11 +24543,10 @@ fdjt.CodexLayout.dbname="metaBook";
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -25073,7 +24860,7 @@ fdjt.CodexLayout.dbname="metaBook";
                     target,((location)?(location):("none")),page,pageno,arg);
         if (!(target)) {
             if (mB.bypage) {
-                if ((page)&&(metaBook.layout instanceof fdjt.CodexLayout)) 
+                if ((page)&&(metaBook.layout instanceof fdjt.Codex)) 
                     metaBook.GoToPage(page||arg,caller,savestate);}
             else if (arg.nodeType) {
                 var scan=arg;
@@ -25166,15 +24953,14 @@ fdjt.CodexLayout.dbname="metaBook";
 
 /* ###################### metabook/domscan.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements extraction of map and metadata from the loaded
    DOM.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -25638,8 +25424,7 @@ metaBook.DOMScan=(function(){
         /* Build the metadata */
         var i=0; while (i<children.length) {
             var child=children[i++];
-            if (!((child.sbookskip)||(child.metabookui)))
-                scanner(child,scanstate,docinfo);} 
+            if (!(child.metabookui)) scanner(child,scanstate,docinfo);} 
         docinfo._nodecount=scanstate.nodecount;
         docinfo._headcount=scanstate.headcount;
         docinfo._eltcount=scanstate.eltcount;
@@ -25701,11 +25486,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/glossdata.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -25981,11 +25765,11 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/cover.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents (metaBooks).
 
-   For more information on sbooks, visit www.sbooks.net
+   For more information on metabooks, visit www.bookhub.io
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -26100,16 +25884,23 @@ metaBook.DOMScan=(function(){
             titlepage.removeAttribute("style");
             titlepage.id="METABOOKTITLE";}
         else {
-            titlepage=$ID("METABOOKTITLEPAGE")||
-                $ID("PUBTOOLTITLEPAGE")||
+            var mb_titlepage=$ID("METABOOKTITLEPAGE");
+            var other_titlepage= $ID("PUBTOOLTITLEPAGE") ||
                 $ID("TITLEPAGE");
+            if ( (mb_titlepage) && (other_titlepage) )
+                titlepage=mb_titlepage;
+            else if (mb_titlepage)
+                titlepage=mb_titlepage.cloneNode(true);
+            else if (other_titlepage)
+                titlepage=other_titlepage.cloneNode(true);
+            else titlepage=false;
             if (titlepage) {
-                titlepage=titlepage.cloneNode(true);
                 fdjtDOM.dropClass(
-                    titlepage,/\b(codex|metabook)[A-Za-z0-9]+\b/);
-                fdjtDOM.addClass(titlepage,"sbooktitlepage");
+                    titlepage,/\b(codex|pubtool)[A-Za-z0-9]+\b/);
+                fdjtDOM.addClass(titlepage,"metabooktitlepage");
                 fdjtDOM.stripIDs(titlepage);
                 titlepage.setAttribute("style","");
+                fdjtDOM.addClass(titlepage,"flap");
                 titlepage.id="METABOOKTITLE";}
             else {
                 var info=metaBook.getBookInfo();
@@ -26130,7 +25921,7 @@ metaBook.DOMScan=(function(){
         if (creditspage)
             creditspage=creditspage.cloneNode(true);
         else {
-            creditspage=$ID("METABOOKCREDITS")||$ID("SBOOKSCREDITSPAGE")||$ID("CREDITSPAGE");
+            creditspage=$ID("METABOOKCREDITS")||$ID("PUBTOOLCREDITSPAGE")||$ID("CREDITSPAGE");
             if (creditspage) {
                 creditspage=creditspage.cloneNode(true);
                 fdjtDOM.stripIDs(creditspage);
@@ -26185,11 +25976,11 @@ metaBook.DOMScan=(function(){
         if (console) addToCover(cover,console);
         
         var layers=fdjtDOM("div#METABOOKLAYERS.flap");
-        var sbooksapp=fdjtDOM("iframe#BOOKHUBAPP");
-        sbooksapp.setAttribute("frameborder",0);
-        sbooksapp.setAttribute("scrolling","auto");
-        layers.appendChild(sbooksapp);
-        metaBook.DOM.sbooksapp=sbooksapp;
+        var bkhapp=fdjtDOM("iframe#BOOKHUBAPP");
+        bkhapp.setAttribute("frameborder",0);
+        bkhapp.setAttribute("scrolling","auto");
+        layers.appendChild(bkhapp);
+        metaBook.DOM.bkhapp=bkhapp;
         if (layers) addToCover(cover,layers);
         
         var cc=getChildren(cover,"#METABOOKCOVERCONTROLS");
@@ -26272,6 +26063,7 @@ metaBook.DOMScan=(function(){
             framestyle.display='';}}
     metaBook.resizeCover=resizeCover;
 
+    /*
     var coverids={"coverpage": "METABOOKCOVERPAGE",
                   "titlepage": "METABOOKTITLE",
                   "creditspage": "METABOOKCREDITS",
@@ -26279,6 +26071,7 @@ metaBook.DOMScan=(function(){
                   "help": "METABOOKAPPHELP",
                   "settings": "METABOOKSETTINGS",
                   "layers": "METABOOKLAYERS"};
+    */
 
     function cover_clicked(evt){
         var target=fdjtUI.T(evt);
@@ -26307,26 +26100,16 @@ metaBook.DOMScan=(function(){
             (!($ID("BOOKHUBAPP").src))&&
             (!(metaBook.appinit)))
             metaBook.initIFrameApp();
-
+        /*
         var curclass=cover.className;
         var cur=((curclass)&&(coverids[curclass])&&
                  ($ID(coverids[curclass])));
         var nxt=((mode)&&(coverids[mode])&&($ID(coverids[mode])));
-        if ((cur)&&(nxt)) {
-            cur.style.display='block';
-            nxt.style.display='block';
-            setTimeout(function(){
-                cur.style.display="";
-                nxt.style.display="";},
-                       3000);}
-        setTimeout(function(){
-            if (Trace.mode)
-                fdjtLog("On %o, switching cover mode to %s from %s",
-                        evt,mode,curclass);
-            if (mode==="console") fdjtLog.update();
-            cover.className=mode;
-            metaBook.mode=mode;},
-                   20);
+        */
+        if (mode==="console") fdjtLog.update();
+        cover.className=mode;
+        metaBook.mode=mode;
+        metaBook.covermode=mode;
         fdjt.UI.cancel(evt);
         return false;}
 
@@ -26350,11 +26133,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -26505,9 +26287,11 @@ metaBook.DOMScan=(function(){
         if (notesblock.childNodes.length)
             fdjtDOM.append(content,"\n",notesblock,"\n");
         
+        mB.originalContent=fdjtDOM.clone(content);
+
         // Initialize cover and titlepage (if specified)
         metaBook.coverpage=metaBook.getCoverPage();
-        metaBook.titlepage=$ID("SBOOKTITLEPAGE");
+        metaBook.titlepage=$ID("METABOOKTITLEPAGE");
 
         var pages=metaBook.pages=$ID("METABOOKPAGES")||
             fdjtDOM("div#METABOOKPAGES");
@@ -26638,11 +26422,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/tagindex.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -27061,11 +26844,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/syncstate.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -27456,8 +27238,8 @@ metaBook.DOMScan=(function(){
         if ((state)&&((state.location)||(state.target))) {}
         else {
             var target=$ID("METABOOKSTART")||fdjt.$1(".metabookstart")||
-                $ID("SBOOKSTART")||fdjt.$1(".sbookstart")||
-                $ID("SBOOKTITLEPAGE");
+                $ID("METABOOKTITLEPAGE")||$ID("PUBTOOLTITLEPAGE")||
+                $ID("TITLEPAGE");
             if (target)
                 state={location: getLoc(target),
                        // This is the beginning of the 21st century
@@ -27572,11 +27354,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/mycopyid.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -27771,11 +27552,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/user.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -28110,11 +27890,10 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/getglosses.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -28509,15 +28288,14 @@ metaBook.DOMScan=(function(){
 
 /* ###################### metabook/startup.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file specifies the startup of the metaBook web application,
    initializing both internal data structures and the DOM.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -28569,7 +28347,7 @@ metaBook.Startup=
         var RefDB=fdjt.RefDB;
         var mbID=metaBook.ID;
         
-        var CodexLayout=fdjt.CodexLayout;
+        var Codex=fdjt.Codex;
 
         var https_root="https://s3.amazonaws.com/beingmeta/static/";
 
@@ -28637,7 +28415,7 @@ metaBook.Startup=
             fdjtLog("This is metaBook %s, built %s on %s, launched %s, from %s",
                     mB.version,mB.buildtime,mB.buildhost,now.toString(),
                     mB.root||metaBook.appsource||"somewhere");
-            fdjtLog("Copyright © 2010-2016 beingmeta, inc");
+            fdjtLog("Copyright © 2010-2017 beingmeta, inc");
 
             // Check for any trace settings
             if (getLocal("mbtrace")) useTraceSettings([getLocal("mbtrace")]);
@@ -29305,7 +29083,7 @@ metaBook.Startup=
                 var layouts=getLocal("mB("+oldid+").layouts");
                 if ((layouts)&&(layouts.length)) {
                     var i=0, lim=layouts.length; while (i<lim) 
-                        CodexLayout.dropLayout(layouts[i++]);}}
+                        Codex.dropLayout(layouts[i++]);}}
             else saveLocal("mB("+mB.docid+").sourceid",
                            metaBook.sourceid);
 
@@ -29725,7 +29503,7 @@ metaBook.Startup=
                 info[i++].innerHTML=
                     "Program and Interface "+
                     "<span class='inlinesymbol'>©"+"</span>"+
-                    " beingmeta, inc 2008-2015";}
+                    " beingmeta, inc 2008-2017";}
             if (Trace.startup>1)
                 fdjtLog("Book info setup done in %dms",fdjtTime()-started);}
 
@@ -29814,8 +29592,6 @@ metaBook.Startup=
 
 //fdjt.DOM.noautotweakfonts="Handled by metaBook";
 /*
-  sbookStartup=metaBook.StartupHandler;
-  sbook={Start: metaBook.Startup,
   setUser: metaBook.setUser,
   Startup: metaBook.Startup};
 */
@@ -29830,20 +29606,18 @@ metaBook.Startup=
 
 /* ###################### metabook/slices.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements the display of lists of glosses or summaries
    referring to book passages.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
    This library uses the FDJT (www.fdjt.org) toolkit.
-   This file assumes that the sbooks.js file has already been loaded.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -30120,7 +29894,6 @@ metaBook.Slice=(function () {
             if (url[0]==='_') continue;
             var urlinfo=refs[url], elt=false;
             var openinbook=(url.search("https://glossdata.bookhub.io/")===0)||
-                (url.search("https://glossdata.sbooks.net/")===0)||
                 (url.search("resources/")===0);
             var title; var icon=false, type=false, useclass=false;
             if (!(openinbook)) {
@@ -30992,20 +30765,18 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/clouds.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements the search component for the e-reader web
    application, and relies heavily on the Knodules module.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
    This library uses the FDJT (www.fdjt.org) toolkit.
-   This file assumes that the sbooks.js file has already been loaded.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -31696,15 +31467,14 @@ metaBook.Slice=(function () {
 
 /* ###################### metabook/simpletoc.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements the "dynamic table of contents" for the metaBook
    e-reader web application.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -31856,16 +31626,15 @@ metaBook.TOCSlice=
 
 /* ###################### metabook/hud.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file provides initialization and some interaction for the
    metaBook HUD (Heads Up Display), an layer on the book content
    provided by the metaBook e-reader web application.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -32041,10 +31810,8 @@ metaBook.setMode=
                     fdjtLog.warn("Rejecting insecure message from %s: %s",
                                  origin,evt.data);
                     return;}
-                if (evt.data==="sbooksapp") {
-                    setMode("sbooksapp");}
-                else if (evt.data==="metabooksapp") {
-                    setMode("sbooksapp");}
+                if (evt.data==="metabooksapp") {
+                    setMode("bookhubapp");}
                 else if (evt.data==="loggedin") {
                     if (!(mB.user)) {
                         mB.userSetup();}}
@@ -32262,7 +32029,7 @@ metaBook.setMode=
         var metabookHeartModes=/\b((statictoc)|(search)|(refinesearch)|(expandsearch)|(searchresults)|(allglosses)|(showaside)|(glossaddtag)|(glossaddtag)|(glossaddoutlet)|(glossdetail))\b/g;
         var metabookHeadModes=/\b((search)|(refinesearch)|(expandsearch)|(searchresults)|(allglosses)|(addgloss)|(shownote))\b/g;
         var metaBookPopModes=/\b((glossdetail))\b/g;
-        var metaBookCoverModes=/\b((cover)|(help)|(layers)|(login)|(settings)|(cover)|(aboutsbooks)|(aboutmetabooks)|(console)|(aboutbook)|(titlepage))\b/g;
+        var metaBookCoverModes=/\b((cover)|(help)|(layers)|(login)|(settings)|(cover)|(aboutmetabooks)|(console)|(aboutbook)|(titlepage))\b/g;
         var metaBookSearchModes=/((refinesearch)|(searchresults)|(expandsearch))/;
         metaBook.searchModes=metaBookSearchModes;
         var metabook_mode_foci=
@@ -32346,7 +32113,7 @@ metaBook.setMode=
                     metaBook.mode=mode;}
                 // If we're switching to the inner app but the iframe
                 //  hasn't been initialized, we do it now.
-                if ((mode==="sbooksapp")&&
+                if ((mode==="bookhubapp")&&
                     (!($ID("BOOKHUBAPP").src))&&
                     (!(mB.appinit)))
                     initIFrameApp();
@@ -32520,8 +32287,8 @@ metaBook.setMode=
         metaBook.initIFrameApp=initIFrameApp;
 
         metaBook.selectApp=function(){
-            if (mB.mode==='sbooksapp') setMode(false);
-            else setMode('sbooksapp');};
+            if (mB.mode==='bookhubapp') setMode(false);
+            else setMode('bookhubapp');};
 
         /* Skimming */
 
@@ -32803,11 +32570,10 @@ metaBook.setMode=
 
 /* ###################### metabook/preview.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -32888,7 +32654,7 @@ metaBook.setMode=
             fdjtLog("startPreview %o (%s)",target,caller);
         if (target===mB.previewing) {}
         if (mB.skimming) mB.stopSkimming();
-        if (mB.layout instanceof fdjt.CodexLayout) {
+        if (mB.layout instanceof fdjt.Codex) {
             var dups=((getTarget(target))&&(mB.getDups(target)));
             mB.startPagePreview(target,caller);
             addClass(target,"mbpreviewing");
@@ -32910,7 +32676,7 @@ metaBook.setMode=
             fdjtLog("stopPreview/%s jump to %o, pt=%o, p=%o",
                     caller||"nocaller",jumpto,
                     mB.previewTarget,mB.previewing);
-        if (mB.layout instanceof fdjt.CodexLayout) {
+        if (mB.layout instanceof fdjt.Codex) {
             mB.stopPagePreview(caller,jumpto);}
         else if (!(jumpto)) scrollPreview(false,caller);
         else if (jumpto===mB.previewing) {
@@ -32935,11 +32701,10 @@ metaBook.setMode=
 
 /* ###################### metabook/nav.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -33156,16 +32921,15 @@ metaBook.setMode=
 
 /* ###################### metabook/social.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements basic features for browsing glosses based on
    their "sources" --- the reasons they're overlaid on the reader's
    book in the first place.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -33221,7 +32985,7 @@ metaBook.setMode=
         var humid=info.humid;
         if (!(info.name)) return;
         if (withgloss) {
-            var icon=$ID("SBOOKSOURCEICON"+humid);
+            var icon=$ID("SOURCEICON"+humid);
             if (!(icon)) { // Add icon to the sources bar
                 var pic=(info._pic)||(info.pic)||
                     ((info.fbid)&&
@@ -33247,7 +33011,7 @@ metaBook.setMode=
                     ((info.about)?(info.about):"");
                 icon.title=title; icon.oid=info._id;
                 if (info.name) icon.alt=getInitials(info.name);
-                icon.id="SBOOKSOURCEICON"+humid;
+                icon.id="SOURCEICON"+humid;
                 fdjtDOM($ID("METABOOKSOURCES")," ",icon);}}
         return info;}
     metaBook.UI.addSource=addSource;
@@ -33548,20 +33312,18 @@ metaBook.setMode=
 
 /* ###################### metabook/search.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements the search component for the e-reader web
    application, and relies heavily on the Knodules module.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
    This library uses the FDJT (www.fdjt.org) toolkit.
-   This file assumes that the sbooks.js file has already been loaded.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -34000,20 +33762,18 @@ metaBook.setMode=
 
 /* ###################### metabook/glosses.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements the interface for adding and editing **glosses**,
    which are annotations associated with text passages in a document.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
    This library uses the FDJT (www.fdjt.org) toolkit.
-   This file assumes that the sbooks.js file has already been loaded.
 
    This program comes with absolutely NO WARRANTY, including implied
    warranties of merchantability or fitness for any particular
@@ -34212,7 +33972,7 @@ metaBook.setMode=
     function setupGlossForm(form,passage,gloss,response){
         var passageid=((passage.codexbaseid)||(passage.id));
         var info=metaBook.docinfo[passageid];
-        if (form.getAttribute("sbooksetup")) return false;
+        if (form.getAttribute("glossformsetup")) return false;
         if (!(info)) return false;
         form.onsubmit=submitGloss;
         getInput(form,"REFURI").value=metaBook.refuri;
@@ -34326,7 +34086,7 @@ metaBook.setMode=
         if (cancel_button) {
             fdjtDOM.addListener(
                 cancel_button,"click",cancelGloss_handler);}
-        form.setAttribute("sbooksetup","yes");
+        form.setAttribute("glossformsetup","yes");
         updateForm(form);
         var container=getParent(form,".metabookglossform");
         if (container) {dropClass(container,"modified");}
@@ -34507,7 +34267,6 @@ metaBook.setMode=
         var attrib=
             target.getAttributeNS("tagline","https://beingmeta.com/METABOOK/")||
             target.getAttributeNS("tagline","https://metabooks.net/")||
-            target.getAttributeNS("tagline","https://sbooks.net/")||
             target.getAttribute("data-tagline")||
             target.getAttribute("tagline");
         if (attrib) return attrib;
@@ -35226,7 +34985,7 @@ metaBook.setMode=
             fdjtUI.choose(choices,
                           ((navigator.onLine)&&(!(metaBook.user))&&
                            ([fdjtDOM("p.smaller",
-                                     "This book isn't currently associated with an sBooks account, ",
+                                     "This book isn't currently associated with a bookhub account, ",
                                      "so any highlights or glosses you add will not be permanently saved ",
                                      "until you login."),
                              fdjtDOM("p.smaller",
@@ -35236,7 +34995,7 @@ metaBook.setMode=
                                      "or cancel the change you're about to make.")])),
                           (((navigator.onLine)&&(metaBook.user)&&
                             ([fdjtDOM("p.smaller",
-                                      "You aren't currently logged into your sBooks account from ",
+                                      "You aren't currently logged into your bookhub account from ",
                                       "this machine, so any highlights or glosses you add won't ",
                                       "be saved until you do."),
                               fdjtDOM("p.smaller","In addition, you won't get updated glosses from ",
@@ -35926,7 +35685,7 @@ metaBook.setMode=
                                 {label: "Cancel"}],
                                fdjtDOM("P","By choosing 'Yes,' I affirm that ",
                                        "I have the right to use and share this ",
-                                       "file according to the sBooks ",
+                                       "file according to the bookhub ",
                                        fdjtDOM.Anchor(
                                            "https://www.bookhub.io/legalia/TOS/",
                                            "A[target='_blank']",
@@ -36348,15 +36107,14 @@ metaBook.setMode=
 
 /* ###################### metabook/interaction.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements most of the interaction handling for the
    e-reader web application.
 
    This file is part of metaBook, a Javascript/DHTML web application
-   for reading large structured documents (sBooks).
+   for reading large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -37676,7 +37434,7 @@ metaBook.setMode=
                 15,"You're currently offline; information will be synchronized when you're back online");
         else if (!(mB.connected))
             fdjtUI.alertFor(
-                15,"You're not currently logged into sBooks.  Information will be synchronized when you've logged in.");
+                15,"You're not currently logged into bookhub.  Information will be synchronized when you've logged in.");
         else fdjtUI.alertFor(7,"Sychronizing glosses, etc with the remote server");
         return false;}
     metaBook.UI.forceSyncAction=forceSyncAction;
@@ -38504,11 +38262,10 @@ metaBook.setMode=
 
 /* ###################### metabook/pagebar.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -38691,15 +38448,14 @@ metaBook.setMode=
 
 /* ###################### metabook/interaction.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements most of the interaction handling for the
    e-reader web application.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -39068,15 +38824,14 @@ metaBook.setMode=
 
 /* ###################### metabook/layout.js ###################### */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
 
    This file implements the layout component of metaBook, relying heavily
-   on CodexLayout from the FDJT library.
+   on Codex from the FDJT library.
 
    This file is part of metaBook, a Javascript/DHTML web application for reading
-   large structured documents (sBooks).
+   large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -39129,7 +38884,7 @@ metaBook.Paginate=
         var fdjtAsync=fdjt.Async;
         var $ID=fdjt.ID;
         var mbID=metaBook.ID;
-        var CodexLayout=fdjt.CodexLayout;
+        var Codex=fdjt.Codex;
 
         var getGeometry=fdjtDOM.getGeometry;
         var getParent=fdjtDOM.getParent;
@@ -39188,11 +38943,13 @@ metaBook.Paginate=
         metaBook.layoutReady=layoutReady;
 
         function layoutMessage(string,pct){
-            var pb=$ID("METABOOKLAYOUTMESSAGE");
-            if (pb) {
-                fdjt.UI.ProgressBar.setMessage(pb,string);
-                if (typeof pct==="number")
-                    fdjt.UI.ProgressBar.setProgress(pb,pct);}
+            var indicators=document.body.getElementsByClassName("metabooklayoutprogress");
+            if ((indicators)&&(indicators.length)) {
+                var i=0, len=indicators.length; while (i<len) {
+                    var indicator=indicators[i++];
+                    fdjt.UI.ProgressBar.setMessage(indicator,string);
+                    if (typeof pct==="number")
+                        fdjt.UI.ProgressBar.setProgress(indicator,pct);}}
             var fpb=$ID("METABOOKLAYOUTADJUST");
             var rpct=((typeof pct === 'number')&&
                       (!(Number.isNaN(pct)))&&
@@ -39315,15 +39072,8 @@ metaBook.Paginate=
                     fdjtLog("Skipping redundant pagination for %s",
                             current.layout_id);
                     return;}
-                // Repaginating, start with reversion
-                if (Trace.layout) fdjtLog("Reverting current layout");
-                mB.layout.Revert();
                 mB.layout=false;
                 mB.curpage=false;}
-
-            // Resize the content
-            if (Trace.layout) fdjtLog("Sizing the content");
-            mB.sizeContent();
 
             // Create a new layout
             var layout_args=getLayoutArgs();
@@ -39331,30 +39081,30 @@ metaBook.Paginate=
                 layout_args.timeslice=init.timeslice;}
             
             if (Trace.layout) fdjtLog("Starting content layout");
-            var layout=new CodexLayout(layout_args);
+            var layout=new Codex(layout_args);
             layout.bodysize=size; layout.bodyfamily=family;
             layout.orientation=orientation;
             mB.layout=layout;
 
             var timeslice=
                 ((layout.hasOwnProperty('timeslice'))?(layout.timeslice):
-                 (CodexLayout.timeslice));
+                 (Codex.timeslice));
             var timeskip=
                 ((typeof timeslice === "number")&&
                  ((layout.hasOwnProperty('timeskip'))?(layout.timeskip):
-                  (CodexLayout.timeskip)));
+                  (Codex.timeskip)));
             var async=(typeof timeslice === "number");
             
             var layout_id=layout.layout_id;
 
-            function restore_layout(content,layout_id){
+            function restore_layout(saved_layout,layout_id){
                 fdjtLog("Using saved layout %s",layout_id);
                 $ID("CODEXCONTENT").style.display='none';
                 layoutMessage("Using cached layout",0);
                 dropClass(document.body,"_SCROLL");
                 addClass(document.body,"_BYPAGE");
                 layout.started=fdjtTime();
-                layout.restoreLayout(content).then(function(){
+                layout.restoreLayout(saved_layout).then(function(){
                     Timeline.layout_restored=fdjtTime();
                     finish_restore(layout);});}
             function finish_restore(layout) {
@@ -39411,7 +39161,7 @@ metaBook.Paginate=
                         var j=saved.length-max_layouts-1;
                         while (j>=0) {
                             fdjtLog("Dropping layout #%d %s",j,saved[j]);
-                            CodexLayout.dropLayout(saved[j--]);}
+                            Codex.dropLayout(saved[j--]);}
                         saved=saved.slice(saved.length-max_layouts);}
                     setLocal(key,saved,true);}}
 
@@ -39462,10 +39212,13 @@ metaBook.Paginate=
                         target.parentElement.removeChild(target);
                     if ((images_loaded+images_failed)>=images_count) {
                         Timeline.images_loaded=fdjtTime();
+                        mB.domReady();
                         whenready();}}
                 return image_loaded;}
 
             function body_wait(content,whenready){
+                /* This waits for all of the images to be ready before
+                   starting layout. */
                 if (!(content))
                     content=mB.content||document.body;
                 if (Timeline.dom_ready)
@@ -39484,39 +39237,47 @@ metaBook.Paginate=
                                 dup.onload=dup.onerror=donefn;
                                 dup.style.display='none';
                                 dups.push(dup);}}
-                        if (dups.length===0)
-                            return whenready();
+                        /* If there weren't any images with sources,
+                           return right away. */
+                        if (dups.length===0) return whenready();
                         images_count=dups.length;
                         var body=document.body;
                         var j=0, n_dups=dups.length;
                         while (j<n_dups) 
-                            body.appendChild(dups[j++]);}}}
+                            body.appendChild(dups[j++]);}
+                    else return whenready();}}
 
-            function new_layout(){
+            function getContent(){
+                if (layout.content) 
+                    return layout.content;
+                else {
+                    var cur_content=$ID("CODEXCONTENT");
+                    var copy=fdjtDOM.clone(mB.originalContent);
+                    if (cur_content)
+                        fdjtDOM.replace(cur_content,copy);
+                    else document.body.appendChild(copy);
+                    copy.id="CODEXCONTENT";
+                    mB.content=layout.content=copy;
+                    return copy;}}
+            
+            function new_layout(content){
                 // Prepare to do the layout
                 dropClass(document.body,"_SCROLL");
                 addClass(document.body,"_BYPAGE");
                 layoutWait();
-                // This keeps the page content hidden during layout
-                // $ID("CODEXPAGE").style.visibility='hidden';
-                // This shouldn't be neccessary because CODEXCONTENT 
-                //  should have display:none with body._BYPAGE.
-                //$ID("CODEXCONTENT").style.visibility='hidden';
-                
-                // Now make the content (temporarily) the same width as
-                // the page
-                var saved_width=mB.content.style.width;
-                mB.content.style.width=
-                    getGeometry(mB.page).width+"px";
-                
+
+                if (!(content)) content=getContent();
+
                 // Now walk the content
-                var content=mB.content;
+                var saved_width=content.style.width;
+                // Temporarily resize it
+                content.style.width=getGeometry(mB.page).width+"px";
                 var roots=toArray(content.childNodes);
                 fdjtLog("Laying out %d root nodes into %dx%d pages (%s), id=%s, async=%s",
                         roots.length,layout.width,layout.height,
                         (why||""),layout_id,
                         ((!(timeslice))?("no"):(fdjtString("%d(%d)",timeslice,timeskip))));
-                
+
                 layoutMessage("Starting new layout",0);
                 
                 // Do the adjust font bit.  We rely on mB.content
@@ -39524,7 +39285,7 @@ metaBook.Paginate=
                 fdjt.DOM.adjustFonts(content);
                 
                 // Now reset the width
-                mB.content.style.width=saved_width;
+                content.style.width=saved_width;
 
                 var root_i=0; var n_roots=roots.length;
                 function rootloop(){
@@ -39588,19 +39349,21 @@ metaBook.Paginate=
                     Timeline.layout_requested=fdjtTime();
                 body_wait(mB.content,start_new_layout);}
             
+            getContent();
+
             if ((mB.cache_layout_thresh)&&
                 (!((mB.forcelayout)))&&
                 (!(forced))) {
                 if (Trace.layout)
                     fdjtLog("Fetching layout %s",layout_id);
-                CodexLayout.fetchLayout(layout_id).
-                    then(function layoutFetched(content){
-                        if (!(content)) return request_layout();
+                Codex.fetchLayout(layout_id).
+                    then(function layoutFetched(saved_layout){
+                        if (!(saved_layout)) return request_layout();
                         if (Trace.layout) fdjtLog("Got layout %s",layout_id);
                         recordLayout(layout_id,mB.sourceid);
                         try {
                             Timeline.layout_fetched=fdjtTime();
-                            return restore_layout(content,layout_id);}
+                            return restore_layout(saved_layout,layout_id);}
                         catch (ex) {
                             fdjtLog("Layout restore error: %o",ex);
                             request_layout();}})
@@ -39609,7 +39372,7 @@ metaBook.Paginate=
             else request_layout();}
         metaBook.Paginate=Paginate;
 
-        CodexLayout.prototype.onresize=function layoutOnResize(){
+        Codex.prototype.onresize=function layoutOnResize(){
             if (mB.bypage) mB.Paginate("resize");
             else fdjt.DOM.adjustFonts(mB.content);};
         
@@ -39633,19 +39396,12 @@ metaBook.Paginate=
                         else mB.Paginate("config");}}
                 else {
                     // If you've already paginated, revert
-                    if (mB.layout) {
-                        mB.layout.Revert();
-                        mB.layout=false;}
-                    else if (((mB.layout)&&(!(mB.layout.done)))) {
+                    if (((mB.layout)&&(!(mB.layout.done)))) {
                         if (mB.layout.timer) {
                             clearTimeout(mB.layout.timer);
                             mB.layout.timer=false;}
-                        mB.layout.Revert();
                         mB.layout=false;}
                     mB.bypage=false;
-                    if (mB.layout) {
-                        mB.layout.Revert();
-                        mB.layout=false;}
                     dropClass(document.body,"_BYPAGE");
                     addClass(document.body,"_SCROLL");
                     fdjt.DOM.adjustFonts(mB.content);}});
@@ -39691,7 +39447,7 @@ metaBook.Paginate=
             var page=$ID("CODEXPAGE");
             var left=page.style.left, right=page.style.right;
             var docref=mB.docref, sourceid=mB.sourceid;
-            var sourcehash=fdjt.CodexLayout.sourcehash;
+            var sourcehash=fdjt.Codex.sourcehash;
             page.style.left=""; page.style.right="";
             if (!(width))
                 width=getGeometry(page,false,true).width;
@@ -39732,11 +39488,11 @@ metaBook.Paginate=
                 var i=0, lim=layouts.length; while (i<lim) {
                     var layout=layouts[i++];
                     fdjtLog("Dropping layout %s",layout);
-                    CodexLayout.dropLayout(layout);}
+                    Codex.dropLayout(layout);}
                 fdjtState.dropLocal("mB("+source_id+").layouts");}
             else {
-                CodexLayout.clearLayouts();
-                CodexLayout.clearAll();
+                Codex.clearLayouts();
+                Codex.clearAll();
                 fdjtState.dropLocal(/^mB.layouts\(/g);}}
         metaBook.clearLayouts=clearLayouts;
 
@@ -39752,7 +39508,7 @@ metaBook.Paginate=
             var sourceid=mB.sourceid;
             var justify=mB.justify;
             var spacing=mB.linespacing;
-            var sourcehash=fdjt.CodexLayout.sourcehash;
+            var sourcehash=fdjt.Codex.sourcehash;
             var layout_id=fdjtString(
                 "%s%dx%d-%s-%s%s%s%s%s",
                 ((docref)?(docref+":"):("")),
@@ -39866,7 +39622,7 @@ metaBook.Paginate=
                     var i=0, lim=layouts.length; while (i<lim) {
                         var cacheid=layouts[i++];
                         if (cacheid.search(pat)>0)
-                            CodexLayout.dropLayout(cacheid);
+                            Codex.dropLayout(cacheid);
                         else kept.push(cacheid);}}
                 if (kept.length)
                     fdjtState.setLocal("fdjtmetaBook.layouts",kept);
@@ -39942,7 +39698,7 @@ metaBook.Paginate=
             args.dontsave=fdjt.DOM.Selector(".glossmark");
             
             return args;}
-        CodexLayout.getLayoutArgs=getLayoutArgs;
+        Codex.getLayoutArgs=getLayoutArgs;
 
         function sizeCodexPage(){
             var page=mB.page, geom=getGeometry(page);
@@ -41509,11 +41265,6 @@ metaBook.HTML.messages=
 /*   generated from the file "metabook/html/cover.html" */
 
 metaBook.HTML.cover=
-    "<div id=\"METABOOKCOVERMESSAGE\" class=\"controls\">\n"+
-    "  <div id=\"METABOOKOPENCOVER\">\n"+
-    "    <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span> to Open\n"+
-    "  </div>\n"+
-    "</div>\n"+
     "<div id=\"METABOOKCOVERPAGE\" class=\"flap\"\n"+
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto; overflow: hidden;\">\n"+
     "  <img src=\"{{coverimage|}}\" alt=\"{{covertext|}}\"\n"+
@@ -41555,6 +41306,15 @@ metaBook.HTML.cover=
     "     style=\"position: absolute; top: 75px; left: 50px; right: 50px; width: auto; bottom: 100px; height: auto;\">\n"+
     "  <iframe name=\"BOOKHUBLOGIN\" id=\"BOOKHUBLOGIN\" frameborder=\"0\" scrolling=\"auto\"></iframe>\n"+
     "</div>\n"+
+    "<div id=\"METABOOKCOVERMESSAGE\" class=\"controls\">\n"+
+    "  <div id=\"METABOOKOPENCOVER\">\n"+
+    "    <span class=\"fortouch\">Tap</span><span class=\"notouch\">Click</span> to Open\n"+
+    "  </div>\n"+
+    "  <div id=\"METABOOKCOVERLAYOUT\" class=\"fdjtprogress metabooklayoutprogress\">\n"+
+    "    <div class=\"indicator\"></div>\n"+
+    "    <div class=\"message\"></div>\n"+
+    "  </div>\n"+
+    "</div>\n"+
     "<div id=\"METABOOKCOVERCONTROLS\" class=\"adjustfonts\" \n"+
     "     style=\"position: absolute; bottom: 40px; left: 50px; right: 50px; width: auto; height: 60px; top: auto; font-size: 0.8em; font-size: 1.5rem; font-size: 3vw;\">\n"+
     "  <span class=\"control\" data-mode=\"coverpage\" title=\"see the cover\"\n"+
@@ -41573,7 +41333,7 @@ metaBook.HTML.cover=
     "        tabindex=\"4\">\n"+
     "    About</span>\n"+
     "  <span class=\"control\" data-mode=\"layers\"\n"+
-    "        title=\"manage added layers of glosses for your sBook\"\n"+
+    "        title=\"manage added layers of glosses for your book\"\n"+
     "        tabindex=\"5\">\n"+
     "    Layers</span>\n"+
     "  <span class=\"control\" data-mode=\"login\"\n"+
@@ -41895,26 +41655,26 @@ metaBook.HTML.settings=
 /*   generated from the file "metabook/html/layoutwait.html" */
 
 metaBook.HTML.layoutwait=
-    "<div id=\"METABOOKLAYOUTMESSAGE\" class=\"fdjtprogress\">\n"+
+    "<div id=\"METABOOKLAYOUTMESSAGE\" class=\"fdjtprogress metabooklayoutprogress\">\n"+
     "  <div class=\"indicator\"></div>\n"+
     "  <div class=\"message\"></div>\n"+
     "</div>\n"+
     "";
 // FDJT build information
-fdjt.revision='1.5-1603-g09af08a';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Aug 5 17:31:43 EDT 2016';
-fdjt.builduuid='E45DA0FC-BC24-467A-9226-01226044E143';
+fdjt.revision='1.5-1609-g7a1f10e';
+fdjt.buildhost='moby';
+fdjt.buildtime='Tue Jan 23 09:33:29 EST 2018';
+fdjt.builduuid='cf1b03d4-ac7f-4c56-af26-dcce4140f745';
 
-fdjt.CodexLayout.sourcehash='38EDCF851CB9BD5A486EA44042B5E1D61CF35AE4';
+fdjt.Codex.sourcehash='';
 
 
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
-metaBook.version='v0.8-408-g0bfab98';
-metaBook.buildid='CABDD1C2-3332-4F34-BA1C-E3E37C141E82';
-metaBook.buildtime='Sun Aug  7 18:47:10 EDT 2016';
-metaBook.buildhost='Shiny';
+metaBook.version='v0.8-419-g37349d20';
+metaBook.buildid='11353fdf-ac2e-4370-8af9-6654808fe30b';
+metaBook.buildtime='Fri Mar 30 11:31:59 EDT 2018';
+metaBook.buildhost='moby';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
     metaBook.appInit();
@@ -41930,4 +41690,4 @@ if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {
    ;;;  indent-tabs-mode: nil ***
    ;;;  End: ***
 */
-fdjt.CodexLayout.sourcehash='38EDCF851CB9BD5A486EA44042B5E1D61CF35AE4';
+fdjt.Codex.sourcehash='E9E5548351F583E1ED0A65FE641014F58F9E83D5';

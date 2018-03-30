@@ -60,7 +60,7 @@ var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
 (function() {
     "use strict";
     /* For jshint */
-    /* global global: false, window: false, 
+    /* global global: false, window: false,
               module: false, setTimeout: false */
     var root;
 
@@ -162,7 +162,7 @@ var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
         }
         this._deferreds = null;
     }
-    
+
     function Handler(onFulfilled, onRejected, resolve, reject){
         this.onFulfilled =
             typeof onFulfilled === 'function' ? onFulfilled : null;
@@ -210,7 +210,7 @@ var fdjt_versions=((typeof fdjt_versions === "undefined")?([]):
                                    resolve, reject));
             });
         };
-    
+
     PromiseFillIn.all = function () {
         var args = Array.prototype.slice.call(
             arguments.length === 1 && isArray(arguments[0]) ?
@@ -16888,8 +16888,8 @@ fdjt.ScrollEver=fdjt.UI.ScrollEver=(function(){
    ;;;  End: ***
 */
 // FDJT build information
-fdjt.revision='1.5-1603-g09af08a';
-fdjt.buildhost='Shiny';
-fdjt.buildtime='Fri Aug 5 17:31:43 EDT 2016';
-fdjt.builduuid='E45DA0FC-BC24-467A-9226-01226044E143';
+fdjt.revision='1.5-1609-g7a1f10e';
+fdjt.buildhost='moby';
+fdjt.buildtime='Tue Jan 23 09:33:29 EST 2018';
+fdjt.builduuid='cf1b03d4-ac7f-4c56-af26-dcce4140f745';
 

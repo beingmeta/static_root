@@ -85,7 +85,7 @@ div.fdjtclearfloats {
 /* We use color, rather than bolding for inline(ish)
    checkspans to avoid distorting layouts too much. */
 span.checkspan, th.checkspan, td.checkspan,
-.inlinecheckspan, .flatcheckspan {
+.inlinecheckspan, .flatcheckspan, .checkspan.flatcheckspan {
     color: rgba(0,0,0,0.7);}
 
 .checkspan .alt { font-size: inherit; color: black;}
@@ -125,7 +125,8 @@ span.checkspan.longspan, a.checkspan.longspan {
 span.checkspan.ischecked,
 th.checkspan.ischecked, th.checkspan[checked],
 td.checkspan.ischecked, td.checkspan[checked],
-.inlinecheckspan.ischecked, .flatcheckspan.ischecked {
+.inlinecheckspan.ischecked, .flatcheckspan.ischecked,
+.checkspan.inlinecheckspan.ischecked, .checkspan.flatcheckspan.ischecked  {
     font-weight: normal; color: black;}
 
 .checkspan[checked] .alt { font-size: 80%; font-weight: normal;}
@@ -1936,11 +1937,10 @@ span.dterm {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -2224,18 +2224,18 @@ body.hudup .mbtarget, body.mbSHRINK .mbtarget {
 body.hudup .mbtarget.mbnewtarget {
     background-color: inherit; }
 .mbnewtarget {color: blue; }
-div.sbooksection.mbnewtarget, section.mbnewtarget,
-div.sbooksection.mbnewtarget > div, section.mbnewtarget > div,
-div.sbooksection.mbnewtarget > table, section.mbnewtarget > table,
-div.sbooksection.mbnewtarget > ul, section.mbnewtarget > ul,
-div.sbooksection.mbnewtarget > p, section.mbnewtarget > p {
+div.booksection.mbnewtarget, section.mbnewtarget,
+div.booksection.mbnewtarget > div, section.mbnewtarget > div,
+div.booksection.mbnewtarget > table, section.mbnewtarget > table,
+div.booksection.mbnewtarget > ul, section.mbnewtarget > ul,
+div.booksection.mbnewtarget > p, section.mbnewtarget > p {
     color: inherit;}
 section.mbnewtarget > div:first-child,
 section.mbnewtarget > p:first-child,
 section.mbnewtarget > ul:first-child, 
-div.sbooksection.mbnewtarget > div:first-child,
-div.sbooksection.mbnewtarget > p:first-child,
-div.sbooksection.mbnewtarget > ul:first-child  {
+div.booksection.mbnewtarget > div:first-child,
+div.booksection.mbnewtarget > p:first-child,
+div.booksection.mbnewtarget > ul:first-child  {
     color: blue;}
 
 /* Don't color the body
@@ -2344,7 +2344,7 @@ div.codexpage .sbookpage .sbookinfo {
 .gutenberg {opacity: 0.5;}
 html._MOUSE .gutenberg:hover {opacity: 1.0;}
 
-.sbookfullpage, .sbookcover, .sbooktitlepage, .sbookpage, .sbookstandalone {
+.sbookfullpage, .sbookcover, .sbooktitlepage, .sbookpage {
     margin-left: auto; margin-right: auto;
     page-break-before: always;
     page-break-after: always;
@@ -2540,14 +2540,6 @@ div.startupmessage.running {
 
 /* Logotypes */
 
-.sbooks, .spresso {
-    font-family: Times,serif;}
-.sbooks em, .sbooks i, .spresso em, .spresso i {
-    font-family: Arial,Verdana,Helvetica,sans-serif;
-    font-style: oblique;
-    font-variant: normal;
-    color: blue;}
-
 .beingmeta, .bmlogo { }
 span.bmm {
     color: rgb(255,0,0);}
@@ -2623,8 +2615,7 @@ div.fdjtdialog.savegloss.closing button[value="DISCARD"] {
 /* Media rules */
 
 @media (max-width: 500px) {
- .sbookfullpage, .sbookcover, .sbooktitlepage,
- .sbookpage, .sbookstandalone, .codexfullpage {
+.codexfullpage {
    page-break-inside: auto;}}
 
 
@@ -2637,11 +2628,10 @@ div.fdjtdialog.savegloss.closing button[value="DISCARD"] {
 
  /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -2711,6 +2701,7 @@ body {
     background-color: transparent; 
     text-decoration: none;}
 #METABOOKCOVER a { color: lightblue; }
+#METABOOKCOVER #METABOOKTITLE a { color: blue; }
 
 body.hudup #METABOOKFRAME, body.mbCOVER #METABOOKFRAME,
 body.mbSKIMMING #METABOOKFRAME, body.openhud #METABOOKFRAME,
@@ -3055,7 +3046,7 @@ div#MBLAYOUTWAIT div.fdjtprogress {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -3278,11 +3269,10 @@ body.hudup #METABOOKBREVET, .mbcover #METABOOKBREVET { display: none;}
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -3344,11 +3334,10 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -3374,6 +3363,22 @@ html._DYSLEXICAL #METABOOKBODY li, .dyslexical li {
 */
 
 @charset "UTF-8";
+
+/* General cover layout is: 
+    [Flap          ]
+    [Message Box   ]
+    [Tab Controls  ]
+    [User/Login bar]
+
+  The user bar is shorter and tighter (at the top and bottom).
+  The tab controls are bigger with more space at the top and bottom.
+  The message box is also a little bigger and has more space around it
+  The flap takes up the rest of the space.
+
+  In the default configuration:
+   The flap is 80%, the user bar is 4%, and the tab controls and message box are 8% each.
+*/
+
 
 #METABOOKCOVER {font-size: 2em;}
 
@@ -3405,13 +3410,14 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
 #METABOOKHUD.openglossmark, body.mbSHOWHELP #METABOOKHUD {
     z-index: 100; }
 
-#METABOOKCOVER .fdjtfontwrapper {}
+#METABOOKCOVER .fdjtfontwrapper {
+    vertical-align: top;}
 
 #METABOOKCOVER div.flap {
-    position: absolute;
-    top: 40px; top: 6vh; bottom: 120px; left: 10%; right: 10%;
     box-sizing: border-box; padding: 1em; padding-top: 2px;
-    height: auto; width: auto; overflow: hidden;
+    height: 80%; width: auto; max-width: 50rem; overflow: hidden;
+    margin-left: auto; margin-right: auto;
+    overflow: hidden;
     z-index: -50; opacity: 0.0;
     border-radius: 1em; border: solid black 3px; 
     display: none;}
@@ -3425,11 +3431,10 @@ body.hudup #METABOOKHUD, #METABOOKHUD.openhead, #METABOOKHUD.openheart,
     height: 100%; width: 100%;}
 
 #METABOOKCOVERMESSAGE {
-    position: absolute; 
-    width: 100%; left: 0; right: 0; border: 0; 
-    top: 0; height: 40px; height: 6vh; bottom: auto;
+    margin-left: 0; margin-right: 0;
+    width: auto; height: 1.2em; 
     font-size: 36px; font-size: 5vh;
-    font-variant: small-caps; white-space: nowrap;
+    white-space: nowrap;
     text-align: center; overflow: visible; 
     background-color: black; 
     cursor: pointer; display: block; opacity: 1.0;
@@ -3447,10 +3452,10 @@ html._NOUSER #METABOOKCOVERCONTROLS {
 
 #METABOOKCOVERCONTROLS {
     box-sizing: border-box;
-    position: absolute; height: 60px; bottom: 40px; top: auto;
-    width: 100%; left: 0; right: 0; border-width: 0;
+    margin-left: 0; margin-right: 0; border-width: 0;
     padding-left: 1em; padding-right: 1em;
     margin-top: 0.25ex; margin-bottom: 0.25ex;
+    width: 100%; height: 1.2em; font-size: 36px; font-size: 6vh;
     line-height: 1.25;
     opacity: 1; overflow: hidden; z-index: 50; 
     display: block;}
@@ -3499,7 +3504,6 @@ html._USER #METABOOKCOVER div.loginbox {
     height: 30px; text-align: center;
     background: gray;
     background: linear-gradient(to top,gray,black);}
-#METABOOKCOVER div.loginmessage span.sbooks em { color: cornflowerblue; }
 
 #METABOOKCOVER div.loginbox form {
     height: 40px; text-align: right; vertical-align: top;
@@ -3536,13 +3540,8 @@ div.loginbox form > span, div.loginbox form > select {
 #METABOOKCOVER div.userbox a:visited,
 #METABOOKCOVER div.userbox a {
     color: silver; background-color: transparent;}
-#METABOOKCOVER div.userbox a.sbookslogo em { color: cornflowerblue; }
-#METABOOKCOVER div.userbox span.sbooks em { color: silver;}
-#METABOOKCOVER div.userbox a.sbooks em { color: steelblue;}
 html._USER #METABOOKCOVER div.userbox {
     height: 40px;}
-
-#METABOOKCOVER div.userbox a.sbookslogo { display: none;}
 
 #METABOOKCOVER.coverpage div.flap#METABOOKCOVERPAGE,
 #METABOOKCOVER.bookcover div.flap#METABOOKCOVERPAGE,
@@ -3553,7 +3552,7 @@ html._USER #METABOOKCOVER div.userbox {
 #METABOOKCOVER.blurb div.flap#METABOOKBLURB,
 #METABOOKCOVER.aboutbook div.flap#METABOOKABOUTBOOKHOLDER,
 #METABOOKCOVER.help div.flap#METABOOKAPPHELP,
-#METABOOKCOVER.aboutsbooks div.flap#METABOOKABOUTSBOOKS,
+#METABOOKCOVER.aboutbookhub div.flap#METABOOKABOUTBOOKHUB,
 #METABOOKCOVER.console div.flap#METABOOKCONSOLE,
 #METABOOKCOVER.settings div.flap#METABOOKSETTINGS, 
 #METABOOKCOVER.layers div.flap#METABOOKLAYERS,
@@ -3577,7 +3576,7 @@ html._USER #METABOOKCOVER div.userbox {
     display: inline;
     color: gold;}
 
-.control[data-mode='console'], .control[data-mode='aboutsbooks'],
+.control[data-mode='console'], .control[data-mode='aboutbookhub'],
 .control[data-mode='aboutbook'] {
     display: none;}
 html._SHOWCONSOLE span.control[data-mode='console'] { display: inline;}
@@ -3611,7 +3610,7 @@ html._SHOWLOGIN._USER #METABOOKCOVER .control[data-mode='login'] {
 #METABOOKAPPHELP h1, #METABOOKCREDITS h1, #METABOOKBLURB h1 {
     font-size: 160%;} 
 
-/* The sBooks app for managing layers */
+/* The bookhub app for managing layers */
 
 #METABOOKCOVER div.flap#METABOOKLAYERS,
 #METABOOKCOVER div.flap#METABOOKLOGIN {
@@ -3636,21 +3635,21 @@ div.flap#METABOOKCOVERPAGE { padding: 0; }
     padding-left: 1.5em; padding-left: 3vw;
     padding-right: 1.5em; padding-right: 3vw;}
 
-#METABOOKBLURB, #ABOUTSBOOKS {
+#METABOOKBLURB, #ABOUTBOOKHUB {
     background-color: ivory;
     font-size: 80%;}
 #METABOOKCONSOLE, #METABOOKSETTINGS {
     background-color: ivory;
     -webkit-overflow-scrolling: touch;
     overflow: auto;}
-#METABOOKBLURB h1, #ABOUTSBOOKS h1, #METABOOKBLURB h2, #ABOUTSBOOKS h2 {
+#METABOOKBLURB h1, #ABOUTBOOKHUB h1, #METABOOKBLURB h2, #ABOUTBOOKHUB h2 {
     text-align: left;
     font-size: 120%;}
 #METABOOKBLURB > div {
     max-width: 40em; margin-left: auto; margin-right: auto;}
-#METABOOKBLURB p .floatright, #ABOUTSBOOKS p .floatright {
+#METABOOKBLURB p .floatright, #ABOUTBOOKHUB p .floatright {
     max-width: 30%; float: right;}
-#METABOOKBLURB p .floatright img, #ABOUTSBOOKS p .floatright img {
+#METABOOKBLURB p .floatright img, #ABOUTBOOKHUB p .floatright img {
     max-width: 100%; height: auto; }
 html._SHOWCONSOLE .control[alt='Console'] {display: none;}
 
@@ -3662,6 +3661,13 @@ html._SHOWCONSOLE .control[alt='Console'] {display: none;}
     overflow: hidden;}
 
 .metabooktitlepage { text-align: center;}
+.metabooktitlepage .title { font-weight: 500;}
+.metabooktitlepage .title .subtitle { font-weight: normal;}
+.metabooktitlepage .title, .metabooktitlepage .credits { 
+    margin-bottom: 1em;}
+.metabooktitlepage .title .subtitle, 
+.metabooktitlepage .credits .subcredits { 
+    font-size: 75%;}
 .metabookbibpage { text-align: left;}
 
 #METABOOKSETTINGS {
@@ -3706,23 +3712,21 @@ html._TOUCH #METABOOKCONSOLELOG {
 #METABOOKCOVERMESSAGE {
     text-align: center;}
 #METABOOKCOVERMESSAGE div.metabookstatus { display: none;}
-#METABOOKCOVER > .sbookslogo, #METABOOKCOVER > .publisherlogo {
+#METABOOKCOVER > .publisherlogo {
     position: absolute; top: 0; z-index: 200;
     color: silver; font-size: 2em;
     display: none; }
-#METABOOKCOVER > .sbookslogo {left: 0;}
 #METABOOKCOVER > .publisherlogo {right: 0;}
 
-#METABOOKCOVER > .sbookslogo em {color: steelblue;}
 
-#METABOOKCOVERMESSAGE div.message {
+#METABOOKCOVERMESSAGE > div.message {
     color: silver; font-size: 24px; font-size: 2rem;
     padding-left: 0; padding-right: 0;
     padding-top: 0;
     box-sizing: border-box;
     width: 100%;}
-#METABOOKCOVERMESSAGE div.message {display: none;}
-#METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
+#METABOOKCOVERMESSAGE > div {display: none;}
+#METABOOKCOVERMESSAGE > div.message#METABOOKREADYMESSAGE {
     box-sizing: border-box;
     margin-top: 0.2ex; width: 7em;
     margin-left: auto; margin-right: auto;
@@ -3730,13 +3734,11 @@ html._TOUCH #METABOOKCONSOLELOG {
     background-color: gray; color: white;
     font-variant: small-caps; font-weight: bold;
     border-radius: 1ex; }
-body.mbLAYOUT #METABOOKCOVERMESSAGE div.metabookstatus#METABOOKLAYOUTMESSAGE,
-body.mbLAYOUT #METABOOKCOVERMESSAGE div#METABOOKLAYOUTMESSAGE div.message,
-body #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE,
+body.mbLAYOUT #METABOOKCOVERMESSAGE div.metabooklayoutprogress,
 body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKBUSYMESSAGE {
     display: block;}
-body.mbLAYOUT #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE,
-body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
+body.mbLAYOUT #METABOOKCOVERMESSAGE div.message#METABOOKOPENCOVER,
+body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKOPENCOVER {
     display: none;}
 
 #METABOOKREADYMESSAGE { padding-bottom: 1ex; }
@@ -3820,11 +3822,10 @@ body.mbBUSY #METABOOKCOVERMESSAGE div.message#METABOOKREADYMESSAGE {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -4079,7 +4080,7 @@ div.fdjtdialog.fdjtconfirm.mbsettings div.message {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -4685,31 +4686,31 @@ body.mbINDEXING #METABOOKHUD.searchresults #METABOOKINDEXMESSAGE {
 #METABOOKHUD div.tabcontent img.closebutton {
     float: right; max-width: 12%; padding-right: 1ex;}
 
-form.sbooksapp {
+form.bookhubapp {
     margin-top: 1em; max-width: 40em;
     margin-left: 10%; margin-right: 5%;}
-form.sbooksapp button {}
-form.sbooksapp table th {
+form.bookhubapp button {}
+form.bookhubapp table th {
     white-space: nowrap;}
-form.sbooksapp table td.text:first-line {
+form.bookhubapp table td.text:first-line {
     font-weight: bold;}
-form.sbooksapp button[NAME="AUTHORITY"] {
+form.bookhubapp button[NAME="AUTHORITY"] {
     padding: 3px; border-radius: 2px;
     min-height: 50px; max-width: 50px;}
-form.sbooksapp button[NAME="AUTHORITY"] img {
+form.bookhubapp button[NAME="AUTHORITY"] img {
     height: 40px; width: 40px;}
 
-form.sbooksapp { clear: both; padding-top: 1ex;}
-form.sbooksapp table th { padding-right: 1ex;}
-form.sbooksapp table td.text { padding-bottom: 1ex;}
-form.sbooksapp table td.text { padding-bottom: 1ex;}
+form.bookhubapp { clear: both; padding-top: 1ex;}
+form.bookhubapp table th { padding-right: 1ex;}
+form.bookhubapp table td.text { padding-bottom: 1ex;}
+form.bookhubapp table td.text { padding-bottom: 1ex;}
 
 /* User, no user rules */
 
 html._NOUSER ._USER { display: none;}
 html._USER ._NOUSER { display: none;}
 
-html._NOUSER form.sbooksapp { padding-top: 0;}
+html._NOUSER form.bookhubapp { padding-top: 0;}
 
 .mbwithuser, .mbnouser, .mbdisconn, .mbwithconn { display: none; }
 
@@ -4865,7 +4866,7 @@ body.hudup img.metabookpagebutton {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -5127,11 +5128,10 @@ body._FULLHEIGHT #METABOOKHUD #METABOOKFOOT #METABOOKSHOWTEXT > span > span {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -5478,11 +5478,10 @@ div.metabooknotebody a.mbackref { float: left; margin-left: -3em;}
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc.
+/* Copyright (C) 2009-2017 beingmeta, inc.
    This file implements a Javascript/DHTML web application for reading
-    large structured documents (sBooks).
+    large structured documents.
 
-   For more information on sbooks, visit www.sbooks.net
    For more information on knodules, visit www.knodules.net
    For more information about beingmeta, visit www.beingmeta.com
 
@@ -5932,7 +5931,7 @@ div#METABOOKHELP {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6045,7 +6044,7 @@ div.metabookslice div.mbcard.fdjtstartofpage div.mbcard_tochead {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6168,7 +6167,7 @@ body.hudup #METABOOKSKIMMER .mbtoc {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6359,7 +6358,7 @@ span.completion.sectname.cue {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6545,7 +6544,7 @@ body.hudup #METABOOKHUD #METABOOKSKIMMER img.glosspic {  height: inherit; }
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6752,7 +6751,7 @@ html._MOUSE .mbcard .tool img:hover {opacity: 0.8;}
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -6916,7 +6915,7 @@ body._ANIMATE .qtags {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7438,8 +7437,6 @@ html._TOUCH .haveupload #METABOOKATTACHFILE span.mbmessage {
 
 #METABOOKGLOSSATTACH tr.fileokay {
     color: black; font-size: 0.9em; font-style: italic; color: red;}
-#METABOOKGLOSSATTACH tr.fileokay span.sbooksname { color: black; }
-#METABOOKGLOSSATTACH tr.fileokay span.sbooksname em { color: blue; }
 #METABOOKGLOSSATTACH tr.fileokay a { color: blue; text-decoration: underline;}
 #METABOOKGLOSSATTACH tr.fileokay.ischecked {
     color: green; font-weight: normal;}
@@ -7625,7 +7622,7 @@ div.metabookglossform.submitclose form > div.messageoverlay {
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7638,10 +7635,10 @@ div.metabookglossform.submitclose form > div.messageoverlay {
 
 #METABOOKHUD #METABOOKHEARTBODY .tabcontent {
     overflow-y: hidden; overflow-x: hidden;}
-#METABOOKHUD.sbooksapp #METABOOKHEARTBODY .tabcontent#BOOKHUBAPP,
+#METABOOKHUD.bookhubapp #METABOOKHEARTBODY .tabcontent#BOOKHUBAPP,
 #METABOOKHUD.login #METABOOKHEARTBODY .tabcontent#METABOOKLOGIN {
     overflow: visible;}
-#METABOOKHUD.sbooksapp #METABOOKHEARTBODY .tabcontent#BOOKHUBAPP {
+#METABOOKHUD.bookhubapp #METABOOKHEARTBODY .tabcontent#BOOKHUBAPP {
     width: 100%; height: 100%; border: 0; margin: 0; padding: 0;}
 #METABOOKHUD.login #METABOOKHEARTBODY .tabcontent#METABOOKLOGIN {
     width: 100%; border: 0; margin: 0; padding: 0;}
@@ -7681,7 +7678,7 @@ html._MOUSE #METABOOKHEARTBODY .flyleafplate a:hover {
 */
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
@@ -7779,7 +7776,7 @@ div.metabookhelp .result span { display: none; }
 
 /* -*- Mode: CSS; character-encoding: utf-8; -*- */
 
-/* Copyright (C) 2009-2015 beingmeta, inc. */
+/* Copyright (C) 2009-2017 beingmeta, inc. */
 
 @charset "UTF-8";
 
