@@ -1,8 +1,15 @@
 ;;; -*- Mode: Scheme; -*-
 
 (use-module '{fdweb xhtml texttools optimize samplefns logger})
+(use-module 'bugjar/html)
 
-(config! 'traceweb #f)
+(config! 'traceweb #t)
+(config! 'updatemodules 5.0)
+
+(define (errorpage (reqerror #f))
+  (when reqerror
+    (req/set! 'content-type "text/html; charset: utf-8;")
+    (exception->html reqerror)))
 
 (define (main (name) (cookiename #f) (cookieval "set")
 	      (dropcookie {}) (filedata #f)
@@ -169,5 +176,8 @@
 (define (showname (name #f))
   (span ((class "showname")) name))
 
-(optimize!)
+;; If we optimize this file, the automatic updates of component
+;; modules don't make a difference.
+(when (config 'OPTIMIZE:MAIN #f) (optimize!))
 
+(config! 'webmain main)
