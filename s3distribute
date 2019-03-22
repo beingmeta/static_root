@@ -85,6 +85,12 @@
   (push-web "fonts/")
   (push-web "dist/")
 
+  (push-top)
+
+  (do-choices (local graphics) (push-graphics local))
+  (do-choices (local fonts) (push-fonts local)))
+
+(define (push-top)
   (let ((js (filedata "dist/metabook.min.js.gz"))
 	(css (filedata "dist/metabook.post.css.gz")))
     (s3/put (s3/mkpath root apps.js) js "text/javascript"
@@ -94,18 +100,18 @@
 	    #[errs #t])
     (s3/put (s3/mkpath root "metabook.js.map")
 	    (filestring "dist/metabook.min.js.map") 
-	    "application/json" pubheaders #t)
-    (s3/put (s3/mkpath root apps.css) css "text/css"
-	    '("x-amz-acl: public-read"
-	      "content-encoding\: gzip"
-	      "X-SourceMap\: metabook.css.map")
+	    "application/json"
+	    pubheaders
 	    #[errs #t])
+    (%wc s3/put (s3/mkpath root apps.css) css "text/css"
+	 '("x-amz-acl: public-read"
+	   "content-encoding\: gzip"
+	   "X-SourceMap\: metabook.css.map")
+	 #[errs #t])
     (s3/put (s3/mkpath root "metabook.css.map")
 	    (filestring "dist/metabook.post.css.map") 
 	    "application/json" pubheaders
-	    #[errs #t]))
-  (do-choices (local graphics) (push-graphics local))
-  (do-choices (local fonts) (push-fonts local)))
+	    #[errs #t])))
 
 (define (push)
   (push-web "fdjt/")
@@ -115,26 +121,8 @@
   (push-web "fonts/")
   (push-web "dist/")
 
-  (let ((js (filedata "dist/metabook.min.js.gz"))
-	(css (filedata "dist/metabook.post.css.gz")))
-    (s3/put (s3/mkpath root apps.js) js "text/javascript"
-	    '("x-amz-acl: public-read"
-	      "content-encoding\: gzip"
-	      "X-SourceMap\: metabook.js.map")
-	    #[errs #t])
-    (s3/put (s3/mkpath root "metabook.js.map")
-	    (filestring "dist/metabook.min.js.map") 
-	    "application/json" pubheaders
-	    #[errs #t])
-    (s3/put (s3/mkpath root apps.css) css "text/css"
-	    '("x-amz-acl: public-read"
-	      "content-encoding\: gzip"
-	      "X-SourceMap\: metabook.post.css.map")
-	    #[errs #t])
-    (s3/put (s3/mkpath root "metabook.post.css.map")
-	    (filestring "dist/metabook.post.css.map") 
-	    "application/json" pubheaders
-	    #[errs #t]))
+  (push-top)
+
   (do-choices (local graphics) (push-graphics local))
   (do-choices (local fonts) (push-fonts local)))
 

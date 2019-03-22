@@ -41663,8 +41663,8 @@ metaBook.HTML.layoutwait=
 // FDJT build information
 fdjt.revision='1.5-1609-g7a1f10e';
 fdjt.buildhost='moby';
-fdjt.buildtime='Tue Jan 23 09:33:29 EST 2018';
-fdjt.builduuid='cf1b03d4-ac7f-4c56-af26-dcce4140f745';
+fdjt.buildtime='Fri Mar 22 18:50:30 EDT 2019';
+fdjt.builduuid='34776e4e-ac9e-4951-bb31-64a1ca255eb7';
 
 fdjt.Codex.sourcehash='';
 
@@ -41672,8 +41672,8 @@ fdjt.Codex.sourcehash='';
 Knodule.version='v0.8-160-ga7c7916';
 // sBooks metaBook build information
 metaBook.version='v0.8-419-g37349d20';
-metaBook.buildid='11353fdf-ac2e-4370-8af9-6654808fe30b';
-metaBook.buildtime='Fri Mar 30 11:31:59 EDT 2018';
+metaBook.buildid='3e2cb35c-4db7-497e-b2b2-3547a271545e';
+metaBook.buildtime='Fri Mar 22 19:07:14 EDT 2019';
 metaBook.buildhost='moby';
 
 if ((typeof _metabook_suppressed === "undefined")||(!(_metabook_suppressed))) {

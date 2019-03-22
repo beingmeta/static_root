@@ -32,7 +32,7 @@ CLEANGRAPHICS=rm -f *.svgz *.png *.navicon *.sqlogo *.hudbutton *.docicon \
 		*.glossbutton *.textbg *.skimbutton *.typeicon *.sqicon \
 		*.rct *.ico
 SVN=svn --non-interactive --trust-server-cert
-POSTCSSOPTS=-c postcss.config.json
+POSTCSSOPTS=-u postcss-import -u postcss-url -u postcss-cssnext -u cssnano
 
 FDJT_CSS=fdjt/fdjt.css fdjt/normalize.css
 KNODULES_FILES=knodules/knodules.js knodules/tags.js \
@@ -352,9 +352,9 @@ metabook_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	done
 metabook.post.css: metabook_bundle.css makefile postcss.config.json
 	@echo Building ./metabook.post.css
-	@$(POSTCSS) -c postcss.config.json --map file \
+	$(POSTCSS) ${POSTCSSOPTS} -m \
 		    -o metabook.post.css \
-	            metabook_bundle.css
+	            < metabook_bundle.css
 
 showsomeclass_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	echo "/* showsomeclass CSS bundle */" > metabook_bundle.css
@@ -363,9 +363,9 @@ showsomeclass_bundle.css: makefile $(METABOOK_CSS_BUNDLE)
 	done
 showsomeclass.css: showsomeclass_bundle.css makefile postcss.config.json
 	@echo Building ./showsomeclass.post.css
-	@$(POSTCSS) -c postcss.config.json --map file \
+	@$(POSTCSS) ${POSTCSSOPTS} \
 		    -o showsomeclass.post.css \
-	            showsomeclass_bundle.css
+	            < showsomeclass_bundle.css
 showsomeclass.js:
 	@cd showsomeclass; make ../showsomeclass.js
 
@@ -450,8 +450,8 @@ dist/fdjt.min.js: $(FDJT_FILES) $(FDJT_EXTRA) fdjt/buildstamp.js fdjt/fdjt.hints
 	@cp fdjt.min.js.map dist
 
 fdjt.css: fdjt/fdjt.css makefile postcss.config.json
-	@$(POSTCSS) -c postcss.config.json --map file \
-	            -o fdjt.css fdjt/fdjt.css
+	@$(POSTCSS) ${POSTCSSOPTS} \
+	            -o fdjt.css < fdjt/fdjt.css
 dist/fdjt.css: fdjt.css
 	@cp fdjt.css dist/fdjt.css
 

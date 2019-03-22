@@ -6,6 +6,8 @@
 (config! 'traceweb #t)
 (config! 'updatemodules 5.0)
 
+(define generate-error #f)
+
 (define (errorpage (reqerror #f))
   (when reqerror
     (req/set! 'content-type "text/html; charset: utf-8;")
@@ -15,7 +17,6 @@
 	      (dropcookie {}) (filedata #f)
 	      (start (timestamp))
 	      (profile #f))
-  ;; (+ 2 "two")
   (when profile (config! 'calltrack profile))
   (when (and cookiename (not (empty-string? cookiename))
 	     (not (overlaps? (downcase cookiename) (downcase dropcookie))))
@@ -79,6 +80,7 @@
 	  (p "Drop "
 	    (input TYPE "CHECKBOX" NAME "DROPCOOKIE" VALUE (first cookie))
 	    " " (first cookie) "=" (second cookie)))))
+    (if generate-error (+ 2 "two"))
     (h2 "FILEDATA")
     (when filedata)
     (form ((METHOD "POST") (enctype "multipart/form-data"))
@@ -139,7 +141,7 @@
   (table* ((class "fdjtdata"))
     (do-choices (key (getkeys table))
       (let ((val (get table key)))
-	(tr (th key)
+	(tr (th (if (symbol? key) key (write key)))
 	    (td (output-value val)))))))
 
 (defambda (output-value val)
